@@ -1,27 +1,27 @@
 {
-    "id": "A2574749",
-    "path": "~/git/software/nonprobsvy/R/control.R",
-    "project_path": "R/control.R",
+    "id": "AFC5DB8B",
+    "path": "~/git/software/nonprobsvy/R/nonprobMI.R",
+    "project_path": "R/nonprobMI.R",
     "type": "r_source",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1645027936357.0,
+    "created": 1645041186349.0,
     "source_on_save": false,
-    "relative_order": 3,
+    "relative_order": 6,
     "properties": {
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,0",
-        "scrollLine": "0"
+        "cursorPosition": "41,0",
+        "scrollLine": "29"
     },
     "folds": "",
-    "lastKnownWriteTime": 1645029324,
+    "lastKnownWriteTime": 1645041308,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1645029324606,
+    "last_content_update": 1645041308095,
     "read_only": false,
     "read_only_alternatives": []
 }
