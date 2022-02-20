@@ -12,12 +12,12 @@
 #' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param na.action
+#' @param na.action - a function which indicates what should happen when the data contain `NAs`.
 #' @param control.selection
 #' @param control.outcome
 #' @param control.inference
-#' @param start
-#' @param verbose
+#' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
+#' @param verbose - verbose, numeric
 #' @param contrasts
 #' @param model
 #' @param x
@@ -46,5 +46,7 @@ nonprob <- function(selection,
                     x = TRUE,
                     y = TRUE,
                     ...) {
+
+
 
 }
