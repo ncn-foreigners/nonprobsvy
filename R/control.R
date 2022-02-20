@@ -1,30 +1,29 @@
-#' infConro
-#
-#' selControl: control function for the selection equation in the nonprob function
-#
+#' controlSel
+#'
+#' control function for the selection equation in the nonprob function
+#' @param method estimation method
 #' @export
-selControl <- function(method = "glm.fit") {
+controlSel <- function(method = "glm.fit") {
 
 }
 
-#' outControl
-#
-#' outControl: control function for the outcome equation in the nonprob function
-#
+#' controlOut
+#'
+#' control function for the outcome equation in the nonprob function
+#' @param method estimation method
 #' @export
-
-
-outControl <- function(method = "glm.fit") {
+controlOut <- function(method = "glm.fit") {
 
 }
 
 
-#' infControl
-#
-#' infControl: control function for the inference method in the nonprob function
-#
+#' controlInf
+#'
+#' control function for the inference method in the nonprob function
+#' @param est.method estimation method
+#' @param var.method variance method
 #' @export
 
-infControl <- function(est.method, var.method) {
+controlInf <- function(est.method, var.method) {
 
 }

@@ -13,16 +13,16 @@
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na.action - a function which indicates what should happen when the data contain `NAs`.
-#' @param control.selection
-#' @param control.outcome
-#' @param control.inference
+#' @param control.selection a
+#' @param control.outcome a
+#' @param control.inference a
 #' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
 #' @param verbose - verbose, numeric
-#' @param contrasts
-#' @param model
-#' @param x
-#' @param y
-#' @param ...
+#' @param contrasts a
+#' @param model a
+#' @param x a
+#' @param y a
+#' @param ... a
 
 
 nonprob <- function(selection,
@@ -36,9 +36,9 @@ nonprob <- function(selection,
                     subset,
                     weights,
                     na.action,
-                    control.selection = selControl(),
-                    control.outcome = outControl(),
-                    control.inference = infControl(),
+                    control.selection = controlSel(),
+                    control.outcome = controlOut(),
+                    control.inference = controlInf(),
                     start = NULL,
                     verbose = 0L,
                     contrasts = NULL,

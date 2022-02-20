@@ -13,8 +13,8 @@ nonprobMI(
   subset,
   weights,
   na.action,
-  control.outcome = outControl(),
-  control.inference = infControl(),
+  control.outcome = controlOut(),
+  control.inference = controlInf(),
   start = NULL,
   verbose = 0L,
   contrasts = NULL,
@@ -36,6 +36,8 @@ nonprobMI(
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
+
+\item{...}{}
 
 \item{selection}{- `formula`, the selection (propensity) equation.}
 }

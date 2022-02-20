@@ -19,8 +19,8 @@
 #' @param x
 #' @param y
 #' @param ...
-
-
+#'
+#' @export
 nonprobMI <- function(outcome,
                       data,
                       svydesign,
@@ -28,8 +28,8 @@ nonprobMI <- function(outcome,
                       subset,
                       weights,
                       na.action,
-                      control.outcome = outControl(),
-                      control.inference = infControl(),
+                      control.outcome = controlOut(),
+                      control.inference = controlInf(),
                       start = NULL,
                       verbose = 0L,
                       contrasts = NULL,

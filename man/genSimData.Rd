@@ -3,7 +3,7 @@
 \name{genSimData}
 \alias{genSimData}
 \title{genSimData
-genSimData: generate simulated data according to Chen, Li & Wu (2019), section 5}
+generate simulated data according to Chen, Li & Wu (2020), section 5}
 \usage{
 genSimData(N = 10000, n = 1000)
 }
@@ -14,6 +14,7 @@ genSimData(N = 10000, n = 1000)
 }
 \value{
 \code{genSimData} returns a data.frame, with the following columns:
+\item{x0}{intercept}
 \item{x1}{the first variable based on z1}
 \item{x2}{the second variable based on z2 and x1}
 \item{x3}{the third variable based on z3 and x1 and x2}
@@ -26,7 +27,7 @@ genSimData(N = 10000, n = 1000)
 }
 \description{
 genSimData
-genSimData: generate simulated data according to Chen, Li & Wu (2019), section 5
+generate simulated data according to Chen, Li & Wu (2020), section 5
 }
 \examples{
 ## generate data with N=20000 and n=2000
@@ -37,5 +38,5 @@ genSimData(N=10000,n=9000)
 
 }
 \references{
-Chen, Y., Li, P., & Wu, C. (2019). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 0(0), 1–25. https://doi.org/10.1080/01621459.2019.1677241
+Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 115(532), 2011–2021. https://doi.org/10.1080/01621459.2019.1677241
 }

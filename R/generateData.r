@@ -5,6 +5,7 @@
 #' @param N \code{integer}, population size, default 10000
 #' @param n \code{integer}, big data sample, default 1000
 #' @return \code{genSimData} returns a data.frame, with the following columns:
+#' \item{x0}{intercept}
 #' \item{x1}{the first variable based on z1}
 #' \item{x2}{the second variable based on z2 and x1}
 #' \item{x3}{the third variable based on z3 and x1 and x2}
@@ -49,6 +50,7 @@ genSimData <- function(N=10000, n=1000) {
   z4 <- rchisq(N, 4)
   epsilon <- rnorm(N)
 
+  x0 <- rep(1, N)
   x1 <- z1
   x2 <- z2 + 0.3*x1
   x3 <- z3 + 0.2*(x1 + x2)
@@ -64,7 +66,7 @@ genSimData <- function(N=10000, n=1000) {
 
   p <- uniroot(f = function(x) max(x3+x) - 50*min(x3+x), lower = -200, upper = 100)$root
 
-  sim_df <- data.frame(x1,x2,x3,x4,y30,y60,y80,rho, srs = x3+p)
+  sim_df <- data.frame(x0, x1,x2,x3,x4,y30,y60,y80,rho, srs = x3+p)
 
   return(sim_df)
 

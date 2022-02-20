@@ -17,9 +17,9 @@ nonprob(
   subset,
   weights,
   na.action,
-  control.selection = selControl(),
-  control.outcome = outControl(),
-  control.inference = infControl(),
+  control.selection = controlSel(),
+  control.outcome = controlOut(),
+  control.inference = controlInf(),
   start = NULL,
   verbose = 0L,
   contrasts = NULL,
@@ -52,9 +52,25 @@ nonprob(
 
 \item{na.action}{- a function which indicates what should happen when the data contain `NAs`.}
 
+\item{control.selection}{a}
+
+\item{control.outcome}{a}
+
+\item{control.inference}{a}
+
 \item{start}{- an optional `list` with starting values for the parameters of the selection and outcome equation}
 
 \item{verbose}{- verbose, numeric}
+
+\item{contrasts}{a}
+
+\item{model}{a}
+
+\item{x}{a}
+
+\item{y}{a}
+
+\item{...}{a}
 }
 \description{
 nonprob

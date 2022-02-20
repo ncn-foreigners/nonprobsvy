@@ -2,7 +2,7 @@
 ## general
 #### size
 expect_equal(
-  nrow(genSimData(N=10000,n=1000)), 10000
+  dim(genSimData(N=10000,n=1000)), c(10000, 10)
 )
 
 #### rho equal to n
