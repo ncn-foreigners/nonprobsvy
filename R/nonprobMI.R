@@ -24,24 +24,61 @@
 nonprobMI <- function(outcome,
                       data,
                       svydesign,
-                      family.outcome = "gaussian",
+                      family.outcome,
                       subset,
                       weights,
                       na.action,
                       control.outcome = controlOut(),
                       control.inference = controlInf(),
-                      start = NULL,
-                      verbose = 0L,
-                      contrasts = NULL,
-                      model = TRUE,
-                      x = TRUE,
-                      y = TRUE,
+                      start,
+                      verbose,
+                      contrasts,
+                      model,
+                      x,
+                      y,
                       ...) {
 
+  XY_nons <- model.frame(outcome, data)
+  X_nons <- model.matrix(XY_nons, data)
+  X_rand <- model.matrix(outcome, svydesign$variables)
+
+  ## estimation
+  model_nons <- nonprobMI.fit()
+
+  model_nons_coefs <- as.matrix(model_nons$coefficients)
+
+  y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs)
+
+  svydesign <- update(svydesign,
+                      .y_hat_MI = y_rand_pred)
+
+  ## inference based on mi method
+  infer_nons <- nonprobMI.inference()
+
+  return()
 }
 
 
-nonprobMI.fit <- function() {
+nonprobMI.fit <- function(x,
+                          y,
+                          weights,
+                          svydesign,
+                          family.outcome,
+                          control.outcome,
+                          verbose,
+                          model,
+                          x,
+                          y) {
+
+
+  model_nons <- glm.fit(x = X_nons,
+                        y = XY_nons[, 1],
+                        weights = weights,
+                        start = start,
+                        control = control.outcome,
+                        family = family.outcome)
+
+  return(model_nons)
 
 }
 

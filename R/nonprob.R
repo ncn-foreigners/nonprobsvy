@@ -25,16 +25,16 @@
 #' @param ... a
 
 
-nonprob <- function(selection,
-                    outcome,
-                    data,
-                    svydesign,
+nonprob <- function(selection = NULL,
+                    outcome = NULL,
+                    data = NULL,
+                    svydesign = NULL,
                     pop.totals = NULL,
                     pop.means = NULL,
                     family.selection = "binomial",
                     family.outcome = "gaussian",
                     subset,
-                    weights,
+                    weights = NULL,
                     na.action,
                     control.selection = controlSel(),
                     control.outcome = controlOut(),
@@ -47,6 +47,86 @@ nonprob <- function(selection,
                     y = TRUE,
                     ...) {
 
+  ##
 
+  if (is.null(weights)) weights <- rep.int(1, nrow(data))
+
+  ## basic checkers
+  if (is.null(selection) & is.null(outcome)) {
+    stop("Please provide selection or outcome formula.")
+  }
+
+  if (inherits(selection, "formula") & (is.null(outcome) | inherits(outcome, "formula") == FALSE)) {
+    model_used <- "P"
+  }
+
+  if (inherits(outcome, "formula") & (is.null(selection) | inherits(selection, "formula") == FALSE)) {
+    model_used <- "M"
+  }
+
+  if (inherits(selection, "formula") & inherits(outcome, "formula")) {
+    model_used <- "DR"
+  }
+
+  ## validate data
+
+  ## model estimates
+  model_estimates <-   switch(model_used,
+    P = nonprobIPW(selection,
+                   data,
+                   svydesign,
+                   pop.totals,
+                   pop.means,
+                   family.selection = "binomial",
+                   subset,
+                   weights,
+                   na.action,
+                   control.selection = controlSel(),
+                   control.inference = controlInf(),
+                   start,
+                   verbose,
+                   contrasts,
+                   model,
+                   x,
+                   y,
+                   ...),
+    M = nonprobMI(outcome,
+                  data,
+                  svydesign,
+                  family.outcome = "gaussian",
+                  subset,
+                  weights,
+                  na.action,
+                  control.outcome = controlOut(),
+                  control.inference = controlInf(),
+                  start,
+                  verbose,
+                  contrasts,
+                  model,
+                  x,
+                  y,
+                  ...),
+    DR = nonprobDR(selection,
+                   outcome,
+                   data,
+                   svydesign,
+                   pop.totals,
+                   pop.means,
+                   family.selection = "binomial",
+                   family.outcome = "gaussian",
+                   subset,
+                   weights,
+                   na.action,
+                   control.selection,
+                   control.outcome,
+                   control.inference,
+                   start,
+                   verbose,
+                   contrasts,
+                   model,
+                   x,
+                   y,
+                   ...)
+  )
 
 }
