@@ -88,7 +88,6 @@ nonprobMI.fit <- function(x,
 
 nonprobMI.inference <- function() {
 
-  mu_hat <-
 
 }
 
