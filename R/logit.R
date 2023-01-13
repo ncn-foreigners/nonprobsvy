@@ -61,7 +61,7 @@ logitPs <- function(...){
           linkFun = link,
           linkInv = inv_link,
           linkDer = dlink
-        )
+        ),
 
         class = "method.selection"
       )
