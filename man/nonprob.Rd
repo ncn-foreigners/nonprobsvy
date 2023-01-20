@@ -6,16 +6,19 @@
 nonprob: Function for inference based on nonprobability surveys using various methods}
 \usage{
 nonprob(
-  selection,
-  outcome,
-  data,
-  svydesign,
+  selection = NULL,
+  outcome = NULL,
+  data = NULL,
+  svydesign = NULL,
   pop.totals = NULL,
   pop.means = NULL,
+  pop.size = NULL,
+  method.selection = c("logit", "cloglog", "probit"),
+  method.outcome,
   family.selection = "binomial",
   family.outcome = "gaussian",
   subset,
-  weights,
+  weights = NULL,
   na.action,
   control.selection = controlSel(),
   control.outcome = controlOut(),
@@ -41,6 +44,12 @@ nonprob(
 \item{pop.totals}{- an optional `named vector` with population totals.}
 
 \item{pop.means}{- an optional `named vector` with population means.}
+
+\item{pop.size}{- an optional `double` with population size.}
+
+\item{method.selection}{- a `character` with method for propensity scores estimation}
+
+\item{method.outcome}{- a `character` with method for response variable estimation}
 
 \item{family.selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 

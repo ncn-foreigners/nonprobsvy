@@ -8,8 +8,9 @@
 #' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
 #' @param pop.totals - an optional `named vector` with population totals.
 #' @param pop.means - an optional `named vector` with population means.
-#' @param pop.size- an optional `double` with population size.
+#' @param pop.size - an optional `double` with population size.
 #' @param method.selection - a `character` with method for propensity scores estimation
+#' @param method.outcome - a `character` with method for response variable estimation
 #' @param family.selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
 #' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
@@ -54,7 +55,7 @@ nonprob <- function(selection = NULL,
 
   ##
 
-  if (missing(method)) method <- "logit"
+  if (missing(method.selection)) method.selection <- "logit"
 
   if (!is.data.frame(data)) {
     data <- data.frame(data)
