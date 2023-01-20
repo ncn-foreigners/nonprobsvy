@@ -115,7 +115,7 @@ nonprobIPW.inference <- function(...){
   sparse_mx <- Matrix(rbind(b_vec, H_matrix), sparse = TRUE)
 
   ##
-  if(method.selection = "probit"){
+  if(method.selection == "probit"){
 
     V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, N_est_nons, hess)
 

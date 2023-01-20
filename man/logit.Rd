@@ -10,5 +10,5 @@ logit(...)
 \item{...}{a}
 }
 \description{
-Propensity score estimation by logistic regression
+a method for propensity score estimation using logistic regression basing on dependent variables
 }

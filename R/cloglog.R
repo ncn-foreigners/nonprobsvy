@@ -3,6 +3,7 @@
 #' a method for propensity score estimation using cloglog model basing on dependent variables
 #'
 #' @importFrom maxLik maxLik
+#' @importFrom Matrix Matrix
 #' @param ... a
 #' @export
 cloglog <- function(...){

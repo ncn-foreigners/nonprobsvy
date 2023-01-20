@@ -10,5 +10,5 @@ probit(...)
 \item{...}{a}
 }
 \description{
-Propensity score estimation by probit model
+a method for propensity score estimation using probit model basing on dependent variables
 }

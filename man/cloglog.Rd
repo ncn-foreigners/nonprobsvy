@@ -10,5 +10,5 @@ cloglog(...)
 \item{...}{a}
 }
 \description{
-Propensity score estimation by complementary loglog model
+a method for propensity score estimation using cloglog model basing on dependent variables
 }
