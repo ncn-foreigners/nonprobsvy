@@ -126,6 +126,9 @@ nonprobDR.inference <- function(...){
   N_est_nons <- sum(d_nons)
   N_est_rand <- sum(1/ps_rand)
 
+  hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
+  theta_hat <- ps_method(X_nons, log_like, gradient, hessian)$theta_hat
+
   n_nons <- nrow(X_nons)
   n_rand <- nrow(XB_rand)
 
@@ -140,9 +143,6 @@ nonprobDR.inference <- function(...){
 
 
   mu_hat <- 1/N_est_nons * sum(d_nond*(y_nons - y_nons_pred)) + 1/N_est_rand * sum(ps_rand * y_rand_pred)
-
-  hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
-
   h_n <- 1/N_est_nons * sum(y_nons_pred - y_nons)
 
   b <- switch(method.selection,

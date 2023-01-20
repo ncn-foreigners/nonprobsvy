@@ -1,4 +1,7 @@
 #' Propensity score estimation by complementary loglog model
+#'
+#' a method for propensity score estimation using cloglog model basing on dependent variables
+#'
 #' @importFrom maxLik maxLik
 #' @param ... a
 #' @export
@@ -69,10 +72,52 @@ cloglog <- function(...){
 
     return(list("ps" = estim_ps,
            "grad" = grad,
-           "hess" = hess))
+           "hess" = hess,
+           "theta_hat" = cloglog_estim))
 
   }
 
+
+  variance_covariance1 <- function(X, y, mu, ps, N, hessian){
+
+    v11 <- 1/N^2 * sum((((1 - ps)/ps) * (y - mu)^2))
+    v1_ <- - 1/N^2 * ((1 - ps)/ps * log(1 - ps) * (y - mu)) %*% as.matrix(X)
+    v_1 <- t(v1_)
+
+    v_2 <- 0
+    for(i in 1:nrow(X)){
+
+      suma <- (1 - ps[i])/ps[i]^2 * log(1-ps)^2 * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+      v_2 <- v_2 + suma
+
+    }
+
+    v_2 <- 1/N^2 * v_2
+
+    v1_vec <- cbind(v11, v1_)
+    v2_mx <- cbind(v_1, v_2)
+    V1 <- Matrix(rbind(v1_vec, v2_mat), sparse = TRUE)
+
+    return(V1)
+  }
+
+  variance_covariance2 <- function(X, ps, n, N){
+
+    s <- log(1 - ps) * X
+    ci <- n/(n-1) * (1 - ps)
+    B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+    ei <- (s/ps) - B_hat
+    db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+
+    D <- (1/N^2) * db_var
+    D.var <- b %*% D %*% t(b)
+
+    p <- nrow(D) + 1
+    V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
+    V2[2:p,2:p] <- D
+
+    return(V2)
+  }
   # Move to nonprobIPW, MI, DR functions
 
 #  b_var <- function(){
@@ -105,7 +150,10 @@ cloglog <- function(...){
       MakeHessian = hessian,
       linkFun = link,
       linkInv = inv_link,
-      linkDer = dlink
+      linkDer = dlink,
+      PropenScore = ps_est,
+      VarianceCov1 <- variance_covariance1,
+      VarianceCov2 <- variance_covariance2
     ),
 
     class = "method.selection"

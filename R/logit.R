@@ -1,5 +1,9 @@
 #' Propensity score estimation by logistic regression
+#'
+#' a method for propensity score estimation using logistic regression basing on dependent variables
+#'
 #' @importFrom maxLik maxLik
+#' @importFrom Matrix Matrix
 #' @param ... a
 #' @export
 
@@ -64,8 +68,51 @@ logit <- function(...) {
 
       return(list("ps" = inv_link(logit_estim %*% t(as.matrix(X))),
              "grad" = grad,
-             "hess" = hess))
+             "hess" = hess,
+             "theta_hat" = logit_estim))
 
+    }
+
+
+    variance_covariance1 <- function(X, y, mu, ps, N, hessian){
+
+      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
+      v1_ <- 1/N^2 * ((1 - ps)/ps^2 * (y - mu)) %*% as.matrix(X)
+      v_1 <- t(v1_)
+
+      v_2 <- 0
+      for(i in 1:nrow(X)){
+
+        suma <- (1 - ps[i]) * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+        v_2 <- v_2 + suma
+
+      }
+
+      v_2 <- 1/N^2 * v_2
+
+      v1_vec <- cbind(v11, v1_)
+      v2_mx <- cbind(v_1, v_2)
+      V1 <- Matrix(rbind(v1_vec, v2_mat), sparse = TRUE)
+
+      return(V1)
+    }
+
+    variance_covariance2 <- function(X, ps, n, N){
+
+      s <- ps * X
+      ci <- n/(n-1) * (1 - ps)
+      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+      ei <- (s/ps) - B_hat
+      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+
+      D <- (1/N^2) * db_var
+      D.var <- b %*% D %*% t(b)
+
+      p <- nrow(D) + 1
+      V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
+      V2[2:p,2:p] <- D
+
+      return(V2)
     }
 
     # Move to nonprobIPW, MI, DR functions
@@ -96,7 +143,9 @@ logit <- function(...) {
           linkFun = link,
           linkInv = inv_link,
           linkDer = dlink,
-          PropenScore = ps_est
+          PropenScore = ps_est,
+          VarianceCov1 <- variance_covariance1,
+          VarianceCov2 <- variance_covariance2
         ),
         class = "method.selection"
       )

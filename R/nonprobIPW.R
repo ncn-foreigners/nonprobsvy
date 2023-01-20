@@ -22,6 +22,7 @@
 #' @param ... a
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
+#' @importFrom Matrix Matrix
 #' @export
 
 
@@ -56,6 +57,8 @@ nonprobIPW <- function(selection,
   loglike <- method.selection$MakeLogLike
   gradient <- method.selection$MakeGradient
   hessian <- method.selection$MakeHessian
+  VarCov1 <- method.selection$VarianceCov1
+  VarCov2 <- method.selection$VarianceCov2
 
 
   infer <- nonprobIPW.inference()
@@ -75,53 +78,73 @@ nonprobIPW.inference <- function(...){
   gradient <- gradient(X_rand, X_nons, d_rand)
   hessian <- hessian(X_rand, X_nons, d_rand)
 
+  n_rand <- nrow(X_rand)
+
+  theta_hat <- ps_method(X_nons, log_like, gradient, hessian)$theta_hat
+  hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
+
+  # to complete
+  if(method.selection == "probit"){
+
+  ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian)$psd
+  ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
+  est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian)$psd
+
+  } else {
+
     ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-    # to complete
-    if(method.selection == "probit"){
-
-    ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian)$psd
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-
-    }
-
-    d_nons <- 1/ps_nons
-    N_est_nons <- sum(d_nons)
-
-    mu_hat <- (1/N_est_nons) * sum(XY_nons[,1]/ps_nons)
-
-    n_rand <- nrow(X_rand)
-
-    hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
-
-    b <- switch(method.selection,
-           "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess),
-           "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess),
-           "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess)
-           )
-
     est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian)$ps
 
-    s <- est_ps_rand * X_rand
-    ci <- n_rand/(n_rand-1) * (1 - est_ps_rand)
-    B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/est_ps_rand))/sum(ci)
-    ei <- (s/est_ps_rand) - B_hat
-    db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+  }
 
-    D <- (1/N_est^2) * db_var
-    D.var <- b %*% D %*% t(b)
+  d_nons <- 1/ps_nons
+  N_est_nons <- sum(d_nons)
 
-    var <- switch(method.selection,
-                 "logit" =  (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - mu_hat)/ps_nons) - b %*% t(as.matrix(X_nons)))^2) + D.var,
-                 "cloglog" = (1/N_est_nons^2) * sum(((1 - ps_nons)/ps_nons^2)*((y_nons - mu_hat) + b %*% t(as.matrix(X_nons)) * log(1 - ps_nons))^2) + D.var,
-                 "probit" = (1/N_est_nons^2) * sum((y_nons - mu_hat)^2 * (1 - ps_nons)/ps_nons^2 + 2 * (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) * (b %*% t(as.matrix(X_nons))) + (psdA)/((ps_nons^2)*(1 - ps_nons)) * (b %*% t(as.matrix(X_nons)))^2) + D.var,
-                 )
+  mu_hat <- (1/N_est_nons) * sum(XY_nons[,1]/ps_nons)
 
 
-    ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var))
+  b <- switch(method.selection,
+          "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess),
+          "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess),
+          "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% as.matrix(X_nons) %*% solve(hess)
+          )
 
 
+  b_vec <- cbind(-1, b)
+  H_mx <- cbind(0, - N_est * solve(hess))
+  sparse_mx <- Matrix(rbind(b_vec, H_matrix), sparse = TRUE)
 
-  return(list("Population mean estimator" = mu_hat, "variance" = var, "CI" = ci))
+  ##
+  if(method.selection = "probit"){
+
+    V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, N_est_nons, hess)
+
+    V2 <- VarCov2(X_rand, est_ps_rand, est_ps_rand_der, n_rand, N_est_nons)
+
+  } else {
+
+  V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, N_est_nons, hess)
+
+  V2 <- VarCov2(X_rand, est_ps_rand, n_rand, N_est_nons)
+
+  }
+
+  # variance-covariance matrix for set of parameters
+  V_mx <- sparse_mx %*% (V1 + V2) %*% t(sparse_mx)
+
+
+    # variance for mu_hat
+  # var <- switch(method.selection,
+            #    "logit" =  (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - mu_hat)/ps_nons) - b %*% t(as.matrix(X_nons)))^2) + D.var,
+             #   "cloglog" = (1/N_est_nons^2) * sum(((1 - ps_nons)/ps_nons^2)*((y_nons - mu_hat) + b %*% t(as.matrix(X_nons)) * log(1 - ps_nons))^2) + D.var,
+              #  "probit" = (1/N_est_nons^2) * sum((y_nons - mu_hat)^2 * (1 - ps_nons)/ps_nons^2 + 2 * (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) * (b %*% t(as.matrix(X_nons))) + (psdA)/((ps_nons^2)*(1 - ps_nons)) * (b %*% t(as.matrix(X_nons)))^2) + D.var,
+               # )
+
+
+  ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var))
+
+
+  return(list("Population mean estimator" = mu_hat, "variance-covariance" = V_mx, "CI" = ci))
 
 
 }
