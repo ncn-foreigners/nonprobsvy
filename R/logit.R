@@ -92,7 +92,7 @@ logit <- function(...) {
 
       v1_vec <- cbind(v11, v1_)
       v2_mx <- cbind(v_1, v_2)
-      V1 <- Matrix(rbind(v1_vec, v2_mat), sparse = TRUE)
+      V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
       return(V1)
     }

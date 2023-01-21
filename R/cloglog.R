@@ -6,6 +6,7 @@
 #' @importFrom Matrix Matrix
 #' @param ... a
 #' @export
+
 cloglog <- function(...){
 
   link <- function(x) {log(-log(1 - x))}
@@ -88,7 +89,7 @@ cloglog <- function(...){
     v_2 <- 0
     for(i in 1:nrow(X)){
 
-      suma <- (1 - ps[i])/ps[i]^2 * log(1-ps)^2 * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+      suma <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
       v_2 <- v_2 + suma
 
     }
@@ -97,7 +98,7 @@ cloglog <- function(...){
 
     v1_vec <- cbind(v11, v1_)
     v2_mx <- cbind(v_1, v_2)
-    V1 <- Matrix(rbind(v1_vec, v2_mat), sparse = TRUE)
+    V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
     return(V1)
   }

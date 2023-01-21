@@ -112,7 +112,7 @@ nonprobIPW.inference <- function(...){
 
   b_vec <- cbind(-1, b)
   H_mx <- cbind(0, - N_est * solve(hess))
-  sparse_mx <- Matrix(rbind(b_vec, H_matrix), sparse = TRUE)
+  sparse_mx <- Matrix(rbind(b_vec, H_mx), sparse = TRUE)
 
   ##
   if(method.selection == "probit"){

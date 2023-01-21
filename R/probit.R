@@ -89,7 +89,7 @@ probit <- function(...){
   variance_covariance1 <- function(X, y, mu, ps, psd, N, hessian){
 
     v11 <- 1/N^2 * sum((((1 - ps)/ps) * (y - mu)^2))
-    v1_ <- 1/N^2 *  psd/ps * (y - mu) * as.matrix(X)
+    v1_ <- 1/N^2 *  psd/ps * (y - mu) %*% as.matrix(X)
     v_1 <- t(v1_)
 
     v_2 <- 0
@@ -104,7 +104,7 @@ probit <- function(...){
 
     v1_vec <- cbind(v11, v1_)
     v2_mx <- cbind(v_1, v_2)
-    V1 <- Matrix(rbind(v1_vec, v2_mat), sparse = TRUE)
+    V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
     return(V1)
   }
