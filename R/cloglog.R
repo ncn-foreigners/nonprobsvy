@@ -82,8 +82,8 @@ cloglog <- function(...){
 
   variance_covariance1 <- function(X, y, mu, ps, N, hessian){
 
-    v11 <- 1/N^2 * sum((((1 - ps)/ps) * (y - mu)^2))
-    v1_ <- - 1/N^2 * ((1 - ps)/ps * log(1 - ps) * (y - mu)) %*% as.matrix(X)
+    v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
+    v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% as.matrix(X)
     v_1 <- t(v1_)
 
     v_2 <- 0

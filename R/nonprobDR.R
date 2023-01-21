@@ -70,6 +70,12 @@ nonprobDR <- function(selection,
   gradient <- method.selection$MakeGradient
   hessian <- method.selection$MakeHessian
 
+  if(is.null(start)){
+
+
+
+  }
+
   ## estimation
   model_nons <- nonprobMI.fit()
 

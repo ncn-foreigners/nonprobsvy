@@ -61,6 +61,7 @@ nonprobIPW <- function(selection,
   VarCov2 <- method.selection$VarianceCov2
 
 
+
   infer <- nonprobIPW.inference()
 
 
@@ -80,20 +81,20 @@ nonprobIPW.inference <- function(...){
 
   n_rand <- nrow(X_rand)
 
-  theta_hat <- ps_method(X_nons, log_like, gradient, hessian)$theta_hat
-  hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
+  theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start)$theta_hat
+  hess <- ps_method(X_nons, log_like, gradient, hessian, start)$hess
 
   # to complete
   if(method.selection == "probit"){
 
-  ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian)$psd
-  ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-  est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian)$psd
+  ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start)$psd
+  ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
+  est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start)$psd
 
   } else {
 
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian)$ps
+    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
+    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
 
   }
 
