@@ -26,6 +26,7 @@
 #' @param x a
 #' @param y a
 #' @param ... a
+#' @export
 
 
 nonprob <- function(selection = NULL,
@@ -55,7 +56,7 @@ nonprob <- function(selection = NULL,
 
   ##
 
-  if (missing(method.selection)) method.selection <- "logit"
+  # if (missing(method.selection)) method.selection <- "logit"
 
   if (!is.data.frame(data)) {
     data <- data.frame(data)
@@ -142,5 +143,7 @@ nonprob <- function(selection = NULL,
                    y,
                    ...)
   )
+
+  return(model_estimates)
 
 }

@@ -66,7 +66,7 @@ genSimData <- function(N=10000, n=1000) {
 
   p <- uniroot(f = function(x) max(x3+x) - 50*min(x3+x), lower = -200, upper = 100)$root
 
-  sim_df <- data.frame(x0, x1,x2,x3,x4,y30,y60,y80,rho, srs = x3+p)
+  sim_df <- data.frame(x0, x1,x2,x3,x4,y30,y60,y80,rho, srs = (x3+p)/10)
 
   return(sim_df)
 

@@ -47,9 +47,9 @@ nonprobDR <- function(selection,
                       subset,
                       weights,
                       na.action,
-                      control.selection,
-                      control.outcome,
-                      control.inference,
+                      control.selection = controlSel(),
+                      control.outcome = controlOut(),
+                      control.inference = controlInf(),
                       start,
                       verbose,
                       contrasts,
@@ -58,26 +58,38 @@ nonprobDR <- function(selection,
                       y,
                       ...){
 
+  weights <- rep.int(1, nrow(data))
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data)
-  X_rand <- model.matrix(outcome, svydesign$variables)
+  X_rand <- model.matrix(selection, svydesign$variables)
   y_nons = XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
-  ps_method <- method.selection$PropenScore
-  loglike <- method.selection$MakeLogLike
-  gradient <- method.selection$MakeGradient
-  hessian <- method.selection$MakeHessian
 
-  if(is.null(start)){
-
-
-
+  method <- method.selection
+  if (is.character(method)) {
+    method <- get(method, mode = "function", envir = parent.frame())
+  }
+  if (is.function(method)) {
+    method <- method()
   }
 
+  ps_method <- method$PropenScore
+  loglike <- method$MakeLogLike
+  gradient <- method$MakeGradient
+  hessian <- method$MakeHessian
+
+  #if(is.null(start)){
+
+  #}
+
   ## estimation
-  model_nons <- nonprobMI.fit()
+  model_nons <- nonprobDR.fit(x = X_nons,
+                              y = y_nons,
+                              weights = NULL)
+
+  start <- start.fit(X_nons, X_rand, weights, d_rand)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
@@ -90,6 +102,81 @@ nonprobDR <- function(selection,
 
   ## inference based on mi method
 
+  nonprobDR.inference <- function(...){
+
+
+    log_like <- loglike(X_rand, X_nons, d_rand)
+    gradient <- gradient(X_rand, X_nons, d_rand)
+    hessian <- hessian(X_rand, X_nons, d_rand)
+
+    start <- rep(0, ncol(X_nons))
+
+    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
+    d_nons <- 1/ps_nons
+    N_est_nons <- sum(d_nons)
+    N_est_rand <- sum(1/ps_rand)
+
+    hess <- ps_method(X_nons, log_like, gradient, hessian, start)$hess
+    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start)$theta_hat
+
+    n_nons <- nrow(X_nons)
+    n_rand <- nrow(X_rand)
+
+    weights_nons <- 1/ps_nons
+
+    if(method.selection == "probit"){
+
+      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start)$psd
+      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start)$psd
+
+    }
+
+
+    mu_hat <- 1/N_est_nons * sum(d_nons*(y_nons - y_nons_pred)) + 1/N_est_rand * sum(d_rand * y_rand_pred)
+
+    h_n <- 1/N_est_nons * sum(y_nons_pred - y_nons)
+
+    b <- switch(method.selection,
+                "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess),
+                "cloglog" = (((1 - ps_nons)/ps_nons^2) * (y_nons - y_nons_pred - h_n) * log(1 - ps_nons)) %*% X_nons %*% solve(hess),
+                "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
+    )
+
+    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
+
+    # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
+
+
+    s <- switch(method.selection,
+                "logit" = as.vector(est_ps_rand) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
+                "cloglog" = as.vector(log(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
+                "probit" = as.vector(est_ps_rand_der/(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred)
+    )
+
+
+    ci <- n_rand/(n_rand-1) * (1 - ps_rand)
+    B_hat <- sum(ci * (s/ps_rand))/sum(ci)
+    ei <- (s/ps_rand) - B_hat
+    db_var <- sum(ci * ei^2)
+
+
+    W = 1/N_est_nons^2 * db_var
+
+
+
+    var <- switch(method.selection,
+                  "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(X_nons))^2) + W,
+                  "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(X_nons))))^2) + W,
+                  "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2) + W,
+    )
+
+
+    ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var))
+
+    return(list("Population mean estimator" = mu_hat, "variance" = var, "CI" = ci))
+  }
+
+
   infer <- nonprobDR.inference()
 
 
@@ -97,94 +184,46 @@ nonprobDR <- function(selection,
 
 }
 
-nonprobMI.fit <- function(outcome,
-                          data,
-                          weights,
-                          svydesign,
-                          family.outcome,
-                          control.outcome,
-                          verbose,
-                          model,
-                          x,
-                          y) {
+nonprobDR.fit <- function(outcome,
+                        data,
+                        weights,
+                        svydesign,
+                        family.outcome,
+                        control.outcome,
+                        verbose,
+                        model,
+                        x,
+                        y) {
 
 
-  model_nons <- stats::glm.fit(x = X_nons,
-                               y = XY_nons[, 1],
-                               weights = weights,
-                               start = start,
-                               control = control.outcome,
-                               family = family.outcome)
+  model_nons <- stats::glm.fit(x = x,
+                               y = y,
+                               weights = weights
+                               #start = start,
+                               #control = control.outcome,
+                               #family = family.outcome
+                               )
+
 
   return(model_nons)
 
 }
 
-nonprobDR.inference <- function(...){
+start.fit <- function(X_nons, X_rand, weights, d){
 
+  glm_mx <- rbind(X_nons, X_rand)
+  weights <- c(weights, d)
+  y_glm <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
 
-  log_like <- log_like(X_rand, X_nons, d_rand)
-  gradient <- gradient(X_rand, X_nons, d_rand)
-  hessian <- hessian(X_rand, X_nons, d_rand)
+  start_model <- nonprobDR.fit(x = glm_mx,
+                             y = y_glm,
+                             weights = weights)
 
-  ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-  d_nons <- 1/ps_nons
-  N_est_nons <- sum(d_nons)
-  N_est_rand <- sum(1/ps_rand)
+  start <- start_model$coefficients
 
-  hess <- ps_method(X_nons, log_like, gradient, hessian)$hess
-  theta_hat <- ps_method(X_nons, log_like, gradient, hessian)$theta_hat
+  return(start)
 
-  n_nons <- nrow(X_nons)
-  n_rand <- nrow(XB_rand)
-
-  weights_nons <- 1/ps_nons
-
-  if(method.selection == "probit"){
-
-    ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian)$psd
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian)$ps
-
-  }
-
-
-  mu_hat <- 1/N_est_nons * sum(d_nond*(y_nons - y_nons_pred)) + 1/N_est_rand * sum(ps_rand * y_rand_pred)
-  h_n <- 1/N_est_nons * sum(y_nons_pred - y_nons)
-
-  b <- switch(method.selection,
-                  "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - y_nons_pred - h_n)) %*% as.matrix(X_nons) %*% solve(hess),
-                  "cloglog" = (((1 - ps_nons)/ps_nons^2) * (y_nons - y_nons_pred - h_n) * log(1 - ps_nons)) %*% as.matrix(X_nons) %*% solve(hess),
-                  "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% as.matrix(X_nons) %*% solve(hess)
-              )
-
-  est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian)$ps
-
-      # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
-
-
-  s <- as.vector(est_ps_rand/(1 - est_ps_rand)) * as.matrix(X_rand) %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred)
-  ci <- n_rand/(n_rand-1) * (1 - est_ps_rand)
-  B_hat <- sum(ci * (s/ps_rand))/sum(ci)
-  ei <- (s/psB) - B_hat
-  db_var <- sum(ci * ei^2)
-
-  W = 1/N_est_nons^2 * db_var
-
-
-
-  var <- switch(method.selection,
-                 "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(X_nons)))^2) + W,
-                 "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons)*X_nons)))^2) + W,
-                 "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons))*X_nons)))^2) + W,
-  )
-
-
-
-
-
-  ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var))
-
-  return(list("Population mean estimator" = mu_hat, "variance" = var, "CI" = ci))
 }
+
 
 

@@ -2,8 +2,13 @@
 #'
 #' control function for the selection equation in the nonprob function
 #' @param method estimation method
+#'
 #' @export
-controlSel <- function(method = "glm.fit") {
+controlSel <- function(method = "glm.fit"
+                       #epsilon = 1e-8,
+                       #maxit = 25,
+                       #trace = FALSE
+                       ) {
 
 }
 
@@ -12,7 +17,11 @@ controlSel <- function(method = "glm.fit") {
 #' control function for the outcome equation in the nonprob function
 #' @param method estimation method
 #' @export
-controlOut <- function(method = "glm.fit") {
+controlOut <- function(method = "glm.fit"
+                       #epsilon = 1e-8,
+                       #maxit = 25,
+                       #trace = FALSE
+                       ) {
 
 }
 

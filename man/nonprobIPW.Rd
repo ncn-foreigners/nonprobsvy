@@ -11,6 +11,7 @@ nonprobIPW(
   svydesign,
   pop.totals,
   pop.means,
+  method.selection,
   family.selection = "binomial",
   subset,
   weights,
@@ -36,6 +37,8 @@ nonprobIPW(
 \item{pop.totals}{- an optional `named vector` with population totals.}
 
 \item{pop.means}{- an optional `named vector` with population means.}
+
+\item{method.selection}{- a `character` with method for propensity scores estimation}
 
 \item{family.selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
