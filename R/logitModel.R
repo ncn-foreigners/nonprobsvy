@@ -25,7 +25,7 @@ logit <- function(...) {
       invLink2 <- inv_link(eta2)
 
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(d_rand * log(1 - invLink2))
+      log_like2 <- sum(d * log(1 - invLink2))
       log_like1 + log_like2
 
     }
@@ -35,10 +35,10 @@ logit <- function(...) {
   gradient <-  function(X_rand, X_nons, d, ...) {
 
     function(theta) {
-      eta2 <- as.matrix(X_rans) %*% theta
+      eta2 <- as.matrix(X_rand) %*% theta
       invLink2 <- inv_link(eta2)
 
-      t(t(X_nons) %*% matrix(1, nrow(X_rand), 1) - t(X_rand) %*% (d_rand*invLink2))
+      t(t(X_nons) %*% matrix(1, nrow = nrow(X_nons), ncol = 1) - t(X_rand) %*% (d*invLink2))
 
     }
 
@@ -51,7 +51,7 @@ logit <- function(...) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
 
-        - t(as.data.frame(X_rand) * (d_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)#jest ok
+        - t(as.data.frame(X_rand) * (d * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)#jest ok
       }
 
 
@@ -74,16 +74,16 @@ logit <- function(...) {
     }
 
 
-    variance_covariance1 <- function(X, y, mu, ps, N, hessian){
+    variance_covariance1 <- function(X, y, mu, ps, N){ # to fix
 
-      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-      v1_ <- 1/N^2 * ((1 - ps)/ps^2 * (y - mu)) %*% as.matrix(X)
+      v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+      v1_ <- 1/N^2 * ((1 - ps)/ps * (y - mu)) %*% X
       v_1 <- t(v1_)
 
       v_2 <- 0
       for(i in 1:nrow(X)){
 
-        suma <- (1 - ps[i]) * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+        suma <- (1 - ps[i]) * X[i,] %*% t(X[i,])
         v_2 <- v_2 + suma
 
       }
@@ -92,14 +92,14 @@ logit <- function(...) {
 
       v1_vec <- cbind(v11, v1_)
       v2_mx <- cbind(v_1, v_2)
-      V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      V1 <- Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
       return(V1)
     }
 
-    variance_covariance2 <- function(X, ps, n, N){
+    variance_covariance2 <- function(X, eps, ps, b, n, N){
 
-      s <- ps * X
+      s <- eps * as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
       B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
       ei <- (s/ps) - B_hat
@@ -109,7 +109,7 @@ logit <- function(...) {
       D.var <- b %*% D %*% t(b)
 
       p <- nrow(D) + 1
-      V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
+      V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
       V2[2:p,2:p] <- D
 
       return(V2)
@@ -144,8 +144,8 @@ logit <- function(...) {
           linkInv = inv_link,
           linkDer = dlink,
           PropenScore = ps_est,
-          VarianceCov1 <- variance_covariance1,
-          VarianceCov2 <- variance_covariance2
+          VarianceCov1 = variance_covariance1,
+          VarianceCov2 = variance_covariance2
         ),
         class = "method.selection"
       )

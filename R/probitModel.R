@@ -24,7 +24,7 @@ probit <- function(...){
       invLink2 <- inv_link(eta2)
 
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(d_rand * log(1 - invLink2))
+      log_like2 <- sum(d * log(1 - invLink2))
       log_like1 + log_like2
 
     }
@@ -41,8 +41,7 @@ probit <- function(...){
       dlink1 <- dlink(eta1)
       dlink2 <- dlink(eta2)
 
-      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d_rand * (dlink2 / (1 - invLink2)))) #jest ok
-
+      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2)))) #jest ok
     }
 
   }
@@ -57,8 +56,8 @@ probit <- function(...){
     dlink1 <- dlink(eta1)
     dlink2 <- dlink(eta2)
 
-    hess1 <- t(X_nons * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + dlink1/(1 - invLink1)^2)) %*% as.matrix(X_nons)
-    hess2 <- - t(X_rand * d_rand * ((eta2 * dlink2)/(1 - invLink2) + (dlink2^2)/((1 - invLink2)^2))) %*% as.matrix(X_rand)
+    hess1 <- t(as.data.frame(X_nons) * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + dlink1/(1 - invLink1)^2)) %*% as.matrix(X_nons)
+    hess2 <- - t(as.data.frame(X_rand) * d * ((eta2 * dlink2)/(1 - invLink2) + (dlink2^2)/((1 - invLink2)^2))) %*% as.matrix(X_rand)
     # jest ok
     hess1 + hess2
 
@@ -66,16 +65,16 @@ probit <- function(...){
 
   }
 
-  ps_est <- function(X, log_like, gradient, hessian){
+  ps_est <- function(X, log_like, gradient, hessian, start){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "NR", start = rep(0, ncol(X)))
+                                method = "NR", start = start)
 
     estim_probit <- maxLik_an$estimate
     grad <- maxLik_an$gradient
     hess <- maxLik_an$hessian
-    estim_ps <- inv_link(estim_probit %*% t(as.matrix(X)))
-    estim_psd <- dlink(estim_probit %*% t(as.matrix(X)))
+    estim_ps <- inv_link(estim_probit %*% t(X))
+    estim_psd <- dlink(estim_probit %*% t(X))
 
 
     return(list("ps" = estim_ps,
@@ -86,16 +85,16 @@ probit <- function(...){
 
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, N, hessian){
+  variance_covariance1 <- function(X, y, mu, ps, psd, N){
 
     v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-    v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% as.matrix(X)
+    v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% X
     v_1 <- t(v1_)
 
     v_2 <- 0
     for(i in 1:nrow(X)){
 
-      suma <- psd[i]/(ps[i]^2 * (1-ps[i])) *  t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+      suma <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
       v_2 <- v_2 + suma
 
     }
@@ -109,9 +108,9 @@ probit <- function(...){
     return(V1)
   }
 
-  variance_covariance2 <- function(X, ps, psd, n, N){
+  variance_covariance2 <- function(X, eps, ps, psd, b, n, N){
 
-    s <- psd/(1-ps) * X
+    s <- psd/(1-eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)
     B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
     ei <- (s/ps) - B_hat
@@ -151,12 +150,11 @@ probit <- function(...){
       MakeLogLike = log_like,
       MakeGradient = gradient,
       MakeHessian = hessian,
-      linkFun = link,
       linkInv = inv_link,
       linkDer = dlink,
       PropenScore = ps_est,
-      VarianceCov1 <- variance_covariance1,
-      VarianceCov2 <- variance_covariance2
+      VarianceCov1 = variance_covariance1,
+      VarianceCov2 = variance_covariance2
     ),
 
     class = "method.selection"

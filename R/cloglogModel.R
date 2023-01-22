@@ -23,7 +23,7 @@ cloglog <- function(...){
       invLink2 <- inv_link(eta2)
 
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(d_rand * log(1 - invLink2))
+      log_like2 <- sum(d * log(1 - invLink2))
       log_like1 + log_like2
 
     }
@@ -40,7 +40,7 @@ cloglog <- function(...){
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
-      t(t(X_nons) %*% (exp(eta1)/invLink1) - t(X_rand) %*% (d_rand * exp(eta2))) #jest ok
+      t(t(X_nons) %*% (exp(eta1)/invLink1) - t(X_rand) %*% (d * exp(eta2))) #jest ok
 
     }
 
@@ -56,16 +56,16 @@ cloglog <- function(...){
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
-      t(as.data.frame(X_nons) * (exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * d_rand * exp(eta2)) %*% as.matrix(X_rand) # jest ok
+      t(as.data.frame(X_nons) * (exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * d * exp(eta2)) %*% as.matrix(X_rand) # jest ok
 
     }
   }
 
 
-  ps_est <- function(X, log_like, gradient, hessian){
+  ps_est <- function(X, log_like, gradient, hessian, start){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "NR", start = rep(0, ncol(X)))
+                                method = "NR", start = start)
 
     cloglog_estim <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -80,16 +80,16 @@ cloglog <- function(...){
   }
 
 
-  variance_covariance1 <- function(X, y, mu, ps, N, hessian){
+  variance_covariance1 <- function(X, y, mu, ps, N){
 
     v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-    v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% as.matrix(X)
+    v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% X
     v_1 <- t(v1_)
 
     v_2 <- 0
     for(i in 1:nrow(X)){
 
-      suma <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * t(as.matrix(X[i,])) %*% as.matrix(X[i,])
+      suma <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
       v_2 <- v_2 + suma
 
     }
@@ -103,9 +103,9 @@ cloglog <- function(...){
     return(V1)
   }
 
-  variance_covariance2 <- function(X, ps, n, N){
+  variance_covariance2 <- function(X, eps, ps, b, n, N){
 
-    s <- log(1 - ps) * X
+    s <- log(1 - eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)
     B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
     ei <- (s/ps) - B_hat
@@ -154,8 +154,8 @@ cloglog <- function(...){
       linkInv = inv_link,
       linkDer = dlink,
       PropenScore = ps_est,
-      VarianceCov1 <- variance_covariance1,
-      VarianceCov2 <- variance_covariance2
+      VarianceCov1 = variance_covariance1,
+      VarianceCov2 = variance_covariance2
     ),
 
     class = "method.selection"
