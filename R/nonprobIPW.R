@@ -60,7 +60,11 @@ nonprobIPW <- function(selection,
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
 
-  start <- start.fit(X_nons, X_rand, weights, d_rand, method.selection) #initial values for Propensity score estimation
+  start <- start.fit(X_nons, #initial values for Propensity score estimation
+                     X_rand,
+                     weights,
+                     d_rand,
+                     method.selection)
 
   method <- method.selection
   if (is.character(method)) {

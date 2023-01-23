@@ -85,9 +85,9 @@ nonprobDR <- function(selection,
   #}
 
   ## estimation
-  model_nons <- nonprobDR.fit(x = X_nons,
+  model_nons <- nonprobMI.fit(x = X_nons,
                               y = y_nons,
-                              weights = NULL)
+                              weights = weights)
 
   start <- start.fit(X_nons, X_rand, weights, d_rand,
                      method.selection)
@@ -187,38 +187,12 @@ nonprobDR <- function(selection,
 
 }
 
-#' nonprobDr.fit
-#'
-#' nonprobDr.fit: Function for outcome regression
-
-nonprobDR.fit <- function(outcome,
-                        data,
-                        weights,
-                        svydesign,
-                        family.outcome,
-                        control.outcome,
-                        verbose,
-                        model,
-                        x,
-                        y) {
 
 
-  model_nons <- stats::glm.fit(x = x,
-                               y = y,
-                               weights = weights
-                               #start = start,
-                               #control = control.outcome,
-                               #family = family.outcome
-                               )
-
-
-  return(model_nons)
-
-}
 
 #' start.fit
 #'
-#' start.fit: Function for obtaining initial values for proprensity score estimation
+#' start.fit: Function for obtaining initial values for propensity score estimation
 
 start.fit <- function(X_nons,
                       X_rand,
@@ -230,10 +204,10 @@ start.fit <- function(X_nons,
   weights <- c(weights, d)
   y_glm <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
 
-  start_model <- nonprobDR.fit(x = glm_mx, #glm model for initial values in propensity score estimation
-                             y = y_glm,
-                             weights = weights,
-                             family = binomial(link = method.selection))
+  start_model <- nonprobMI.fit(x = glm_mx, #glm model for initial values in propensity score estimation
+                               y = y_glm,
+                               weights = weights,
+                               family = binomial(link = method.selection))
 
   start <- start_model$coefficients
 

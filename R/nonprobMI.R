@@ -125,8 +125,9 @@ nonprobMI.fit <- function(outcome,
                           data,
                           weights,
                           svydesign,
-                          family.outcome,
-                          control.outcome,
+                          family.outcome = gaussian(),
+                          control.outcome = controlOut(),
+                          start = NULL,
                           verbose,
                           model,
                           x,
@@ -135,11 +136,12 @@ nonprobMI.fit <- function(outcome,
 
   model_nons <- stats::glm.fit(x = x,
                                y = y,
-                               # weights = weights,
-                               # start = start,
-                               # control = control.outcome,
-                               # family = family.outcome
-                               )
+                               weights = weights,
+                               start = start,
+                               control = control.outcome,
+                               family = family.outcome
+  )
+
 
   return(model_nons)
 

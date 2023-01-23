@@ -17,11 +17,15 @@ controlSel <- function(method = "glm.fit"
 #' control function for the outcome equation in the nonprob function
 #' @param method estimation method
 #' @export
-controlOut <- function(method = "glm.fit"
-                       #epsilon = 1e-8,
-                       #maxit = 25,
-                       #trace = FALSE
+controlOut <- function(method = "glm.fit",
+                       epsilon = 1e-8,
+                       maxit = 25,
+                       trace = FALSE
                        ) {
+
+  return(list(epsilon = 1e-8,
+              maxit = 25,
+              trace = FALSE))
 
 }
 
