@@ -70,7 +70,7 @@ nonprob <- function(selection = NULL,
   }
 
   if (inherits(selection, "formula") & (is.null(outcome) | inherits(outcome, "formula") == FALSE)) {
-    model_used <- "P"
+    ifelse(is.null(pop.size), model_used <- "P1", "P2")
   }
 
   if (inherits(outcome, "formula") & (is.null(selection) | inherits(selection, "formula") == FALSE)) {
@@ -85,7 +85,7 @@ nonprob <- function(selection = NULL,
 
   ## model estimates
   model_estimates <- switch(model_used,
-    P = nonprobIPW(selection,
+    P1 = nonprobIPW(selection,
                    data,
                    svydesign,
                    pop.totals,
