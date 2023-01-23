@@ -107,7 +107,10 @@ nonprobMI <- function(outcome,
 
 
 
-    return(list("Population mean estimator" = mu_hat, "variance" = var, "CI" = ci))
+    return(list("Population mean estimator" = mu_hat,
+                "variance" = var,
+                "CI" = ci
+                ))
 
   }
 

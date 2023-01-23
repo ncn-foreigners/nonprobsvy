@@ -58,7 +58,7 @@ nonprobDR <- function(selection,
                       y,
                       ...){
 
-  weights <- rep.int(1, nrow(data))
+  weights <- rep.int(1, nrow(data)) # to remove
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data)
@@ -89,7 +89,8 @@ nonprobDR <- function(selection,
                               y = y_nons,
                               weights = NULL)
 
-  start <- start.fit(X_nons, X_rand, weights, d_rand)
+  start <- start.fit(X_nons, X_rand, weights, d_rand,
+                     method.selection)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
@@ -159,21 +160,23 @@ nonprobDR <- function(selection,
     ei <- (s/ps_rand) - B_hat
     db_var <- sum(ci * ei^2)
 
-
     W = 1/N_est_nons^2 * db_var
 
 
 
-    var <- switch(method.selection,
+    var <- switch(method.selection, # asymptotic variance by each propensity score method
                   "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(X_nons))^2) + W,
                   "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(X_nons))))^2) + W,
                   "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2) + W,
     )
 
 
-    ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var))
+    ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var)) # confidence interval
 
-    return(list("Population mean estimator" = mu_hat, "variance" = var, "CI" = ci))
+    return(list("Population mean estimator" = mu_hat,
+                "variance" = var,
+                "CI" = ci,
+                "theta_hat" = theta_hat))
   }
 
 
@@ -183,6 +186,10 @@ nonprobDR <- function(selection,
   return(infer)
 
 }
+
+#' nonprobDr.fit
+#'
+#' nonprobDr.fit: Function for outcome regression
 
 nonprobDR.fit <- function(outcome,
                         data,
@@ -209,15 +216,24 @@ nonprobDR.fit <- function(outcome,
 
 }
 
-start.fit <- function(X_nons, X_rand, weights, d){
+#' start.fit
+#'
+#' start.fit: Function for obtaining initial values for proprensity score estimation
+
+start.fit <- function(X_nons,
+                      X_rand,
+                      weights,
+                      d,
+                      method.selection){
 
   glm_mx <- rbind(X_nons, X_rand)
   weights <- c(weights, d)
   y_glm <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
 
-  start_model <- nonprobDR.fit(x = glm_mx,
+  start_model <- nonprobDR.fit(x = glm_mx, #glm model for initial values in propensity score estimation
                              y = y_glm,
-                             weights = weights)
+                             weights = weights,
+                             family = binomial(link = method.selection))
 
   start <- start_model$coefficients
 

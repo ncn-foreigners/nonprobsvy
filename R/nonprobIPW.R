@@ -48,11 +48,11 @@ nonprobIPW <- function(selection,
                        y,
                        ...){
 
-  weights <- rep.int(1, nrow(data))
+  weights <- rep.int(1, nrow(data)) # to remove
 
   y_name <- colnames(data)[!colnames(data) %in% colnames(svydesign$variables)]
   dependents <- colnames(data)[colnames(data) %in% colnames(svydesign$variables)]
-  outcome <- as.formula(paste(paste(y_name, "~"), paste(dependents, collapse = "+")))
+  outcome <- as.formula(paste(paste(y_name, "~"), paste(dependents, collapse = "+"))) # formula for outcome variable
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data)
   X_rand <- model.matrix(selection, svydesign$variables)
@@ -60,7 +60,7 @@ nonprobIPW <- function(selection,
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
 
- start <- start.fit(X_nons, X_rand, weights, d_rand)
+  start <- start.fit(X_nons, X_rand, weights, d_rand, method.selection) #initial values for Propensity score estimation
 
   method <- method.selection
   if (is.character(method)) {
@@ -80,7 +80,6 @@ nonprobIPW <- function(selection,
   nonprobIPW.inference <- function(...){
 
     #loglike, gradient, hessian here
-
     log_like <- loglike(X_rand, X_nons, d_rand)
     gradient <- gradient(X_rand, X_nons, d_rand)
     hessian <- hessian(X_rand, X_nons, d_rand)
@@ -137,9 +136,11 @@ nonprobIPW <- function(selection,
 
     }
 
-    # variance-covariance matrix for set of parameters
+    # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
     V_mx <- sparse_mx %*% (V1 + V2) %*% t(as.matrix(sparse_mx))
 
+
+    theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
 
     # variance for mu_hat
     # var <- switch(method.selection,
@@ -152,7 +153,13 @@ nonprobIPW <- function(selection,
     ci <- c(mu_hat - 1.96 * sqrt(V_mx[1,1]), mu_hat + 1.96 * sqrt(V_mx[1,1]))
 
 
-    return(list("Population mean estimator" = mu_hat, "variance-covariance" = V_mx, "CI" = ci))
+    return(list("Population mean estimator" = mu_hat,
+                "variance for mu_hat" = V_mx[1,1],
+                "variance-covariance" = V_mx,
+                "CI" = ci,
+                "theta_hat" = theta_hat,
+                "variance for theta_hat" = theta_hat_var
+    ))
 
 
   }

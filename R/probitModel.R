@@ -68,7 +68,7 @@ probit <- function(...){
   ps_est <- function(X, log_like, gradient, hessian, start){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "NR", start = start)
+                                method = "BFGS", start = start)
 
     estim_probit <- maxLik_an$estimate
     grad <- maxLik_an$gradient
