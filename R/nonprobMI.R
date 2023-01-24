@@ -43,6 +43,8 @@ nonprobMI <- function(outcome,
                       y,
                       ...) {
 
+  weights <- rep.int(1, nrow(data)) # to remove
+
   XY_nons <- model.frame(outcome, data)
   y_name <- colnames(XY_nons)[1]
   X_nons <- model.matrix(XY_nons, data)
@@ -55,7 +57,8 @@ nonprobMI <- function(outcome,
 
   ## estimation
   model_nons <- nonprobMI.fit(x = X_nons,
-                              y = y_nons)
+                              y = y_nons,
+                              weights = weights)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
