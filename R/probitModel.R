@@ -12,7 +12,7 @@
 probit <- function(...){
 
   inv_link <- function(x) {pnorm(x)}
-  dlink <- function(x) {dnorm(x)}
+  dinv_link <- function(x) {dnorm(x)}
 
   log_like <- function(X_rand, X_nons, d, ...){
 
@@ -38,8 +38,8 @@ probit <- function(...){
       eta2 <- as.matrix(X_rand) %*%theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      dlink1 <- dlink(eta1)
-      dlink2 <- dlink(eta2)
+      dlink1 <- dinv_link(eta1)
+      dlink2 <- dinv_link(eta2)
 
       t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2)))) #jest ok
     }
@@ -53,8 +53,8 @@ probit <- function(...){
     eta2 <- as.matrix(X_rand) %*% theta
     invLink1 <- inv_link(eta1)
     invLink2 <- inv_link(eta2)
-    dlink1 <- dlink(eta1)
-    dlink2 <- dlink(eta2)
+    dlink1 <- dinv_link(eta1)
+    dlink2 <- dinv_link(eta2)
 
     hess1 <- t(as.data.frame(X_nons) * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + dlink1/(1 - invLink1)^2)) %*% as.matrix(X_nons)
     hess2 <- - t(as.data.frame(X_rand) * d * ((eta2 * dlink2)/(1 - invLink2) + (dlink2^2)/((1 - invLink2)^2))) %*% as.matrix(X_rand)
@@ -151,7 +151,7 @@ probit <- function(...){
       MakeGradient = gradient,
       MakeHessian = hessian,
       linkInv = inv_link,
-      linkDer = dlink,
+      linkInvDer = dinv_link,
       PropenScore = ps_est,
       VarianceCov1 = variance_covariance1,
       VarianceCov2 = variance_covariance2

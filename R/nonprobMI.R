@@ -72,8 +72,7 @@ nonprobMI <- function(outcome,
 
   nonprobMI.inference <- function(...) {
 
-
-    mu_hat <- 1/N_est_rand * sum(d_rand * y_rand_pred)
+    mu_hat <- mu_hatMI(y_rand_pred, d_rand, N_est_rand)
 
 
     n_nons <- nrow(X_nons)
@@ -108,11 +107,22 @@ nonprobMI <- function(outcome,
 
     ci <- c(mu_hat - 1.96*sqrt(var), mu_hat + 1.96*sqrt(var))
 
+    boot_var <- BootMI(X_rand,
+                       X_nons,
+                       weights,
+                       y_nons,
+                       1000,
+                       d_rand,
+                       n_nons,
+                       n_rand,
+                       mu_hat)
+
 
 
     return(list("Population mean estimator" = mu_hat,
                 "variance" = var,
-                "CI" = ci
+                "CI" = ci,
+                "boot_var" = boot_var
                 ))
 
   }
@@ -147,6 +157,36 @@ nonprobMI.fit <- function(outcome,
 
 
   return(model_nons)
+
+}
+
+nonprobMI.nn <- function(data,
+                         query,
+                         k,
+                         treetype,
+                         searchtype,
+                         radius,
+                         eps){
+
+
+  model_nn <- nn2(data = data,
+                  quety = query,
+                  k = k,
+                  treetype = treetype,
+                  searchtype = searchtype,
+                  radius = radius,
+                  eps = eps)
+
+  return(model_nn)
+
+}
+
+mu_hatMI <- function(y, d, N){
+
+  mu_hat <- 1/N * sum(d * y)
+
+  return(mu_hat)
+
 
 }
 
