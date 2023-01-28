@@ -4,7 +4,10 @@
 \alias{controlInf}
 \title{controlInf}
 \usage{
-controlInf(est.method, var.method)
+controlInf(
+  est.method = c("likelihood", "integrative"),
+  var.method = c("analytic", "bootstrap")
+)
 }
 \arguments{
 \item{est.method}{estimation method}

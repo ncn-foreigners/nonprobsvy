@@ -47,9 +47,9 @@ nonprobMI <- function(outcome,
 
   XY_nons <- model.frame(outcome, data)
   y_name <- colnames(XY_nons)[1]
-  X_nons <- model.matrix(XY_nons, data)
+  X_nons <- model.matrix(XY_nons, data) # matrix of nonprobability sample
   svydesign$variables[,y_name] <- rep(0, nrow(svydesign$variables))
-  X_rand <- model.matrix(outcome, svydesign$variables)
+  X_rand <- model.matrix(outcome, svydesign$variables) # matrix of probability sample
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
@@ -79,20 +79,24 @@ nonprobMI <- function(outcome,
     n_rand <- nrow(X_rand)
 
 
-    s <- y_rand_pred # is multiplied by psB?
+    ## design based variance estimation based on approximations of the second-order inclusion probabilities
+
+    s <- y_rand_pred
     ci <- n_rand/(n_rand-1) * (1 - ps_rand)
     B_hat <- sum(ci*(s/ps_rand))/sum(ci)
     ei <- (s/ps_rand) - B_hat
     db_var <- sum(ci*(ei^2))
 
-    v_b <- 1/N_est_rand^2 * db_var  # rechange N_estA on N_estB
+    v_b <- 1/N_est_rand^2 * db_var  # first component
 
     # v_b <- 1/N_estB * t(model$coefficients) * E * model$coefficients
 
-    mx <- 1/N_est_rand * colSums(d_rand * X_rand) # rechange N_estA on N_estB
+
+
+    mx <- 1/N_est_rand * colSums(d_rand * X_rand)
 
     suma = 0
-    for(i in 1:n_nons){
+    for(i in 1:n_nons){ # matrix product instead of loop in a near future
 
       c <- t(X_nons[i,]) %*% X_nons[i,]
       suma <- suma + c
@@ -101,11 +105,11 @@ nonprobMI <- function(outcome,
     c <- 1/(1/n_nons * suma) %*% mx
     e <- XY_nons[, 1] - y_nons_pred
 
-    v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2
+    v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2 #second component
 
-    var <- v_a + v_b
+    var <- v_a + v_b #variance
 
-    ci <- c(mu_hat - 1.96*sqrt(var), mu_hat + 1.96*sqrt(var))
+    ci <- c(mu_hat - 1.96*sqrt(var), mu_hat + 1.96*sqrt(var)) #confidence interval
 
     boot_var <- BootMI(X_rand,
                        X_nons,
@@ -115,14 +119,13 @@ nonprobMI <- function(outcome,
                        d_rand,
                        n_nons,
                        n_rand,
-                       mu_hat)
+                       mu_hat) # bootstrap variance
 
 
 
     return(list("Population mean estimator" = mu_hat,
                 "variance" = var,
-                "CI" = ci,
-                "boot_var" = boot_var
+                "CI" = ci
                 ))
 
   }
@@ -132,6 +135,24 @@ nonprobMI <- function(outcome,
 
   return(infer_nons)
 }
+
+
+#' nonprobMI.fit
+#
+#' nonprobMI.fit: Function for outcome variable estimation based on nonprobability sample and using model based approach
+#'
+#' @param outcome - `formula`, the outcome equation.
+#' @param data - an optional `data.frame` with data from the nonprobability sample.
+#' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
+#' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param control.outcome - a
+#' @param start - a
+#' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
+#' @param verbose - a
+#' @param model - a
+#' @param x - a
+#' @param y - a
+#'
 
 
 nonprobMI.fit <- function(outcome,
@@ -151,14 +172,28 @@ nonprobMI.fit <- function(outcome,
                                y = y,
                                weights = weights,
                                start = start,
-                               control = control.outcome,
-                               family = family.outcome
-  )
+                               control = list(control.outcome$epsilon,
+                                              control.outcome$maxit,
+                                              control.outcome$trace),
+                               family = family.outcome)
 
 
   return(model_nons)
 
 }
+
+#' nonprobMI.nn
+#
+#' nonprobMI.nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching
+#'
+#' @param data - an optional `data.frame` with data from the nonprobability sample.
+#' @param query - a
+#' @param k - a
+#' @param treetype - a
+#' @param searchtype - a
+#' @param radius - a
+#' @param eps - a
+
 
 nonprobMI.nn <- function(data,
                          query,
@@ -180,6 +215,13 @@ nonprobMI.nn <- function(data,
   return(model_nn)
 
 }
+
+#' mu_hatMI
+#
+#' mu_hatMI: Function for outcome variable estimation based on mass imputation
+#' @param y - a
+#' @param d - a
+#' @param N - a
 
 mu_hatMI <- function(y, d, N){
 

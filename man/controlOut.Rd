@@ -4,10 +4,24 @@
 \alias{controlOut}
 \title{controlOut}
 \usage{
-controlOut(method = "glm.fit")
+controlOut(
+  method = "glm.fit",
+  epsilon = 1e-08,
+  maxit = 25,
+  trace = FALSE,
+  lambda = 0.25
+)
 }
 \arguments{
 \item{method}{estimation method}
+
+\item{epsilon}{- a}
+
+\item{maxit}{- a}
+
+\item{trace}{- a}
+
+\item{lambda}{- a}
 }
 \description{
 control function for the outcome equation in the nonprob function

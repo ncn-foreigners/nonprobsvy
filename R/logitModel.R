@@ -19,7 +19,7 @@ logit <- function(...) {
 
     function(theta) {
 
-      eta1 <- as.matrix(X_nons) %*% theta
+      eta1 <- as.matrix(X_nons) %*% theta # linear predictor
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
@@ -31,6 +31,7 @@ logit <- function(...) {
     }
   }
 
+# d is inverse of probability weights
 
   gradient <-  function(X_rand, X_nons, d, ...) {
 

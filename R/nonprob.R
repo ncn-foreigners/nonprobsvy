@@ -56,6 +56,8 @@ nonprob <- function(selection = NULL,
 
   ##
 
+  est.method <- control.inference$est.method
+
   # if (missing(method.selection)) method.selection <- "logit"
 
   if (!is.data.frame(data)) {
@@ -78,7 +80,8 @@ nonprob <- function(selection = NULL,
   }
 
   if (inherits(selection, "formula") & inherits(outcome, "formula")) {
-    model_used <- "DR"
+
+    ifelse(est.method == "likelihood", model_used <- "DR", model_used <- "DRsel")
   }
 
   ## validate data
@@ -145,7 +148,31 @@ nonprob <- function(selection = NULL,
                    model,
                    x,
                    y,
-                   ...)
+                   ...),
+    DRsel <- nonprobSel(selection,
+                        outcome,
+                        data,
+                        svydesign,
+                        pop.totals,
+                        pop.means,
+                        pop.size,
+                        method.selection,
+                        method.outcome,
+                        family.selection = "binomial",
+                        family.outcome = "gaussian",
+                        subset,
+                        weights,
+                        na.action,
+                        control.selection,
+                        control.outcome,
+                        control.inference,
+                        start,
+                        verbose,
+                        contrasts,
+                        model,
+                        x,
+                        y,
+                        ...)
   )
 
   return(model_estimates)

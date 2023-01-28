@@ -54,13 +54,13 @@ nonprobIPW <- function(selection,
   dependents <- colnames(data)[colnames(data) %in% colnames(svydesign$variables)]
   outcome <- as.formula(paste(paste(y_name, "~"), paste(dependents, collapse = "+"))) # formula for outcome variable
   XY_nons <- model.frame(outcome, data)
-  X_nons <- model.matrix(XY_nons, data)
-  X_rand <- model.matrix(selection, svydesign$variables)
+  X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample
+  X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
 
-  start <- start.fit(X_nons, #initial values for Propensity score estimation
+  start <- start.fit(X_nons, #initial values for propensity score estimation
                      X_rand,
                      weights,
                      d_rand,
@@ -74,7 +74,7 @@ nonprobIPW <- function(selection,
     method <- method()
   }
 
-  ps_method <- method$PropenScore
+  ps_method <- method$PropenScore # function for propensity score estimation
   loglike <- method$MakeLogLike
   gradient <- method$MakeGradient
   hessian <- method$MakeHessian
@@ -94,7 +94,7 @@ nonprobIPW <- function(selection,
     hess <- ps_method(X_nons, log_like, gradient, hessian, start)$hess
 
     # to complete
-    if(method.selection == "probit"){
+    if(method.selection == "probit"){ # for probit model propensity score derivative is needed
 
       ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start)$psd
       ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
@@ -111,7 +111,7 @@ nonprobIPW <- function(selection,
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
 
-    mu_hat <- (1/N_est_nons) * sum(y_nons/ps_nons)
+    mu_hat <- (1/N_est_nons) * sum(y_nons/ps_nons) # IPW estimator
 
 
     b <- switch(method.selection,
@@ -120,6 +120,7 @@ nonprobIPW <- function(selection,
                 "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% X_nons %*% solve(hess)
     )
 
+    # sparse matrix
 
     b_vec <- cbind(-1, b)
     H_mx <- cbind(0, - N_est_nons * solve(hess))
@@ -144,7 +145,7 @@ nonprobIPW <- function(selection,
     V_mx <- sparse_mx %*% (V1 + V2) %*% t(as.matrix(sparse_mx))
 
 
-    theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
+    theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)])) # vector of variance for theta_hat
 
     # variance for mu_hat
     # var <- switch(method.selection,
@@ -154,7 +155,7 @@ nonprobIPW <- function(selection,
     # )
 
 
-    ci <- c(mu_hat - 1.96 * sqrt(V_mx[1,1]), mu_hat + 1.96 * sqrt(V_mx[1,1]))
+    ci <- c(mu_hat - 1.96 * sqrt(V_mx[1,1]), mu_hat + 1.96 * sqrt(V_mx[1,1])) # confidence interval
 
 
     return(list("Population mean estimator" = mu_hat,

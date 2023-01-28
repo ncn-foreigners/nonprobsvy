@@ -4,10 +4,24 @@
 \alias{controlSel}
 \title{controlSel}
 \usage{
-controlSel(method = "glm.fit")
+controlSel(
+  method = "glm.fit",
+  epsilon = 1e-08,
+  maxit = 25,
+  trace = FALSE,
+  lambda = 1.25
+)
 }
 \arguments{
 \item{method}{estimation method}
+
+\item{epsilon}{- a}
+
+\item{maxit}{- a}
+
+\item{trace}{- a}
+
+\item{lambda}{- a}
 }
 \description{
 control function for the selection equation in the nonprob function
