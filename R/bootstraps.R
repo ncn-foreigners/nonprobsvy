@@ -2,6 +2,7 @@ BootMI <- function(Xrand,
                    Xnons,
                    weights,
                    y,
+                   family.outcome,
                    num_boot,
                    d,
                    n.nons,
@@ -28,7 +29,8 @@ BootMI <- function(Xrand,
 
     model_strap <- nonprobMI.fit(x = Xnons_strap,
                                  y = y_strap,
-                                 weights = weights.strap)
+                                 weights = weights.strap,
+                                 family.outcome = family.outcome)
 
     beta <- model_strap$coefficients
 

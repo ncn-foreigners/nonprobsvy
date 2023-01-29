@@ -1,5 +1,7 @@
 #' Title Variable Selection
 #'
+#' Implementation is based on IntegrativeFPM package, see at https://github.com/shuyang1987/IntegrativeFPM
+#'
 #' VariableSelection: Function for selecting important variables for sampling score model and outcome model
 #'
 #' @param selection - `formula`, the selection (propensity) equation.
@@ -128,55 +130,86 @@ nonprobSel <- function(selection,
   theta.est <- par
   theta.selected <- which(theta.est != 0)
 
-  #for family == gaussian in outcome family
 
-  # variabless selection for beta using nvreg package
+    # variables selection for beta using nvreg package
 
-  beta <- ncvreg::ncvfit(X_nons, y_nons, lambda = lambda_beta, penalty = 'SCAD')
-  beta.est <- beta$beta
-  beta.selected <- as.numeric(which(beta.est!=0))
-
-
-  # Estimating parameters theta, beta using selected variables
+    beta <- ncvreg::ncvreg(X_nons, y_nons, lambda = lambda_beta,
+                           penalty = 'SCAD', family = family.outcome)
+    beta.est <- beta$beta
+    beta.selected <- as.numeric(which(beta.est!=0))
 
 
-  idx <- unique(c(beta.selected[-1] - 1, theta.selected[-1] - 1))
-  psel <- length(idx)
-  Xsel <- X[, idx]
-
-  par0 <- rep(0, 2*(psel+1))
-
-  ## root for joint score equation
-  par_sel <- rootSolve::multiroot(UThetaBeta,
-                                 par0,
-                                 Rnons=Rnons,
-                                 X=Xsel,
-                                 y=y,
-                                 d=d_rand,
-                                 weights = weights,
-                                 method.selection = method.selection)$root
+    # Estimating parameters theta, beta using selected variables
 
 
-  theta_sel <- par_sel[1:(psel+1)]
-  beta_sel <- par_sel[(psel+2):(2*psel+2)]
+    idx <- unique(c(beta.selected[-1] - 1, theta.selected[-1] - 1))
+    psel <- length(idx)
+    Xsel <- X[, idx]
 
-  ps_nons_est  <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
-  y_hat <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+    par0 <- rep(0, 2*(psel+1))
 
-  mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/N + (sum(y_hat*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
-                                                                                    # using Nnons, Nrand instead of N
+    ## root for joint score equation
+    par_sel <- rootSolve::multiroot(UThetaBeta,
+                                   par0,
+                                   Rnons=Rnons,
+                                   X=Xsel,
+                                   y=y,
+                                   d=d_rand,
+                                   weights = weights,
+                                   method.selection = method.selection,
+                                   family.outcome = family.outcome)$root
 
-  sw.rand <- sw[loc.rand]
-  y_rand <- y_hat[loc.rand]
 
-  sigmasqhat <- mean((y[loc.nons] - y_hat[loc.nons])^2) # errors mean
+    theta_sel <- par_sel[1:(psel+1)]
+    beta_sel <- par_sel[(psel+2):(2*psel+2)]
 
-  ve.pdr <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/N^2 + (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + N) * sigmasqhat/(N^2) #variance of error term
-  se.pdr <- sqrt(ve.pdr) # standard error
+    ps_nons_est  <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
+
+    if(family.outcome == "gaussian"){
+
+      y_hat <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+
+      mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/N + (sum(y_hat*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
+      # using Nnons, Nrand instead of N
+
+      sw.rand <- sw[loc.rand]
+      y_rand <- y_hat[loc.rand]
+
+      sigmasqhat <- mean((y[loc.nons] - y_hat[loc.nons])^2) # errors mean
+
+      ve.pdr <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/N^2 + (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + N) * sigmasqhat/(N^2) #variance of error term
+      se.pdr <- sqrt(ve.pdr) # standard error
+
+    } else if(family.outcome == "binomial"){
+
+      lm <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+      pi <- exp(lm)/(1 + exp(lm))
+
+      mu_hatdr <- sum((y - pi)*Rnons/ps_nons_est)/N + (sum(pi*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
+      # using Nnons, Nrand instead of N
+
+      sw.rand <- sw[loc.rand]
+      pi_rand <- pi[loc.rand]
+
+      sigmasqhat <- pi[loc.rand] * (1 - pi[loc.rand])
+
+      infl1 <- (y - pi)^2 * rnons/(ps_nons_est^2)
+      infl2 <- (y - pi)^2 * Rnons/ps_nons_est
+
+      ve.pdr <- sum((sw.rand^2 - sw.rand) * (pi_rand)^2)/(N^2)+ (sum((infl1) - 2*infl2)+sum(sw.rand*sigmasqhat))/(N^2)
+
+      se.pdr<-sqrt(ve.pdr)
+
+    } else if(family.outcome == "poisson") {
+
+
+
+    }
+
 
   return(list(theta = theta_sel,
          beta = beta_sel,
-         mu_hat = mu_hatdr,
+         populationMean = mu_hatdr,
          ve = ve.pdr,
          se = se.pdr))
 
@@ -282,7 +315,8 @@ UThetaBeta <- function(par,
                        y,
                        d,
                        weights,
-                       method.selection){
+                       method.selection,
+                       family.outcome){
 
   method <- method.selection
   if (is.character(method)) {
@@ -304,13 +338,29 @@ UThetaBeta <- function(par,
   ps <- inv_link(lpiB)
   Rrand <- 1 - Rnons
   y[which(is.na(y))] <- 0
-  res <- (y - (X0 %*% beta))
   ps <- as.vector(ps)
   sw <- c(weights, d)
-  res <- as.vector(res)
 
-  UTB <- c(apply(X0*Rnons/ps-X0*Rrand*sw,2,sum), # estimating function
-           apply(X0*Rnons*(1/ps-1)*res,2,sum))/n0
+  if(family.outcome == "gaussian"){
+
+    res <- (y - (X0 %*% beta))
+    res <- as.vector(res)
+
+    UTB <- c(apply(X0*Rnons/ps-X0*Rrand*sw,2,sum), # estimating function
+             apply(X0*Rnons*(1/ps-1)*res,2,sum))/n0
+
+  } else if(family.outcome == "binary"){
+
+    m <- exp(X0 %*% beta)/(1 + exp(X0 %*% beta))
+    res <- (y - m)
+
+    UTB <- c(apply(X0*rnons/ps*m*(1-m) - X0*Rrand*sw*m*(1-m),2,sum),
+             apply(X0*rnons*(1/piB-1)*res,2,sum))/n0
+
+  } else { # if family.outcome == "poisson"
+
+
+  }
 
   return(UTB)
 

@@ -29,7 +29,7 @@ nonprobMI <- function(outcome,
                       data,
                       svydesign,
                       method.outcome,
-                      family.outcome,
+                      family.outcome = "gaussian",
                       subset,
                       weights,
                       na.action,
@@ -55,10 +55,12 @@ nonprobMI <- function(outcome,
   d_rand <- 1/ps_rand
   N_est_rand <- sum(d_rand)
 
+
   ## estimation
   model_nons <- nonprobMI.fit(x = X_nons,
                               y = y_nons,
-                              weights = weights)
+                              weights = weights,
+                              family.outcome = family.outcome)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
@@ -115,6 +117,7 @@ nonprobMI <- function(outcome,
                        X_nons,
                        weights,
                        y_nons,
+                       family.outcome,
                        1000,
                        d_rand,
                        n_nons,
@@ -123,9 +126,9 @@ nonprobMI <- function(outcome,
 
 
 
-    return(list("Population mean estimator" = mu_hat,
-                "variance" = var,
-                "CI" = ci
+    return(list(populationMean = mu_hat,
+                Variance = var,
+                CI = ci
                 ))
 
   }
@@ -159,7 +162,7 @@ nonprobMI.fit <- function(outcome,
                           data,
                           weights,
                           svydesign,
-                          family.outcome = gaussian(),
+                          family.outcome,
                           control.outcome = controlOut(),
                           start = NULL,
                           verbose,
@@ -168,6 +171,15 @@ nonprobMI.fit <- function(outcome,
                           y) {
 
 
+  family <- family.outcome
+
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
+
   model_nons <- stats::glm.fit(x = x,
                                y = y,
                                weights = weights,
@@ -175,7 +187,7 @@ nonprobMI.fit <- function(outcome,
                                control = list(control.outcome$epsilon,
                                               control.outcome$maxit,
                                               control.outcome$trace),
-                               family = family.outcome)
+                               family = family)
 
 
   return(model_nons)

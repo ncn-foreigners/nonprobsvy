@@ -158,12 +158,12 @@ nonprobIPW <- function(selection,
     ci <- c(mu_hat - 1.96 * sqrt(V_mx[1,1]), mu_hat + 1.96 * sqrt(V_mx[1,1])) # confidence interval
 
 
-    return(list("Population mean estimator" = mu_hat,
-                "variance for mu_hat" = V_mx[1,1],
-                "variance-covariance" = V_mx,
-                "CI" = ci,
-                "theta_hat" = theta_hat,
-                "variance for theta_hat" = theta_hat_var
+    return(list(populationMean = mu_hat,
+                Variance = V_mx[1,1],
+                VarianceCovariance = V_mx,
+                CI = ci,
+                theta = theta_hat,
+                thetaVariance = theta_hat_var
     ))
 
 

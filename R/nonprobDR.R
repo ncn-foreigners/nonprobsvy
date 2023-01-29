@@ -67,6 +67,7 @@ nonprobDR <- function(selection,
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
 
+
   method <- method.selection
   if (is.character(method)) {
     method <- get(method, mode = "function", envir = parent.frame())
@@ -87,7 +88,8 @@ nonprobDR <- function(selection,
   ## estimation
   model_nons <- nonprobMI.fit(x = X_nons,
                               y = y_nons,
-                              weights = weights)
+                              weights = weights,
+                              family.outcome = family.outcome)
 
   start <- start.fit(X_nons, X_rand, weights, d_rand,
                      method.selection) #initial values for propensity score estimation
@@ -132,6 +134,7 @@ nonprobDR <- function(selection,
     }
 
 
+
     mu_hat <- mu_hatDR(y_nons,
                        y_nons_pred,
                        y_rand_pred,
@@ -149,6 +152,9 @@ nonprobDR <- function(selection,
     )
 
     est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
+
+    pearson_residuals <- pearson.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
+    deviance_residuals <- deviance.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
 
     # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
 
@@ -180,10 +186,13 @@ nonprobDR <- function(selection,
 
     ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var)) # confidence interval
 
-    return(list("Population mean estimator" = mu_hat,
-                "variance" = var,
-                "CI" = ci,
-                "theta_hat" = theta_hat))
+    return(list(populationMean = mu_hat,
+                Variance = var,
+                CI = ci,
+                theta = theta_hat,
+                pearson.residuals = pearson_residuals,
+                deviance.residuals = deviance_residuals
+               ))
   }
 
 
@@ -243,10 +252,10 @@ start.fit <- function(X_nons,
 
   glm_mx <- rbind(X_nons, X_rand)
   weights <- c(weights, d)
-  y_glm <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
+  Rnons <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
 
   start_model <- glm.fit(x = glm_mx, #glm model for initial values in propensity score estimation
-                         y = y_glm,
+                         y = Rnons,
                          weights = weights,
                          family = binomial(link = method.selection),
                          control = list(control.selection$epsilon,
@@ -259,5 +268,4 @@ start.fit <- function(X_nons,
   return(start)
 
 }
-
 
