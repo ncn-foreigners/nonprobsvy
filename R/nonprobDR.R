@@ -183,11 +183,14 @@ nonprobDR <- function(selection,
                   "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2) + W,
     )
 
+    se <- sqrt(var)
 
-    ci <- c(mu_hat - 1.96 * sqrt(var), mu_hat + 1.96 * sqrt(var)) # confidence interval
+
+    ci <- c(mu_hat - 1.96 * se, mu_hat + 1.96 * se) # confidence interval
 
     return(list(populationMean = mu_hat,
                 Variance = var,
+                standardError = se,
                 CI = ci,
                 theta = theta_hat,
                 pearson.residuals = pearson_residuals,

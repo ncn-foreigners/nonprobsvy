@@ -111,7 +111,9 @@ nonprobMI <- function(outcome,
 
     var <- v_a + v_b #variance
 
-    ci <- c(mu_hat - 1.96*sqrt(var), mu_hat + 1.96*sqrt(var)) #confidence interval
+    se <- sqrt(var)
+
+    ci <- c(mu_hat - 1.96*se, mu_hat + 1.96*se) #confidence interval
 
     boot_var <- BootMI(X_rand,
                        X_nons,
@@ -128,6 +130,7 @@ nonprobMI <- function(outcome,
 
     return(list(populationMean = mu_hat,
                 Variance = var,
+                standardError = se,
                 CI = ci
                 ))
 

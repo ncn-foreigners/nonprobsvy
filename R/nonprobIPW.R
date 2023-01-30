@@ -144,6 +144,9 @@ nonprobIPW <- function(selection,
     # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
     V_mx <- sparse_mx %*% (V1 + V2) %*% t(as.matrix(sparse_mx))
 
+    var <- V_mx[1,1]
+    se <- sqrt(var)
+
 
     theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)])) # vector of variance for theta_hat
 
@@ -155,11 +158,12 @@ nonprobIPW <- function(selection,
     # )
 
 
-    ci <- c(mu_hat - 1.96 * sqrt(V_mx[1,1]), mu_hat + 1.96 * sqrt(V_mx[1,1])) # confidence interval
+    ci <- c(mu_hat - 1.96 * se, mu_hat + 1.96 * se) # confidence interval
 
 
     return(list(populationMean = mu_hat,
-                Variance = V_mx[1,1],
+                Variance = var,
+                standadError = se,
                 VarianceCovariance = V_mx,
                 CI = ci,
                 theta = theta_hat,

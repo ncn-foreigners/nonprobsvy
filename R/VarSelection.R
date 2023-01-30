@@ -164,6 +164,7 @@ nonprobSel <- function(selection,
     beta_sel <- par_sel[(psel+2):(2*psel+2)]
 
     ps_nons_est  <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
+    N <- sum(1/ps_nons_est)
 
     if(family.outcome == "gaussian"){
 
@@ -175,9 +176,10 @@ nonprobSel <- function(selection,
       sw.rand <- sw[loc.rand]
       y_rand <- y_hat[loc.rand]
 
+
       sigmasqhat <- mean((y[loc.nons] - y_hat[loc.nons])^2) # errors mean
 
-      ve.pdr <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/N^2 + (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + N) * sigmasqhat/(N^2) #variance of error term
+      ve.pdr <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/N^2 + (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + N) * sigmasqhat/(N^2) #variance of an estimator
       se.pdr <- sqrt(ve.pdr) # standard error
 
     } else if(family.outcome == "binomial"){
@@ -193,12 +195,12 @@ nonprobSel <- function(selection,
 
       sigmasqhat <- pi[loc.rand] * (1 - pi[loc.rand])
 
-      infl1 <- (y - pi)^2 * rnons/(ps_nons_est^2)
+      infl1 <- (y - pi)^2 * Rnons/(ps_nons_est^2)
       infl2 <- (y - pi)^2 * Rnons/ps_nons_est
 
-      ve.pdr <- sum((sw.rand^2 - sw.rand) * (pi_rand)^2)/(N^2)+ (sum((infl1) - 2*infl2)+sum(sw.rand*sigmasqhat))/(N^2)
+      ve.pdr <- sum((sw.rand^2 - sw.rand) * (pi_rand)^2)/N^2 + (sum((infl1) - 2*infl2) + sum(sw.rand*sigmasqhat))/(N^2) #variance of an estimator
 
-      se.pdr<-sqrt(ve.pdr)
+      se.pdr<-sqrt(ve.pdr) # standard error
 
     } else if(family.outcome == "poisson") {
 
@@ -210,8 +212,8 @@ nonprobSel <- function(selection,
   return(list(theta = theta_sel,
          beta = beta_sel,
          populationMean = mu_hatdr,
-         ve = ve.pdr,
-         se = se.pdr))
+         variance = ve.pdr,
+         standardError = se.pdr))
 
 
 }
