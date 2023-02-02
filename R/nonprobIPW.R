@@ -33,6 +33,7 @@ nonprobIPW <- function(selection,
                        svydesign,
                        pop.totals,
                        pop.means,
+                       pop.size,
                        method.selection,
                        family.selection = "binomial",
                        subset,
@@ -108,6 +109,9 @@ nonprobIPW <- function(selection,
 
     }
 
+    pearson_residuals <- pearson.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
+    deviance_residuals <- deviance.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
+
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
 
@@ -147,6 +151,7 @@ nonprobIPW <- function(selection,
     var <- V_mx[1,1]
     se <- sqrt(var)
 
+    LogL <- log_like(theta_hat) # maximum of loglikelihood function
 
     theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)])) # vector of variance for theta_hat
 
@@ -157,18 +162,25 @@ nonprobIPW <- function(selection,
     #  "probit" = (1/N_est_nons^2) * sum((y_nons - mu_hat)^2 * (1 - ps_nons)/ps_nons^2 + 2 * (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) * (b %*% t(as.matrix(X_nons))) + (psdA)/((ps_nons^2)*(1 - ps_nons)) * (b %*% t(as.matrix(X_nons)))^2) + D.var,
     # )
 
+    alpha <- control.inference$alpha
+    z <- qnorm(1-alpha/2)
 
-    ci <- c(mu_hat - 1.96 * se, mu_hat + 1.96 * se) # confidence interval
+    ci <- c(mu_hat - z * se, mu_hat + z * se) # confidence interval
 
 
-    return(list(populationMean = mu_hat,
+    structure(
+      list(populationMean = mu_hat,
                 Variance = var,
-                standadError = se,
+                standardError = se,
                 VarianceCovariance = V_mx,
                 CI = ci,
                 theta = theta_hat,
-                thetaVariance = theta_hat_var
-    ))
+                thetaVariance = theta_hat_var,
+                pearson.residuals = pearson_residuals,
+                deviance.residuals = deviance_residuals,
+                LogL = LogL
+    ),
+    class = "Inverse probability weighted")
 
 
   }

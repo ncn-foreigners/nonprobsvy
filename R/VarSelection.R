@@ -99,7 +99,7 @@ nonprobSel <- function(selection,
   n <- dim(X)[1]
   p <- dim(X)[2]
   sw <- c(weights, d_rand) # vector of weights
-  N <- sum(d_rand)
+  Nrand <- sum(d_rand)
 
 
   ## initial values for set of parameters
@@ -164,22 +164,34 @@ nonprobSel <- function(selection,
     beta_sel <- par_sel[(psel+2):(2*psel+2)]
 
     ps_nons_est  <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
-    N <- sum(1/ps_nons_est)
+    d_nons <- 1/ps_nons_est
+    Nnons <- sum(d_nons)
 
     if(family.outcome == "gaussian"){
 
       y_hat <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+      sw.rand <- sw[loc.rand]
 
-      mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/N + (sum(y_hat*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
+
+      mu_hatdr <- mu_hatDR(y_nons,
+                           y_hat[loc.nons],
+                           y_hat[loc.rand],
+                           d_nons,
+                           d_rand,
+                           Nnons,
+                           Nrand) #DR estimator
+
+      #mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/Nnons + (sum(y_hat*(1-Rnons) * sw.rand))/Nrand  # using mu_hatDR function in near future
       # using Nnons, Nrand instead of N
 
-      sw.rand <- sw[loc.rand]
       y_rand <- y_hat[loc.rand]
+      sigmasqhat <- mean((y[loc.nons] - y_hat[loc.nons])^2) # squared errors mean
 
+      V1 <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/Nnons^2
+      V2 <- (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + sum(sw.rand)) * sigmasqhat/(Nnons^2)
 
-      sigmasqhat <- mean((y[loc.nons] - y_hat[loc.nons])^2) # errors mean
+      ve.pdr <- V1 + V2 #variance of an estimator
 
-      ve.pdr <- sum((sw.rand^2 - sw.rand) * (y_rand)^2)/N^2 + (sum(Rnons*(1-2*ps_nons_est)/ps_nons_est^2) + N) * sigmasqhat/(N^2) #variance of an estimator
       se.pdr <- sqrt(ve.pdr) # standard error
 
     } else if(family.outcome == "binomial"){
@@ -187,7 +199,15 @@ nonprobSel <- function(selection,
       lm <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
       pi <- exp(lm)/(1 + exp(lm))
 
-      mu_hatdr <- sum((y - pi)*Rnons/ps_nons_est)/N + (sum(pi*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
+      mu_hatdr <- mu_hatDR(y_nons,
+                           pi[loc.nons],
+                           pi[loc.rand],
+                           d_nons,
+                           d_rand,
+                           Nnons,
+                           Nrand)
+
+      # mu_hatdr <- sum((y - pi)*Rnons/ps_nons_est)/N + (sum(pi*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
       # using Nnons, Nrand instead of N
 
       sw.rand <- sw[loc.rand]
@@ -198,22 +218,50 @@ nonprobSel <- function(selection,
       infl1 <- (y - pi)^2 * Rnons/(ps_nons_est^2)
       infl2 <- (y - pi)^2 * Rnons/ps_nons_est
 
-      ve.pdr <- sum((sw.rand^2 - sw.rand) * (pi_rand)^2)/N^2 + (sum((infl1) - 2*infl2) + sum(sw.rand*sigmasqhat))/(N^2) #variance of an estimator
+      V1 <- sum((sw.rand^2 - sw.rand) * (pi_rand)^2)/N^2
+      V2 <- + (sum((infl1) - 2*infl2) + sum(sw.rand*sigmasqhat))/(N^2)
 
-      se.pdr<-sqrt(ve.pdr) # standard error
+      ve.pdr <- V1 + V2 #variance of an estimator
+
+      se.pdr <- sqrt(ve.pdr) # standard error
 
     } else if(family.outcome == "poisson") {
 
+      lm <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+      y_hat <- exp(lm)
 
+      mu_hatdr <- mu_hatDR(y_nons,
+                           y_hat[loc.nons],
+                           y_hat[loc.rand],
+                           d_nons,
+                           d_rand,
+                           Nnons,
+                           Nrand) #DR estimator
+
+      # mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/N + (sum(y_hat*(1-Rnons) * sw))/N
+
+      sigmasqhat <- y_hat
+
+      infl1 <- (y - y_hat)^2 * Rnons/(ps_nons_est^2)
+      infl2 <- (y - y_hat)^2 * Rnons/ps_nons_est
+
+      V1 <- sum((sw.rand^2 - sw.rand) * (y_hat)^2)/N^2
+      V2 <- (sum((infl1) - 2*infl2) + sum(sw.rand*sigmasqhat))/(N^2)
+
+      ve.pdr <- V1 + V2 #variance of an estimator
+
+      se.pdr <- sqrt(ve.pdr) # standard error
 
     }
 
 
-  return(list(theta = theta_sel,
-         beta = beta_sel,
-         populationMean = mu_hatdr,
-         variance = ve.pdr,
-         standardError = se.pdr))
+  structure(
+    list(populationMean = mu_hatdr,
+        variance = ve.pdr,
+        standardError = se.pdr,
+        theta = theta_sel,
+        beta = beta_sel),
+    class = "Doubly-robust")
 
 
 }
@@ -256,7 +304,7 @@ Utheta <- function(par,
 }
 
 
-## derivative of score equation for theta, using in variable selection
+## derivative of score equation for theta, used in variable selection
 
 UthetaDer <-  function(par,
                        Rnons,
@@ -309,7 +357,7 @@ q_lambda <- function(par,
 }
 
 
-## joint score equation for theta and beta, using in estimation
+## joint score equation for theta and beta, used in estimation
 
 UThetaBeta <- function(par,
                        Rnons,
@@ -348,19 +396,24 @@ UThetaBeta <- function(par,
     res <- (y - (X0 %*% beta))
     res <- as.vector(res)
 
-    UTB <- c(apply(X0*Rnons/ps-X0*Rrand*sw,2,sum), # estimating function
-             apply(X0*Rnons*(1/ps-1)*res,2,sum))/n0
+    UTB <- c(apply(X0*Rnons/ps-X0*Rrand*sw, 2, sum), # estimating function
+             apply(X0*Rnons*(1/ps-1)*res, 2, sum))/n0
 
   } else if(family.outcome == "binary"){
 
     m <- exp(X0 %*% beta)/(1 + exp(X0 %*% beta))
     res <- (y - m)
 
-    UTB <- c(apply(X0*rnons/ps*m*(1-m) - X0*Rrand*sw*m*(1-m),2,sum),
-             apply(X0*rnons*(1/piB-1)*res,2,sum))/n0
+    UTB <- c(apply(X0*rnons/ps*m*(1-m) - X0*Rrand*sw*m*(1-m), 2, sum),
+             apply(X0*rnons*(1/ps-1)*res, 2, sum))/n0
 
-  } else { # if family.outcome == "poisson"
+  } else if(family.outcome == "poisson"){
 
+    m <- exp(X0 %*% beta)
+    res <- (y - m)
+
+    UTB <- c(apply(X0*rnons/ps*m - X0*Rrand*sw*m, 2, sum),
+             apply(X0*rnons*(1/ps-1)*res, 2, sum))/n0
 
   }
 

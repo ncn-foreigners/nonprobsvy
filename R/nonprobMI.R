@@ -113,7 +113,10 @@ nonprobMI <- function(outcome,
 
     se <- sqrt(var)
 
-    ci <- c(mu_hat - 1.96*se, mu_hat + 1.96*se) #confidence interval
+    alpha <- control.inference$alpha
+    z <- qnorm(1-alpha/2)
+
+    ci <- c(mu_hat - z*se, mu_hat + z*se) #confidence interval
 
     boot_var <- BootMI(X_rand,
                        X_nons,
@@ -128,11 +131,14 @@ nonprobMI <- function(outcome,
 
 
 
-    return(list(populationMean = mu_hat,
+    structure(
+      list(populationMean = mu_hat,
                 Variance = var,
                 standardError = se,
-                CI = ci
-                ))
+                CI = ci,
+                beta = model_nons_coefs
+                ),
+      class = "Mass imputation")
 
   }
 

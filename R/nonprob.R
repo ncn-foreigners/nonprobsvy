@@ -72,7 +72,7 @@ nonprob <- function(selection = NULL,
   }
 
   if (inherits(selection, "formula") & (is.null(outcome) | inherits(outcome, "formula") == FALSE)) {
-    ifelse(is.null(pop.size), model_used <- "P1", "P2")
+    ifelse(is.null(pop.size), model_used <- "P1", model_used <- "P2")
   }
 
   if (inherits(outcome, "formula") & (is.null(selection) | inherits(selection, "formula") == FALSE)) {

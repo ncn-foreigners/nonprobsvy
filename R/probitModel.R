@@ -74,7 +74,7 @@ probit <- function(...){
     grad <- maxLik_an$gradient
     hess <- maxLik_an$hessian
     estim_ps <- inv_link(estim_probit %*% t(X))
-    estim_psd <- dlink(estim_probit %*% t(X))
+    estim_psd <- dinv_link(estim_probit %*% t(X))
 
 
     return(list("ps" = estim_ps,

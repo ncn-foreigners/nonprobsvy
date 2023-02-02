@@ -61,9 +61,11 @@ controlOut <- function(method = "glm.fit", #perhaps another control function for
 controlInf <- function(est.method = c("likelihood",
                                       "integrative"),
                        var.method = c("analytic",
-                                      "bootstrap")) {
+                                      "bootstrap"),
+                       alpha = 0.05) {
 
   list(est.method = if(missing(est.method)) "likelihood" else est.method,
-       var.method = if(missing(var.method)) "analytic" else est.method)
+       var.method = if(missing(var.method)) "analytic" else est.method,
+       alpha = alpha)
 
 }

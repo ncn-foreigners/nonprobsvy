@@ -175,6 +175,8 @@ nonprobDR <- function(selection,
 
     W = 1/N_est_nons^2 * db_var # first component
 
+    LogL <- log_like(theta_hat) # maximum of loglikelihood function
+
 
 
     var <- switch(method.selection, # asymptotic variance by each propensity score method (first component plus second component)
@@ -185,17 +187,23 @@ nonprobDR <- function(selection,
 
     se <- sqrt(var)
 
+    alpha <- control.inference$alpha
+    z <- qnorm(1-alpha/2)
 
-    ci <- c(mu_hat - 1.96 * se, mu_hat + 1.96 * se) # confidence interval
+    ci <- c(mu_hat - z * se, mu_hat + z * se) # confidence interval
 
-    return(list(populationMean = mu_hat,
+    structure(
+      list(populationMean = mu_hat,
                 Variance = var,
                 standardError = se,
                 CI = ci,
                 theta = theta_hat,
                 pearson.residuals = pearson_residuals,
-                deviance.residuals = deviance_residuals
-               ))
+                deviance.residuals = deviance_residuals,
+                LogL = LogL,
+                beta = model_nons_coefs
+               ),
+      class = "Doubly-robust")
   }
 
 
