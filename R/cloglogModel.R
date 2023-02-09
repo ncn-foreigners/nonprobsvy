@@ -40,7 +40,7 @@ cloglog <- function(...){
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
-      t(t(X_nons) %*% (exp(eta1)/invLink1) - t(X_rand) %*% (d * exp(eta2))) #jest ok
+      t(t(X_nons) %*% (exp(eta1)/invLink1) - t(X_rand) %*% (d * exp(eta2)))
 
     }
 
@@ -56,16 +56,16 @@ cloglog <- function(...){
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
-      t(as.data.frame(X_nons) * (exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * d * exp(eta2)) %*% as.matrix(X_rand) # jest ok
+      t(as.data.frame(X_nons) * (exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * d * exp(eta2)) %*% as.matrix(X_rand)
 
     }
   }
 
 
-  ps_est <- function(X, log_like, gradient, hessian, start){
+  ps_est <- function(X, log_like, gradient, hessian, start, optim.method){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "NR", start = start)
+                                method = optim.method, start = start)
 
     cloglog_estim <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -135,7 +135,7 @@ cloglog <- function(...){
     # a <- 0
     # for(i in 1:n_A){
 
-    #  suma <- ((1 - estim_ps_nons[i])/estim_ps_nons[i]^2) * log(1 - estim_ps_nons[i]) * (XY_nons[,1] - mu_hat) * X_nons[i,] # bez kwadadratu
+    #  suma <- ((1 - estim_ps_nons[i])/estim_ps_nons[i]^2) * log(1 - estim_ps_nons[i]) * (XY_nons[,1] - mu_hat) * X_nons[i,]
      # a <- a + suma
 
     # }

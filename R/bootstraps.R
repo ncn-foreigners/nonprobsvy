@@ -1,4 +1,6 @@
-BootMI <- function(Xrand,
+#' Internal functions
+
+bootMI <- function(Xrand,
                    Xnons,
                    weights,
                    y,
@@ -18,7 +20,7 @@ BootMI <- function(Xrand,
 
   while (k <= num_boot) {
 
-    strap_rand <- sample.int(replace = FALSE, n = n.rand) # to change -> replicate weights based on sampling design
+    strap_rand <- sample.int(replace = FALSE, n = n.rand, prob = 1/d) # to change -> replicate weights based on sampling design
     strap <- sample.int(replace = TRUE, n = n.nons)
     weights.strap <- weights[strap]
     Xnons_strap <- Xnons[strap,]
@@ -45,8 +47,44 @@ BootMI <- function(Xrand,
 
   }
 
-  boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
+  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2) #mean may be replaced by mu_hatMI
 
   return(boot_var)
+
+}
+
+bootIPW <- function(Xrand,
+                    Xnons,
+                    weights,
+                    y,
+                    family.outcome,
+                    num_boot,
+                    d,
+                    n.nons,
+                    n.rand,
+                    mu_hat,
+                    dependency,
+                    ...){
+
+
+
+
+
+}
+
+bootDR <- function(Xrand,
+                   Xnons,
+                   weights,
+                   y,
+                   family.outcome,
+                   num_boot,
+                   d,
+                   n.nons,
+                   n.rand,
+                   mu_hat,
+                   dependency,
+                   ...){
+
+
 
 }

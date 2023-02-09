@@ -74,7 +74,9 @@ nonprobMI <- function(outcome,
 
   nonprobMI.inference <- function(...) {
 
-    mu_hat <- mu_hatMI(y_rand_pred, d_rand, N_est_rand)
+    mu_hat <- mu_hatMI(y_rand_pred,
+                       d_rand,
+                       N_est_rand)
 
 
     n_nons <- nrow(X_nons)
@@ -97,14 +99,14 @@ nonprobMI <- function(outcome,
 
     mx <- 1/N_est_rand * colSums(d_rand * X_rand)
 
-    suma = 0
+    mh <- 0
     for(i in 1:n_nons){ # matrix product instead of loop in a near future
 
-      c <- t(X_nons[i,]) %*% X_nons[i,]
-      suma <- suma + c
+      xx <- t(X_nons[i,]) %*% X_nons[i,]
+      mh <- mh + xx
     }
 
-    c <- 1/(1/n_nons * suma) %*% mx
+    c <- 1/(1/n_nons * mh) %*% mx
     e <- XY_nons[, 1] - y_nons_pred
 
     v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2 #second component
@@ -118,7 +120,7 @@ nonprobMI <- function(outcome,
 
     ci <- c(mu_hat - z*se, mu_hat + z*se) #confidence interval
 
-    boot_var <- BootMI(X_rand,
+    boot_var <- bootMI(X_rand,
                        X_nons,
                        weights,
                        y_nons,
@@ -133,11 +135,12 @@ nonprobMI <- function(outcome,
 
     structure(
       list(populationMean = mu_hat,
-                Variance = var,
-                standardError = se,
-                CI = ci,
-                beta = model_nons_coefs
-                ),
+           Variance = var,
+           standardError = se,
+           CI = ci,
+           beta = model_nons_coefs,
+           bootVariance = boot_var
+           ),
       class = "Mass imputation")
 
   }
@@ -241,12 +244,12 @@ nonprobMI.nn <- function(data,
 #
 #' mu_hatMI: Function for outcome variable estimation based on mass imputation
 #' @param y - a
-#' @param d - a
+#' @param weights - a
 #' @param N - a
 
-mu_hatMI <- function(y, d, N){
+mu_hatMI <- function(y, weights, N){
 
-  mu_hat <- 1/N * sum(d * y)
+  mu_hat <- 1/N * sum(weights * y)
 
   return(mu_hat)
 

@@ -52,17 +52,17 @@ logit <- function(...) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
 
-        - t(as.data.frame(X_rand) * (d * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)#jest ok
+        - t(as.data.frame(X_rand) * (d * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
 
 
       }
 
 
-    ps_est <- function(X, log_like, gradient, hessian, start) {
+    ps_est <- function(X, log_like, gradient, hessian, start, optim.method) {
 
       maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                  method = "NR", start = start)
+                                  method = optim.method, start = start)
       logit_estim <- maxLik_an$estimate
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian

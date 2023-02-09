@@ -6,6 +6,9 @@
 #' @param maxit - a
 #' @param trace - a
 #' @param lambda - a
+#' @param optim.method - a
+#' @param overlap - a
+#' @param dependence - a
 #'
 #' @export
 
@@ -13,13 +16,19 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        epsilon = 1e-8,
                        maxit = 25,
                        trace = FALSE,
-                       lambda = 1.25
+                       lambda = 1.25,
+                       optim.method = "NR",
+                       overlap = FALSE,
+                       dependence = FALSE
                        ) {
 
   return(list(epsilon = epsilon,
               maxit = maxit,
               trace = trace,
-              lambda = lambda
+              lambda = lambda,
+              optim.method = optim.method,
+              overlap = overlap,
+              dependence = dependence
   ))
 
 }
@@ -56,6 +65,8 @@ controlOut <- function(method = "glm.fit", #perhaps another control function for
 #' control function for the inference method in the nonprob function
 #' @param est.method estimation method
 #' @param var.method variance method
+#' @param alpha
+#'
 #' @export
 
 controlInf <- function(est.method = c("likelihood",

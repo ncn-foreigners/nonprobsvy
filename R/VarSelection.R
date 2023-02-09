@@ -71,7 +71,7 @@ nonprobSel <- function(selection,
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample
   X_rand <- model.matrix(selection, svydesign$variables) #matrix of probability sample
-  y_nons = XY_nons[,1]
+  y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
   rnons <- rep(1, nrow(X_nons))

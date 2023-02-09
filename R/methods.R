@@ -1,14 +1,14 @@
 #' Summary statistics for model
 #'
 #'
-#' pearson.residPS
+#' pearson.nonprobsvy
 #'
-#' pearson.residPS: Function for pearson residuals computing for propensity score model
+#' pearson.nonprobsvy: Function for pearson residuals computing for propensity score model
 
-pearson.residPS <- function(X_nons,
-                            X_rand,
-                            ps_nons,
-                            est_ps_rand){
+pearson.nonprobsvy <- function(X_nons,
+                               X_rand,
+                               ps_nons,
+                               est_ps_rand){
 
   Rnons <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
   ps <- c(ps_nons, est_ps_rand)
@@ -18,14 +18,14 @@ pearson.residPS <- function(X_nons,
 }
 
 
-#' pearson.residPS
+#' deviance.nonprobsvy
 #'
-#' pearson.residPS: Function for deviance residuals computing for propensity score model
+#' deviance.nonprobsvy: Function for deviance residuals computing for propensity score model
 
-deviance.residPS <- function(X_nons,
-                             X_rand,
-                             ps_nons,
-                             est_ps_rand){
+deviance.nonprobsvy <- function(X_nons,
+                                X_rand,
+                                ps_nons,
+                                est_ps_rand){
 
   Rnons <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
   s <- c(rep(1, nrow(X_nons)), rep(-1, nrow(X_rand)))
@@ -34,4 +34,26 @@ deviance.residPS <- function(X_nons,
   res <- s * sqrt(-2 * (Rnons * log(ps) + (1 - Rnons) * log(1 - ps)))
 
   return(res)
+}
+
+cooks.distance.nonprobsvy <- function(){
+
+}
+
+
+hatvalues.nonprobsvy <- function(){
+
+
+}
+
+
+AIC.nonprobsvy <- function(){
+
+
+}
+
+BIC.nonprobsvy <- function(){
+
+
+
 }

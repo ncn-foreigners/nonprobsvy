@@ -82,6 +82,9 @@ nonprobIPW <- function(selection,
   VarCov1 <- method$VarianceCov1
   VarCov2 <- method$VarianceCov2
 
+  optimMethod <- control.selection$optim.method
+
+
   nonprobIPW.inference <- function(...){
 
     #loglike, gradient, hessian here
@@ -91,31 +94,33 @@ nonprobIPW <- function(selection,
 
     n_rand <- nrow(X_rand)
 
-    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start)$theta_hat
-    hess <- ps_method(X_nons, log_like, gradient, hessian, start)$hess
+    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$theta_hat
+    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$hess
 
     # to complete
     if(method.selection == "probit"){ # for probit model propensity score derivative is needed
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start)$psd
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start)$psd
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
+      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$psd
+      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
+      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$psd
+      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
 
     } else {
 
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
+      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
+      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
 
     }
 
-    pearson_residuals <- pearson.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
-    deviance_residuals <- deviance.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
+    pearson_residuals <- pearson.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
+    deviance_residuals <- deviance.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
 
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
 
-    mu_hat <- (1/N_est_nons) * sum(y_nons/ps_nons) # IPW estimator
+    mu_hat <- mu_hatIPW(y = y_nons,
+                        weights = 1/ps_nons,
+                        N = N_est_nons) # IPW estimator
 
 
     b <- switch(method.selection,
@@ -133,13 +138,13 @@ nonprobIPW <- function(selection,
     ##
     if(method.selection == "probit"){
 
-      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, N_est_nons) # to fix
+      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, N_est_nons) # fixed
 
       V2 <- VarCov2(X_rand, est_ps_rand, ps_rand, est_ps_rand_der, b, n_rand, N_est_nons)
 
     } else {
 
-      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, N_est_nons) # to fix
+      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, N_est_nons) # fixed
 
       V2 <- VarCov2(X_rand, est_ps_rand, ps_rand, b, n_rand, N_est_nons)
 
@@ -167,18 +172,33 @@ nonprobIPW <- function(selection,
 
     ci <- c(mu_hat - z * se, mu_hat + z * se) # confidence interval
 
+    if(control.selection$overlap){
+
+      weights <- overlap(X_nons,
+                         X_rand,
+                         d_rand,
+                         dependent = control.selection$dependence,
+                         method.selection)
+      N <- sum(weights)
+
+      mu_hat_Ov <-  mu_hatIPW(y = y_nons,
+                               weights = weights,
+                               N = N)
+
+    }
+
 
     structure(
-      list(populationMean = mu_hat,
-                Variance = var,
-                standardError = se,
-                VarianceCovariance = V_mx,
-                CI = ci,
-                theta = theta_hat,
-                thetaVariance = theta_hat_var,
-                pearson.residuals = pearson_residuals,
-                deviance.residuals = deviance_residuals,
-                LogL = LogL
+      list(populationMean = ifelse(control.selection$overlap, mu_hat_Ov, mu_hat),
+           Variance = var,
+           standardError = se,
+           VarianceCovariance = V_mx,
+           CI = ci,
+           theta = theta_hat,
+           thetaVariance = theta_hat_var,
+           pearson.residuals = pearson_residuals,
+           deviance.residuals = deviance_residuals,
+           LogL = LogL
     ),
     class = "Inverse probability weighted")
 
@@ -191,6 +211,16 @@ nonprobIPW <- function(selection,
 
   return(infer)
 
+
+}
+
+
+mu_hatIPW <- function(y,
+                      weights,
+                      N){
+
+  mu_hat <- (1/N) * sum(y * weights)
+  mu_hat
 
 }
 

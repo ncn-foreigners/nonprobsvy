@@ -63,7 +63,7 @@ nonprobDR <- function(selection,
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample
   X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample
-  y_nons = XY_nons[,1]
+  y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
 
@@ -80,6 +80,8 @@ nonprobDR <- function(selection,
   loglike <- method$MakeLogLike
   gradient <- method$MakeGradient
   hessian <- method$MakeHessian
+
+  optimMethod <- control.selection$optim.method
 
   #if(is.null(start)){
 
@@ -113,7 +115,7 @@ nonprobDR <- function(selection,
     hessian <- hessian(X_rand, X_nons, d_rand)
 
 
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start)$ps
+    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
     N_est_rand <- sum(1/ps_rand)
@@ -128,8 +130,8 @@ nonprobDR <- function(selection,
 
     if(method.selection == "probit"){ # for probit model propensity score derivative is needed
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start)$psd
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start)$psd
+      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$psd
+      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$psd
 
     }
 
@@ -151,10 +153,10 @@ nonprobDR <- function(selection,
                 "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
     )
 
-    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start)$ps
+    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
 
-    pearson_residuals <- pearson.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
-    deviance_residuals <- deviance.residPS(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
+    pearson_residuals <- pearson.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
+    deviance_residuals <- deviance.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
 
     # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
 
@@ -173,7 +175,7 @@ nonprobDR <- function(selection,
     ei <- (s/ps_rand) - B_hat
     db_var <- sum(ci * ei^2)
 
-    W = 1/N_est_nons^2 * db_var # first component
+    W <- 1/N_est_nons^2 * db_var # first component
 
     LogL <- log_like(theta_hat) # maximum of loglikelihood function
 

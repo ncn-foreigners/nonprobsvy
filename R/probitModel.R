@@ -41,7 +41,7 @@ probit <- function(...){
       dlink1 <- dinv_link(eta1)
       dlink2 <- dinv_link(eta2)
 
-      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2)))) #jest ok
+      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2))))
     }
 
   }
@@ -65,10 +65,10 @@ probit <- function(...){
 
   }
 
-  ps_est <- function(X, log_like, gradient, hessian, start){
+  ps_est <- function(X, log_like, gradient, hessian, start, optim.method){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "BFGS", start = start)
+                                method = optim.method, start = start)
 
     estim_probit <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -134,7 +134,7 @@ probit <- function(...){
    #  a <- 0
     # for(i in 1:n_A){
 
-     # suma <- estim_psd_nons[i]/estim_ps_nons[i]^2 * (y_nons[i] - mu_hat) * X_nons[i,] #bez kwadratu
+     # suma <- estim_psd_nons[i]/estim_ps_nons[i]^2 * (y_nons[i] - mu_hat) * X_nons[i,]
     #  a <- a + suma
 
     # }
