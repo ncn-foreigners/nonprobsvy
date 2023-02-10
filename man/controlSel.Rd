@@ -9,7 +9,10 @@ controlSel(
   epsilon = 1e-08,
   maxit = 25,
   trace = FALSE,
-  lambda = 1.25
+  lambda = 1.25,
+  optim_method = "NR",
+  overlap = FALSE,
+  dependence = FALSE
 )
 }
 \arguments{
@@ -22,6 +25,12 @@ controlSel(
 \item{trace}{- a}
 
 \item{lambda}{- a}
+
+\item{optim_method}{- a}
+
+\item{overlap}{- a}
+
+\item{dependence}{- a}
 }
 \description{
 control function for the selection equation in the nonprob function

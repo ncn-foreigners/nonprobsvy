@@ -45,7 +45,7 @@ nonprob <- function(selection = NULL,
                     na.action,
                     control.selection = controlSel(),
                     control.outcome = controlOut(),
-                    control.inference = controlInf(),
+                    control.inference = controlInf(est_method = "likelihood"),
                     start = NULL,
                     verbose = 0L,
                     contrasts = NULL,
@@ -56,7 +56,7 @@ nonprob <- function(selection = NULL,
 
   ##
 
-  est.method <- control.inference$est.method
+  est_method <- control.inference$est_method
 
   # if (missing(method.selection)) method.selection <- "logit"
 
@@ -66,13 +66,16 @@ nonprob <- function(selection = NULL,
 
   if (is.null(weights)) weights <- rep.int(1, nrow(data))
 
+  if(missing(method.selection)) method.selection <- "logit"
+  if(missing(family.outcome)) family.outcome <- "gaussian"
+
   ## basic checkers
   if (is.null(selection) & is.null(outcome)) {
     stop("Please provide selection or outcome formula.")
   }
 
   if (inherits(selection, "formula") & (is.null(outcome) | inherits(outcome, "formula") == FALSE)) {
-    ifelse(is.null(pop.size), model_used <- "P1", model_used <- "P2")
+    model_used <- "P"
   }
 
   if (inherits(outcome, "formula") & (is.null(selection) | inherits(selection, "formula") == FALSE)) {
@@ -81,26 +84,26 @@ nonprob <- function(selection = NULL,
 
   if (inherits(selection, "formula") & inherits(outcome, "formula")) {
 
-    ifelse(est.method == "likelihood", model_used <- "DR", model_used <- "DRsel")
+    ifelse(est_method == "likelihood", model_used <- "DR", model_used <- "DRsel")
   }
 
   ## validate data
 
   ## model estimates
   model_estimates <- switch(model_used,
-    P1 = nonprobIPW(selection,
+    P = nonprobIPW(selection,
                    data,
                    svydesign,
                    pop.totals,
                    pop.means,
                    pop.size,
                    method.selection,
-                   family.selection = "binomial",
+                   family.selection,
                    subset,
                    weights,
                    na.action,
-                   control.selection = controlSel(),
-                   control.inference = controlInf(),
+                   control.selection,
+                   control.inference,
                    start,
                    verbose,
                    contrasts,
@@ -113,12 +116,12 @@ nonprob <- function(selection = NULL,
                   data,
                   svydesign,
                   method.outcome,
-                  family.outcome = "gaussian",
+                  family.outcome,
                   subset,
                   weights,
                   na.action,
-                  control.outcome = controlOut(),
-                  control.inference = controlInf(),
+                  control.outcome,
+                  control.inference,
                   start,
                   verbose,
                   contrasts,
@@ -135,8 +138,8 @@ nonprob <- function(selection = NULL,
                    pop.size,
                    method.selection,
                    method.outcome,
-                   family.selection = "binomial",
-                   family.outcome = "gaussian",
+                   family.selection,
+                   family.outcome,
                    subset,
                    weights,
                    na.action,
@@ -160,8 +163,8 @@ nonprob <- function(selection = NULL,
                         pop.size,
                         method.selection,
                         method.outcome,
-                        family.selection = "binomial",
-                        family.outcome = "gaussian",
+                        family.selection,
+                        family.outcome,
                         subset,
                         weights,
                         na.action,
@@ -177,6 +180,6 @@ nonprob <- function(selection = NULL,
                         ...)
   )
 
-  return(model_estimates)
+  model_estimates
 
 }

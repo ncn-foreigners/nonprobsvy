@@ -10,7 +10,7 @@ nonprobMI(
   data,
   svydesign,
   method.outcome,
-  family.outcome,
+  family.outcome = "gaussian",
   subset,
   weights,
   na.action,

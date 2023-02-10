@@ -10,7 +10,7 @@ nonprobMI.fit(
   data,
   weights,
   svydesign,
-  family.outcome = gaussian(),
+  family.outcome,
   control.outcome = controlOut(),
   start = NULL,
   verbose,

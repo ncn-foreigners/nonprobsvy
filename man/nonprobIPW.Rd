@@ -11,6 +11,7 @@ nonprobIPW(
   svydesign,
   pop.totals,
   pop.means,
+  pop.size = NULL,
   method.selection,
   family.selection = "binomial",
   subset,

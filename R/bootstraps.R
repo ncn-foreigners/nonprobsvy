@@ -7,31 +7,31 @@ bootMI <- function(Xrand,
                    family.outcome,
                    num_boot,
                    d,
-                   n.nons,
-                   n.rand,
                    mu_hat,
                    ...
                    ){
 
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
+  n_nons <- nrow(X_nons)
+  n_rand <- nrow(X_rand)
 
   k <- 1
 
   while (k <= num_boot) {
 
-    strap_rand <- sample.int(replace = FALSE, n = n.rand, prob = 1/d) # to change -> replicate weights based on sampling design
-    strap <- sample.int(replace = TRUE, n = n.nons)
-    weights.strap <- weights[strap]
+    strap_rand <- sample.int(replace = FALSE, n = n_rand, prob = 1/d) # to change -> replicate weights based on sampling design
+    strap <- sample.int(replace = TRUE, n = n_nons)
+    weights_strap <- weights[strap]
     Xnons_strap <- Xnons[strap,]
     y_strap <- y[strap]
-    d.strap <- d[strap_rand]
-    Nstrap <- sum(d.strap)
+    d_strap <- d[strap_rand]
+    Nstrap <- sum(d_strap)
 
 
     model_strap <- nonprobMI.fit(x = Xnons_strap,
                                  y = y_strap,
-                                 weights = weights.strap,
+                                 weights = weights_strap,
                                  family.outcome = family.outcome)
 
     beta <- model_strap$coefficients
@@ -40,7 +40,7 @@ bootMI <- function(Xrand,
 
     ystrap_rand <- as.numeric(Xrand %*% beta)
 
-    mu_hat_boot <- mu_hatMI(ystrap_rand, d.strap, Nstrap)
+    mu_hat_boot <- mu_hatMI(ystrap_rand, d_strap, Nstrap)
     mu_hats[k] <- mu_hat_boot
 
     k <- k + 1
@@ -60,8 +60,6 @@ bootIPW <- function(Xrand,
                     family.outcome,
                     num_boot,
                     d,
-                    n.nons,
-                    n.rand,
                     mu_hat,
                     dependency,
                     ...){
@@ -79,8 +77,6 @@ bootDR <- function(Xrand,
                    family.outcome,
                    num_boot,
                    d,
-                   n.nons,
-                   n.rand,
                    mu_hat,
                    dependency,
                    ...){

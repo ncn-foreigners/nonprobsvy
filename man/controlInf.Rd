@@ -5,14 +5,17 @@
 \title{controlInf}
 \usage{
 controlInf(
-  est.method = c("likelihood", "integrative"),
-  var.method = c("analytic", "bootstrap")
+  est_method = c("likelihood", "integrative"),
+  var_method = c("analytic", "bootstrap"),
+  alpha = 0.05
 )
 }
 \arguments{
-\item{est.method}{estimation method}
+\item{est_method}{estimation method}
 
-\item{var.method}{variance method}
+\item{var_method}{variance method}
+
+\item{alpha}{- a}
 }
 \description{
 control function for the inference method in the nonprob function

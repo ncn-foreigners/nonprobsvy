@@ -6,7 +6,7 @@
 #' @param maxit - a
 #' @param trace - a
 #' @param lambda - a
-#' @param optim.method - a
+#' @param optim_method - a
 #' @param overlap - a
 #' @param dependence - a
 #'
@@ -17,7 +17,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        maxit = 25,
                        trace = FALSE,
                        lambda = 1.25,
-                       optim.method = "NR",
+                       optim_method = "NR",
                        overlap = FALSE,
                        dependence = FALSE
                        ) {
@@ -26,7 +26,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
               maxit = maxit,
               trace = trace,
               lambda = lambda,
-              optim.method = optim.method,
+              optim_method = optim_method,
               overlap = overlap,
               dependence = dependence
   ))
@@ -63,20 +63,20 @@ controlOut <- function(method = "glm.fit", #perhaps another control function for
 #' controlInf
 #'
 #' control function for the inference method in the nonprob function
-#' @param est.method estimation method
-#' @param var.method variance method
-#' @param alpha
+#' @param est_method estimation method
+#' @param var_method variance method
+#' @param alpha - a
 #'
 #' @export
 
-controlInf <- function(est.method = c("likelihood",
+controlInf <- function(est_method = c("likelihood",
                                       "integrative"),
-                       var.method = c("analytic",
+                       var_method = c("analytic",
                                       "bootstrap"),
                        alpha = 0.05) {
 
-  list(est.method = if(missing(est.method)) "likelihood" else est.method,
-       var.method = if(missing(var.method)) "analytic" else est.method,
+  list(est_method = if(missing(est_method)) "likelihood" else est_method,
+       var_method = if(missing(var_method)) "analytic" else est_method,
        alpha = alpha)
 
 }

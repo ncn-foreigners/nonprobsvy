@@ -134,12 +134,12 @@ nonprobMI <- function(outcome,
 
 
     structure(
-      list(populationMean = mu_hat,
-           Variance = var,
-           standardError = se,
+      list(population_mean = mu_hat,
+           variance = var,
+           standard_error = se,
            CI = ci,
            beta = model_nons_coefs,
-           bootVariance = boot_var
+           boot_variance = boot_var
            ),
       class = "Mass imputation")
 
@@ -148,7 +148,7 @@ nonprobMI <- function(outcome,
   ## inference based on mi method
   infer_nons <- nonprobMI.inference()
 
-  return(infer_nons)
+  infer_nons
 }
 
 
@@ -202,7 +202,7 @@ nonprobMI.fit <- function(outcome,
                                family = family)
 
 
-  return(model_nons)
+  model_nons
 
 }
 
@@ -236,7 +236,7 @@ nonprobMI.nn <- function(data,
                   radius = radius,
                   eps = eps)
 
-  return(model_nn)
+  model_nn
 
 }
 
@@ -251,7 +251,7 @@ mu_hatMI <- function(y, weights, N){
 
   mu_hat <- 1/N * sum(weights * y)
 
-  return(mu_hat)
+  mu_hat
 
 
 }

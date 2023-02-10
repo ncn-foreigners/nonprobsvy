@@ -5,12 +5,12 @@
 \title{mu_hatMI
 mu_hatMI: Function for outcome variable estimation based on mass imputation}
 \usage{
-mu_hatMI(y, d, N)
+mu_hatMI(y, weights, N)
 }
 \arguments{
 \item{y}{- a}
 
-\item{d}{- a}
+\item{weights}{- a}
 
 \item{N}{- a}
 }

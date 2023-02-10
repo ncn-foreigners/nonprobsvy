@@ -33,7 +33,7 @@ nonprobIPW <- function(selection,
                        svydesign,
                        pop.totals,
                        pop.means,
-                       pop.size,
+                       pop.size = NULL,
                        method.selection,
                        family.selection = "binomial",
                        subset,
@@ -75,14 +75,14 @@ nonprobIPW <- function(selection,
     method <- method()
   }
 
-  ps_method <- method$PropenScore # function for propensity score estimation
-  loglike <- method$MakeLogLike
-  gradient <- method$MakeGradient
-  hessian <- method$MakeHessian
-  VarCov1 <- method$VarianceCov1
-  VarCov2 <- method$VarianceCov2
+  ps_method <- method$make_propen_score # function for propensity score estimation
+  loglike <- method$make_log_like
+  gradient <- method$make_gradient
+  hessian <- method$make_hessian
+  var_cov1 <- method$variance_covariance1
+  var_cov2 <- method$variance_covariance2
 
-  optimMethod <- control.selection$optim.method
+  optim_method <- control.selection$optim_method
 
 
   nonprobIPW.inference <- function(...){
@@ -94,21 +94,21 @@ nonprobIPW <- function(selection,
 
     n_rand <- nrow(X_rand)
 
-    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$theta_hat
-    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$hess
+    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$theta_hat
+    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$hess
 
     # to complete
     if(method.selection == "probit"){ # for probit model propensity score derivative is needed
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$psd
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$psd
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
+      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$psd
+      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
+      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$psd
+      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
 
     } else {
 
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
+      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
+      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
 
     }
 
@@ -117,18 +117,36 @@ nonprobIPW <- function(selection,
 
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
+    weights <- d_nons
+
+
+    if(!is.null(pop.size)){
+
+      N_est_nons <- pop.size
+
+    }
 
     mu_hat <- mu_hatIPW(y = y_nons,
-                        weights = 1/ps_nons,
+                        weights = weights,
                         N = N_est_nons) # IPW estimator
 
+    if(is.null(pop.size)){
 
-    b <- switch(method.selection,
-                "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
-                "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
-                "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% X_nons %*% solve(hess)
-    )
+      b <- switch(method.selection,
+                  "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
+                  "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
+                  "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% X_nons %*% solve(hess)
+      )
 
+    } else {
+
+      b <- switch(method.selection,
+                  "logit" = (((1 - ps_nons)/ps_nons) * y_nons) %*% X_nons %*% solve(hess),
+                  "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * y_nons) %*% X_nons %*% solve(hess),
+                  "probit" = (ps_nons_der/ps_nons^2 * (y_nons - mu_hat + 1)) %*% X_nons %*% solve(hess)
+      )
+
+    }
     # sparse matrix
 
     b_vec <- cbind(-1, b)
@@ -138,15 +156,15 @@ nonprobIPW <- function(selection,
     ##
     if(method.selection == "probit"){
 
-      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, N_est_nons) # fixed
+      V1 <- var_cov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, pop.size) # fixed
 
-      V2 <- VarCov2(X_rand, est_ps_rand, ps_rand, est_ps_rand_der, b, n_rand, N_est_nons)
+      V2 <- var_cov2(X_rand, est_ps_rand, ps_rand, est_ps_rand_der, b, n_rand, pop.size)
 
     } else {
 
-      V1 <- VarCov1(X_nons, y_nons, mu_hat, ps_nons, N_est_nons) # fixed
+      V1 <- var_cov1(X_nons, y_nons, mu_hat, ps_nons, pop.size) # fixed
 
-      V2 <- VarCov2(X_rand, est_ps_rand, ps_rand, b, n_rand, N_est_nons)
+      V2 <- var_cov2(X_rand, est_ps_rand, ps_rand, b, n_rand, pop.size)
 
     }
 
@@ -156,7 +174,7 @@ nonprobIPW <- function(selection,
     var <- V_mx[1,1]
     se <- sqrt(var)
 
-    LogL <- log_like(theta_hat) # maximum of loglikelihood function
+    log_likelihood <- log_like(theta_hat) # maximum of loglikelihood function
 
     theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)])) # vector of variance for theta_hat
 
@@ -187,29 +205,28 @@ nonprobIPW <- function(selection,
 
     }
 
+    mu_hat <- ifelse(control.selection$overlap, mu_hat_Ov, mu_hat)
 
     structure(
-      list(populationMean = ifelse(control.selection$overlap, mu_hat_Ov, mu_hat),
-           Variance = var,
-           standardError = se,
-           VarianceCovariance = V_mx,
+      list(population_mean = mu_hat,
+           variance = var,
+           standard_error = se,
+           variance_covariance = V_mx,
            CI = ci,
            theta = theta_hat,
-           thetaVariance = theta_hat_var,
-           pearson.residuals = pearson_residuals,
-           deviance.residuals = deviance_residuals,
-           LogL = LogL
+           theta_variance = theta_hat_var,
+           pearson_residuals = pearson_residuals,
+           deviance_residuals = deviance_residuals,
+           log_likelihood = log_likelihood
     ),
     class = "Inverse probability weighted")
-
 
   }
 
 
   infer <- nonprobIPW.inference()
 
-
-  return(infer)
+  infer
 
 
 }
@@ -220,6 +237,7 @@ mu_hatIPW <- function(y,
                       N){
 
   mu_hat <- (1/N) * sum(y * weights)
+
   mu_hat
 
 }

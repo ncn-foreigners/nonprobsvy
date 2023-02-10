@@ -58,17 +58,17 @@ probit <- function(...){
 
     hess1 <- t(as.data.frame(X_nons) * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + dlink1/(1 - invLink1)^2)) %*% as.matrix(X_nons)
     hess2 <- - t(as.data.frame(X_rand) * d * ((eta2 * dlink2)/(1 - invLink2) + (dlink2^2)/((1 - invLink2)^2))) %*% as.matrix(X_rand)
-    # jest ok
+
     hess1 + hess2
 
     }
 
   }
 
-  ps_est <- function(X, log_like, gradient, hessian, start, optim.method){
+  ps_est <- function(X, log_like, gradient, hessian, start, optim_method){
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = optim.method, start = start)
+                                method = optim_method, start = start)
 
     estim_probit <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -85,11 +85,23 @@ probit <- function(...){
 
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, N){
+  variance_covariance1 <- function(X, y, mu, ps, psd, N = NULL){
 
-    v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-    v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% X
-    v_1 <- t(v1_)
+    if(is.null(N)){
+
+      N <- sum(1/ps)
+
+      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
+      v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% X
+      v_1 <- t(v1_)
+
+    } else {
+
+      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
+      v1_ <- 1/N^2 *  (psd/ps^2 * y) %*% X
+      v_1 <- t(v1_)
+
+    }
 
     v_2 <- 0
     for(i in 1:nrow(X)){
@@ -105,10 +117,12 @@ probit <- function(...){
     v2_mx <- cbind(v_1, v_2)
     V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
-    return(V1)
+    V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, psd, b, n, N){
+  variance_covariance2 <- function(X, eps, ps, psd, b, n, N = NULL){
+
+    if(is.null(N)) N <- sum(1/ps)
 
     s <- psd/(1-eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)
@@ -123,7 +137,7 @@ probit <- function(...){
     V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
     V2[2:p,2:p] <- D
 
-    return(V2)
+    V2
   }
 
   # Move to nonprobIPW, MI, DR functions
@@ -147,14 +161,14 @@ probit <- function(...){
 
   structure(
     list(
-      MakeLogLike = log_like,
-      MakeGradient = gradient,
-      MakeHessian = hessian,
-      linkInv = inv_link,
-      linkInvDer = dinv_link,
-      PropenScore = ps_est,
-      VarianceCov1 = variance_covariance1,
-      VarianceCov2 = variance_covariance2
+      make_log_like = log_like,
+      make_gradient = gradient,
+      make_hessian = hessian,
+      make_link_inv = inv_link,
+      make_link_inv_der = dinv_link,
+      make_propen_score = ps_est,
+      variance_covariance1 = variance_covariance1,
+      variance_covariance2 = variance_covariance2
     ),
 
     class = "method.selection"

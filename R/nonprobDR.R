@@ -76,12 +76,12 @@ nonprobDR <- function(selection,
     method <- method()
   }
 
-  ps_method <- method$PropenScore # function for propensity score estimation
-  loglike <- method$MakeLogLike
-  gradient <- method$MakeGradient
-  hessian <- method$MakeHessian
+  ps_method <- method$make_propen_score # function for propensity score estimation
+  loglike <- method$make_log_like
+  gradient <- method$make_gradient
+  hessian <- method$make_hessian
 
-  optimMethod <- control.selection$optim.method
+  optim_method <- control.selection$optim_method
 
   #if(is.null(start)){
 
@@ -115,13 +115,13 @@ nonprobDR <- function(selection,
     hessian <- hessian(X_rand, X_nons, d_rand)
 
 
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$ps
+    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
     d_nons <- 1/ps_nons
     N_est_nons <- sum(d_nons)
     N_est_rand <- sum(1/ps_rand)
 
-    hess <- ps_method(X_nons, log_like, gradient, hessian, start)$hess
-    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start)$theta_hat
+    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$hess
+    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$theta_hat
 
     n_nons <- nrow(X_nons)
     n_rand <- nrow(X_rand)
@@ -130,11 +130,16 @@ nonprobDR <- function(selection,
 
     if(method.selection == "probit"){ # for probit model propensity score derivative is needed
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optimMethod)$psd
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$psd
+      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$psd
+      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$psd
 
     }
 
+   # if(!is.null(pop.size)){
+
+    #  N_est_rand <- pop.size
+     # N_est_nons <- pop.size
+    #}
 
 
     mu_hat <- mu_hatDR(y_nons,
@@ -153,7 +158,7 @@ nonprobDR <- function(selection,
                 "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
     )
 
-    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optimMethod)$ps
+    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
 
     pearson_residuals <- pearson.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
     deviance_residuals <- deviance.nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
@@ -177,7 +182,7 @@ nonprobDR <- function(selection,
 
     W <- 1/N_est_nons^2 * db_var # first component
 
-    LogL <- log_like(theta_hat) # maximum of loglikelihood function
+    log_likelihood <- log_like(theta_hat) # maximum of loglikelihood function
 
 
 
@@ -194,16 +199,37 @@ nonprobDR <- function(selection,
 
     ci <- c(mu_hat - z * se, mu_hat + z * se) # confidence interval
 
+    if(control.selection$overlap){
+
+      weights <- overlap(X_nons,
+                         X_rand,
+                         d_rand,
+                         dependent = control.selection$dependence,
+                         method.selection)
+      N <- sum(weights)
+
+      mu_hat_Ov <-  mu_hatDR(y_nons,
+                             y_nons_pred,
+                             y_rand_pred,
+                             weights,
+                             d_rand,
+                             N,
+                             N_est_rand)
+
+    }
+
+    mu_hat <- ifelse(control.selection$overlap, mu_hat_Ov, mu_hat)
+
     structure(
-      list(populationMean = mu_hat,
-                Variance = var,
-                standardError = se,
-                CI = ci,
-                theta = theta_hat,
-                pearson.residuals = pearson_residuals,
-                deviance.residuals = deviance_residuals,
-                LogL = LogL,
-                beta = model_nons_coefs
+      list(population_mean = mu_hat,
+           variance = var,
+           standard_error = se,
+           CI = ci,
+           theta = theta_hat,
+           pearson_residuals = pearson_residuals,
+           deviance_residuals = deviance_residuals,
+           log_likelihood = log_likelihood,
+           beta = model_nons_coefs
                ),
       class = "Doubly-robust")
   }
@@ -211,8 +237,7 @@ nonprobDR <- function(selection,
 
   infer <- nonprobDR.inference()
 
-
-  return(infer)
+  infer
 
 }
 
@@ -220,24 +245,25 @@ nonprobDR <- function(selection,
 #
 #' mu_hatDR: Function for outcome variable estimation based on doubly robust estimation
 #'
-#' @param ynons - a
-#' @param ynons_pred - a
-#' @param yrand_pred - a
-#' @param dnons - a
-#' @param drand - a
-#' @param Nnons - a
-#' @param Nrand - a
+#' @param y - a
+#' @param y_nons - a
+#' @param y_rand - a
+#' @param d_nons - a
+#' @param d_rand - a
+#' @param N_nons - a
+#' @param N_rand - a
 
-mu_hatDR <- function(ynons,
-                     ynons_pred,
-                     yrand_pred,
-                     dnons,
-                     drand,
-                     Nnons,
-                     Nrand){
+mu_hatDR <- function(y,
+                     y_nons,
+                     y_rand,
+                     d_nons,
+                     d_rand,
+                     N_nons,
+                     N_rand){
 
-  mu_hat <- 1/Nnons * sum(dnons*(ynons - ynons_pred)) + 1/Nrand * sum(drand * yrand_pred)
-  return(mu_hat)
+  mu_hat <- 1/N_nons * sum(d_nons*(y - y_nons)) + 1/N_rand * sum(d_rand * y_rand)
+
+  mu_hat
 
 }
 
@@ -278,7 +304,7 @@ start.fit <- function(X_nons,
 
   start <- start_model$coefficients
 
-  return(start)
+  start
 
 }
 
