@@ -31,7 +31,7 @@ logit <- function(...) {
     }
   }
 
-# d is inverse of probability weights
+  # d is inverse of probability weights
 
   gradient <-  function(X_rand, X_nons, d, ...) {
 
@@ -42,7 +42,6 @@ logit <- function(...) {
       t(t(X_nons) %*% matrix(1, nrow = nrow(X_nons), ncol = 1) - t(X_rand) %*% (d*invLink2))
 
     }
-
   }
 
     hessian <- function(X_rand, X_nons, d, ...) {
@@ -54,9 +53,7 @@ logit <- function(...) {
 
         - t(as.data.frame(X_rand) * (d * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
-
-
-      }
+    }
 
 
     ps_est <- function(X, log_like, gradient, hessian, start, optim_method) {
@@ -75,10 +72,10 @@ logit <- function(...) {
     }
 
 
-    variance_covariance1 <- function(X, y, mu, ps, N = NULL){ # fixed
+    variance_covariance1 <- function(X, y, mu, ps, N = NULL) { # fixed
 
 
-      if(is.null(N)){
+      if (is.null(N)) {
 
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
@@ -110,9 +107,9 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, eps, ps, b, n, N = NULL){
+    variance_covariance2 <- function(X, eps, ps, b, n, N = NULL) {
 
-      if(is.null(N)) N <- sum(1/ps)
+      if (is.null(N)) N <- sum(1/ps)
 
       s <- eps * as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
@@ -131,29 +128,25 @@ logit <- function(...) {
     }
 
 
-
-
-
-
     # Move to nonprobIPW, MI, DR functions
 
-   # b_var <- function(){
+    # b_var <- function(){
 
-    #  n_X_nons <- nrow(X_nons)
+    #   n_X_nons <- nrow(X_nons)
 
-      # a <- 0
-      # for(i in 1:n_X_nons){
+    #   a <- 0
+    #   for(i in 1:n_X_nons){
 
-        # suma <- (1 - estim_ps_nons[i])/estim_ps_nons[i] * (XY_nons[i,1] - mu_hat) * X_nons[i,]
-        # a <- a + suma
+    #     suma <- (1 - estim_ps_nons[i])/estim_ps_nons[i] * (XY_nons[i,1] - mu_hat) * X_nons[i,]
+    #     a <- a + suma
 
-      # }
-     #a <- ((1 - estim_ps_nons)/estim_ps_nons * (XY_nons[,1] - mu_hat)) %*% as.matrix(X_nons)
-    #  b <- solve(hess)
-    #  a %*% b
+    #   }
+    #   a <- ((1 - estim_ps_nons)/estim_ps_nons * (XY_nons[,1] - mu_hat)) %*% as.matrix(X_nons)
+    #   b <- solve(hess)
+    #   a %*% b
 
 
-  #  }
+    # }
 
       structure(
         list(

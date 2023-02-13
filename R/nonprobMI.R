@@ -5,36 +5,38 @@
 #' @param outcome - `formula`, the outcome equation.
 #' @param data - an optional `data.frame` with data from the nonprobability sample.
 #' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param method.outcome - a `character` with method for response variable estimation
+#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param method_outcome - a `character` with method for response variable estimation
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param na.action a
-#' @param control.outcome a
-#' @param control.inference a
-#' @param start a
-#' @param verbose a
+#' @param na_action a function which indicates what should happen when the data contain `NAs`.
+#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
+#' @param control_inference a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method
+#' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
+#' @param verbose - verbose, numeric
 #' @param contrasts a
 #' @param model a
 #' @param x a
 #' @param y a
 #' @param ... a
+#'
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom stats update
+#' @importFrom stats qnorm
 #' @export
 
 nonprobMI <- function(outcome,
                       data,
                       svydesign,
-                      method.outcome,
-                      family.outcome = "gaussian",
+                      method_outcome,
+                      family_outcome = "gaussian",
                       subset,
                       weights,
-                      na.action,
-                      control.outcome = controlOut(),
-                      control.inference = controlInf(),
+                      na_action,
+                      control_outcome = controlOut(),
+                      control_inference = controlInf(),
                       start,
                       verbose,
                       contrasts,
@@ -47,9 +49,9 @@ nonprobMI <- function(outcome,
 
   XY_nons <- model.frame(outcome, data)
   y_name <- colnames(XY_nons)[1]
-  X_nons <- model.matrix(XY_nons, data) # matrix of nonprobability sample
+  X_nons <- model.matrix(XY_nons, data) # matrix of the  nonprobability sample
   svydesign$variables[,y_name] <- rep(0, nrow(svydesign$variables))
-  X_rand <- model.matrix(outcome, svydesign$variables) # matrix of probability sample
+  X_rand <- model.matrix(outcome, svydesign$variables) # matrix of the probability sample
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   d_rand <- 1/ps_rand
@@ -57,10 +59,10 @@ nonprobMI <- function(outcome,
 
 
   ## estimation
-  model_nons <- nonprobMI.fit(x = X_nons,
+  model_nons <- nonprobMI_fit(x = X_nons,
                               y = y_nons,
                               weights = weights,
-                              family.outcome = family.outcome)
+                              family_outcome = family_outcome)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
@@ -68,22 +70,23 @@ nonprobMI <- function(outcome,
 
   y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
 
-  svydesign <- update(svydesign,
-                      .y_hat_MI = y_rand_pred) # updating probability sample by adding y_hat variable
+  # updating probability sample by adding y_hat variable
+  svydesign <- stats::update(svydesign,
+                             .y_hat_MI = y_rand_pred)
 
 
-  nonprobMI.inference <- function(...) {
+  nonprobMI_inference <- function(...) {
 
-    mu_hat <- mu_hatMI(y_rand_pred,
-                       d_rand,
-                       N_est_rand)
+    mu_hat <- mu_hatMI(y = y_rand_pred,
+                       weights = d_rand,
+                       N = N_est_rand)
 
 
     n_nons <- nrow(X_nons)
     n_rand <- nrow(X_rand)
 
 
-    ## design based variance estimation based on approximations of the second-order inclusion probabilities
+    # design based variance estimation based on approximations of the second-order inclusion probabilities
 
     s <- y_rand_pred
     ci <- n_rand/(n_rand-1) * (1 - ps_rand)
@@ -95,12 +98,10 @@ nonprobMI <- function(outcome,
 
     # v_b <- 1/N_estB * t(model$coefficients) * E * model$coefficients
 
-
-
     mx <- 1/N_est_rand * colSums(d_rand * X_rand)
 
     mh <- 0
-    for(i in 1:n_nons){ # matrix product instead of loop in a near future
+    for (i in 1:n_nons) { # matrix product instead of a loop in a near future
 
       xx <- t(X_nons[i,]) %*% X_nons[i,]
       mh <- mh + xx
@@ -109,27 +110,31 @@ nonprobMI <- function(outcome,
     c <- 1/(1/n_nons * mh) %*% mx
     e <- XY_nons[, 1] - y_nons_pred
 
-    v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2 #second component
+    # second component
+    v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2
 
-    var <- v_a + v_b #variance
+    # variance
+    var <- v_a + v_b
 
     se <- sqrt(var)
 
-    alpha <- control.inference$alpha
-    z <- qnorm(1-alpha/2)
+    alpha <- control_inference$alpha
+    z <- stats::qnorm(1-alpha/2)
 
-    ci <- c(mu_hat - z*se, mu_hat + z*se) #confidence interval
+    # confidence interval based on the normal approximation
+    ci <- c(mu_hat - z*se, mu_hat + z*se)
 
+    # bootstrap variance
     boot_var <- bootMI(X_rand,
                        X_nons,
                        weights,
                        y_nons,
-                       family.outcome,
+                       family_outcome,
                        1000,
                        d_rand,
                        n_nons,
                        n_rand,
-                       mu_hat) # bootstrap variance
+                       mu_hat)
 
 
 
@@ -145,22 +150,22 @@ nonprobMI <- function(outcome,
 
   }
 
-  ## inference based on mi method
-  infer_nons <- nonprobMI.inference()
+  # inference based on mi method
+  infer_nons <- nonprobMI_inference()
 
   infer_nons
 }
 
 
-#' nonprobMI.fit
+#' nonprobMI_fit
 #
-#' nonprobMI.fit: Function for outcome variable estimation based on nonprobability sample and using model based approach
+#' nonprobMI_fit: Function for outcome variable estimation based on nonprobability sample and using model based approach
 #'
 #' @param outcome - `formula`, the outcome equation.
 #' @param data - an optional `data.frame` with data from the nonprobability sample.
 #' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param control.outcome - a
+#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param control_outcome - a
 #' @param start - a
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param verbose - a
@@ -170,12 +175,12 @@ nonprobMI <- function(outcome,
 #'
 
 
-nonprobMI.fit <- function(outcome,
+nonprobMI_fit <- function(outcome,
                           data,
                           weights,
                           svydesign,
-                          family.outcome,
-                          control.outcome = controlOut(),
+                          family_outcome,
+                          control_outcome = controlOut(),
                           start = NULL,
                           verbose,
                           model,
@@ -183,7 +188,7 @@ nonprobMI.fit <- function(outcome,
                           y) {
 
 
-  family <- family.outcome
+  family <- family_outcome
 
   if (is.character(family)) {
     family <- get(family, mode = "function", envir = parent.frame())
@@ -196,9 +201,9 @@ nonprobMI.fit <- function(outcome,
                                y = y,
                                weights = weights,
                                start = start,
-                               control = list(control.outcome$epsilon,
-                                              control.outcome$maxit,
-                                              control.outcome$trace),
+                               control = list(control_outcome$epsilon,
+                                              control_outcome$maxit,
+                                              control_outcome$trace),
                                family = family)
 
 
@@ -206,9 +211,9 @@ nonprobMI.fit <- function(outcome,
 
 }
 
-#' nonprobMI.nn
+#' nonprobMI_nn
 #
-#' nonprobMI.nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching
+#' nonprobMI_nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching
 #'
 #' @param data - an optional `data.frame` with data from the nonprobability sample.
 #' @param query - a
@@ -219,13 +224,13 @@ nonprobMI.fit <- function(outcome,
 #' @param eps - a
 
 
-nonprobMI.nn <- function(data,
+nonprobMI_nn <- function(data,
                          query,
                          k,
                          treetype,
                          searchtype,
                          radius,
-                         eps){
+                         eps) {
 
 
   model_nn <- nn2(data = data,
@@ -247,7 +252,7 @@ nonprobMI.nn <- function(data,
 #' @param weights - a
 #' @param N - a
 
-mu_hatMI <- function(y, weights, N){
+mu_hatMI <- function(y, weights, N) {
 
   mu_hat <- 1/N * sum(weights * y)
 

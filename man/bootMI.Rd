@@ -4,7 +4,7 @@
 \alias{bootMI}
 \title{Internal functions}
 \usage{
-bootMI(Xrand, Xnons, weights, y, family.outcome, num_boot, d, mu_hat, ...)
+bootMI(X_rand, X_nons, weights, y, family_outcome, num_boot, d, mu_hat, ...)
 }
 \description{
 Internal functions

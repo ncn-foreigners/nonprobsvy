@@ -9,13 +9,13 @@ nonprobMI(
   outcome,
   data,
   svydesign,
-  method.outcome,
-  family.outcome = "gaussian",
+  method_outcome,
+  family_outcome = "gaussian",
   subset,
   weights,
-  na.action,
-  control.outcome = controlOut(),
-  control.inference = controlInf(),
+  na_action,
+  control_outcome = controlOut(),
+  control_inference = controlInf(),
   start,
   verbose,
   contrasts,
@@ -32,23 +32,23 @@ nonprobMI(
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
 
-\item{method.outcome}{- a `character` with method for response variable estimation}
+\item{method_outcome}{- a `character` with method for response variable estimation}
 
-\item{family.outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 
-\item{na.action}{a}
+\item{na_action}{a function which indicates what should happen when the data contain `NAs`.}
 
-\item{control.outcome}{a}
+\item{control_outcome}{a list indicating parameters to use in fitting model for outcome variable}
 
-\item{control.inference}{a}
+\item{control_inference}{a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method}
 
-\item{start}{a}
+\item{start}{- an optional `list` with starting values for the parameters of the selection and outcome equation}
 
-\item{verbose}{a}
+\item{verbose}{- verbose, numeric}
 
 \item{contrasts}{a}
 

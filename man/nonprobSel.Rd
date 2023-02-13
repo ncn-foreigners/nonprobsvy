@@ -2,26 +2,26 @@
 % Please edit documentation in R/nonprobVariablesSelection.R
 \name{nonprobSel}
 \alias{nonprobSel}
-\title{Title Variable Selection}
+\title{Title nonprobSel}
 \usage{
 nonprobSel(
   selection,
   outcome,
   data,
   svydesign,
-  pop.totals,
-  pop.means,
-  pop.size,
-  method.selection,
-  method.outcome,
-  family.selection = "binomial",
-  family.outcome = "gaussian",
+  pop_totals,
+  pop_means,
+  pop_size,
+  method_selection,
+  method_outcome,
+  family_selection = "binomial",
+  family_outcome = "gaussian",
   subset,
   weights,
-  na.action,
-  control.selection = controlSel(),
-  control.outcome = controlOut(),
-  control.inference = controlInf(),
+  na_action,
+  control_selection = controlSel(),
+  control_outcome = controlOut(),
+  control_inference = controlInf(),
   start,
   verbose,
   contrasts,
@@ -40,31 +40,31 @@ nonprobSel(
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
 
-\item{pop.totals}{- an optional `named vector` with population totals.}
+\item{pop_totals}{- an optional `named vector` with population totals.}
 
-\item{pop.means}{- an optional `named vector` with population means.}
+\item{pop_means}{- an optional `named vector` with population means.}
 
-\item{pop.size}{- an optional `double` with population size.}
+\item{pop_size}{- an optional `double` with population size.}
 
-\item{method.selection}{- a `character` with method for propensity scores estimation}
+\item{method_selection}{- a `character` with method for propensity scores estimation}
 
-\item{method.outcome}{- a `character` with method for response variable estimation}
+\item{method_outcome}{- a `character` with method for response variable estimation}
 
-\item{family.selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
+\item{family_selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
-\item{family.outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 
-\item{na.action}{a}
+\item{na_action}{a}
 
-\item{control.selection}{a}
+\item{control_selection}{a}
 
-\item{control.outcome}{a}
+\item{control_outcome}{a}
 
-\item{control.inference}{a}
+\item{control_inference}{a}
 
 \item{start}{a}
 
@@ -81,8 +81,5 @@ nonprobSel(
 \item{...}{a}
 }
 \description{
-Implementation is based on IntegrativeFPM package, see at https://github.com/shuyang1987/IntegrativeFPM
-}
-\details{
-VariableSelection: Function for selecting important variables for sampling score model and outcome model
+nonprobSel: Function for selecting important variables for sampling score model and outcome model
 }

@@ -6,19 +6,19 @@
 #' @param outcome - `formula`, the outcome equation.
 #' @param data - an optional `data.frame` with data from the nonprobability sample.
 #' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param pop.totals - an optional `named vector` with population totals.
-#' @param pop.means - an optional `named vector` with population means.
-#' @param pop.size - an optional `double` with population size.
-#' @param method.selection - a `character` with method for propensity scores estimation
-#' @param method.outcome - a `character` with method for response variable estimation
-#' @param family.selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
-#' @param family.outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param pop_totals - an optional `named vector` with population totals.
+#' @param pop_means - an optional `named vector` with population means.
+#' @param pop_size - an optional `double` with population size.
+#' @param method_selection - a `character` with method for propensity scores estimation
+#' @param method_outcome - a `character` with method for response variable estimation
+#' @param family_selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
+#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param na.action - a function which indicates what should happen when the data contain `NAs`.
-#' @param control.selection a
-#' @param control.outcome a
-#' @param control.inference a
+#' @param na_action - a function which indicates what should happen when the data contain `NAs`.
+#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
+#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
+#' @param control_inference a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method
 #' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
 #' @param verbose - verbose, numeric
 #' @param contrasts a
@@ -26,6 +26,7 @@
 #' @param x a
 #' @param y a
 #' @param ... a
+#'
 #' @export
 
 
@@ -33,19 +34,19 @@ nonprob <- function(selection = NULL,
                     outcome = NULL,
                     data = NULL,
                     svydesign = NULL,
-                    pop.totals = NULL,
-                    pop.means = NULL,
-                    pop.size = NULL,
-                    method.selection = c("logit", "cloglog", "probit"),
-                    method.outcome = c("glm.fit", "nn"),
-                    family.selection = "binomial",
-                    family.outcome = c("gaussian", "binomial", "poisson"),
+                    pop_totals = NULL,
+                    pop_means = NULL,
+                    pop_size = NULL,
+                    method_selection = c("logit", "cloglog", "probit"),
+                    method_outcome = c("glm.fit", "nn"),
+                    family_selection = "binomial",
+                    family_outcome = c("gaussian", "binomial", "poisson"),
                     subset,
                     weights = NULL,
-                    na.action,
-                    control.selection = controlSel(),
-                    control.outcome = controlOut(),
-                    control.inference = controlInf(est_method = "likelihood"),
+                    na_action,
+                    control_selection = controlSel(),
+                    control_outcome = controlOut(),
+                    control_inference = controlInf(est_method = "likelihood"),
                     start = NULL,
                     verbose = 0L,
                     contrasts = NULL,
@@ -56,7 +57,7 @@ nonprob <- function(selection = NULL,
 
   ##
 
-  est_method <- control.inference$est_method
+  est_method <- control_inference$est_method
 
   # if (missing(method.selection)) method.selection <- "logit"
 
@@ -66,8 +67,8 @@ nonprob <- function(selection = NULL,
 
   if (is.null(weights)) weights <- rep.int(1, nrow(data))
 
-  if(missing(method.selection)) method.selection <- "logit"
-  if(missing(family.outcome)) family.outcome <- "gaussian"
+  if(missing(method_selection)) method_selection <- "logit"
+  if(missing(family_outcome)) family_outcome <- "gaussian"
 
   ## basic checkers
   if (is.null(selection) & is.null(outcome)) {
@@ -94,34 +95,33 @@ nonprob <- function(selection = NULL,
     P = nonprobIPW(selection,
                    data,
                    svydesign,
-                   pop.totals,
-                   pop.means,
-                   pop.size,
-                   method.selection,
-                   family.selection,
+                   pop_totals,
+                   pop_means,
+                   pop_size,
+                   method_selection,
+                   family_selection,
                    subset,
                    weights,
-                   na.action,
-                   control.selection,
-                   control.inference,
+                   na_action,
+                   control_selection,
+                   control_inference,
                    start,
                    verbose,
                    contrasts,
                    model,
                    x,
                    y,
-                   dependency,
                    ...),
     M = nonprobMI(outcome,
                   data,
                   svydesign,
-                  method.outcome,
-                  family.outcome,
+                  method_outcome,
+                  family_outcome,
                   subset,
                   weights,
-                  na.action,
-                  control.outcome,
-                  control.inference,
+                  na_action,
+                  control_outcome,
+                  control_inference,
                   start,
                   verbose,
                   contrasts,
@@ -133,44 +133,43 @@ nonprob <- function(selection = NULL,
                    outcome,
                    data,
                    svydesign,
-                   pop.totals,
-                   pop.means,
-                   pop.size,
-                   method.selection,
-                   method.outcome,
-                   family.selection,
-                   family.outcome,
+                   pop_totals,
+                   pop_means,
+                   pop_size,
+                   method_selection,
+                   method_outcome,
+                   family_selection,
+                   family_outcome,
                    subset,
                    weights,
-                   na.action,
-                   control.selection,
-                   control.outcome,
-                   control.inference,
+                   na_action,
+                   control_selection,
+                   control_outcome,
+                   control_inference,
                    start,
                    verbose,
                    contrasts,
                    model,
                    x,
                    y,
-                   dependency,
                    ...),
     DRsel <- nonprobSel(selection,
                         outcome,
                         data,
                         svydesign,
-                        pop.totals,
-                        pop.means,
-                        pop.size,
-                        method.selection,
-                        method.outcome,
-                        family.selection,
-                        family.outcome,
+                        pop_totals,
+                        pop_means,
+                        pop_size,
+                        method_selection,
+                        method_outcome,
+                        family_selection,
+                        family_outcome,
                         subset,
                         weights,
-                        na.action,
-                        control.selection,
-                        control.outcome,
-                        control.inference,
+                        na_action,
+                        control_selection,
+                        control_outcome,
+                        control_inference,
                         start,
                         verbose,
                         contrasts,

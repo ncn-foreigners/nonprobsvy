@@ -1,10 +1,10 @@
 #' Internal functions
 
-bootMI <- function(Xrand,
-                   Xnons,
+bootMI <- function(X_rand,
+                   X_nons,
                    weights,
                    y,
-                   family.outcome,
+                   family_outcome,
                    num_boot,
                    d,
                    mu_hat,
@@ -23,22 +23,22 @@ bootMI <- function(Xrand,
     strap_rand <- sample.int(replace = FALSE, n = n_rand, prob = 1/d) # to change -> replicate weights based on sampling design
     strap <- sample.int(replace = TRUE, n = n_nons)
     weights_strap <- weights[strap]
-    Xnons_strap <- Xnons[strap,]
+    Xnons_strap <- X_nons[strap,]
     y_strap <- y[strap]
     d_strap <- d[strap_rand]
     Nstrap <- sum(d_strap)
 
 
-    model_strap <- nonprobMI.fit(x = Xnons_strap,
+    model_strap <- nonprobMI_fit(x = Xnons_strap,
                                  y = y_strap,
                                  weights = weights_strap,
-                                 family.outcome = family.outcome)
+                                 family_outcome = family_outcome)
 
     beta <- model_strap$coefficients
 
     ystrap_nons <- as.numeric(Xnons_strap %*% beta)
 
-    ystrap_rand <- as.numeric(Xrand %*% beta)
+    ystrap_rand <- as.numeric(X_rand %*% beta)
 
     mu_hat_boot <- mu_hatMI(ystrap_rand, d_strap, Nstrap)
     mu_hats[k] <- mu_hat_boot
@@ -53,11 +53,11 @@ bootMI <- function(Xrand,
 
 }
 
-bootIPW <- function(Xrand,
-                    Xnons,
+bootIPW <- function(X_rand,
+                    X_nons,
                     weights,
                     y,
-                    family.outcome,
+                    family_outcome,
                     num_boot,
                     d,
                     mu_hat,
@@ -70,11 +70,11 @@ bootIPW <- function(Xrand,
 
 }
 
-bootDR <- function(Xrand,
-                   Xnons,
+bootDR <- function(X_rand,
+                   X_nons,
                    weights,
                    y,
-                   family.outcome,
+                   family_outcome,
                    num_boot,
                    d,
                    mu_hat,

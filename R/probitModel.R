@@ -9,14 +9,14 @@
 #' @param ... a
 #' @export
 
-probit <- function(...){
+probit <- function(...) {
 
   inv_link <- function(x) {pnorm(x)}
   dinv_link <- function(x) {dnorm(x)}
 
-  log_like <- function(X_rand, X_nons, d, ...){
+  log_like <- function(X_rand, X_nons, d, ...) {
 
-    function(theta){
+    function(theta) {
 
       eta1 <- as.matrix(X_nons) %*% theta
       eta2 <- as.matrix(X_rand) %*% theta
@@ -30,9 +30,9 @@ probit <- function(...){
     }
   }
 
-  gradient <-  function(X_rand, X_nons, d, ...){
+  gradient <-  function(X_rand, X_nons, d, ...) {
 
-    function(theta){
+    function(theta) {
 
       eta1 <- as.matrix(X_nons)%*%theta #linear predictor
       eta2 <- as.matrix(X_rand) %*%theta
@@ -43,12 +43,11 @@ probit <- function(...){
 
       t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2))))
     }
-
   }
 
-  hessian <- function(X_rand, X_nons, d, ...){
+  hessian <- function(X_rand, X_nons, d, ...) {
 
-    function(theta){
+    function(theta) {
     eta1 <- as.matrix(X_nons) %*% theta
     eta2 <- as.matrix(X_rand) %*% theta
     invLink1 <- inv_link(eta1)
@@ -62,13 +61,12 @@ probit <- function(...){
     hess1 + hess2
 
     }
-
   }
 
-  ps_est <- function(X, log_like, gradient, hessian, start, optim_method){
+  ps_est <- function(X, log_like, gradient, hessian, start, optim_method) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = optim_method, start = start)
+                                method = "BFGS", start = start) # NA in gradient for Newton-Raphson method
 
     estim_probit <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -85,9 +83,9 @@ probit <- function(...){
 
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, N = NULL){
+  variance_covariance1 <- function(X, y, mu, ps, psd, N = NULL) {
 
-    if(is.null(N)){
+    if (is.null(N)) {
 
       N <- sum(1/ps)
 
@@ -104,7 +102,7 @@ probit <- function(...){
     }
 
     v_2 <- 0
-    for(i in 1:nrow(X)){
+    for (i in 1:nrow(X)) {
 
       suma <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
       v_2 <- v_2 + suma
@@ -120,9 +118,9 @@ probit <- function(...){
     V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, psd, b, n, N = NULL){
+  variance_covariance2 <- function(X, eps, ps, psd, b, n, N = NULL) {
 
-    if(is.null(N)) N <- sum(1/ps)
+    if (is.null(N)) N <- sum(1/ps)
 
     s <- psd/(1-eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)

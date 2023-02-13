@@ -9,16 +9,16 @@ nonprobIPW(
   selection,
   data,
   svydesign,
-  pop.totals,
-  pop.means,
-  pop.size = NULL,
-  method.selection,
-  family.selection = "binomial",
+  pop_totals,
+  pop_means,
+  pop_size = NULL,
+  method_selection,
+  family_selection = "binomial",
   subset,
   weights,
-  na.action,
-  control.selection = controlSel(),
-  control.inference = controlInf(),
+  na_action,
+  control_selection = controlSel(),
+  control_inference = controlInf(),
   start,
   verbose,
   contrasts,
@@ -35,27 +35,29 @@ nonprobIPW(
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
 
-\item{pop.totals}{- an optional `named vector` with population totals.}
+\item{pop_totals}{- an optional `named vector` with population totals.}
 
-\item{pop.means}{- an optional `named vector` with population means.}
+\item{pop_means}{- an optional `named vector` with population means.}
 
-\item{method.selection}{- a `character` with method for propensity scores estimation}
+\item{pop_size}{- an optional `double` with population size.}
 
-\item{family.selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
+\item{method_selection}{- a `character` with method for propensity scores estimation}
+
+\item{family_selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 
-\item{na.action}{a}
+\item{na_action}{a function which indicates what should happen when the data contain `NAs`.}
 
-\item{control.selection}{a}
+\item{control_selection}{a list indicating parameters to use in fitting selection model for propensity scores}
 
-\item{control.inference}{a}
+\item{control_inference}{a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method}
 
-\item{start}{a}
+\item{start}{- an optional `list` with starting values for the parameters of the selection and outcome equation}
 
-\item{verbose}{a}
+\item{verbose}{- verbose, numeric}
 
 \item{contrasts}{a}
 

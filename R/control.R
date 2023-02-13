@@ -22,14 +22,13 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        dependence = FALSE
                        ) {
 
-  return(list(epsilon = epsilon,
+  list(epsilon = epsilon,
               maxit = maxit,
               trace = trace,
               lambda = lambda,
               optim_method = optim_method,
               overlap = overlap,
-              dependence = dependence
-  ))
+              dependence = dependence)
 
 }
 
@@ -51,11 +50,11 @@ controlOut <- function(method = "glm.fit", #perhaps another control function for
                        lambda = 0.25
                        ) {
 
-  return(list(epsilon = epsilon,
+  list(epsilon = epsilon,
               maxit = maxit,
               trace = trace,
-              lambda = lambda
-              ))
+              lambda = lambda)
+
 
 }
 
