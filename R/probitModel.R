@@ -14,7 +14,7 @@ probit <- function(...) {
   inv_link <- function(x) {pnorm(x)}
   dinv_link <- function(x) {dnorm(x)}
 
-  log_like <- function(X_rand, X_nons, d, ...) {
+  log_like <- function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
 
@@ -24,13 +24,13 @@ probit <- function(...) {
       invLink2 <- inv_link(eta2)
 
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(d * log(1 - invLink2))
+      log_like2 <- sum(weights * log(1 - invLink2))
       log_like1 + log_like2
 
     }
   }
 
-  gradient <-  function(X_rand, X_nons, d, ...) {
+  gradient <-  function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
 
@@ -41,11 +41,11 @@ probit <- function(...) {
       dlink1 <- dinv_link(eta1)
       dlink2 <- dinv_link(eta2)
 
-      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (d * (dlink2 / (1 - invLink2))))
+      t(t(X_nons) %*% (dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (weights * (dlink2 / (1 - invLink2))))
     }
   }
 
-  hessian <- function(X_rand, X_nons, d, ...) {
+  hessian <- function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
     eta1 <- as.matrix(X_nons) %*% theta
@@ -55,10 +55,10 @@ probit <- function(...) {
     dlink1 <- dinv_link(eta1)
     dlink2 <- dinv_link(eta2)
 
-    hess1 <- t(as.data.frame(X_nons) * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + dlink1/(1 - invLink1)^2)) %*% as.matrix(X_nons)
-    hess2 <- - t(as.data.frame(X_rand) * d * ((eta2 * dlink2)/(1 - invLink2) + (dlink2^2)/((1 - invLink2)^2))) %*% as.matrix(X_rand)
+    hess1 <- t(as.data.frame(X_nons) * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + 2*dlink1/(invLink1*(1 - invLink1)^2))) %*% as.matrix(X_nons)
+    hess2 <- t(as.data.frame(X_rand) * weights * ((eta2 * dlink2)/(1 - invLink2) + dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
 
-    hess1 + hess2
+    hess1 - hess2
 
     }
   }
@@ -75,11 +75,11 @@ probit <- function(...) {
     estim_psd <- dinv_link(estim_probit %*% t(X))
 
 
-    return(list("ps" = estim_ps,
-                "psd" = estim_psd,
-                "grad" = grad,
-                "hess" = hess,
-                "theta_hat" = estim_probit))
+    list(ps = estim_ps,
+         psd = estim_psd,
+         grad = grad,
+         hess = hess,
+         theta_hat = estim_probit)
 
   }
 
@@ -104,8 +104,8 @@ probit <- function(...) {
     v_2 <- 0
     for (i in 1:nrow(X)) {
 
-      suma <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
-      v_2 <- v_2 + suma
+      v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
+      v_2 <- v_2 + v_2i
 
     }
 
@@ -113,14 +113,13 @@ probit <- function(...) {
 
     v1_vec <- cbind(v11, v1_)
     v2_mx <- cbind(v_1, v_2)
-    V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+    V1 <- Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
 
     V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, psd, b, n, N = NULL) {
+  variance_covariance2 <- function(X, eps, ps, psd, n, N) {
 
-    if (is.null(N)) N <- sum(1/ps)
 
     s <- psd/(1-eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)
@@ -129,10 +128,10 @@ probit <- function(...) {
     db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
 
     D <- (1/N^2) * db_var
-    D.var <- b %*% D %*% t(b)
+    #D.var <- b %*% D %*% t(b) # significantly different than for logit and cloglog
 
     p <- nrow(D) + 1
-    V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
+    V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
     V2[2:p,2:p] <- D
 
     V2

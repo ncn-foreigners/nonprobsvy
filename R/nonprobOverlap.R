@@ -4,18 +4,19 @@
 #'
 #' @importFrom stats glm.fit
 #' @importFrom betareg betareg.fit
+#' @export
 
 
 # consider function structure as in nonprobDR, nonprobMI, nonprobIPW, nonprobSel
 
 nonprobOv <- function(X_nons,
                       X_rand,
-                      d_rand,
+                      weights_rand,
                       dependent,
                       method_selection) {
 
   betamodel <- betareg.fit(x = X_rand,
-                           y = 1/d_rand,
+                           y = 1/weights_rand,
                            link = method_selection)
 
   method <- method_selection
@@ -28,18 +29,18 @@ nonprobOv <- function(X_nons,
 
   inv_link <- method$make_link_inv
   prob <- inv_link(X_nons %*% betamodel$coefficients$mean)
-  d_rnons <- 1/prob
+  weights_rnons <- 1/prob
 
-  # drnons is an inclusion probability in the probability sample for units in the nonprobability sample
-  d <- c(d_rnons, d_rand)
+  # weights_rnons are inclusion probabilities in the probability sample for units in the nonprobability sample
+  weights_rr <- c(weights_rnons, weights_rand)
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
   R <- c(R_nons, R_rand)
+
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
   X <- rbind(X_nons, X_rand)
-  XY <- cbind(X, R)
 
   O <- O_hat_model(x = X,
                    X = X,
@@ -52,11 +53,11 @@ nonprobOv <- function(X_nons,
                      X = X,
                      R = R_rand)
 
-    ps <- O * L/(d - 1)
+    ps <- O * L/(weights_rr - 1)
     weights <- 1/ps[loc_nons]
 
   } else {
-    ps <- O/(O + d - 1)
+    ps <- O/(O + weights_rr - 1)
     weights <- 1/ps[loc_nons]
   }
 
@@ -65,7 +66,7 @@ nonprobOv <- function(X_nons,
     list(weights = weights,
          O_hat = O[loc_nons],
          L_hat = L,
-         d_rnons = d_rnons)
+         weights_rnons = weights_rnons)
   )
 }
 
@@ -78,8 +79,8 @@ boot_overlap <- function(X_rand,
                          weights, #for the nonprobability sample
                          O_hat,
                          L_hat,
-                         d_rand,
-                         d_rnons,
+                         weights_rand,
+                         weights_rnons,
                          num_boot = 1000,
                          dependency,
                          N) {
@@ -88,7 +89,7 @@ boot_overlap <- function(X_rand,
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
   mu_hats <- vector(mode = "numeric", length = num_boot)
-  d <- c(d_rand, d_rnons)
+  weights_rr <- c(weights_rand, weights_rnons)
   R_nons <- rep(1, n_nons)
   R_rand <- rep(0, n_rand)
   R <- c(R_nons, R_rand)
@@ -104,7 +105,7 @@ boot_overlap <- function(X_rand,
   weights_strap[!weights_idx] <- floor(weights_strap[!weights_idx])
 
   pseudo_pop <- X_nons[rep(1:n_nons, times = weights_strap), ] # pseudo population - to consider
-  pseudo_d_rnons <- rep(d_rnons, times = weights_strap)
+  pseudo_weights_rnons <- rep(weights_rnons, times = weights_strap)
   pseudo_weights <- rep(weights, times = weights_strap)
 
 
@@ -115,10 +116,10 @@ boot_overlap <- function(X_rand,
 
     while (k <= num_boot) {
 
-      strap_rand <- sample.int(n = nrow(pseudo_pop), size = n_rand, replace = TRUE, prob = 1/pseudo_d_rnons)
+      strap_rand <- sample.int(n = nrow(pseudo_pop), size = n_rand, replace = TRUE, prob = 1/pseudo_weights_rnons)
       strap_nons <- sample.int(n = nrow(pseudo_pop), size = n_nons, replace = TRUE, prob = 1/pseudo_weights)
       #strap_d <- sample.int(n = n_nons + n_rand, replace = TRUE)
-      d_rnons_strap <- pseudo_d_rnons[c(strap_rand, strap_nons)]
+      weights_rnons_strap <- pseudo_weights_rnons[c(strap_rand, strap_nons)]
 
       X_rand_strap <- pseudo_pop[strap_rand, ]
       X_nons_strap <- pseudo_pop[strap_nons, ]
@@ -135,7 +136,7 @@ boot_overlap <- function(X_rand,
                              X = X_strap,
                              R = R_strap)
 
-      ps_strap <- O_strap/(O_strap + d_rnons_strap - 1)
+      ps_strap <- O_strap/(O_strap + weights_rnons_strap - 1)
       weights_strap <- 1/ps_strap[loc_nons_strap]
       N_strap <- sum(weights_strap)
 
@@ -159,18 +160,18 @@ boot_overlap <- function(X_rand,
                   #   R = pseudo_R)
 
     ps1 <- 1 - pseudo_L
-    ps0 <- 1 - pseudo_d_rnons + pseudo_d_rnons*pseudo_O*pseudo_L + pseudo_L*(pseudo_d_rnons - 1)
+    ps0 <- 1 - pseudo_weights_rnons + pseudo_weights_rnons*pseudo_O*pseudo_L + pseudo_L*(pseudo_weights_rnons - 1)
 
 
     # weights for strap_nons to compute
 
     while (k <= num_boot) {
 
-      strap_rand <- sample.int(n = nrow(pseudo_pop), size = n_rand, replace = TRUE, prob = 1/pseudo_d_rnons)
+      strap_rand <- sample.int(n = nrow(pseudo_pop), size = n_rand, replace = TRUE, prob = 1/pseudo_weights_rnons)
 
       ps1[!strap_rand] <- ps0
       strap_nons <- sample.int(n = nrow(pseudo_pop), size = n_nons, replace = TRUE, prob = 1/ps1)
-      d_rnons_strap <- pseudo_d_rnons[c(strap_rand, strap_nons)]
+      weights_rnons_strap <- pseudo_weights_rnons[c(strap_rand, strap_nons)]
 
       X_rand_strap <- pseudo_pop[strap_rand, ]
       X_nons_strap <- pseudo_pop[strap_nons, ]
@@ -191,7 +192,7 @@ boot_overlap <- function(X_rand,
                              X = X_strap,
                              R = R_rand_strap)
 
-      ps_strap <- O_strap * L_strap/(d_rnons_strap - 1)
+      ps_strap <- O_strap * L_strap/(weights_rnons_strap - 1)
       weights_strap <- 1/ps_strap[loc_nons_strap]
       N_strap <- sum(weights_strap)
 

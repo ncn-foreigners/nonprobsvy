@@ -14,6 +14,7 @@
 #' @param family_selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
 #' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata - an optional `vector` specifying strata.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na_action a function which indicates what should happen when the data contain `NAs`.
 #' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
@@ -48,6 +49,7 @@ nonprobDR <- function(selection,
                       family_selection = "binomial",
                       family_outcome = "gaussian",
                       subset,
+                      strata,
                       weights,
                       na_action,
                       control_selection = controlSel(),
@@ -67,8 +69,20 @@ nonprobDR <- function(selection,
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample
   X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample
   y_nons <- XY_nons[,1]
+
+  R_nons <- rep(1, nrow(X_nons))
+  R_rand <- rep(0, nrow(X_rand))
+  R <- c(R_nons, R_rand)
+
+  loc_nons <- which(R == 1)
+  loc_rand <- which(R == 0)
+
+  n_nons <- nrow(X_nons)
+  n_rand <- nrow(X_rand)
+  X <- rbind(X_nons, X_rand)
+
   ps_rand <- svydesign$prob
-  d_rand <- 1/ps_rand
+  weights_rand <- 1/ps_rand
 
 
   method <- method_selection
@@ -97,7 +111,10 @@ nonprobDR <- function(selection,
                               family_outcome = family_outcome)
 
   # initial values for propensity score estimation
-  start <- start_fit(X_nons, X_rand, weights, d_rand,
+  start <- start_fit(X,
+                     R,
+                     weights,
+                     weights_rand,
                      method_selection)
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
@@ -115,23 +132,19 @@ nonprobDR <- function(selection,
   nonprobDR_inference <- function(...) {
 
 
-    log_like <- loglike(X_rand, X_nons, d_rand)
-    gradient <- gradient(X_rand, X_nons, d_rand)
-    hessian <- hessian(X_rand, X_nons, d_rand)
+    log_like <- loglike(X_nons, X_rand, weights_rand)
+    gradient <- gradient(X_nons, X_rand, weights_rand)
+    hessian <- hessian(X_nons, X_rand, weights_rand)
 
 
     ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
-    d_nons <- 1/ps_nons
-    N_est_nons <- sum(d_nons)
-    N_est_rand <- sum(d_rand)
+    weights_nons <- 1/ps_nons
+    N_est_nons <- sum(weights_nons)
+    N_est_rand <- sum(weights_rand)
 
     hess <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$hess
     theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$theta_hat
 
-    n_nons <- nrow(X_nons)
-    n_rand <- nrow(X_rand)
-
-    weights_nons <- 1/ps_nons
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
 
@@ -150,8 +163,8 @@ nonprobDR <- function(selection,
     mu_hat <- mu_hatDR(y = y_nons,
                        y_nons = y_nons_pred,
                        y_rand = y_rand_pred,
-                       d_nons = d_nons,
-                       d_rand = d_rand,
+                       weights_nons = weights_nons,
+                       weights_rand = weights_rand,
                        N_nons = N_est_nons,
                        N_rand = N_est_rand) #DR estimator
 
@@ -170,38 +183,45 @@ nonprobDR <- function(selection,
 
     # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
 
+    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
+
 
     # design based variance estimation based on approximations of the second-order inclusion probabilities
 
-    s <- switch(method_selection,
+    t <- switch(method_selection,
                 "logit" = as.vector(est_ps_rand) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
                 "cloglog" = as.vector(log(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
                 "probit" = as.vector(est_ps_rand_der/(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred)
     )
 
+    #svydesign <- stats::update(svydesign,
+     #                          tDR = t)
+
+    #svydesign_mean <- survey::svymean(~tDR, svydesign) #perhaps using survey package to compute prob variance
+    #se_prob <- as.vector(data.frame(svydesign_mean)[2])
 
     ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-    B_hat <- sum(ci * (s/ps_rand))/sum(ci)
-    ei <- (s/ps_rand) - B_hat
+    B_hat <- sum(ci * (t/ps_rand))/sum(ci)
+    ei <- (t/ps_rand) - B_hat
     db_var <- sum(ci * ei^2)
 
-    W <- 1/N_est_nons^2 * db_var # second component
+    # probability component
+    W <- 1/N_est_nons^2 * db_var
 
-    #print(sum(is.infinite(log(1 - est_ps_rand))))
-
-    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
-
-
-
-    V <- switch(method_selection, # asymptotic variance by each propensity score method (first component)
-                  "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(X_nons))^2),
-                  "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(X_nons))))^2),
-                  "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2)
+    # asymptotic variance by each propensity score method (nonprobability component)
+    V <- switch(method_selection,
+                "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(X_nons))^2),
+                "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(X_nons))))^2),
+                "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2)
     )
 
-    # typically W contains most of the variance value
-    var <- V + W
+    var_prob <- as.vector(W) #prob
+    var_nonprob <- as.vector(V) #nonprob
 
+    se_prob <- sqrt(W)
+    se_nonprob <- sqrt(V)
+
+    var <- var_prob + var_nonprob
     se <- sqrt(var)
 
     alpha <- control_inference$alpha
@@ -213,18 +233,18 @@ nonprobDR <- function(selection,
     # case when samples overlap - to finish
     if (control_selection$overlap) {
 
-      weights <- nonprobOv(X_nons,
-                           X_rand,
-                           d_rand,
-                           dependent = control_selection$dependence,
-                           method_selection)
+      weights_nons <- nonprobOv(X_nons,
+                                X_rand,
+                                weights_rand,
+                                dependent = control_selection$dependence,
+                                method_selection)
       N <- sum(weights)
 
       mu_hat_Ov <-  mu_hatDR(y = y_nons,
                              y_nons = y_nons_pred,
                              y_rand = y_rand_pred,
-                             d_nons = weights,
-                             d_rand = d_rand,
+                             weights_nons = weights,
+                             weights_rand = weights_rand,
                              N_nons = N,
                              N_rand = N_est_rand)
 
@@ -233,15 +253,20 @@ nonprobDR <- function(selection,
     mu_hat <- ifelse(control_selection$overlap, mu_hat_Ov, mu_hat)
 
     structure(
-      list(population_mean = mu_hat,
-           variance = var,
-           standard_error = se,
-           CI = ci,
-           theta = theta_hat,
-           pearson_residuals = pearson_residuals,
-           deviance_residuals = deviance_residuals,
-           log_likelihood = log_likelihood,
-           beta = model_nons_coefs),
+      list(mean = mu_hat,
+           #VAR = var,
+           #VAR_nonprob = V,
+           #VAR_prob = W,
+           SE = se,
+           SE_nonprob = se_nonprob,
+           se_prob = se_prob,
+           CI = ci
+           #theta = theta_hat,
+           #pearson_residuals = pearson_residuals,
+           #deviance_residuals = deviance_residuals,
+           #log_likelihood = log_likelihood,
+           #beta = model_nons_coefs
+           ),
       class = "Doubly-robust")
   }
 
@@ -259,20 +284,20 @@ nonprobDR <- function(selection,
 #' @param y - a
 #' @param y_nons - a
 #' @param y_rand - a
-#' @param d_nons - a
-#' @param d_rand - a
+#' @param weights_nons - a
+#' @param weights_rand - a
 #' @param N_nons - a
 #' @param N_rand - a
 
 mu_hatDR <- function(y,
                      y_nons,
                      y_rand,
-                     d_nons,
-                     d_rand,
+                     weights_nons,
+                     weights_rand,
                      N_nons,
                      N_rand) {
 
-  mu_hat <- 1/N_nons * sum(d_nons*(y - y_nons)) + 1/N_rand * sum(d_rand * y_rand)
+  mu_hat <- 1/N_nons * sum(weights_nons*(y - y_nons)) + 1/N_rand * sum(weights_rand * y_rand)
 
   mu_hat
 
@@ -293,20 +318,18 @@ mu_hatDR <- function(y,
 #' @param method_selection - a
 #' @param control_selection - a
 
-start_fit <- function(X_nons,
-                      X_rand,
+start_fit <- function(X,
+                      R,
                       weights,
                       d,
                       method_selection,
                       control_selection = controlSel()) {
 
-  glm_mx <- rbind(X_nons, X_rand)
   weights <- c(weights, d)
-  Rnons <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
 
-  start_model <- glm.fit(x = glm_mx, #glm model for initial values in propensity score estimation
-                         y = Rnons,
-                         weights = weights,
+  start_model <- glm.fit(x = X, #glm model for initial values in propensity score estimation
+                         y = R,
+                         #weights = weights, # to fix
                          family = binomial(link = method_selection),
                          control = list(control_selection$epsilon,
                                         control_selection$maxit,

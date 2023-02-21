@@ -75,7 +75,7 @@ controlInf <- function(est_method = c("likelihood",
                        alpha = 0.05) {
 
   list(est_method = if(missing(est_method)) "likelihood" else est_method,
-       var_method = if(missing(var_method)) "analytic" else est_method,
+       var_method = if(missing(var_method)) "analytic" else var_method,
        alpha = alpha)
 
 }

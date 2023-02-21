@@ -14,8 +14,7 @@ logit <- function(...) {
   dlink <- function(x) {1 / (x**2 - x)}
 
 
-  #X_B = X_rand, X_A = X_nons, d = weight
-  log_like <- function(X_nons, X_rand, d, ...) {
+  log_like <- function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
 
@@ -25,7 +24,7 @@ logit <- function(...) {
       invLink2 <- inv_link(eta2)
 
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(d * log(1 - invLink2))
+      log_like2 <- sum(weights * log(1 - invLink2))
       log_like1 + log_like2
 
     }
@@ -33,25 +32,25 @@ logit <- function(...) {
 
   # d is inverse of probability weights
 
-  gradient <-  function(X_rand, X_nons, d, ...) {
+  gradient <-  function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink2 <- inv_link(eta2)
 
-      t(t(X_nons) %*% matrix(1, nrow = nrow(X_nons), ncol = 1) - t(X_rand) %*% (d*invLink2))
+      t(t(X_nons) %*% matrix(1, nrow = nrow(X_nons), ncol = 1) - t(X_rand) %*% (weights*invLink2))
 
     }
   }
 
-    hessian <- function(X_rand, X_nons, d, ...) {
+    hessian <- function(X_nons, X_rand, weights, ...) {
 
       function(theta) {
 
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
 
-        - t(as.data.frame(X_rand) * (d * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
+        - t(as.data.frame(X_rand) * (weights * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
 
@@ -64,10 +63,11 @@ logit <- function(...) {
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian
 
-      return(list("ps" = inv_link(logit_estim %*% t(as.matrix(X))),
-             "grad" = grad,
-             "hess" = hess,
-             "theta_hat" = logit_estim))
+
+      list(ps = inv_link(logit_estim %*% t(as.matrix(X))),
+           grad = grad,
+           hess = hess,
+           theta_hat = logit_estim)
 
     }
 
@@ -93,8 +93,8 @@ logit <- function(...) {
       v_2 <- 0
       for(i in 1:nrow(X)){
 
-        suma <- (1 - ps[i]) * X[i,] %*% t(X[i,])
-        v_2 <- v_2 + suma
+        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
 
       }
 
@@ -107,9 +107,8 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, eps, ps, b, n, N = NULL) {
+    variance_covariance2 <- function(X, eps, ps, n, N) {
 
-      if (is.null(N)) N <- sum(1/ps)
 
       s <- eps * as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
@@ -118,7 +117,7 @@ logit <- function(...) {
       db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
 
       D <- (1/N^2) * db_var
-      D.var <- b %*% D %*% t(b)
+      #D.var <- b %*% D %*% t(b)
 
       p <- nrow(D) + 1
       V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)

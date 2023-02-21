@@ -4,6 +4,7 @@
 #
 #' @param selection - `formula`, the selection (propensity) equation.
 #' @param outcome - `formula`, the outcome equation.
+#' @param target - `formula` with target variables.
 #' @param data - an optional `data.frame` with data from the nonprobability sample.
 #' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
 #' @param pop_totals - an optional `named vector` with population totals.
@@ -14,6 +15,7 @@
 #' @param family_selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
 #' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata - an optional `vector` specifying strata.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na_action - a function which indicates what should happen when the data contain `NAs`.
 #' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
@@ -32,6 +34,7 @@
 
 nonprob <- function(selection = NULL,
                     outcome = NULL,
+                    target = NULL,
                     data = NULL,
                     svydesign = NULL,
                     pop_totals = NULL,
@@ -42,6 +45,7 @@ nonprob <- function(selection = NULL,
                     family_selection = "binomial",
                     family_outcome = c("gaussian", "binomial", "poisson"),
                     subset,
+                    strata,
                     weights = NULL,
                     na_action,
                     control_selection = controlSel(),
@@ -75,15 +79,15 @@ nonprob <- function(selection = NULL,
     stop("Please provide selection or outcome formula.")
   }
 
-  if (inherits(selection, "formula") & (is.null(outcome) | inherits(outcome, "formula") == FALSE)) {
+  if (inherits(selection, "formula") && inherits(target, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
     model_used <- "P"
   }
 
-  if (inherits(outcome, "formula") & (is.null(selection) | inherits(selection, "formula") == FALSE)) {
+  if (inherits(outcome, "formula") && (is.null(selection) || inherits(selection, "formula") == FALSE)) {
     model_used <- "M"
   }
 
-  if (inherits(selection, "formula") & inherits(outcome, "formula")) {
+  if (inherits(selection, "formula") && inherits(outcome, "formula")) {
 
     ifelse(est_method == "likelihood", model_used <- "DR", model_used <- "DRsel")
   }
@@ -93,6 +97,7 @@ nonprob <- function(selection = NULL,
   ## model estimates
   model_estimates <- switch(model_used,
     P = nonprobIPW(selection,
+                   target,
                    data,
                    svydesign,
                    pop_totals,
@@ -101,6 +106,7 @@ nonprob <- function(selection = NULL,
                    method_selection,
                    family_selection,
                    subset,
+                   strata,
                    weights,
                    na_action,
                    control_selection,
@@ -118,6 +124,7 @@ nonprob <- function(selection = NULL,
                   method_outcome,
                   family_outcome,
                   subset,
+                  strata,
                   weights,
                   na_action,
                   control_outcome,
@@ -141,6 +148,7 @@ nonprob <- function(selection = NULL,
                    family_selection,
                    family_outcome,
                    subset,
+                   strata,
                    weights,
                    na_action,
                    control_selection,
@@ -165,6 +173,7 @@ nonprob <- function(selection = NULL,
                         family_selection,
                         family_outcome,
                         subset,
+                        strata,
                         weights,
                         na_action,
                         control_selection,

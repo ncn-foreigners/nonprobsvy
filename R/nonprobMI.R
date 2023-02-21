@@ -8,6 +8,7 @@
 #' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param method_outcome - a `character` with method for response variable estimation
 #' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata - an optional `vector` specifying strata.
 #' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na_action a function which indicates what should happen when the data contain `NAs`.
 #' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
@@ -33,10 +34,11 @@ nonprobMI <- function(outcome,
                       method_outcome,
                       family_outcome = "gaussian",
                       subset,
+                      strata,
                       weights,
                       na_action,
                       control_outcome = controlOut(),
-                      control_inference = controlInf(),
+                      control_inference = controlInf(var_method = "analytic"),
                       start,
                       verbose,
                       contrasts,
@@ -53,9 +55,21 @@ nonprobMI <- function(outcome,
   svydesign$variables[,y_name] <- rep(0, nrow(svydesign$variables))
   X_rand <- model.matrix(outcome, svydesign$variables) # matrix of the probability sample
   y_nons <- XY_nons[,1]
+
+  R_nons <- rep(1, nrow(X_nons))
+  R_rand <- rep(0, nrow(X_rand))
+  R <- c(R_nons, R_rand)
+
+  loc_nons <- which(R == 1)
+  loc_rand <- which(R == 0)
+
+  n_nons <- nrow(X_nons)
+  n_rand <- nrow(X_rand)
+  X <- rbind(X_nons, X_rand)
+
   ps_rand <- svydesign$prob
-  d_rand <- 1/ps_rand
-  N_est_rand <- sum(d_rand)
+  weights_rand <- 1/ps_rand
+  N_est_rand <- sum(weights_rand)
 
 
   ## estimation
@@ -66,55 +80,90 @@ nonprobMI <- function(outcome,
 
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
+
+  # beta <- rootSolve::multiroot(f = U_beta,
+  #                              start = model_nons_coefs,
+  #                              X = X_nons,
+  #                              y = y_nons,
+  #                              n = n_nons)$f.root
+
+  # print(beta)
+
   y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
 
   y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
 
   # updating probability sample by adding y_hat variable
   svydesign <- stats::update(svydesign,
-                             .y_hat_MI = y_rand_pred)
+                             y_hat_MI = y_rand_pred)
+
+  svydesign_mean <- survey::svymean(~y_hat_MI, svydesign) # SE for y_hat_MI is equal to prob SE
+  # se_prob <- as.vector(data.frame(svydesign_mean)[2])
 
 
   nonprobMI_inference <- function(...) {
 
     mu_hat <- mu_hatMI(y = y_rand_pred,
-                       weights = d_rand,
+                       weights = weights_rand,
                        N = N_est_rand)
-
-
-    n_nons <- nrow(X_nons)
-    n_rand <- nrow(X_rand)
 
 
     # design based variance estimation based on approximations of the second-order inclusion probabilities
 
-    s <- y_rand_pred
-    ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-    B_hat <- sum(ci*(s/ps_rand))/sum(ci)
-    ei <- (s/ps_rand) - B_hat
-    db_var <- sum(ci*(ei^2))
+    if (control_inference$var_method == "analytic") {
 
-    v_b <- 1/N_est_rand^2 * db_var  # first component
+      s <- y_rand_pred
+      ci <- n_rand/(n_rand-1) * (1 - ps_rand)
+      B_hat <- sum(ci*(s/ps_rand))/sum(ci)
+      ei <- (s/ps_rand) - B_hat
+      db_var <- sum(ci*(ei^2))
 
-    # v_b <- 1/N_estB * t(model$coefficients) * E * model$coefficients
+      # probability component
+      var_prob <- 1/N_est_rand^2 * db_var
 
-    mx <- 1/N_est_rand * colSums(d_rand * X_rand)
+      # v_b <- 1/N_estB * t(model$coefficients) * E * model$coefficients
 
-    mh <- 0
-    for (i in 1:n_nons) { # matrix product instead of a loop in a near future
+      mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
 
-      xx <- t(X_nons[i,]) %*% X_nons[i,]
-      mh <- mh + xx
+      mh <- 0
+      for (i in 1:n_nons) { # matrix product instead of a loop in a near future
+
+        xx <- t(X_nons[i,]) %*% X_nons[i,]
+        mh <- mh + xx
+      }
+
+      c <- 1/(1/n_nons * mh) %*% mx
+      e <- y_nons - y_nons_pred
+
+      # nonprobability component
+      var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2
+
+      var_nonprob <- as.vector(var_nonprob)
+      var_prob <- as.vector(var_prob)
+
+      se_nonprob <- sqrt(var_nonprob)
+      se_prob <- sqrt(var_prob)
+
+      # variance
+      var <- var_nonprob + var_prob
+
+    } else if (control_inference$var_method == "bootstrap") {
+
+
+      # bootstrap variance
+      var <- bootMI(X_rand,
+                    X_nons,
+                    weights,
+                    y_nons,
+                    family_outcome,
+                    1000,
+                    weights_rand,
+                    mu_hat)
+
+      inf <- "not computed for bootstrap variance"
+
     }
 
-    c <- 1/(1/n_nons * mh) %*% mx
-    e <- XY_nons[, 1] - y_nons_pred
-
-    # second component
-    v_a <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2
-
-    # variance
-    var <- v_a + v_b
 
     se <- sqrt(var)
 
@@ -124,27 +173,18 @@ nonprobMI <- function(outcome,
     # confidence interval based on the normal approximation
     ci <- c(mu_hat - z*se, mu_hat + z*se)
 
-    # bootstrap variance
-    boot_var <- bootMI(X_rand,
-                       X_nons,
-                       weights,
-                       y_nons,
-                       family_outcome,
-                       1000,
-                       d_rand,
-                       n_nons,
-                       n_rand,
-                       mu_hat)
-
 
 
     structure(
-      list(population_mean = mu_hat,
-           variance = var,
-           standard_error = se,
-           CI = ci,
-           beta = model_nons_coefs,
-           boot_variance = boot_var
+      list(mean = mu_hat,
+           VAR = var,
+           SE = se,
+           #variance_nonprob = ifelse(control_inference$var_method == "analytic", v_a, inf),
+           #variance_prob = ifelse(control_inference$var_method == "analytic", v_b, inf),
+           SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
+           SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
+           CI = ci
+           #beta = model_nons_coefs
            ),
       class = "Mass imputation")
 
@@ -260,5 +300,15 @@ mu_hatMI <- function(y, weights, N) {
 
 
 }
+
+# U_beta <- function(beta, X, y, n) {
+
+
+#    U <- 1/n * sum((y -  X %*% beta) * as.data.frame(X))
+
+#    U
+
+
+#}
 
 

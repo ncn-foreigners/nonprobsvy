@@ -6,7 +6,7 @@ bootMI <- function(X_rand,
                    y,
                    family_outcome,
                    num_boot,
-                   d,
+                   weights_rand,
                    mu_hat,
                    ...
                    ){
@@ -15,18 +15,30 @@ bootMI <- function(X_rand,
   mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
+  N <- sum(weights_rand)
 
   k <- 1
 
   while (k <= num_boot) {
 
-    strap_rand <- sample.int(replace = FALSE, n = n_rand, prob = 1/d) # to change -> replicate weights based on sampling design
+    strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand) # to change -> replicate weights based on sampling design
+                                                                                # see Wu and Thompson (2020) [p. 248]
+
+    h <- c()
+    for (x in strap_rand) {
+
+      r <- length(strap_rand[strap_rand == x])
+      h <- append(h, r)
+
+    }
+
     strap <- sample.int(replace = TRUE, n = n_nons)
     weights_strap <- weights[strap]
     Xnons_strap <- X_nons[strap,]
     y_strap <- y[strap]
-    d_strap <- d[strap_rand]
-    Nstrap <- sum(d_strap)
+    weights_rand_strap <- h * weights_rand[strap_rand]
+    Xrand_strap <- X_rand[strap_rand, ]
+    Nstrap <- sum(weights_rand_strap)
 
 
     model_strap <- nonprobMI_fit(x = Xnons_strap,
@@ -38,18 +50,18 @@ bootMI <- function(X_rand,
 
     ystrap_nons <- as.numeric(Xnons_strap %*% beta)
 
-    ystrap_rand <- as.numeric(X_rand %*% beta)
+    ystrap_rand <- as.numeric(Xrand_strap %*% beta)
 
-    mu_hat_boot <- mu_hatMI(ystrap_rand, d_strap, Nstrap)
+    mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap, N)
     mu_hats[k] <- mu_hat_boot
 
     k <- k + 1
 
   }
 
-  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2) #mean may be replaced by mu_hatMI
+  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2) # mean may be replaced by mu_hatMI
 
-  return(boot_var)
+  boot_var
 
 }
 
@@ -59,7 +71,7 @@ bootIPW <- function(X_rand,
                     y,
                     family_outcome,
                     num_boot,
-                    d,
+                    weights_rand,
                     mu_hat,
                     dependency,
                     ...){
@@ -76,7 +88,7 @@ bootDR <- function(X_rand,
                    y,
                    family_outcome,
                    num_boot,
-                   d,
+                   weights_rand,
                    mu_hat,
                    dependency,
                    ...){
