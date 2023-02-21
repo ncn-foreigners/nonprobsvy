@@ -148,8 +148,12 @@ nonprobSel <- function(selection,
 
     # variables selection for beta using nvreg package
 
-    beta <- ncvreg::ncvreg(X = X_nons, y = y_nons, lambda = lambda_beta,
-                           penalty = 'SCAD', family = family_outcome)
+    #beta <- ncpen::ncpen(y.vec = y_nons, x.mat = X_nons, lambda = lambda_beta,
+                         #penalty = "scad", family = family_outcome)
+
+    beta <- ncvreg::ncvreg(X = X_nons, y = y_nons, lambda = lambda_beta, # perhaps using ncpen package -> these same results
+                           penalty = 'SCAD', family = family_outcome)    # in ncvfit no possibility to define family
+
     beta_est <- beta$beta
     beta_selected <- as.numeric(which(beta_est!=0))
 
@@ -195,23 +199,13 @@ nonprobSel <- function(selection,
                          N_nons = N_nons,
                          N_rand = N_rand) #DR estimator
 
-      # mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/Nnons + (sum(y_hat*(1-Rnons) * sw.rand))/Nrand  # using mu_hatDR function in near future
-      # using Nnons, Nrand instead of N
-
       y_rand <- y_hat[loc_rand]
-
-
-      # sigmasqhat <- mean((y[loc_nons] - y_hat[loc_nons])^2) # squared errors mean
-      # V1 <- sum((sw_rand^2 - sw_rand) * (y_rand)^2)/N_nons^2
-      # V2 <- (sum(R_nons*(1-2*ps_nons_est)/ps_nons_est^2) + sum(sw_rand)) * sigmasqhat/(N_nons^2) #sum(sw_rand) = N_nons
-
-
       sigmasqhat <- mean((y[loc_rand] - y_hat[loc_rand])^2) # squared errors mean
 
       infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
       infl2 <- (y - y_hat)^2 * R/ps_nons_est
 
-      # Variance estimatiors#####
+      # Variance estimatiors #####
 
       ####
       ci <- n_rand/(n_rand-1) * (1 - ps_rand)
@@ -222,6 +216,7 @@ nonprobSel <- function(selection,
       # probability component
       W <- 1/N_nons^2 * db_var # based on Hajek approximation
       se_hjkprob <- sqrt(W)
+      ###
 
       svydesign <- stats::update(svydesign,
                                  y_rand = y_rand)
@@ -253,8 +248,6 @@ nonprobSel <- function(selection,
                          N_nons = N_nons,
                          N_rand = N_rand)
 
-      # mu_hatdr <- sum((y - pi)*Rnons/ps_nons_est)/N + (sum(pi*(1-Rnons) * sw))/N  # using mu_hatDR function in near future
-      # using Nnons, Nrand instead of N
 
       pi_rand <- pi[loc_rand]
       print(pi_rand)
@@ -263,6 +256,8 @@ nonprobSel <- function(selection,
 
       infl1 <- (y - pi)^2 * R/(ps_nons_est^2)
       infl2 <- (y - pi)^2 * R/ps_nons_est
+
+      # Variance estimators
 
       ####
       ci <- n_rand/(n_rand-1) * (1 - ps_rand)
@@ -275,10 +270,10 @@ nonprobSel <- function(selection,
       se_hjkprob <- sqrt(W)
 
       svydesign_mean <- survey::svymean(~pi_rand, svydesign) # perhaps using survey package to compute prob variance
-      se_probsvy <- as.vector(data.frame(svydesign_mean)[2])$pi_rand # probability compomemt based on survey package
+      se_probsvy <- as.vector(data.frame(svydesign_mean)[2])$pi_rand # probability componemt based on survey package
       V1_svy <- se_probsvy^2
 
-      V1 <- sum((sw_rand^2 - sw_rand) * (pi_rand)^2)/N_nons^2 # probability component based on survey package
+      V1 <- sum((sw_rand^2 - sw_rand) * (pi_rand)^2)/N_nons^2 # probability component based on integrative package
       V2 <- (sum((infl1) - 2*infl2) + sum(sw_rand*sigmasqhat))/(N_nons^2)
 
       se_nonprob <- sqrt(V2)
@@ -304,9 +299,11 @@ nonprobSel <- function(selection,
                          N_nons = N_nons,
                          N_rand = N_rand) #DR estimator
 
-      # mu_hatdr <- sum((y - y_hat)*Rnons/ps_nons_est)/N + (sum(y_hat*(1-Rnons) * sw))/N
 
       sigmasqhat <- mean(y_hat[loc_rand])
+      y_rand <- y_hat[loc_rand]
+
+      # Variance estimators
 
       ####
       ci <- n_rand/(n_rand-1) * (1 - ps_rand)
