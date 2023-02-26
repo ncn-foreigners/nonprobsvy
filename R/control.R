@@ -44,16 +44,18 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 #' @export
 
 controlOut <- function(method = "glm.fit", #perhaps another control function for model with variables selection
-                       epsilon = 1e-8,
+                       epsilon = 1e-6,
                        maxit = 25,
                        trace = FALSE,
-                       lambda = 0.25
+                       lambda_theta = 1.25,
+                       lambda_beta = 0.25
                        ) {
 
   list(epsilon = epsilon,
-              maxit = maxit,
-              trace = trace,
-              lambda = lambda)
+       maxit = maxit,
+       trace = trace,
+       lambda_theta = lambda_theta,
+       lambda_beta = lambda_beta)
 
 
 }
@@ -72,10 +74,13 @@ controlInf <- function(est_method = c("likelihood",
                                       "integrative"),
                        var_method = c("analytic",
                                       "bootstrap"),
+                       type_rep = c("auto", "JK1", "JKn", "BRR", "bootstrap",
+                                    "subbootstrap","mrbbootstrap","Fay"),
                        alpha = 0.05) {
 
   list(est_method = if(missing(est_method)) "likelihood" else est_method,
        var_method = if(missing(var_method)) "analytic" else var_method,
+       type_rep = if(missing(type_rep)) "subbootstrap" else type_rep,
        alpha = alpha)
 
 }

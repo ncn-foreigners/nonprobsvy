@@ -66,30 +66,31 @@ nonprobSel <- function(selection,
                        y,
                        ...) {
 
-  lambda_theta <- control_selection$lambda
-  lambda_beta <- control_outcome$lambda
+  lambda_theta <- control_selection$lambda_theta
+  lambda_beta <- control_outcome$lambda_beta
 
   eps <- control_selection$epsilon
 
   weights <- rep.int(1, nrow(data)) # to remove
 
   XY_nons <- model.frame(outcome, data)
-  X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample
-  X_rand <- model.matrix(selection, svydesign$variables) #matrix of probability sample
+  X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
+  X_rand <- model.matrix(selection, svydesign$variables) #matrix of probability sample with intercept
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
-  R <- c(R_nons, R_rand)  # a vector of the binary indicator of belonging to the nonprobability sample; 1 if the unit belongs, 0 otherwise
+  R <- c(R_rand, R_nons)  # a vector of the binary indicator of belonging to the nonprobability sample; 1 if the unit belongs, 0 otherwise
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
 
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
-  X <- rbind(X_nons, X_rand) # joint matrix
+  X <- rbind(X_rand[, -1], X_nons[, -1]) # joint matrix
+  weights_X <- c(weights_rand, weights)
 
   method <- method_selection
   if (is.character(method)) {
@@ -102,11 +103,10 @@ nonprobSel <- function(selection,
   inv_link <- method$make_link_inv
 
 
-  y <- c(y_nons, rep(NA, n_rand)) # outcome variable for joint model
+  y <- c(rep(NA, n_rand), y_nons) # outcome variable for joint model
   y[which(is.na(y))] <- 0
   n <- dim(X)[1]
   p <- dim(X)[2]
-  sw <- c(weights, weights_rand) # vector of weights
   N_rand <- sum(weights_rand)
 
 
@@ -120,28 +120,28 @@ nonprobSel <- function(selection,
   LAMBDA <- matrix(0,p+1,p+1)
   it <- 0
 
-  for(jj in 1:100) {
+  for(jj in 1:100) { # to fix
     it <- it + 1
 
-    Utheta0 <- Utheta(par = par0, R = R, X = X, y = y,
-                      weights_rand = weights_rand, weights = weights,
-                      method_selection = method_selection)
+    u_theta0 <- u_theta(par = par0, R = R, X = X, y = y,
+                        weights = weights_X,
+                        method_selection = method_selection)
 
-    Utheta0_der <- UthetaDer(par = par0, R = R, X = X, y = y,
-                             weights_rand = weights_rand, weights = weights,
-                             method_selection = method_selection)
+    u_theta0_der <- u_theta_der(par = par0, R = R, X = X, y = y,
+                               weights = weights_X,
+                               method_selection = method_selection)
 
     diag(LAMBDA) <- abs(q_lambda(par0, lambda_theta))/(eps + abs(par0))
-    par <- par0 + MASS::ginv(Utheta0 + LAMBDA) %*% (Utheta0 - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
-
-    if (sum(abs(par - par0)) < eps) break;
+    par <- par0 + MASS::ginv(u_theta0_der + LAMBDA) %*% (u_theta0 - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
+                                                                                     # equation (13) in article
+    if (sum(abs(par - par0)) < 1e-6) break;
     if (sum(abs(par - par0)) > 1000) break;
 
     par0 <- par
 
   }
 
-  par[which(abs(par) < 2 * eps)] <- 0
+  par[which(abs(par) < 1e-3)] <- 0
   theta_est <- par
   theta_selected <- which(theta_est != 0)
 
@@ -151,41 +151,38 @@ nonprobSel <- function(selection,
     #beta <- ncpen::ncpen(y.vec = y_nons, x.mat = X_nons, lambda = lambda_beta,
                          #penalty = "scad", family = family_outcome)
 
-    beta <- ncvreg::ncvreg(X = X_nons, y = y_nons, lambda = lambda_beta, # perhaps using ncpen package -> these same results
-                           penalty = 'SCAD', family = family_outcome)    # in ncvfit no possibility to define family
+    beta <- ncvreg::cv.ncvreg(X = X[loc_nons, ], y = y_nons,             # perhaps using ncpen package -> these same results
+                              penalty = 'SCAD', family = family_outcome)    # in ncvfit no possibility to define family
 
-    beta_est <- beta$beta
-    beta_selected <- as.numeric(which(beta_est!=0))
+    beta_est <- beta$fit$beta[,beta$min]
+    beta_selected <- as.numeric(which(abs(beta_est) > 2 * eps))
 
     # Estimating theta, beta parameters using selected variables
 
-
-
-    idx <- unique(c(beta_selected[-1] - 1, theta_selected[-1] - 1))
+    idx <- unique(c(beta_selected[-1] - 1, theta_selected[-1] - 1)) #excluding intercepts
     psel <- length(idx)
     Xsel <- as.matrix(X[, idx])
 
     par0 <- rep(0, 2*(psel+1))
 
     # root for joint score equation
-    par_sel <- rootSolve::multiroot(UThetaBeta,
+    par_sel <- rootSolve::multiroot(u_theta_beta,
                                     start = par0,
                                     R = R,
                                     X = Xsel,
                                     y = y,
-                                    weights_rand = weights_rand,
-                                    weights = weights,
+                                    weights = weights_X,
                                     method_selection = method_selection,
                                     family_outcome = family_outcome)$root
 
 
     theta_sel <- par_sel[1:(psel+1)]
     beta_sel <- par_sel[(psel+2):(2*psel+2)]
+    # problem with theta_sel, beta_sel
 
-    ps_nons_est  <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
+    ps_nons_est <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
     weights_nons <- 1/ps_nons_est[loc_nons]
     N_nons <- sum(weights_nons)
-    sw_rand <- sw[loc_rand]
 
     if (family_outcome == "gaussian") {
 
@@ -200,38 +197,24 @@ nonprobSel <- function(selection,
                          N_rand = N_rand) #DR estimator
 
       y_rand <- y_hat[loc_rand]
-      sigmasqhat <- mean((y[loc_rand] - y_hat[loc_rand])^2) # squared errors mean
+      sigmasqhat <- mean((y[loc_rand] - y_hat[loc_rand])^2)
 
       infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
       infl2 <- (y - y_hat)^2 * R/ps_nons_est
 
-      # Variance estimatiors #####
-
-      ####
-      ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-      B_hat <- sum(ci * (y_rand/ps_rand))/sum(ci)
-      ei <- (y_rand/ps_rand) - B_hat
-      db_var <- sum(ci * ei^2)
-
-      # probability component
-      W <- 1/N_nons^2 * db_var # based on Hajek approximation
-      se_hjkprob <- sqrt(W)
-      ###
-
+      # Variance estimatiors ####
       svydesign <- stats::update(svydesign,
                                  y_rand = y_rand)
 
       svydesign_mean <- survey::svymean(~y_rand, svydesign) # perhaps using survey package to compute prob variance
-      se_probsvy <- as.vector(data.frame(svydesign_mean)[2])$y_rand
-      V1_svy <- se_probsvy^2 # based on survey package, probability component
+      V1_svy <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
 
-      #V1 <- sum((sw_rand^2 - sw_rand) * (y_rand)^2)/N_nons^2 # probability component based on Integrative package
-      V2 <- (sum((infl1) - 2*infl2) + sum(sw_rand * sigmasqhat))/(N_nons^2) # nonprobability component
+      V2 <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigmasqhat))/(N_nons^2) # nonprobability component
 
       se_nonprob <- sqrt(V2)
-      se_prob <- se_probsvy
+      se_prob <- sqrt(V1_svy)
 
-      var <- as.vector(V1_svy + V2) #variance of an estimator
+      var <- V1_svy + V2 #variance of an estimator
 
       se <- sqrt(var) # standard error
 
@@ -250,7 +233,6 @@ nonprobSel <- function(selection,
 
 
       pi_rand <- pi[loc_rand]
-      print(pi_rand)
 
       sigmasqhat <- pi[loc_rand] * (1 - pi[loc_rand])
 
@@ -259,29 +241,18 @@ nonprobSel <- function(selection,
 
       # Variance estimators
 
-      ####
-      ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-      B_hat <- sum(ci * (pi_rand/ps_rand))/sum(ci)
-      ei <- (pi_rand/ps_rand) - B_hat
-      db_var <- sum(ci * ei^2)
-
-      # probability component
-      W <- 1/N_nons^2 * db_var # based on Hajek approximation
-      se_hjkprob <- sqrt(W)
-
       svydesign_mean <- survey::svymean(~pi_rand, svydesign) # perhaps using survey package to compute prob variance
-      se_probsvy <- as.vector(data.frame(svydesign_mean)[2])$pi_rand # probability componemt based on survey package
-      V1_svy <- se_probsvy^2
+                                                             # probability componemt based on survey package
+      V1_svy <- var_prob <- attr(svydesign_mean, "var")
 
-      V1 <- sum((sw_rand^2 - sw_rand) * (pi_rand)^2)/N_nons^2 # probability component based on integrative package
-      V2 <- (sum((infl1) - 2*infl2) + sum(sw_rand*sigmasqhat))/(N_nons^2)
+      V2 <- (sum((infl1) - 2*infl2) + sum(weights_rand*sigmasqhat))/(N_nons^2)
 
       se_nonprob <- sqrt(V2)
-      se_prob <- sqrt(V1)
+      se_prob <- sqrt(V1_svy)
 
 
       # variance of an estimator
-      var <- as.vector(V1 + V2)
+      var <- as.vector(V1_svy + V2)
 
       # standard error
       se <- sqrt(var)
@@ -305,36 +276,24 @@ nonprobSel <- function(selection,
 
       # Variance estimators
 
-      ####
-      ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-      B_hat <- sum(ci * (y_rand/ps_rand))/sum(ci)
-      ei <- (y_rand/ps_rand) - B_hat
-      db_var <- sum(ci * ei^2)
-
-      # probability component
-      W <- 1/N_nons^2 * db_var # based on Hajek approximation
-      se_hjkprob <- sqrt(W)
-
 
 
       svydesign <- stats::update(svydesign,
                                  y_rand = y_rand)
 
       svydesign_mean <- survey::svymean(~y_rand, svydesign) # perhaps using survey package to compute prob variance
-      se_probsvy <- as.vector(data.frame(svydesign_mean)[2])$y_rand # probability component based on survey package
-      V1_svy <- se_probsvy^2
+      V1_svy <- attr(svydesign_mean, "var")
 
       infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
       infl2 <- (y - y_hat)^2 * R/ps_nons_est
 
-      V1 <- sum((sw_rand^2 - sw_rand) * (y_rand)^2)/N_nons^2 # probability component based on integrative package
-      V2 <- (sum((infl1) - 2*infl2) + sum(sw_rand*sigmasqhat))/(N_nons^2)
+      V2 <- (sum((infl1) - 2*infl2) + sum(weiights_rand*sigmasqhat))/(N_nons^2)
 
       se_nonprob <- sqrt(V2)
-      se_prob <- sqrt(V1)
+      se_prob <- sqrt(V1_svy)
 
       # variance of an estimator
-      var <- as.vector(V1 + V2)
+      var <- as.vector(V1_svy + V2)
 
       # standard error
       se <- sqrt(var)
@@ -354,9 +313,11 @@ nonprobSel <- function(selection,
          CI = ci,
          SE = se,
          SE_nonprob = se_nonprob,
-         SE_prob = se_prob
-         #theta = theta_sel,
-         #beta = beta_sel
+         SE_prob = se_prob,
+         theta = theta_sel,
+         beta = beta_sel,
+         theta_selected = theta_selected[-1] - 1,
+         beta_selected = beta_selected[-1] - 1
          ),
     class = "Doubly-robust")
 
@@ -367,13 +328,12 @@ nonprobSel <- function(selection,
 
 # score equation for theta, used in variable selection
 
-Utheta <- function(par,
-                   R,
-                   X,
-                   y,
-                   weights_rand,
-                   weights,
-                   method_selection) {
+u_theta <- function(par,
+                    R,
+                    X,
+                    y,
+                    weights,
+                    method_selection) {
 
 
     method <- method_selection
@@ -393,9 +353,8 @@ Utheta <- function(par,
     ps <- inv_link(lpiB)
     R_rand <- 1 - R
     ps <- as.vector(ps)
-    sw <- c(weights, weights_rand)
 
-    eq <- c(apply(X0 * R/ps - X0 * R_rand * sw, 2, sum))/n
+    eq <- c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/n
 
     eq
 
@@ -404,13 +363,12 @@ Utheta <- function(par,
 
 # derivative of score equation for theta, used in variable selection
 
-UthetaDer <-  function(par,
-                       R,
-                       X,
-                       y,
-                       weights_rand,
-                       weights,
-                       method_selection) {
+u_theta_der <-  function(par,
+                         R,
+                         X,
+                         y,
+                         weights,
+                         method_selection) {
 
   method <- method_selection
   if (is.character(method)) {
@@ -429,13 +387,12 @@ UthetaDer <-  function(par,
   lpiB <- X0 %*% theta
   ps <- inv_link(lpiB)
   ps <- as.vector(ps)
-  sw <- c(weights, weights_rand)
 
   mxDer <- matrix(0,(p+1),(p+1))
 
   for (ii in 1:(p+1)) {
     for (jj in ii:(p+1)) {
-      mxDer[ii,jj] <- sum(R * (1-ps)/ps * X0[,ii] * X0[,jj])
+      mxDer[ii,jj] <- mxDer[jj,ii] <- sum(R * (1-ps)/ps * X0[,ii] * X0[,jj])
     }
   }
 
@@ -456,14 +413,13 @@ q_lambda <- function(par,
 
 # joint score equation for theta and beta, used in estimation
 
-UThetaBeta <- function(par,
-                       R,
-                       X,
-                       y,
-                       weights_rand,
-                       weights,
-                       method_selection,
-                       family_outcome) {
+u_theta_beta <- function(par,
+                         R,
+                         X,
+                         y,
+                         weights,
+                         method_selection,
+                         family_outcome) {
 
   method <- method_selection
   if (is.character(method)) {
@@ -486,14 +442,13 @@ UThetaBeta <- function(par,
   R_rand <- 1 - R
   y[which(is.na(y))] <- 0
   ps <- as.vector(ps)
-  sw <- c(weights, weights_rand)
 
   if (family_outcome == "gaussian") {
 
     res <- (y - (X0 %*% beta))
     res <- as.vector(res)
 
-    UTB <- c(apply(X0*R/ps-X0*R_rand*sw, 2, sum), # estimating function
+    UTB <- c(apply(X0*R/ps-X0*R_rand*weights, 2, sum), # estimating function
              apply(X0*R*(1/ps-1)*res, 2, sum))/n0
 
   } else if (family_outcome == "binomial") {
@@ -502,7 +457,7 @@ UThetaBeta <- function(par,
     res <- as.vector(y - m)
     m_der <- m * (1 - m) #derivative of m
 
-    UTB <- c(apply(X0*R/ps*m_der - X0*R_rand*sw*m_der, 2, sum),
+    UTB <- c(apply(X0*R/ps*m_der - X0*R_rand*weights*m_der, 2, sum),
              apply(X0*R*(1/ps-1)*res, 2, sum))/n0
 
   } else if (family_outcome == "poisson") {
@@ -511,7 +466,7 @@ UThetaBeta <- function(par,
     res <- as.vector(y - m)
     #derivative of is equal to m
 
-    UTB <- c(apply(X0*R/ps*m - X0*R_rand*sw*m, 2, sum),
+    UTB <- c(apply(X0*R/ps*m - X0*R_rand*weights*m, 2, sum),
              apply(X0*R*(1/ps-1)*res, 2, sum))/n0
 
   }
@@ -522,11 +477,11 @@ UThetaBeta <- function(par,
 
 
 # loss function for theta using the square distance of X between probability and nonprobability sample
+# for selecting lambda_theta
 
 loss_theta <- function(par,
                        R,
                        y,
-                       weights_rand,
                        weights,
                        method_selection) {
 
@@ -549,12 +504,10 @@ loss_theta <- function(par,
 
   R_rand <- 1 - R
   ps <- as.vector(ps)
-  sw <- rbind(weights, weights_rand)
-  sw<-as.vector(sw)
   N_est_rand <- sum(d)
   N_est_nons <- sum(1/ps)
 
-  loss <- sum(apply((x0*R/ps/N_est_nons - X0*R_rand*sw/N_est_rand), 2, sum)^2)
+  loss <- sum(apply((x0*R/ps/N_est_nons - X0*R_rand*weights/N_est_rand), 2, sum)^2)
   loss
 
 }

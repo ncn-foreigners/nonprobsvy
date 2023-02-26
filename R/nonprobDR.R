@@ -66,8 +66,8 @@ nonprobDR <- function(selection,
   weights <- rep.int(1, nrow(data)) # to remove
 
   XY_nons <- model.frame(outcome, data)
-  X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample
-  X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample
+  X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
+  X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample with intercept
   y_nons <- XY_nons[,1]
 
   R_nons <- rep(1, nrow(X_nons))
@@ -194,19 +194,17 @@ nonprobDR <- function(selection,
                 "probit" = as.vector(est_ps_rand_der/(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred)
     )
 
-    #svydesign <- stats::update(svydesign,
-     #                          tDR = t)
+    svydesign <- stats::update(svydesign,
+                               t = t)
 
-    #svydesign_mean <- survey::svymean(~tDR, svydesign) #perhaps using survey package to compute prob variance
-    #se_prob <- as.vector(data.frame(svydesign_mean)[2])
-
-    ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-    B_hat <- sum(ci * (t/ps_rand))/sum(ci)
-    ei <- (t/ps_rand) - B_hat
-    db_var <- sum(ci * ei^2)
+    #ci <- n_rand/(n_rand-1) * (1 - ps_rand)
+    #B_hat <- sum(ci * (t/ps_rand))/sum(ci)
+    #ei <- (t/ps_rand) - B_hat
+    #db_var <- sum(ci * ei^2)
 
     # probability component
-    W <- 1/N_est_nons^2 * db_var
+    # W <- 1/N_est_nons^2 * db_var
+    #var_prob <- as.vector(W) #prob
 
     # asymptotic variance by each propensity score method (nonprobability component)
     V <- switch(method_selection,
@@ -215,10 +213,11 @@ nonprobDR <- function(selection,
                 "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(X_nons))))^2)
     )
 
-    var_prob <- as.vector(W) #prob
+    svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
+    var_prob <- as.vector(attr(svydesign_mean, "var"))
     var_nonprob <- as.vector(V) #nonprob
 
-    se_prob <- sqrt(W)
+    se_prob <- sqrt(var_prob)
     se_nonprob <- sqrt(V)
 
     var <- var_prob + var_nonprob
@@ -260,12 +259,12 @@ nonprobDR <- function(selection,
            SE = se,
            SE_nonprob = se_nonprob,
            se_prob = se_prob,
-           CI = ci
-           #theta = theta_hat,
+           CI = ci,
+           theta = theta_hat,
            #pearson_residuals = pearson_residuals,
            #deviance_residuals = deviance_residuals,
            #log_likelihood = log_likelihood,
-           #beta = model_nons_coefs
+           beta = model_nons_coefs
            ),
       class = "Doubly-robust")
   }

@@ -1,6 +1,6 @@
 #' nonprobCL
 #
-#' nonprobCL: Function for inference based on nonprobability surveys using calibartion approach
+#' nonprobCL: Function for inference based on nonprobability surveys using calibration approach
 #
 #' @param outcome - `formula`, the outcome equation.
 #' @param data - an optional `data.frame` with data from the nonprobability sample.

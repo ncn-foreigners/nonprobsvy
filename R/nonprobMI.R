@@ -81,14 +81,6 @@ nonprobMI <- function(outcome,
   model_nons_coefs <- as.matrix(model_nons$coefficients)
 
 
-  # beta <- rootSolve::multiroot(f = U_beta,
-  #                              start = model_nons_coefs,
-  #                              X = X_nons,
-  #                              y = y_nons,
-  #                              n = n_nons)$f.root
-
-  # print(beta)
-
   y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
 
   y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
@@ -98,7 +90,7 @@ nonprobMI <- function(outcome,
                              y_hat_MI = y_rand_pred)
 
   svydesign_mean <- survey::svymean(~y_hat_MI, svydesign) # SE for y_hat_MI is equal to prob SE
-  # se_prob <- as.vector(data.frame(svydesign_mean)[2])
+  var_prob <- as.vector(attr(svydesign_mean, "var"))
 
 
   nonprobMI_inference <- function(...) {
@@ -112,19 +104,16 @@ nonprobMI <- function(outcome,
 
     if (control_inference$var_method == "analytic") {
 
-      s <- y_rand_pred
-      ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-      B_hat <- sum(ci*(s/ps_rand))/sum(ci)
-      ei <- (s/ps_rand) - B_hat
-      db_var <- sum(ci*(ei^2))
+      #s <- y_rand_pred
+      #ci <- n_rand/(n_rand-1) * (1 - ps_rand)
+      #B_hat <- sum(ci*(s/ps_rand))/sum(ci)
+      #ei <- (s/ps_rand) - B_hat
+      #db_var <- sum(ci*(ei^2))
 
       # probability component
-      var_prob <- 1/N_est_rand^2 * db_var
-
-      # v_b <- 1/N_estB * t(model$coefficients) * E * model$coefficients
+      #var_prob <- 1/N_est_rand^2 * db_var
 
       mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
-
       mh <- 0
       for (i in 1:n_nons) { # matrix product instead of a loop in a near future
 
@@ -136,10 +125,10 @@ nonprobMI <- function(outcome,
       e <- y_nons - y_nons_pred
 
       # nonprobability component
-      var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2))  %*% (as.matrix(X_nons) %*% t(as.matrix(c)))^2
+      var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% t(c))^2 #ok, but may be too large
+      #var_nonprob <- 1/n_nons^2 * (t(as.matrix(e)) %*% (X_nons %*% t(as.matrix(c))))^2
 
       var_nonprob <- as.vector(var_nonprob)
-      var_prob <- as.vector(var_prob)
 
       se_nonprob <- sqrt(var_nonprob)
       se_prob <- sqrt(var_prob)
@@ -158,7 +147,8 @@ nonprobMI <- function(outcome,
                     family_outcome,
                     1000,
                     weights_rand,
-                    mu_hat)
+                    mu_hat,
+                    svydesign)
 
       inf <- "not computed for bootstrap variance"
 
@@ -301,14 +291,5 @@ mu_hatMI <- function(y, weights, N) {
 
 }
 
-# U_beta <- function(beta, X, y, n) {
-
-
-#    U <- 1/n * sum((y -  X %*% beta) * as.data.frame(X))
-
-#    U
-
-
-#}
 
 
