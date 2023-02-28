@@ -67,7 +67,17 @@ nonprobDR <- function(selection,
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
-  X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample with intercept
+  nons_names <- colnames(X_nons[,-1])
+  if (all(nons_names %in% colnames(svydesign$variables))) {
+
+    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+
+  } else {
+
+    stop("variable names in data and svydesign do not match")
+
+  }
+
   y_nons <- XY_nons[,1]
 
   R_nons <- rep(1, nrow(X_nons))
@@ -136,22 +146,28 @@ nonprobDR <- function(selection,
     gradient <- gradient(X_nons, X_rand, weights_rand)
     hessian <- hessian(X_nons, X_rand, weights_rand)
 
+    maxLik_nons_obj <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)
+    maxLik_rand_obj <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)
 
-    ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
-    weights_nons <- 1/ps_nons
-    N_est_nons <- sum(weights_nons)
-    N_est_rand <- sum(weights_rand)
-
-    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$hess
-    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$theta_hat
+    ps_nons <- maxLik_nons_obj$ps
+    est_ps_rand <- maxLik_rand_obj$ps
+    hess <- maxLik_nons_obj$hess
+    theta_hat <- maxLik_nons_obj$theta_hat
+    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$psd
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$psd
+      ps_nons_der <- maxLik_nons_obj$psd
+      est_ps_rand_der <- maxLik_rand_obj$psd
 
     }
+
+
+
+    weights_nons <- 1/ps_nons
+    N_est_nons <- sum(weights_nons)
+    N_est_rand <- sum(weights_rand)
 
    # if(!is.null(pop_size)){
 
@@ -176,14 +192,7 @@ nonprobDR <- function(selection,
                 "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
     )
 
-    est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
-
-    pearson_residuals <- pearson_nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # pearson residuals for propensity score model
-    deviance_residuals <- deviance_nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
-
     # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
-
-    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
 
     # design based variance estimation based on approximations of the second-order inclusion probabilities
@@ -196,15 +205,6 @@ nonprobDR <- function(selection,
 
     svydesign <- stats::update(svydesign,
                                t = t)
-
-    #ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-    #B_hat <- sum(ci * (t/ps_rand))/sum(ci)
-    #ei <- (t/ps_rand) - B_hat
-    #db_var <- sum(ci * ei^2)
-
-    # probability component
-    # W <- 1/N_est_nons^2 * db_var
-    #var_prob <- as.vector(W) #prob
 
     # asymptotic variance by each propensity score method (nonprobability component)
     V <- switch(method_selection,

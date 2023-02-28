@@ -37,7 +37,7 @@ nonprobMI <- function(outcome,
                       strata,
                       weights,
                       na_action,
-                      control_outcome = controlOut(),
+                      control_outcome,
                       control_inference = controlInf(var_method = "analytic"),
                       start,
                       verbose,
@@ -52,8 +52,16 @@ nonprobMI <- function(outcome,
   XY_nons <- model.frame(outcome, data)
   y_name <- colnames(XY_nons)[1]
   X_nons <- model.matrix(XY_nons, data) # matrix of the  nonprobability sample
-  svydesign$variables[,y_name] <- rep(0, nrow(svydesign$variables))
-  X_rand <- model.matrix(outcome, svydesign$variables) # matrix of the probability sample
+  nons_names <- colnames(X_nons[,-1])
+  if (all(nons_names %in% colnames(svydesign$variables))) {
+
+    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+
+  } else {
+
+    stop("variable names in data and svydesign do not match")
+
+  }
   y_nons <- XY_nons[,1]
 
   R_nons <- rep(1, nrow(X_nons))
@@ -73,25 +81,51 @@ nonprobMI <- function(outcome,
 
 
   ## estimation
-  model_nons <- nonprobMI_fit(x = X_nons,
-                              y = y_nons,
-                              weights = weights,
-                              family_outcome = family_outcome)
 
-  model_nons_coefs <- as.matrix(model_nons$coefficients)
+  if (control_outcome$method == "glm") {
+
+    model_nons <- nonprobMI_fit(x = X_nons,
+                                y = y_nons,
+                                weights = weights,
+                                family_outcome = family_outcome)
+
+    model_nons_coefs <- as.matrix(model_nons$coefficients)
 
 
-  y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
+    y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
 
-  y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
+    y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
+
+  } else if (control_outcome$method == "nn") {
+
+    model_rand <- nonprobMI_nn(data = X_nons, query = X_rand,
+                               k = 5, treetype = "kd", searchtype = "standard")
+    model_nons <- nonprobMI_nn(data = X_nons, query = X_nons,
+                               k = 5, treetype = "kd", searchtype = "standard")
+
+    y_rand_pred <- vector(mode = "numeric", length = n_rand)
+    y_nons_pred <- vector(mode = "numeric", length = n_nons)
+
+
+    for (i in 1:n_rand) {
+
+      idx <- model_rand$nn.idx[i,]
+      y_rand_pred[i] <- mean(y_nons[idx])
+
+    }
+
+    for (i in 1:n_nons) {
+
+      idx <- model_nons$nn.idx[i,]
+      y_nons_pred[i] <- mean(y_nons[idx])
+    }
+
+
+  }
 
   # updating probability sample by adding y_hat variable
   svydesign <- stats::update(svydesign,
                              y_hat_MI = y_rand_pred)
-
-  svydesign_mean <- survey::svymean(~y_hat_MI, svydesign) # SE for y_hat_MI is equal to prob SE
-  var_prob <- as.vector(attr(svydesign_mean, "var"))
-
 
   nonprobMI_inference <- function(...) {
 
@@ -99,36 +133,80 @@ nonprobMI <- function(outcome,
                        weights = weights_rand,
                        N = N_est_rand)
 
-
     # design based variance estimation based on approximations of the second-order inclusion probabilities
 
     if (control_inference$var_method == "analytic") {
 
-      #s <- y_rand_pred
-      #ci <- n_rand/(n_rand-1) * (1 - ps_rand)
-      #B_hat <- sum(ci*(s/ps_rand))/sum(ci)
-      #ei <- (s/ps_rand) - B_hat
-      #db_var <- sum(ci*(ei^2))
+      svydesign_mean <- survey::svymean(~y_hat_MI, svydesign) # SE for y_hat_MI is equal to prob SE
+      var_prob <- as.vector(attr(svydesign_mean, "var")) #probability component
 
-      # probability component
-      #var_prob <- 1/N_est_rand^2 * db_var
+      if (control_outcome$method == "nn") {
 
-      mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
-      mh <- 0
-      for (i in 1:n_nons) { # matrix product instead of a loop in a near future
+        method_selection <- "logit"
+        method <- method_selection
 
-        xx <- t(X_nons[i,]) %*% X_nons[i,]
-        mh <- mh + xx
+        if (is.character(method)) {
+          method <- get(method, mode = "function", envir = parent.frame())
+        }
+        if (is.function(method)) {
+          method <- method()
+        }
+
+        ps_method <- method$make_propen_score # function for propensity score estimation
+        loglike <- method$make_log_like
+        gradient <- method$make_gradient
+        hessian <- method$make_hessian
+
+        optim_method <- "NR"
+
+        # initial values for propensity score estimation
+        start <- start_fit(X,
+                           R,
+                           weights,
+                           weights_rand,
+                           method_selection)
+
+        log_like <- loglike(X_nons, X_rand, weights_rand)
+        gradient <- gradient(X_nons, X_rand, weights_rand)
+        hessian <- hessian(X_nons, X_rand, weights_rand)
+
+        maxLik_nons_obj <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)
+
+        ps_nons <- maxLik_nons_obj$ps
+
+
+        sigma_hat <- switch(family_outcome,
+                            "gaussian" = mean((y_nons - y_nons_pred)^2),
+                            "binomial" = NULL,
+                            "poisson" = NULL)
+
+        N_est_nons <- sum(1/ps_nons)
+
+        var_nonprob <- 1/N_est_nons^2 * sum((1 - ps_nons)/ps_nons * sigma_hat)
+
+
+      } else if (control_outcome$method == "glm") {
+
+
+        mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
+        mh <- 0
+        for (i in 1:n_nons) { # matrix product instead of a loop in a near future
+
+          xx <- t(X_nons[i,]) %*% X_nons[i,]
+          mh <- mh + xx
+        }
+
+        c <- 1/(1/n_nons * mh) %*% mx
+        e <- y_nons - y_nons_pred
+
+        # nonprobability component
+        var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% t(c))^2 #ok, but may be too large
+        #var_nonprob <- 1/n_nons^2 * (t(as.matrix(e)) %*% (X_nons %*% t(as.matrix(c))))^2
+
+
+        var_nonprob <- as.vector(var_nonprob)
+
       }
-
-      c <- 1/(1/n_nons * mh) %*% mx
-      e <- y_nons - y_nons_pred
-
-      # nonprobability component
-      var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% t(c))^2 #ok, but may be too large
-      #var_nonprob <- 1/n_nons^2 * (t(as.matrix(e)) %*% (X_nons %*% t(as.matrix(c))))^2
-
-      var_nonprob <- as.vector(var_nonprob)
 
       se_nonprob <- sqrt(var_nonprob)
       se_prob <- sqrt(var_prob)
@@ -167,7 +245,7 @@ nonprobMI <- function(outcome,
 
     structure(
       list(mean = mu_hat,
-           VAR = var,
+           #VAR = var,
            SE = se,
            #variance_nonprob = ifelse(control_inference$var_method == "analytic", v_a, inf),
            #variance_prob = ifelse(control_inference$var_method == "analytic", v_b, inf),
@@ -259,12 +337,12 @@ nonprobMI_nn <- function(data,
                          k,
                          treetype,
                          searchtype,
-                         radius,
-                         eps) {
+                         radius = 0,
+                         eps = 0) {
 
 
   model_nn <- nn2(data = data,
-                  quety = query,
+                  query = query,
                   k = k,
                   treetype = treetype,
                   searchtype = searchtype,

@@ -69,7 +69,17 @@ nonprobIPW <- function(selection,
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample
-  X_rand <- model.matrix(selection, svydesign$variables) #matrix for probability sample
+  nons_names <- colnames(X_nons[,-1])
+  if (all(nons_names %in% colnames(svydesign$variables))) {
+
+    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+
+  } else {
+
+    stop("variable names in data and svydesign do not match")
+
+  }
+
   y_nons <- XY_nons[,1]
 
 
@@ -120,31 +130,22 @@ nonprobIPW <- function(selection,
     gradient <- gradient(X_nons, X_rand, weights_rand)
     hessian <- hessian(X_nons, X_rand, weights_rand)
 
+    maxLik_nons_obj <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)
+    maxLik_rand_obj <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)
 
-    theta_hat <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$theta_hat
-    hess <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$hess
+    ps_nons <- maxLik_nons_obj$ps
+    est_ps_rand <- maxLik_rand_obj$ps
+    hess <- maxLik_nons_obj$hess
+    theta_hat <- maxLik_nons_obj$theta_hat
+    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
     # to complete
     if(method_selection == "probit"){ # for probit model propensity score derivative is required
 
-      ps_nons_der <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$psd
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
-      est_ps_rand_der <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$psd
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
-
-    } else {
-
-      ps_nons <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)$ps
-      est_ps_rand <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)$ps
+      ps_nons_der <- maxLik_nons_obj$psd
+      est_ps_rand_der <- maxLik_rand_obj$psd
 
     }
-
-
-    # pearson residuals for propensity score model
-    pearson_residuals <- pearson_nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand)
-
-    # deviance residuals for propensity score model
-    deviance_residuals <- deviance_nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand)
 
     weights_nons <- 1/ps_nons
     N_est_nons <- sum(weights_nons)
@@ -160,23 +161,7 @@ nonprobIPW <- function(selection,
     mu_hat <- mu_hatIPW(y = y_nons,
                         weights = weights_nons,
                         N = N_est_nons) # IPW estimator
-  #  if(method_selection == "logit") {
 
-   #   vv <- (1-ps_nons)/ps_nons
-  #    print(summary(as.vector(vv)))
-
-   # } else if (method_selection == "cloglog") {
-
-
-    #  vv <- (1 - ps_nons)/ps_nons^2 * log(1 - ps_nons)
-     # print(summary(as.vector(vv)))
-
-    #} else if (method_selection == "probit") {
-
-     # vv <- ps_nons_der/ps_nons^2
-      #print(summary(as.vector(vv)))
-
-    #}
 
     if (is.null(pop_size)) {
 
@@ -227,18 +212,8 @@ nonprobIPW <- function(selection,
     se_prob <- sqrt(var_prob)
     se <- sqrt(var)
 
-    # maximum of the  loglikelihood function
-    log_likelihood <- log_like(theta_hat)
-
     # vector of variances for theta_hat
     theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
-
-    # variance for mu_hat
-    # var <- switch(method.selection,
-    #    "logit" =  (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - mu_hat)/ps_nons) - b %*% t(as.matrix(X_nons)))^2) + D.var,
-    #   "cloglog" = (1/N_est_nons^2) * sum(((1 - ps_nons)/ps_nons^2)*((y_nons - mu_hat) + b %*% t(as.matrix(X_nons)) * log(1 - ps_nons))^2) + D.var,
-    #  "probit" = (1/N_est_nons^2) * sum((y_nons - mu_hat)^2 * (1 - ps_nons)/ps_nons^2 + 2 * (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) * (b %*% t(as.matrix(X_nons))) + (psdA)/((ps_nons^2)*(1 - ps_nons)) * (b %*% t(as.matrix(X_nons)))^2) + D.var,
-    # )
 
 
     # case when samples overlap - to finish

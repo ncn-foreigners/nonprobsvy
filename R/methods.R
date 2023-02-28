@@ -35,6 +35,10 @@ deviance_nonprobsvy <- function(X_nons,
   res
 }
 
+# example using
+#pearson_residuals <- pearson_nonprobsvy(X_nons, X_rand, , est_ps_rand) # pearson residuals for propensity score model
+#deviance_residuals <- deviance_nonprobsvy(X_nons, X_rand, ps_nons, est_ps_rand) # deviance residuals for propensity score model
+
 cooks_distance_nonprobsvy <- function() {
 
 }

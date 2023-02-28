@@ -13,10 +13,9 @@
 #' @export
 
 controlSel <- function(method = "glm.fit", #perhaps another control function for model with variables selection
-                       epsilon = 1e-8,
+                       epsilon = 1e-6,
                        maxit = 25,
                        trace = FALSE,
-                       lambda = 1.25,
                        optim_method = "NR",
                        overlap = FALSE,
                        dependence = FALSE
@@ -25,7 +24,6 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
   list(epsilon = epsilon,
               maxit = maxit,
               trace = trace,
-              lambda = lambda,
               optim_method = optim_method,
               overlap = overlap,
               dependence = dependence)
@@ -43,19 +41,18 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 #'
 #' @export
 
-controlOut <- function(method = "glm.fit", #perhaps another control function for model with variables selection
+controlOut <- function(method = c("glm", "nn"), #perhaps another control function for model with variables selection
                        epsilon = 1e-6,
                        maxit = 25,
                        trace = FALSE,
-                       lambda_theta = 1.25,
-                       lambda_beta = 0.25
+                       lambda = 0.25
                        ) {
 
-  list(epsilon = epsilon,
+  list(method = if(missing(method)) "glm" else "nn",
+       epsilon = epsilon,
        maxit = maxit,
        trace = trace,
-       lambda_theta = lambda_theta,
-       lambda_beta = lambda_beta)
+       lambda = lambda)
 
 
 }
