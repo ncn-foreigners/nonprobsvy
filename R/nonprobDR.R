@@ -67,7 +67,7 @@ nonprobDR <- function(selection,
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
-  nons_names <- colnames(X_nons[,-1])
+  nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
 
     X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept

@@ -26,6 +26,7 @@
 #' @importFrom stats model.matrix
 #' @importFrom stats update
 #' @importFrom stats qnorm
+#' @importFrom RANN nn2
 #' @export
 
 nonprobMI <- function(outcome,
@@ -52,7 +53,7 @@ nonprobMI <- function(outcome,
   XY_nons <- model.frame(outcome, data)
   y_name <- colnames(XY_nons)[1]
   X_nons <- model.matrix(XY_nons, data) # matrix of the  nonprobability sample
-  nons_names <- colnames(X_nons[,-1])
+  nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
 
     X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
@@ -93,15 +94,14 @@ nonprobMI <- function(outcome,
 
 
     y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
-
     y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
 
   } else if (control_outcome$method == "nn") {
 
     model_rand <- nonprobMI_nn(data = X_nons, query = X_rand,
-                               k = 5, treetype = "kd", searchtype = "standard")
+                               k = control_outcome$k, treetype = "kd", searchtype = "standard")
     model_nons <- nonprobMI_nn(data = X_nons, query = X_nons,
-                               k = 5, treetype = "kd", searchtype = "standard")
+                               k = control_outcome$k, treetype = "kd", searchtype = "standard")
 
     y_rand_pred <- vector(mode = "numeric", length = n_rand)
     y_nons_pred <- vector(mode = "numeric", length = n_nons)
@@ -341,13 +341,13 @@ nonprobMI_nn <- function(data,
                          eps = 0) {
 
 
-  model_nn <- nn2(data = data,
-                  query = query,
-                  k = k,
-                  treetype = treetype,
-                  searchtype = searchtype,
-                  radius = radius,
-                  eps = eps)
+  model_nn <- RANN::nn2(data = data,
+                        query = query,
+                        k = k,
+                        treetype = treetype,
+                        searchtype = searchtype,
+                        radius = radius,
+                        eps = eps)
 
   model_nn
 
