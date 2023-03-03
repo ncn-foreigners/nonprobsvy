@@ -226,7 +226,8 @@ nonprobMI <- function(outcome,
                     1000,
                     weights_rand,
                     mu_hat,
-                    svydesign)
+                    svydesign,
+                    res_type = control_inference$rep_type)
 
       inf <- "not computed for bootstrap variance"
 

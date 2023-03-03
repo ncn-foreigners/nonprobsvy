@@ -9,12 +9,13 @@
 #' @param optim_method - a
 #' @param overlap - a
 #' @param dependence - a
+#' @param h_x - a
 #'
 #' @export
 
 controlSel <- function(method = "glm.fit", #perhaps another control function for model with variables selection
                        epsilon = 1e-6,
-                       maxit = 25,
+                       maxit = 100,
                        trace = FALSE,
                        optim_method = "NR",
                        overlap = FALSE,
@@ -41,12 +42,13 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 #' @param maxit - a
 #' @param trace - a
 #' @param lambda - a
+#' @param k - a
 #'
 #' @export
 
 controlOut <- function(method = c("glm", "nn"), #perhaps another control function for model with variables selection
                        epsilon = 1e-6,
-                       maxit = 25,
+                       maxit = 100,
                        trace = FALSE,
                        lambda = 0.25,
                        k = 5
@@ -68,6 +70,9 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
 #' control function for the inference method in the nonprob function
 #' @param est_method estimation method
 #' @param var_method variance method
+#' @param rep_type - a
+#' @param bias_inf - a
+#' @param penalty - a
 #' @param alpha - a
 #'
 #' @export
@@ -76,7 +81,7 @@ controlInf <- function(est_method = c("likelihood",
                                       "integrative"),
                        var_method = c("analytic",
                                       "bootstrap"),
-                       type_rep = c("auto", "JK1", "JKn", "BRR", "bootstrap",
+                       rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap",
                                     "subbootstrap","mrbbootstrap","Fay"),
                        bias_inf = c("union", "div"),
                        penalty = c("SCAD", "LASSO"),
@@ -84,7 +89,7 @@ controlInf <- function(est_method = c("likelihood",
 
   list(est_method = if(missing(est_method)) "likelihood" else est_method,
        var_method = if(missing(var_method)) "analytic" else var_method,
-       type_rep = if(missing(type_rep)) "subbootstrap" else type_rep,
+       rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,
        penalty = if(missing(penalty)) "SCAD" else penalty,
        alpha = alpha)

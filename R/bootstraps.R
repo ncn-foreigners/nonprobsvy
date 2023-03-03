@@ -18,7 +18,7 @@ bootMI <- function(X_rand,
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
-  rep_weights <- as.svrepdesign(svydesign, type = "subbootstrap", replicates = num_boot)$repweights$weights
+  rep_weights <- as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   k <- 1
 
