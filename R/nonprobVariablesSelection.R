@@ -161,12 +161,12 @@ nonprobSel <- function(selection,
 
   par <- as.vector(par)
   par[which(abs(par) < 1e-3)] <- 0
-  theta_est <- as.matrix(par[par!=0])
-  theta[[k]] <- theta_est
-  iddx <- which(abs(theta_est) != 0)
+  iddx <- which(abs(par) != 0)
+  theta_estt <- par[iddx]
+  theta[[k]] <- par
   Xloss <- cbind(1, X)
 
-  loss_theta[k] <- loss_theta(par = theta_est,
+  loss_theta[k] <- loss_theta(par = theta_estt,
                               R = R,
                               X = as.matrix(Xloss[, iddx]),
                               weights = weights_X,
