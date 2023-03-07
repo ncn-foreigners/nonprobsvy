@@ -70,6 +70,7 @@ nonprobSel <- function(selection,
   eps <- control_selection$epsilon
   penalty <- control_inference$penalty
   maxit <- control_selection$maxit
+  h <- control_selection$h_x
 
   weights <- rep.int(1, nrow(data)) # to remove
 
@@ -77,13 +78,9 @@ nonprobSel <- function(selection,
   X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
   nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-
     X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
-
   } else {
-
     stop("variable names in data and svydesign do not match")
-
   }
 
   y_nons <- XY_nons[,1]
@@ -99,7 +96,7 @@ nonprobSel <- function(selection,
 
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
-  X <- rbind(X_rand[, -1], X_nons[, -1]) # joint matrix
+  X <- rbind(X_rand, X_nons) # joint matrix
   #X_stand <- scale(X)
   weights_X <- c(weights_rand, weights)
 
@@ -119,12 +116,13 @@ nonprobSel <- function(selection,
   p <- ncol(X)
   N_rand <- sum(weights_rand)
 
-  FITT <- ncvreg::cv.ncvreg(X = X, y = R,
+  FITT <- ncvreg::cv.ncvreg(X = X[, -1], y = R, weights = weights_X,
                             penalty = penalty, family = "binomial") # for 50 variables this function returns first four variables as the most "important", while my function returns almost all, perhaps because of form of the loss function
 
   #print(FITT$fit$beta[,FITT$min])
   loss_theta <- vector(mode = "numeric", length = length(FITT$lambda))
   theta <- list(vector(mode = "numeric", length = length(FITT$lambda)))
+  indices <- list(vector(mode = "numeric", length = length(FITT$lambda)))
 
   k <- 1
 
@@ -132,26 +130,28 @@ nonprobSel <- function(selection,
 
     # initial values for set of parameters
     #init_theta <- vector(mode = "numeric", length = p+1)
-    init_theta <- FITT$fit$beta[, k]
-
+    idxx <- which(FITT$fit$beta[, k] != 0)
+    init_theta <- rep(0, length(FITT$fit$beta[, k][idxx]))
     # variables selection using score equation for theta
     par0 <- init_theta
-    LAMBDA <- Matrix::Matrix(matrix(0, p+1, p+1), sparse = TRUE)
+    p <- length(par0)
+    LAMBDA <- Matrix::Matrix(matrix(0, p, p), sparse = TRUE)
     it <- 0
     for(jj in 1:maxit) {
       it <- it + 1
+      if (it == maxit) break
 
-      u_theta0 <- u_theta(par = par0, R = R, X = X,
-                          weights = weights_X,
+      u_theta0 <- u_theta(par = par0, R = R, X = X[, idxx],
+                          weights = weights_X, h = h,
                           method_selection = method_selection)
 
-      u_theta0_der <- u_theta_der(par = par0, R = R, X = X,
-                                  weights = weights_X,
+      u_theta0_der <- u_theta_der(par = par0, R = R, X = X[, idxx],
+                                  weights = weights_X, h = h,
                                   method_selection = method_selection)
 
       diag(LAMBDA) <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
       par <- par0 + MASS::ginv(as.matrix(u_theta0_der + LAMBDA)) %*% (u_theta0 - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
-                                                                                                                   # equation (13) in article
+                                                                                                    # equation (13) in article
       if (sum(abs(par - par0)) < eps) break;
       if (sum(abs(par - par0)) > 1000) break;
 
@@ -160,48 +160,57 @@ nonprobSel <- function(selection,
     }
 
   par <- as.vector(par)
-  par[which(abs(par) < 1e-3)] <- 0
-  iddx <- which(abs(par) != 0)
-  theta_estt <- par[iddx]
-  theta[[k]] <- par
-  Xloss <- cbind(1, X)
 
-  loss_theta[k] <- loss_theta(par = theta_estt,
-                              R = R,
-                              X = as.matrix(Xloss[, iddx]),
-                              weights = weights_X,
-                              method_selection = method_selection)
-
-
-  k <- k + 1
-
+  if (any(par==0)) {
+    i <- which(par==0)
+    idxx <- idxx[-i]
   }
+
+  indices[[k]] <- idxx
+  theta_estt <- theta[[k]] <- par[par!=0]
+
+  if (length(theta[[k]]) == 1) {
+    loss_theta[k] <- NA
+  } else {
+    loss_theta[k] <- loss_theta(par = theta_estt,
+                                R = R,
+                                X = as.matrix(X[, idxx]),
+                                weights = weights_X,
+                                h = h,
+                                method_selection = method_selection) # compute this term without intercept
+  }
+  k <- k + 1
+ }
 
   #A <- t(matrix(unlist(theta), nrow = length(theta[[1]])))
   #L <- as.matrix(FITT$lambda, ncol = 1)
   #print(as.data.frame(cbind(L, A)))
+  min_idx <- which.min(loss_theta)
+  theta_est <- theta[[min_idx]]
+  theta_selected <- indices[[min_idx]] - 1
+  names(theta_est) <- c("(Intercept)", nons_names[theta_selected[-1]])
 
-  theta_est <- theta[[which.min(loss_theta)]]
-  theta_selected <- which(abs(theta_est) != 0) - 1
 
   # variables selection for beta using ncvreg package, perhaps cv.glmnet for theta like
 
   #theta <- glmnet::cv.glmnet(X, R, family = "binomial")
   #print(coef(theta))
 
-  beta <- ncvreg::cv.ncvreg(X = X[loc_nons, ], y = y_nons,
+  beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1], y = y_nons,
                             penalty = penalty, family = family_outcome)
+
 
   beta_est <- beta$fit$beta[,beta$min]
   beta_selected <- which(abs(beta_est) != 0) - 1
+  beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
 
   # Estimating theta, beta parameters using selected variables
 
   idx <- unique(c(beta_selected[-1], theta_selected[-1])) #excluding intercepts
   psel <- length(idx)
-  Xsel <- as.matrix(X[, idx])
+  Xsel <- as.matrix(X[, idx + 1])
 
-  par0 <- rep(0, 2*(psel+1))
+  par0 <- rep(0, 2*(psel + 1))
 
   # root for joint score equation
   par_sel <- rootSolve::multiroot(u_theta_beta,
@@ -216,6 +225,7 @@ nonprobSel <- function(selection,
 
   theta_sel <- par_sel[1:(psel+1)]
   beta_sel <- par_sel[(psel+2):(2*psel+2)]
+  names(theta_sel) <- names(beta_sel) <- c("(Intercept)", nons_names[idx])
 
   ps_nons_est <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
   weights_nons <- 1/ps_nons_est[loc_nons]
@@ -246,7 +256,7 @@ nonprobSel <- function(selection,
     svydesign_mean <- survey::svymean(~y_rand, svydesign)
     var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
 
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigmasqhat))/(N_nons^2) # nonprobability component
+    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigmasqhat))/N_nons^2 # nonprobability component
 
     se_nonprob <- sqrt(var_nonprob)
     se_prob <- sqrt(var_prob)
@@ -351,9 +361,7 @@ nonprobSel <- function(selection,
          theta_sel = theta_est,
          beta_sel = beta_est,
          theta = theta_sel,
-         beta = beta_sel,
-         theta_selected_vars = nons_names[theta_selected[-1]],
-         beta_selected_vars = nons_names[beta_selected[-1]]
+         beta = beta_sel
          ),
     class = "Doubly-robust")
 
@@ -369,6 +377,7 @@ u_theta <- function(par,
                     X,
                     weights,
                     method_selection,
+                    h,
                     N = NULL) {
 
 
@@ -382,17 +391,18 @@ u_theta <- function(par,
 
     inv_link <- method$make_link_inv
 
-    theta <- par
+    theta <- as.matrix(par)
     n <- length(R)
-    X0 <- cbind(1, X)
-    lpiB <- X0 %*% theta
-    ps <- inv_link(lpiB)
+    X0 <- as.matrix(X)
+    eta_pi <- X0 %*% theta
+    ps <- inv_link(eta_pi)
     R_rand <- 1 - R
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
 
-    eq <- c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons
-
+    eq <- switch(h,
+                 "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
+                 "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
     eq
 
 }
@@ -405,6 +415,7 @@ u_theta_der <-  function(par,
                          X,
                          weights,
                          method_selection,
+                         h,
                          N = NULL) {
 
   method <- method_selection
@@ -417,23 +428,45 @@ u_theta_der <-  function(par,
 
   inv_link <- method$make_link_inv
 
-  theta <- par
-  p <- ncol(X)
+  theta <- as.matrix(par)
+  X0 <- as.matrix(X)
+  p <- ncol(X0)
   n <- length(R)
-  X0 <- cbind(1, X)
-  lpiB <- X0 %*% theta
-  ps <- inv_link(lpiB)
+  eta_pi <- X0 %*% theta
+  ps <- inv_link(eta_pi)
   ps <- as.vector(ps)
-  N_nons <- sum(1/ps)
+  R_rand <- 1 - R
 
-  mxDer <- matrix(0,(p+1),(p+1))
-
-  for (ii in 1:(p+1)) {
-    for (jj in ii:(p+1)) {
-      mxDer[ii,jj] <- mxDer[jj,ii] <- sum(R * (1-ps)/ps * X0[,ii] * X0[,jj])
-    }
+  if (method_selection == "probit") {
+    dinv_link <- method$make_link_inv_der
+    psd <- dinv_link(eta_pi)
+    psd <- as.vector(psd)
   }
 
+  N_nons <- sum(1/ps)
+
+  mxDer <- matrix(0, p, p)
+
+  if (h == "1") {
+    for (ii in 1:(p)) {
+      for (jj in ii:(p)) {
+        mxDer[ii,jj] <- mxDer[jj,ii] <- switch(method_selection,
+                                              "logit" = sum(R * (1-ps)/ps * X0[,ii] * X0[,jj]),
+                                              "cloglog" = sum(R * (1-ps)/ps^2 * exp(eta_pi) * X0[,ii] * X0[,jj]),
+                                              "probit" = sum(R * psd/ps^2 * X0[,ii] * X0[,jj]))
+      }
+    }
+  } else if (h == "2") {
+    for (ii in 1:(p)) {
+      for (jj in ii:(p)) {
+        mxDer[ii,jj] <- mxDer[jj,ii] <- switch(method_selection,
+                                               "logit" = sum(R_rand * weights * ps/(exp(eta_pi)+1) * X0[,ii] * X0[,jj]),
+                                               "cloglog" = sum(R_rand * weights * (1-ps) * exp(eta_pi) * X0[,ii] * X0[,jj]),
+                                               "probit" = sum(R_rand * weights * psd * X0[,ii] * X0[,jj]))
+      }
+    }
+
+  }
   mxDer/N_nons
 }
 
@@ -475,8 +508,8 @@ u_theta_beta <- function(par,
   theta <- par[1:(p+1)]
   beta <- par[(p+2):(2*p+2)]
   X0 <- cbind(1, X)
-  lpiB <- X0 %*% theta
-  ps <- inv_link(lpiB)
+  eta_pi <- X0 %*% theta
+  ps <- inv_link(eta_pi)
   R_rand <- 1 - R
   y[which(is.na(y))] <- 0
   ps <- as.vector(ps)
@@ -521,6 +554,7 @@ loss_theta <- function(par,
                        R,
                        X,
                        weights,
+                       h,
                        method_selection) {
 
   method <- method_selection
@@ -537,8 +571,8 @@ loss_theta <- function(par,
   theta <- par
   nAB <- length(R)
   X0 <- X
-  lpiB <- X0 %*% theta
-  ps <- inv_link(lpiB)
+  eta_pi <- X0 %*% theta
+  ps <- inv_link(eta_pi)
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
@@ -548,8 +582,11 @@ loss_theta <- function(par,
   N_est_rand <- sum(weights[loc_rand])
   N_est_nons <- sum(1/ps)
 
-  loss <- sum(apply((X0*R/ps - X0*R_rand*weights), 2, sum)^2)
+  loss <- switch(h,
+                 "1" = sum(apply((X0*R/ps - X0*R_rand*weights), 2, sum)^2),
+                 "2" = sum(apply((X0*R - X0*R_rand*weights*ps), 2, sum)^2))
 
   loss
 
 }
+

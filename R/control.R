@@ -20,7 +20,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "NR",
                        overlap = FALSE,
                        dependence = FALSE,
-                       h_x = c(1, 2)
+                       h_x = c("1", "2")
                        ) {
 
   list(epsilon = epsilon,
@@ -29,7 +29,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
       optim_method = optim_method,
       overlap = overlap,
       dependence = dependence,
-      h_x = if(missing(h_x)) 1 else h_x
+      h_x = if(missing(h_x)) "1" else h_x
       )
 
 }

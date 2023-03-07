@@ -153,6 +153,7 @@ nonprobDR <- function(selection,
     est_ps_rand <- maxLik_rand_obj$ps
     hess <- maxLik_nons_obj$hess
     theta_hat <- maxLik_nons_obj$theta_hat
+    names(theta_hat) <- c("(Intercept)", nons_names)
     log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
 
