@@ -69,13 +69,9 @@ nonprobDR <- function(selection,
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
   nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-
     X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
-
   } else {
-
     stop("variable names in data and svydesign do not match")
-
   }
 
   y_nons <- XY_nons[,1]
@@ -158,13 +154,9 @@ nonprobDR <- function(selection,
 
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
-
       ps_nons_der <- maxLik_nons_obj$psd
       est_ps_rand_der <- maxLik_rand_obj$psd
-
     }
-
-
 
     weights_nons <- 1/ps_nons
     N_est_nons <- sum(weights_nons)
@@ -175,7 +167,6 @@ nonprobDR <- function(selection,
    #  N_est_rand <- pop_size
    #  N_est_nons <- pop_size
    # }
-
 
     mu_hat <- mu_hatDR(y = y_nons,
                        y_nons = y_nons_pred,
@@ -192,7 +183,7 @@ nonprobDR <- function(selection,
                 "cloglog" = (((1 - ps_nons)/ps_nons^2) * (y_nons - y_nons_pred - h_n) * log(1 - ps_nons)) %*% X_nons %*% solve(hess),
                 "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
     )
-
+    # ps_nons >= 1 for cloglog (?)
     # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
 
 

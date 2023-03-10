@@ -74,6 +74,9 @@ nonprob <- function(selection = NULL,
   if(missing(method_selection)) method_selection <- "logit"
   if(missing(family_outcome)) family_outcome <- "gaussian"
 
+  if(!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for selection formula.")
+  if(!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
+
   ## basic checkers
   if (is.null(selection) & is.null(outcome)) {
     stop("Please provide selection or outcome formula.")

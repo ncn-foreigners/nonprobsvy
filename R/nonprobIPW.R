@@ -171,6 +171,7 @@ nonprobIPW <- function(selection,
                   "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
                   "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% X_nons %*% solve(hess)
       )
+      # ps_nons >= 1 for cloglog (?)
 
     } else {
 
