@@ -187,10 +187,9 @@ nonprobSel <- function(selection,
     # Variance estimatiors ####
     svydesign <- stats::update(svydesign,
                                y_rand = y_rand)
-
     svydesign_mean <- survey::svymean(~y_rand, svydesign)
-    var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
 
+    var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
     var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigmasqhat))/N_nons^2 # nonprobability component
 
     se_nonprob <- sqrt(var_nonprob)
@@ -222,11 +221,9 @@ nonprobSel <- function(selection,
     infl2 <- (y - pi)^2 * R/ps_nons_est
 
     # Variance estimators
-
     svydesign_mean <- survey::svymean(~pi_rand, svydesign) # probability componemt based on survey package
 
     var_prob <- as.vector(attr(svydesign_mean, "var"))
-
     var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand*sigmasqhat))/(N_nons^2)
 
     se_nonprob <- sqrt(var_nonprob)

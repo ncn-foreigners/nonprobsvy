@@ -18,8 +18,8 @@ cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfol
   X_nons <- X_nons[sample(nrow(X_nons)), ]
   X_rand <- X_rand[sample(nrow(X_rand)), ]
 
-  folds_nons <- cut(seq(1,nrow(X_nons)), breaks=nfolds, labels=FALSE) #split nonprobabability sample into K parts
-  folds_rand <- cut(seq(1,nrow(X_rand)), breaks=nfolds, labels=FALSE) #split probabability sample into K parts
+  folds_nons <- cut(seq(1,nrow(X_nons)), breaks=nfolds, labels=FALSE) #split nonprobability sample into K parts
+  folds_rand <- cut(seq(1,nrow(X_rand)), breaks=nfolds, labels=FALSE) #split probability sample into K parts
 
   # pair K subsets randomly
   sample_nons <- sample(1:nfolds, nfolds, replace = FALSE)
@@ -239,10 +239,8 @@ q_lambda <- function(par,
                      lambda,
                      a = 3.7) {
   # SCAD penalty derivative
-
   penaltyd <- (abs(par)<lambda) * lambda + (abs(par)>=lambda) * ((a * lambda) > abs(par)) * ((a * lambda) - abs(par))/(a-1)
   penaltyd[1]<-0 # no penalty on the intercept
-
   penaltyd
 }
 
@@ -284,6 +282,5 @@ loss_theta <- function(par,
   loss <- switch(h,
                  "1" = sum(apply((X0*R/ps - X0*R_rand*weights), 2, sum)^2),
                  "2" = sum(apply((X0*R - X0*R_rand*weights*ps), 2, sum)^2))
-
   loss
 }
