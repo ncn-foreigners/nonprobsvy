@@ -30,6 +30,7 @@
 #' @importFrom Matrix Matrix
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
+#' @importFrom stats terms
 #' @export
 
 

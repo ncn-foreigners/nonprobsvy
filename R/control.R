@@ -5,7 +5,6 @@
 #' @param epsilon - a
 #' @param maxit - a
 #' @param trace - a
-#' @param lambda - a
 #' @param optim_method - a
 #' @param overlap - a
 #' @param dependence - a

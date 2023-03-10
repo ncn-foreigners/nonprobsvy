@@ -7,6 +7,7 @@ nonprobIPW: Function for inference based on nonprobability big data sample and e
 \usage{
 nonprobIPW(
   selection,
+  target,
   data,
   svydesign,
   pop_totals,
@@ -15,6 +16,7 @@ nonprobIPW(
   method_selection,
   family_selection = "binomial",
   subset,
+  strata,
   weights,
   na_action,
   control_selection = controlSel(),
@@ -31,6 +33,8 @@ nonprobIPW(
 \arguments{
 \item{selection}{- `formula`, the selection (propensity) equation.}
 
+\item{target}{- `formula` with target variables.}
+
 \item{data}{- an optional `data.frame` with data from the nonprobability sample.}
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
@@ -46,6 +50,8 @@ nonprobIPW(
 \item{family_selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
+
+\item{strata}{- an optional `vector` specifying strata.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 

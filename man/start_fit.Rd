@@ -4,19 +4,10 @@
 \alias{start_fit}
 \title{start_fit}
 \usage{
-start_fit(
-  X_nons,
-  X_rand,
-  weights,
-  d,
-  method_selection,
-  control_selection = controlSel()
-)
+start_fit(X, R, weights, d, method_selection, control_selection = controlSel())
 }
 \arguments{
-\item{X_nons}{- a}
-
-\item{X_rand}{- a}
+\item{X}{- a}
 
 \item{weights}{- a}
 

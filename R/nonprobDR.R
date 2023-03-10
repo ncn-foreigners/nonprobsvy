@@ -34,6 +34,7 @@
 #' @importFrom stats update
 #' @importFrom stats qnorm
 #' @importFrom stats binomial
+#' @importFrom stats terms
 #' @export
 
 
@@ -302,8 +303,7 @@ mu_hatDR <- function(y,
 #'
 #' start_fit: Function for obtaining initial values for propensity score estimation
 #'
-#' @param X_nons - a
-#' @param X_rand - a
+#' @param X - a
 #' @param weights - a
 #' @param d - a
 #' @param method_selection - a
@@ -318,13 +318,13 @@ start_fit <- function(X,
 
   weights <- c(weights, d)
 
-  start_model <- glm.fit(x = X, #glm model for initial values in propensity score estimation
-                         y = R,
-                         #weights = weights, # to fix
-                         family = binomial(link = method_selection),
-                         control = list(control_selection$epsilon,
-                                        control_selection$maxit,
-                                        control_selection$trace)
+  start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
+                                y = R,
+                                #weights = c(weights, d), # to fix
+                                family = binomial(link = method_selection),
+                                control = list(control_selection$epsilon,
+                                             control_selection$maxit,
+                                             control_selection$trace)
                          )
 
   start <- start_model$coefficients

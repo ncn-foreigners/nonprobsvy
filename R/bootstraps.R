@@ -1,4 +1,5 @@
 #' Internal functions
+#' @importFrom survey as.svrepdesign
 
 bootMI <- function(X_rand,
                    X_nons,
@@ -18,7 +19,7 @@ bootMI <- function(X_rand,
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
-  rep_weights <- as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+  rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   k <- 1
 

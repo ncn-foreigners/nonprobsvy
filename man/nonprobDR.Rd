@@ -18,6 +18,7 @@ nonprobDR(
   family_selection = "binomial",
   family_outcome = "gaussian",
   subset,
+  strata,
   weights,
   na_action,
   control_selection = controlSel(),
@@ -56,6 +57,8 @@ nonprobDR(
 \item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
 \item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
+
+\item{strata}{- an optional `vector` specifying strata.}
 
 \item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 

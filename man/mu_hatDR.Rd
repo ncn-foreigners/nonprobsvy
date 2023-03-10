@@ -5,7 +5,7 @@
 \title{mu_hatDR
 mu_hatDR: Function for outcome variable estimation based on doubly robust estimation}
 \usage{
-mu_hatDR(y, y_nons, y_rand, d_nons, d_rand, N_nons, N_rand)
+mu_hatDR(y, y_nons, y_rand, weights_nons, weights_rand, N_nons, N_rand)
 }
 \arguments{
 \item{y}{- a}
@@ -14,9 +14,9 @@ mu_hatDR(y, y_nons, y_rand, d_nons, d_rand, N_nons, N_rand)
 
 \item{y_rand}{- a}
 
-\item{d_nons}{- a}
+\item{weights_nons}{- a}
 
-\item{d_rand}{- a}
+\item{weights_rand}{- a}
 
 \item{N_nons}{- a}
 

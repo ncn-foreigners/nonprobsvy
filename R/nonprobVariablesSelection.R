@@ -37,6 +37,7 @@
 #' @importFrom stats qnorm
 #' @importFrom survey svymean
 #' @importFrom Matrix Matrix
+#' @importFrom stats terms
 #' @export
 #'
 
@@ -263,7 +264,7 @@ nonprobSel <- function(selection,
     infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
     infl2 <- (y - y_hat)^2 * R/ps_nons_est
 
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weiights_rand*sigmasqhat))/(N_nons^2)
+    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand*sigmasqhat))/(N_nons^2)
 
     se_nonprob <- sqrt(V2)
     se_prob <- sqrt(V1_svy)

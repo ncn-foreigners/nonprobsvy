@@ -1,3 +1,7 @@
+# Internal functions
+#' @importFrom stats glm
+#' @importFrom stats residuals
+
 cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfolds = 10) {
 
   loc_nons <- which(R == 1)
@@ -80,12 +84,12 @@ cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfol
 setup_lambda <- function(X, y, weights, method_selection, alpha = 1, lambda_min, log_lambda = FALSE, nlambda, ...) { #consider panalty factor here
 
   #fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
-  fit <- glm(y~1, weights = weights, family = binomial(link = method_selection))
+  fit <- stats::glm(y~1, weights = weights, family = binomial(link = method_selection))
 
   n <- length(y)
   p <- ncol(X)
   w <- fit$weights
-  r <- as.matrix(residuals(fit, "working") * w)
+  r <- as.matrix(stats::residuals(fit, "working") * w)
   zmax <- max(crossprod(X, r))/n
   lambda_max <- zmax/alpha
 

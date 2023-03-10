@@ -7,6 +7,10 @@
 controlInf(
   est_method = c("likelihood", "integrative"),
   var_method = c("analytic", "bootstrap"),
+  rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
+    "Fay"),
+  bias_inf = c("union", "div"),
+  penalty = c("SCAD", "LASSO"),
   alpha = 0.05
 )
 }
@@ -14,6 +18,12 @@ controlInf(
 \item{est_method}{estimation method}
 
 \item{var_method}{variance method}
+
+\item{rep_type}{- a}
+
+\item{bias_inf}{- a}
+
+\item{penalty}{- a}
 
 \item{alpha}{- a}
 }

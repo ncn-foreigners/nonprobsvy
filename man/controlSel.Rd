@@ -6,13 +6,13 @@
 \usage{
 controlSel(
   method = "glm.fit",
-  epsilon = 1e-08,
-  maxit = 25,
+  epsilon = 1e-06,
+  maxit = 100,
   trace = FALSE,
-  lambda = 1.25,
   optim_method = "NR",
   overlap = FALSE,
-  dependence = FALSE
+  dependence = FALSE,
+  h_x = c("1", "2")
 )
 }
 \arguments{
@@ -24,13 +24,13 @@ controlSel(
 
 \item{trace}{- a}
 
-\item{lambda}{- a}
-
 \item{optim_method}{- a}
 
 \item{overlap}{- a}
 
 \item{dependence}{- a}
+
+\item{h_x}{- a}
 }
 \description{
 control function for the selection equation in the nonprob function

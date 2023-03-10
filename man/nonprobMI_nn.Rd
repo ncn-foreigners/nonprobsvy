@@ -5,7 +5,7 @@
 \title{nonprobMI_nn
 nonprobMI_nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching}
 \usage{
-nonprobMI_nn(data, query, k, treetype, searchtype, radius, eps)
+nonprobMI_nn(data, query, k, treetype, searchtype, radius = 0, eps = 0)
 }
 \arguments{
 \item{data}{- an optional `data.frame` with data from the nonprobability sample.}

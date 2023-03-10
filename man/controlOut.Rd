@@ -5,11 +5,12 @@
 \title{controlOut}
 \usage{
 controlOut(
-  method = "glm.fit",
-  epsilon = 1e-08,
-  maxit = 25,
+  method = c("glm", "nn"),
+  epsilon = 1e-06,
+  maxit = 100,
   trace = FALSE,
-  lambda = 0.25
+  lambda = 0.25,
+  k = 5
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ controlOut(
 \item{trace}{- a}
 
 \item{lambda}{- a}
+
+\item{k}{- a}
 }
 \description{
 control function for the outcome equation in the nonprob function

@@ -4,7 +4,7 @@
 \alias{nonprobOv}
 \title{nonprobOv}
 \usage{
-nonprobOv(X_nons, X_rand, d_rand, dependent, method_selection)
+nonprobOv(X_nons, X_rand, weights_rand, dependent, method_selection)
 }
 \description{
 nonprobOv: Function for correcting selection bias considering the possible overlapping and dependency between the nonprobability and probability sample, function needs furher work

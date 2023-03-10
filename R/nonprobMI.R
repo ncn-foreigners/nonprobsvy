@@ -27,6 +27,7 @@
 #' @importFrom stats update
 #' @importFrom stats qnorm
 #' @importFrom RANN nn2
+#' @importFrom stats terms
 #' @export
 
 nonprobMI <- function(outcome,
