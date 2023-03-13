@@ -9,20 +9,6 @@ nonprobMI(
   outcome,
   data,
   svydesign,
-<<<<<<< HEAD
-  family.outcome = "gaussian",
-  subset,
-  weights,
-  na.action,
-  control.outcome = controlOut(),
-  control.inference = controlInf(),
-  start = NULL,
-  verbose = 0L,
-  contrasts = NULL,
-  model = TRUE,
-  x = TRUE,
-  y = TRUE,
-=======
   method_outcome,
   family_outcome = "gaussian",
   subset,
@@ -37,7 +23,6 @@ nonprobMI(
   model,
   x,
   y,
->>>>>>> package-development
   ...
 )
 }
@@ -48,17 +33,6 @@ nonprobMI(
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
 
-<<<<<<< HEAD
-\item{family.outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
-
-\item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
-
-\item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
-
-\item{...}{}
-
-\item{selection}{- `formula`, the selection (propensity) equation.}
-=======
 \item{method_outcome}{- a `character` with method for response variable estimation}
 
 \item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
@@ -88,7 +62,6 @@ nonprobMI(
 \item{y}{a}
 
 \item{...}{a}
->>>>>>> package-development
 }
 \description{
 nonprobMI

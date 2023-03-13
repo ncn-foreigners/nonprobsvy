@@ -4,12 +4,6 @@
 \alias{controlSel}
 \title{controlSel}
 \usage{
-<<<<<<< HEAD
-controlSel(method = "glm.fit")
-}
-\arguments{
-\item{method}{estimation method}
-=======
 controlSel(
   method = "glm.fit",
   epsilon = 1e-06,
@@ -37,7 +31,6 @@ controlSel(
 \item{dependence}{- a}
 
 \item{h_x}{- a}
->>>>>>> package-development
 }
 \description{
 control function for the selection equation in the nonprob function

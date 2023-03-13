@@ -25,6 +25,7 @@
 #' ## generate data when big data is almost as N
 #' genSimData(N=10000,n=9000)
 #'
+#' @importFrom stats cor lm.fit rbinom rchisq rexp rnorm runif uniroot
 #'
 #' @export
 genSimData <- function(N=10000, n=1000) {

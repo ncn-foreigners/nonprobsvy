@@ -6,22 +6,6 @@
 nonprob: Function for inference based on nonprobability surveys using various methods}
 \usage{
 nonprob(
-<<<<<<< HEAD
-  selection,
-  outcome,
-  data,
-  svydesign,
-  pop.totals = NULL,
-  pop.means = NULL,
-  family.selection = "binomial",
-  family.outcome = "gaussian",
-  subset,
-  weights,
-  na.action,
-  control.selection = controlSel(),
-  control.outcome = controlOut(),
-  control.inference = controlInf(),
-=======
   selection = NULL,
   outcome = NULL,
   target = NULL,
@@ -41,7 +25,6 @@ nonprob(
   control_selection = controlSel(),
   control_outcome = controlOut(),
   control_inference = controlInf(est_method = "likelihood"),
->>>>>>> package-development
   start = NULL,
   verbose = 0L,
   contrasts = NULL,
@@ -56,36 +39,12 @@ nonprob(
 
 \item{outcome}{- `formula`, the outcome equation.}
 
-<<<<<<< HEAD
-=======
 \item{target}{- `formula` with target variables.}
 
->>>>>>> package-development
 \item{data}{- an optional `data.frame` with data from the nonprobability sample.}
 
 \item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
 
-<<<<<<< HEAD
-\item{pop.totals}{- an optional `named vector` with population totals.}
-
-\item{pop.means}{- an optional `named vector` with population means.}
-
-\item{family.selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
-
-\item{family.outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
-
-\item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
-
-\item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
-
-\item{na.action}{- a function which indicates what should happen when the data contain `NAs`.}
-
-\item{control.selection}{a}
-
-\item{control.outcome}{a}
-
-\item{control.inference}{a}
-=======
 \item{pop_totals}{- an optional `named vector` with population totals.}
 
 \item{pop_means}{- an optional `named vector` with population means.}
@@ -113,7 +72,6 @@ nonprob(
 \item{control_outcome}{a list indicating parameters to use in fitting model for outcome variable}
 
 \item{control_inference}{a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method}
->>>>>>> package-development
 
 \item{start}{- an optional `list` with starting values for the parameters of the selection and outcome equation}
 

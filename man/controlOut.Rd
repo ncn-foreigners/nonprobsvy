@@ -2,16 +2,6 @@
 % Please edit documentation in R/control.R
 \name{controlOut}
 \alias{controlOut}
-<<<<<<< HEAD
-\title{controlOut}
-\usage{
-controlOut(method = "glm.fit")
-}
-\arguments{
-\item{method}{estimation method}
-}
-\description{
-=======
 \title{controlOut
 control function for the outcome equation in the nonprob function}
 \usage{
@@ -36,6 +26,5 @@ controlOut(
 }
 \description{
 controlOut
->>>>>>> package-development
 control function for the outcome equation in the nonprob function
 }

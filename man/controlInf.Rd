@@ -4,14 +4,6 @@
 \alias{controlInf}
 \title{controlInf}
 \usage{
-<<<<<<< HEAD
-controlInf(est.method, var.method)
-}
-\arguments{
-\item{est.method}{estimation method}
-
-\item{var.method}{variance method}
-=======
 controlInf(
   est_method = c("likelihood", "integrative"),
   var_method = c("analytic", "bootstrap"),
@@ -40,7 +32,6 @@ controlInf(
 \item{nlambda}{- a}
 
 \item{alpha}{- a}
->>>>>>> package-development
 }
 \description{
 control function for the inference method in the nonprob function
