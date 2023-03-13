@@ -238,7 +238,7 @@ u_theta_der <-  function(R,
     } else if (h == "2") {
           mxDer <- switch(method_selection,
                           "logit" = t(R_rand * as.data.frame(X0) * weights * ps/(exp(eta_pi)+1)) %*% X0,
-                          "cloglog" = t(R_rand * weights * (1-ps) * exp(eta_pi)) %*% X0,
+                          "cloglog" = t(R_rand * as.data.frame(X0) * weights * (1-ps) * exp(eta_pi)) %*% X0,
                           "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
         }
     mxDer/N_nons
