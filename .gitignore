@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 playground
+.Rdata
+.httr-oauth
+.DS_Store

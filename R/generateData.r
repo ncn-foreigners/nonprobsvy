@@ -34,14 +34,14 @@ genSimData <- function(N=10000, n=1000) {
     y <- 2 + x1 + x2 + x3 + x4 + sigma*epsilon
     model_fit <- lm.fit(x = cbind(1, x1,x2,x3,x4), y = y)
     res <- cor(y, model_fit$fitted.values) - rho
-    return(res)
+    res
   }
 
   find_theta_logsim <- function(theta, n) {
     eta <- theta + 0.1*x1 + 0.2*x2 + 0.1*x3 + 0.2*x4
     rho <- exp(eta)  / (1 + exp(eta))
     res <- sum(rho) - n
-    return(res)
+    res
   }
 
   z1 <- rbinom(N, 1, 0.5)
@@ -66,7 +66,8 @@ genSimData <- function(N=10000, n=1000) {
 
   p <- uniroot(f = function(x) max(x3+x) - 50*min(x3+x), lower = -200, upper = 100)$root
 
-  sim_df <- data.frame(x0, x1,x2,x3,x4,y30,y60,y80,rho, srs = x3+p)
+  sim_df <- data.frame(x0, x1,x2,x3,x4,y30,y60,y80,rho, srs = (x3+p)/10)
+
 
   return(sim_df)
 

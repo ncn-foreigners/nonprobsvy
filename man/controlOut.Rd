@@ -2,6 +2,7 @@
 % Please edit documentation in R/control.R
 \name{controlOut}
 \alias{controlOut}
+<<<<<<< HEAD
 \title{controlOut}
 \usage{
 controlOut(method = "glm.fit")
@@ -10,5 +11,31 @@ controlOut(method = "glm.fit")
 \item{method}{estimation method}
 }
 \description{
+=======
+\title{controlOut
+control function for the outcome equation in the nonprob function}
+\usage{
+controlOut(
+  method = c("glm", "nn"),
+  epsilon = 1e-06,
+  maxit = 100,
+  trace = FALSE,
+  k = 5
+)
+}
+\arguments{
+\item{method}{estimation method}
+
+\item{epsilon}{- a}
+
+\item{maxit}{- a}
+
+\item{trace}{- a}
+
+\item{k}{- a}
+}
+\description{
+controlOut
+>>>>>>> package-development
 control function for the outcome equation in the nonprob function
 }

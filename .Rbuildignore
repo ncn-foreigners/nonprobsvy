@@ -4,3 +4,4 @@ playground
 ^README\.Rmd$
 ^NEWS$
 ^LICENSE\.md$
+^\.github$

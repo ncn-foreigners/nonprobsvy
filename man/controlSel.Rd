@@ -4,10 +4,40 @@
 \alias{controlSel}
 \title{controlSel}
 \usage{
+<<<<<<< HEAD
 controlSel(method = "glm.fit")
 }
 \arguments{
 \item{method}{estimation method}
+=======
+controlSel(
+  method = "glm.fit",
+  epsilon = 1e-06,
+  maxit = 100,
+  trace = FALSE,
+  optim_method = "NR",
+  overlap = FALSE,
+  dependence = FALSE,
+  h_x = c("1", "2")
+)
+}
+\arguments{
+\item{method}{estimation method}
+
+\item{epsilon}{- a}
+
+\item{maxit}{- a}
+
+\item{trace}{- a}
+
+\item{optim_method}{- a}
+
+\item{overlap}{- a}
+
+\item{dependence}{- a}
+
+\item{h_x}{- a}
+>>>>>>> package-development
 }
 \description{
 control function for the selection equation in the nonprob function

@@ -4,12 +4,43 @@
 \alias{controlInf}
 \title{controlInf}
 \usage{
+<<<<<<< HEAD
 controlInf(est.method, var.method)
 }
 \arguments{
 \item{est.method}{estimation method}
 
 \item{var.method}{variance method}
+=======
+controlInf(
+  est_method = c("likelihood", "integrative"),
+  var_method = c("analytic", "bootstrap"),
+  rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
+    "Fay"),
+  bias_inf = c("union", "div"),
+  penalty = c("SCAD", "LASSO"),
+  lambda_min,
+  nlambda,
+  alpha = 0.05
+)
+}
+\arguments{
+\item{est_method}{estimation method}
+
+\item{var_method}{variance method}
+
+\item{rep_type}{- a}
+
+\item{bias_inf}{- a}
+
+\item{penalty}{- a}
+
+\item{lambda_min}{- a}
+
+\item{nlambda}{- a}
+
+\item{alpha}{- a}
+>>>>>>> package-development
 }
 \description{
 control function for the inference method in the nonprob function
