@@ -59,11 +59,7 @@ nonprob <- function(selection = NULL,
                     y = TRUE,
                     ...) {
 
-  ##
-
   est_method <- control_inference$est_method
-
-  # if (missing(method.selection)) method.selection <- "logit"
 
   if (!is.data.frame(data)) {
     data <- data.frame(data)

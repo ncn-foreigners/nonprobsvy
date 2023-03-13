@@ -66,6 +66,7 @@ nonprobDR <- function(selection,
                       ...) {
 
   h <- control_selection$h_x
+  maxit <- control_selection$maxit
   weights <- rep.int(1, nrow(data)) # to remove
 
   XY_nons <- model.frame(outcome, data)
@@ -125,7 +126,7 @@ nonprobDR <- function(selection,
                      weights_rand,
                      method_selection)
 
-  model_nons_coefs <- as.matrix(model_nons$coefficients)
+  model_nons_coefs <- model_nons$coefficients
 
   y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
 
@@ -154,25 +155,26 @@ nonprobDR <- function(selection,
     names(theta_hat) <- c("(Intercept)", nons_names)
     log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
-    # theta estimation by unbiased estimating function depending on the h_x function TODO
-    u_theta <- u_theta(R = R, X = X,
-                       weights = c(weights_rand, weights), h = h,
-                       method_selection = method_selection)
-
-    u_theta_der <- u_theta_der(R = R, X = X,
-                               weights = c(weights_rand, weights), h = h,
-                               method_selection = method_selection)
-    cond <- FALSE
+    cond <- TRUE
     if (cond) {
-      start0 <- start
-      for (i in 1:200) {
-         start <- start0 + solve(u_theta_der(start0)) %*% u_theta(start0)
+      # theta estimation by unbiased estimating function depending on the h_x function TODO
+      u_theta <- u_theta(R = R, X = X,
+                         weights = c(weights_rand, weights), h = h,
+                         method_selection = method_selection)
 
-         if (sum(abs(start - start0)) < 0.00001) break;
+      u_theta_der <- u_theta_der(R = R, X = X,
+                                 weights = c(weights_rand, weights), h = h,
+                                 method_selection = method_selection)
+      p <- ncol(X)
+      start0 <- rep(0, p)
+      for (i in 1:maxit) {
+         start <- start0 + MASS::ginv(u_theta_der(start0)) %*% u_theta(start0)
+         if (sum(abs(start - start0)) < 0.001) break;
          if (sum(abs(start - start0)) > 1000) break;
          start0 <- start
       }
-      print(start)
+     theta_h <- as.vector(start)
+     names(theta_h) <- c("(Intercept)", nons_names)
     }
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
@@ -265,6 +267,7 @@ nonprobDR <- function(selection,
            SE_nonprob = se_nonprob,
            se_prob = se_prob,
            CI = ci,
+           theta_h = theta_h,
            theta = theta_hat,
            #pearson_residuals = pearson_residuals,
            #deviance_residuals = deviance_residuals,

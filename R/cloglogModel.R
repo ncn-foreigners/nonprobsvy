@@ -11,7 +11,7 @@ cloglog <- function(...) {
 
   link <- function(x) {log(-log(1 - x))}
   inv_link <- function(x) {1 - exp(-exp(x))}
-  dlink <- function(x) {1 / (x - 1) * log(1 - x)}
+  dlink <- function(x) {1 / ((x - 1) * log(1 - x))}
 
   log_like <- function(X_nons, X_rand, weights, ...) {
 
@@ -35,8 +35,8 @@ cloglog <- function(...) {
 
     function(theta) {
 
-      eta1 <- as.matrix(X_nons)%*%theta
-      eta2 <- as.matrix(X_rand) %*%theta
+      eta1 <- as.matrix(X_nons) %*% theta
+      eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
@@ -50,8 +50,8 @@ cloglog <- function(...) {
 
     function(theta) {
 
-      eta1 <- as.matrix(X_nons)%*%theta
-      eta2 <- as.matrix(X_rand) %*%theta
+      eta1 <- as.matrix(X_nons) %*% theta
+      eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
@@ -64,7 +64,7 @@ cloglog <- function(...) {
   ps_est <- function(X, log_like, gradient, hessian, start, optim.method) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = optim.method, start = start)
+                                method = "BFGS", start = start)
 
     cloglog_estim <- maxLik_an$estimate
     grad <- maxLik_an$gradient
