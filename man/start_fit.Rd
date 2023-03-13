@@ -9,6 +9,8 @@ start_fit(X, R, weights, d, method_selection, control_selection = controlSel())
 \arguments{
 \item{X}{- a}
 
+\item{R}{- a}
+
 \item{weights}{- a}
 
 \item{d}{- a}

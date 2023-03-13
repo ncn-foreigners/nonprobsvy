@@ -1,4 +1,4 @@
-#' Internal functions
+# These functions are only used internally, so there is no need for documenting them
 #' @importFrom survey as.svrepdesign
 
 bootMI <- function(X_rand,
@@ -10,7 +10,7 @@ bootMI <- function(X_rand,
                    weights_rand,
                    mu_hat,
                    svydesign,
-                   rep_type = NULL,
+                   rep_type,
                    ...
                    ){
 
@@ -20,7 +20,6 @@ bootMI <- function(X_rand,
   n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
-
   k <- 1
 
   while (k <= num_boot) { # to analyse
@@ -53,7 +52,6 @@ bootMI <- function(X_rand,
   }
 
   boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2) # mean may be replaced by mu_hatMI
-
   boot_var
 
 }

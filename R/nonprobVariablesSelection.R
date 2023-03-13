@@ -72,6 +72,8 @@ nonprobSel <- function(selection,
   penalty <- control_inference$penalty
   maxit <- control_selection$maxit
   h <- control_selection$h_x
+  lambda_min <- control_inference$lambda_min
+  nlambda <- control_inference$nlambda
 
   weights <- rep.int(1, nrow(data)) # to remove
 
@@ -98,7 +100,7 @@ nonprobSel <- function(selection,
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
   X <- rbind(X_rand, X_nons) # joint matrix
-  #X_stand <- ncvreg::std(X) # standardization of variables before fitting
+  X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
   weights_X <- c(weights_rand, weights)
 
   method <- method_selection
@@ -117,10 +119,11 @@ nonprobSel <- function(selection,
   p <- ncol(X)
   N_rand <- sum(weights_rand)
 
-  cv <- cv_nonprobsvy(X = X, R = R, weights_X = weights_X,
+  cv <- cv_nonprobsvy(X = X_stand, R = R, weights_X = weights_X,
                       method_selection = method_selection,
-                      h = h, maxit = maxit, eps = eps)
-  theta_est <- cv$theta_est
+                      h = h, maxit = maxit, eps = eps,
+                      lambda_min = lambda_min, nlambda = nlambda)
+  theta_est <- cv$theta_est[cv$theta_est != 0]
   min <- cv$min
   lambda_min <- cv$lambda_min
   theta_selected <- cv$theta_selected

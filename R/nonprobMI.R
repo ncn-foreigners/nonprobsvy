@@ -138,7 +138,7 @@ nonprobMI <- function(outcome,
 
     if (control_inference$var_method == "analytic") {
 
-      svydesign_mean <- survey::svymean(~y_hat_MI, svydesign) # SE for y_hat_MI is equal to prob SE
+      svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
       var_prob <- as.vector(attr(svydesign_mean, "var")) #probability component
 
       if (control_outcome$method == "nn") {
@@ -190,21 +190,11 @@ nonprobMI <- function(outcome,
 
 
         mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
-        mh <- 0
-        for (i in 1:n_nons) { # matrix product instead of a loop in a near future
-
-          xx <- t(X_nons[i,]) %*% X_nons[i,]
-          mh <- mh + xx
-        }
-
-        c <- 1/(1/n_nons * mh) %*% mx
+        c <- solve(1/n_nons * t(X_nons) %*% X_nons) %*% mx
         e <- y_nons - y_nons_pred
 
         # nonprobability component
-        var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% t(c))^2 #ok, but may be too large
-        #var_nonprob <- 1/n_nons^2 * (t(as.matrix(e)) %*% (X_nons %*% t(as.matrix(c))))^2
-
-
+        var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% c)^2
         var_nonprob <- as.vector(var_nonprob)
 
       }
@@ -217,7 +207,6 @@ nonprobMI <- function(outcome,
 
     } else if (control_inference$var_method == "bootstrap") {
 
-
       # bootstrap variance
       var <- bootMI(X_rand,
                     X_nons,
@@ -228,7 +217,7 @@ nonprobMI <- function(outcome,
                     weights_rand,
                     mu_hat,
                     svydesign,
-                    res_type = control_inference$rep_type)
+                    rep_type = control_inference$rep_type)
 
       inf <- "not computed for bootstrap variance"
 
@@ -253,8 +242,8 @@ nonprobMI <- function(outcome,
            #variance_prob = ifelse(control_inference$var_method == "analytic", v_b, inf),
            SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
            SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
-           CI = ci
-           #beta = model_nons_coefs
+           CI = ci,
+           beta = model_nons_coefs
            ),
       class = "Mass imputation")
 
@@ -368,6 +357,16 @@ mu_hatMI <- function(y, weights, N) {
 
   mu_hat
 
+
+}
+
+U_beta <- function(X, y, beta, n, ...){
+  eta <- beta %*% X
+  1/n * sum(X * y - X * eta)
+}
+
+U_beta_der <- function(X, y, beta, n, ...){
+  eta <- beta %*% X
 
 }
 

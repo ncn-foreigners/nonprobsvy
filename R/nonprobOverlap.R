@@ -1,3 +1,4 @@
+# Internal functions, no need for documenting them
 #' nonprobOv
 #'
 #' nonprobOv: Function for correcting selection bias considering the possible overlapping and dependency between the nonprobability and probability sample, function needs furher work

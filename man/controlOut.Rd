@@ -2,14 +2,14 @@
 % Please edit documentation in R/control.R
 \name{controlOut}
 \alias{controlOut}
-\title{controlOut}
+\title{controlOut
+control function for the outcome equation in the nonprob function}
 \usage{
 controlOut(
   method = c("glm", "nn"),
   epsilon = 1e-06,
   maxit = 100,
   trace = FALSE,
-  lambda = 0.25,
   k = 5
 )
 }
@@ -22,10 +22,9 @@ controlOut(
 
 \item{trace}{- a}
 
-\item{lambda}{- a}
-
 \item{k}{- a}
 }
 \description{
+controlOut
 control function for the outcome equation in the nonprob function
 }

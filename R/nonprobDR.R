@@ -35,6 +35,7 @@
 #' @importFrom stats qnorm
 #' @importFrom stats binomial
 #' @importFrom stats terms
+#' @importFrom MASS ginv
 #' @export
 
 
@@ -64,6 +65,7 @@ nonprobDR <- function(selection,
                       y,
                       ...) {
 
+  h <- control_selection$h_x
   weights <- rep.int(1, nrow(data)) # to remove
 
   XY_nons <- model.frame(outcome, data)
@@ -79,18 +81,17 @@ nonprobDR <- function(selection,
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
-  R <- c(R_nons, R_rand)
+  R <- c(R_rand, R_nons)
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
 
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
-  X <- rbind(X_nons, X_rand)
+  X <- rbind(X_rand, X_nons)
 
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
-
 
   method <- method_selection
   if (is.character(method)) {
@@ -153,6 +154,26 @@ nonprobDR <- function(selection,
     names(theta_hat) <- c("(Intercept)", nons_names)
     log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
+    # theta estimation by unbiased estimating function depending on the h_x function TODO
+    u_theta <- u_theta(R = R, X = X,
+                       weights = c(weights_rand, weights), h = h,
+                       method_selection = method_selection)
+
+    u_theta_der <- u_theta_der(R = R, X = X,
+                               weights = c(weights_rand, weights), h = h,
+                               method_selection = method_selection)
+    cond <- FALSE
+    if (cond) {
+      start0 <- start
+      for (i in 1:200) {
+         start <- start0 + solve(u_theta_der(start0)) %*% u_theta(start0)
+
+         if (sum(abs(start - start0)) < 0.00001) break;
+         if (sum(abs(start - start0)) > 1000) break;
+         start0 <- start
+      }
+      print(start)
+    }
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
       ps_nons_der <- maxLik_nons_obj$psd
@@ -176,29 +197,20 @@ nonprobDR <- function(selection,
                        weights_rand = weights_rand,
                        N_nons = N_est_nons,
                        N_rand = N_est_rand) #DR estimator
-
     h_n <- 1/N_est_nons * sum(y_nons - y_nons_pred) # errors mean
-
     b <- switch(method_selection,
                 "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess),
                 "cloglog" = (((1 - ps_nons)/ps_nons^2) * (y_nons - y_nons_pred - h_n) * log(1 - ps_nons)) %*% X_nons %*% solve(hess),
                 "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - y_nons_pred - h_n)) %*% X_nons %*% solve(hess)
     )
-    # ps_nons >= 1 for cloglog (?)
-    # a <- 1/N_estA * sum(1 - psA) * (t(as.matrix(yA - y_estA - h_n))  %*% as.matrix(XA))
-
-
     # design based variance estimation based on approximations of the second-order inclusion probabilities
-
     t <- switch(method_selection,
                 "logit" = as.vector(est_ps_rand) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
                 "cloglog" = as.vector(log(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred),
                 "probit" = as.vector(est_ps_rand_der/(1 - est_ps_rand)) * X_rand %*% t(as.matrix(b)) + y_rand_pred - 1/N_est_nons * sum(y_nons_pred)
     )
-
-    svydesign <- stats::update(svydesign,
+   svydesign <- stats::update(svydesign,
                                t = t)
-
     # asymptotic variance by each propensity score method (nonprobability component)
     V <- switch(method_selection,
                 "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(X_nons))^2),
@@ -304,6 +316,7 @@ mu_hatDR <- function(y,
 #' start_fit: Function for obtaining initial values for propensity score estimation
 #'
 #' @param X - a
+#' @param R - a
 #' @param weights - a
 #' @param d - a
 #' @param method_selection - a

@@ -1,3 +1,4 @@
+# Internal functions, no need for documenting them
 #' Summary statistics and diagnostic for model
 #'
 #'

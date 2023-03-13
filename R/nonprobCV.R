@@ -1,8 +1,8 @@
-# Internal functions
+# These functions are only used internally in the nonprobSel function, so there is no need for documenting them
 #' @importFrom stats glm
 #' @importFrom stats residuals
 
-cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfolds = 10) {
+cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds = 10) {
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
@@ -57,7 +57,6 @@ cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfol
         i <- which(theta_est==0)
         idxx <- idxx[-i]
       }
-
       X_testloss <- X_test[,idxx]
       R_testloss <- X_test[, ncols]
       weights_testloss <- X_test[, ncols-1]
@@ -68,9 +67,10 @@ cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, nfol
     k <- k + 1
   }
   min <- which.min(loss_theta_av)
+  #print(data.frame(lambda = lambdas, loss = loss_theta_av))
   lambda_min <- lambdas[min]
   theta_est <- fit_nonprobsvy(X = X, R = R,  weights = weights_X,
-                             method_selection, h, lambda_min, maxit, eps)
+                             method_selection, h, lambda_min, maxit, eps, warn = TRUE)
   theta_selected <- which(theta_est != 0) - 1
   list(min = min,
        lambda_min = lambda_min,
@@ -111,7 +111,7 @@ setup_lambda <- function(X, y, weights, method_selection, alpha = 1, lambda_min,
 }
 
 
-fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, eps,  ...) {
+fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, eps, warn = FALSE,  ...) {
 
   p <- ncol(X)
   init_theta <- rep(0, p)
@@ -121,21 +121,23 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
   it <- 0
   for(jj in 1:maxit) {
     it <- it + 1
-    if (it == maxit) {
-      warning("Convergence not obtained in ", maxit, " iterations of fitting algorithm for variables selection", sep="")
-      break
+    if (warn) {
+      if (it == maxit) {
+        warning("Convergence not obtained in ", maxit, " iterations of fitting algorithm for variables selection", sep="")
+        break
+      }
     }
 
-    u_theta0 <- u_theta(par = par0, R = R, X = X,
+    u_theta0 <- u_theta(R = R, X = X,
                         weights = weights, h = h,
                         method_selection = method_selection)
 
-    u_theta0_der <- u_theta_der(par = par0, R = R, X = X,
+    u_theta0_der <- u_theta_der(R = R, X = X,
                                 weights = weights, h = h,
                                 method_selection = method_selection)
 
     diag(LAMBDA) <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
-    par <- par0 + MASS::ginv(as.matrix(u_theta0_der + LAMBDA)) %*% (u_theta0 - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
+    par <- par0 + MASS::ginv(as.matrix(u_theta0_der(par0) + LAMBDA)) %*% (u_theta0(par0) - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
     # equation (13) in article
     if (sum(abs(par - par0)) < eps) break;
     if (sum(abs(par - par0)) > 1000) break;
@@ -144,7 +146,9 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
 
   }
 
+
   par <- as.vector(par)
+  par[abs(par) < 0.001] <- 0
   theta_est <- par
   theta_est
 
@@ -152,8 +156,7 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
 
 # score equation for theta, used in variable selection
 
-u_theta <- function(par,
-                    R,
+u_theta <- function(R,
                     X,
                     weights,
                     method_selection,
@@ -171,27 +174,28 @@ u_theta <- function(par,
 
   inv_link <- method$make_link_inv
 
-  theta <- as.matrix(par)
-  n <- length(R)
-  X0 <- as.matrix(X)
-  eta_pi <- X0 %*% theta
-  ps <- inv_link(eta_pi)
-  R_rand <- 1 - R
-  ps <- as.vector(ps)
-  N_nons <- sum(1/ps)
+  function(par) {
 
-  eq <- switch(h,
-               "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
-               "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
-  eq
+    theta <- as.matrix(par)
+    n <- length(R)
+    X0 <- as.matrix(X)
+    eta_pi <- X0 %*% theta
+    ps <- inv_link(eta_pi)
+    R_rand <- 1 - R
+    ps <- as.vector(ps)
+    N_nons <- sum(1/ps)
 
+    eq <- switch(h,
+                 "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
+                 "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
+    eq
+  }
 }
 
 
 # derivative of score equation for theta, used in variable selection
 
-u_theta_der <-  function(par,
-                         R,
+u_theta_der <-  function(R,
                          X,
                          weights,
                          method_selection,
@@ -208,35 +212,38 @@ u_theta_der <-  function(par,
 
   inv_link <- method$make_link_inv
 
-  theta <- as.matrix(par)
-  X0 <- as.matrix(X)
-  p <- ncol(X0)
-  n <- length(R)
-  eta_pi <- X0 %*% theta
-  ps <- inv_link(eta_pi)
-  ps <- as.vector(ps)
-  R_rand <- 1 - R
+  function(par) {
+    theta <- as.matrix(par)
+    X0 <- as.matrix(X)
+    p <- ncol(X0)
+    n <- length(R)
+    eta_pi <- X0 %*% theta
+    ps <- inv_link(eta_pi)
+    ps <- as.vector(ps)
+    R_rand <- 1 - R
 
-  if (method_selection == "probit") {
-    dinv_link <- method$make_link_inv_der
-    psd <- dinv_link(eta_pi)
-    psd <- as.vector(psd)
+    if (method_selection == "probit") {
+      dinv_link <- method$make_link_inv_der
+      psd <- dinv_link(eta_pi)
+      psd <- as.vector(psd)
+    }
+
+    N_nons <- sum(1/ps)
+
+    if (h == "1") {
+          mxDer <-  switch(method_selection,
+                           "logit" = t(R * as.data.frame(X0) * (1-ps)/ps) %*% X0,
+                           "cloglog" = t(R * as.data.frame(X0) * (1-ps)/ps^2 * exp(eta_pi)) %*% X0,
+                           "probit" = t(R * as.data.frame(X0) * psd/ps^2) %*% X0)
+    } else if (h == "2") {
+          mxDer <- switch(method_selection,
+                          "logit" = t(R_rand * as.data.frame(X0) * weights * ps/(exp(eta_pi)+1)) %*% X0,
+                          "cloglog" = t(R_rand * weights * (1-ps) * exp(eta_pi)) %*% X0,
+                          "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
+        }
+    mxDer/N_nons
+
   }
-
-  N_nons <- sum(1/ps)
-
-  if (h == "1") {
-        mxDer <-  switch(method_selection,
-                         "logit" = t(R * as.data.frame(X0) * (1-ps)/ps) %*% X0,
-                         "cloglog" = t(R * as.data.frame(X0) * (1-ps)/ps^2 * exp(eta_pi)) %*% X0,
-                         "probit" = t(R * as.data.frame(X0) * psd/ps^2) %*% X0)
-  } else if (h == "2") {
-        mxDer <- switch(method_selection,
-                        "logit" = t(R_rand * as.data.frame(X0) * weights * ps/(exp(eta_pi)+1)) %*% X0,
-                        "cloglog" = t(R_rand * weights * (1-ps) * exp(eta_pi)) %*% X0,
-                        "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
-      }
-  mxDer/N_nons
 }
 
 q_lambda <- function(par,
@@ -269,9 +276,9 @@ loss_theta <- function(par,
   inv_link <- method$make_link_inv
 
 
-  theta <- par
+  theta <- as.matrix(par)
   nAB <- length(R)
-  X0 <- X
+  X0 <- as.matrix(X)
   eta_pi <- X0 %*% theta
   ps <- inv_link(eta_pi)
 

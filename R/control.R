@@ -34,13 +34,11 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 }
 
 #' controlOut
-#'
 #' control function for the outcome equation in the nonprob function
 #' @param method estimation method
 #' @param epsilon - a
 #' @param maxit - a
 #' @param trace - a
-#' @param lambda - a
 #' @param k - a
 #'
 #' @export
@@ -49,7 +47,6 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
                        epsilon = 1e-6,
                        maxit = 100,
                        trace = FALSE,
-                       lambda = 0.25,
                        k = 5
                        ) {
 
@@ -57,7 +54,6 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
        epsilon = epsilon,
        maxit = maxit,
        trace = trace,
-       lambda = lambda,
        k = k)
 
 
@@ -73,6 +69,8 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
 #' @param bias_inf - a
 #' @param penalty - a
 #' @param alpha - a
+#' @param lambda_min - a
+#' @param nlambda - a
 #'
 #' @export
 
@@ -84,6 +82,8 @@ controlInf <- function(est_method = c("likelihood",
                                     "subbootstrap","mrbbootstrap","Fay"),
                        bias_inf = c("union", "div"),
                        penalty = c("SCAD", "LASSO"),
+                       lambda_min,
+                       nlambda,
                        alpha = 0.05) {
 
   list(est_method = if(missing(est_method)) "likelihood" else est_method,
@@ -91,6 +91,8 @@ controlInf <- function(est_method = c("likelihood",
        rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,
        penalty = if(missing(penalty)) "SCAD" else penalty,
+       lambda_min = if(missing(lambda_min)) 0 else lambda_min,
+       nlambda = if(missing(nlambda)) 50 else nlambda,
        alpha = alpha)
 
 }

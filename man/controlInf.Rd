@@ -11,6 +11,8 @@ controlInf(
     "Fay"),
   bias_inf = c("union", "div"),
   penalty = c("SCAD", "LASSO"),
+  lambda_min,
+  nlambda,
   alpha = 0.05
 )
 }
@@ -24,6 +26,10 @@ controlInf(
 \item{bias_inf}{- a}
 
 \item{penalty}{- a}
+
+\item{lambda_min}{- a}
+
+\item{nlambda}{- a}
 
 \item{alpha}{- a}
 }
