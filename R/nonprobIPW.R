@@ -58,6 +58,9 @@ nonprobIPW <- function(selection,
                        y,
                        ...){
 
+
+  h <- control_selection$h_x
+  maxit <- control_selection$maxit
   weights <- rep.int(1, nrow(data)) # to remove
 
   # formula for outcome variable if target defined
@@ -86,14 +89,14 @@ nonprobIPW <- function(selection,
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
-  R <- c(R_nons, R_rand)
+  R <- c(R_rand, R_nons)
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
 
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
-  X <- rbind(X_nons, X_rand)
+  X <- rbind(X_rand, X_nons)
 
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
@@ -141,6 +144,14 @@ nonprobIPW <- function(selection,
     names(theta_hat) <- c("(Intercept)", nons_names)
     log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
 
+    theta_h <- theta_h_estimation(R = R,
+                                  X = X,
+                                  weights_rand = weights_rand,
+                                  weights = weights,
+                                  h = h,
+                                  method_selection = method_selection,
+                                  maxit = maxit)
+    names(theta_h) <- c("(Intercept)", nons_names)
     # to complete
     if(method_selection == "probit"){ # for probit model propensity score derivative is required
 
@@ -286,8 +297,9 @@ nonprobIPW <- function(selection,
            SE_nonprob = se_nonprob,
            SE_prob = se_prob,
            #variance_covariance = V_mx,
-           CI = ci
-           #theta = theta_hat,
+           CI = ci,
+           theta_h = theta_h,
+           theta = theta_hat
            #theta_variance = theta_hat_var,
            #pearson_residuals = pearson_residuals,
            #deviance_residuals = deviance_residuals,
@@ -313,6 +325,29 @@ mu_hatIPW <- function(y,
   mu_hat <- (1/N) * sum(y * weights)
 
   mu_hat
+
+}
+
+theta_h_estimation <- function(R, X, weights_rand, weights, h, method_selection, maxit, pop_totals = NULL, pop_means = NULL){
+
+    # theta estimation by unbiased estimating function depending on the h_x function TODO
+    u_theta <- u_theta(R = R, X = X,
+                       weights = c(weights_rand, weights), h = h,
+                       method_selection = method_selection)
+
+    u_theta_der <- u_theta_der(R = R, X = X,
+                               weights = c(weights_rand, weights), h = h,
+                               method_selection = method_selection)
+    p <- ncol(X)
+    start0 <- rep(0, p)
+    for (i in 1:maxit) {
+      start <- start0 + MASS::ginv(u_theta_der(start0)) %*% u_theta(start0)
+      if (sum(abs(start - start0)) < 0.001) break;
+      if (sum(abs(start - start0)) > 1000) break;
+      start0 <- start
+    }
+    theta_h <- as.vector(start)
+    theta_h
 
 }
 

@@ -81,8 +81,9 @@ controlInf <- function(est_method = c("likelihood",
                                     "subbootstrap","mrbbootstrap","Fay"),
                        bias_inf = c("union", "div"),
                        penalty = c("SCAD", "LASSO"),
-                       lambda_min,
-                       nlambda,
+                       lambda_min = 0,
+                       nlambda = 50,
+                       nfolds = 10,
                        alpha = 0.05) {
 
   list(est_method = if(missing(est_method)) "likelihood" else est_method,
@@ -90,8 +91,9 @@ controlInf <- function(est_method = c("likelihood",
        rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,
        penalty = if(missing(penalty)) "SCAD" else penalty,
-       lambda_min = if(missing(lambda_min)) 0 else lambda_min,
-       nlambda = if(missing(nlambda)) 50 else nlambda,
+       lambda_min = lambda_min,
+       nlambda = nlambda,
+       nfolds = nfolds,
        alpha = alpha)
 
 }

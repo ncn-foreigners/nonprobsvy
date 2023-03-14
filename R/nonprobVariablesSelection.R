@@ -74,6 +74,7 @@ nonprobSel <- function(selection,
   h <- control_selection$h_x
   lambda_min <- control_inference$lambda_min
   nlambda <- control_inference$nlambda
+  nfolds <- control_inference$nfolds
 
   weights <- rep.int(1, nrow(data)) # to remove
 
@@ -122,7 +123,7 @@ nonprobSel <- function(selection,
   cv <- cv_nonprobsvy(X = X_stand, R = R, weights_X = weights_X,
                       method_selection = method_selection,
                       h = h, maxit = maxit, eps = eps,
-                      lambda_min = lambda_min, nlambda = nlambda)
+                      lambda_min = lambda_min, nlambda = nlambda, nfolds = nfolds)
   theta_est <- cv$theta_est[cv$theta_est != 0]
   min <- cv$min
   lambda_min <- cv$lambda_min

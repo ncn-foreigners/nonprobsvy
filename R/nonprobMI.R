@@ -90,10 +90,7 @@ nonprobMI <- function(outcome,
                                 y = y_nons,
                                 weights = weights,
                                 family_outcome = family_outcome)
-
     model_nons_coefs <- as.matrix(model_nons$coefficients)
-
-
     y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
     y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
 
@@ -103,20 +100,17 @@ nonprobMI <- function(outcome,
                                k = control_outcome$k, treetype = "kd", searchtype = "standard")
     model_nons <- nonprobMI_nn(data = X_nons, query = X_nons,
                                k = control_outcome$k, treetype = "kd", searchtype = "standard")
-
     y_rand_pred <- vector(mode = "numeric", length = n_rand)
     y_nons_pred <- vector(mode = "numeric", length = n_nons)
+    model_nons_coefs <- NULL
 
 
     for (i in 1:n_rand) {
-
       idx <- model_rand$nn.idx[i,]
       y_rand_pred[i] <- mean(y_nons[idx])
-
     }
 
     for (i in 1:n_nons) {
-
       idx <- model_nons$nn.idx[i,]
       y_nons_pred[i] <- mean(y_nons[idx])
     }
@@ -159,7 +153,6 @@ nonprobMI <- function(outcome,
         hessian <- method$make_hessian
 
         optim_method <- "NR"
-
         # initial values for propensity score estimation
         start <- start_fit(X,
                            R,
@@ -170,21 +163,16 @@ nonprobMI <- function(outcome,
         log_like <- loglike(X_nons, X_rand, weights_rand)
         gradient <- gradient(X_nons, X_rand, weights_rand)
         hessian <- hessian(X_nons, X_rand, weights_rand)
-
         maxLik_nons_obj <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)
-
         ps_nons <- maxLik_nons_obj$ps
 
 
         sigma_hat <- switch(family_outcome,
                             "gaussian" = mean((y_nons - y_nons_pred)^2),
-                            "binomial" = NULL,
-                            "poisson" = NULL)
-
+                            "binomial" = y_nons_pred*(1 - y_nons_pred),
+                            "poisson" = mean(y_nons_pred))
         N_est_nons <- sum(1/ps_nons)
-
         var_nonprob <- 1/N_est_nons^2 * sum((1 - ps_nons)/ps_nons * sigma_hat)
-
 
       } else if (control_outcome$method == "glm") {
 

@@ -2,7 +2,7 @@ Package: nonprobsvy
 Type: Package
 Title: Package for inference based on nonprobability samples
 Version: 0.1.0
-Author: Maciej Beresewicz
+Authors: Maciej Beresewicz, Łukasz Chrostowski
 Maintainer: Maciej Beresewicz <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.

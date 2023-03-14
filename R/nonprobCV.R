@@ -2,7 +2,7 @@
 #' @importFrom stats glm
 #' @importFrom stats residuals
 
-cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds = 10) {
+cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds) {
 
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
