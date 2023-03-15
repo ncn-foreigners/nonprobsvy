@@ -117,7 +117,7 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
   init_theta <- rep(0, p)
   # variables selection using score equation for theta
   par0 <- init_theta
-  LAMBDA <- Matrix::Matrix(matrix(0, p, p), sparse = TRUE)
+  LAMBDA <- rep(0, p)
   it <- 0
   for(jj in 1:maxit) {
     it <- it + 1
@@ -136,13 +136,13 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
                                 weights = weights, h = h,
                                 method_selection = method_selection)
 
-    diag(LAMBDA) <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
-    par <- par0 + MASS::ginv(as.matrix(u_theta0_der(par0) + LAMBDA)) %*% (u_theta0(par0) - LAMBDA %*% par0) # perhaps 'solve' function instead of 'ginv'
+    LAMBDA <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
+    par <- par0 + MASS::ginv(u_theta0_der(par0) + diag(LAMBDA)) %*% (u_theta0(par0) - diag(LAMBDA) %*% par0) # perhaps 'solve' function instead of 'ginv'
     # equation (13) in article
     if (sum(abs(par - par0)) < eps) break;
     if (sum(abs(par - par0)) > 1000) break;
 
-    par0 <- par
+    par0 <- as.vector(par)
 
   }
 
