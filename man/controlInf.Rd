@@ -11,8 +11,9 @@ controlInf(
     "Fay"),
   bias_inf = c("union", "div"),
   penalty = c("SCAD", "LASSO"),
-  lambda_min,
-  nlambda,
+  lambda_min = 0,
+  nlambda = 50,
+  nfolds = 10,
   alpha = 0.05
 )
 }

@@ -92,13 +92,7 @@ nonprobDR <- function(selection,
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   ps_method <- method$make_propen_score # function for propensity score estimation
   loglike <- method$make_log_like
@@ -199,8 +193,8 @@ nonprobDR <- function(selection,
                                t = t)
     # asymptotic variance by each propensity score method (nonprobability component)
     V <- switch(method_selection,
-                "logit" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((OutcomeModel$y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(SelectionModel$X_nons))^2),
-                "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons)*(((OutcomeModel$y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(SelectionModel$X_nons))))^2),
+                "logit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((OutcomeModel$y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(SelectionModel$X_nons))^2),
+                "cloglog" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((OutcomeModel$y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(log((1 - ps_nons)/ps_nons) * as.data.frame(SelectionModel$X_nons))))^2),
                 "probit" = (1/N_est_nons^2) * sum((1 - ps_nons) * (((OutcomeModel$y_nons - y_nons_pred - h_n)/ps_nons) - b %*% t(as.matrix(ps_nons_der/(ps_nons*(1 - ps_nons)) * as.data.frame(SelectionModel$X_nons))))^2)
     )
 

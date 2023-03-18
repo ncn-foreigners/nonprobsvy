@@ -56,13 +56,9 @@ nonprobMI <- function(outcome,
   X_nons <- model.matrix(XY_nons, data) # matrix of the  nonprobability sample
   nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-
     X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
-
   } else {
-
     stop("variable names in data and svydesign do not match")
-
   }
   y_nons <- XY_nons[,1]
 
@@ -115,7 +111,6 @@ nonprobMI <- function(outcome,
       y_nons_pred[i] <- mean(y_nons[idx])
     }
 
-
   }
 
   # updating probability sample by adding y_hat variable
@@ -138,14 +133,7 @@ nonprobMI <- function(outcome,
       if (control_outcome$method == "nn") {
 
         method_selection <- "logit"
-        method <- method_selection
-
-        if (is.character(method)) {
-          method <- get(method, mode = "function", envir = parent.frame())
-        }
-        if (is.function(method)) {
-          method <- method()
-        }
+        method <- get_method(method_selection)
 
         ps_method <- method$make_propen_score # function for propensity score estimation
         loglike <- method$make_log_like

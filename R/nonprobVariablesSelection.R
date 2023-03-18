@@ -68,13 +68,6 @@ nonprobSel <- function(selection,
                        y,
                        ...) {
 
-  eps <- control_selection$epsilon
-  penalty <- control_inference$penalty
-  maxit <- control_selection$maxit
-  h <- control_selection$h_x
-  lambda_min <- control_inference$lambda_min
-  nlambda <- control_inference$nlambda
-  nfolds <- control_inference$nfolds
 
   weights <- rep.int(1, nrow(data)) # to remove
 
@@ -104,13 +97,7 @@ nonprobSel <- function(selection,
   X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
   weights_X <- c(weights_rand, weights)
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
 
@@ -120,13 +107,21 @@ nonprobSel <- function(selection,
   p <- ncol(X)
   N_rand <- sum(weights_rand)
 
+  eps <- control_selection$epsilon
+  maxit <- control_selection$maxit
+  h <- control_selection$h_x
+  lambda <- control_selection$lambda
+  lambda_min <- control_selection$lambda_min
+  nlambda <- control_selection$nlambda
+  nfolds <- control_selection$nfolds
   cv <- cv_nonprobsvy(X = X_stand, R = R, weights_X = weights_X,
                       method_selection = method_selection,
                       h = h, maxit = maxit, eps = eps,
-                      lambda_min = lambda_min, nlambda = nlambda, nfolds = nfolds)
+                      lambda_min = lambda_min, nlambda = nlambda, nfolds = nfolds,
+                      lambda = lambda)
   theta_est <- cv$theta_est[cv$theta_est != 0]
   min <- cv$min
-  lambda_min <- cv$lambda_min
+  lambda <- cv$lambda
   theta_selected <- cv$theta_selected
   names(theta_est) <- c("(Intercept)", nons_names[theta_selected[-1]])
 
@@ -136,8 +131,11 @@ nonprobSel <- function(selection,
   #theta <- glmnet::cv.glmnet(X, R, family = "binomial")
   #print(coef(theta))
 
+  nlambda <- control_selection$nlambda
+  penalty <- control_outcome$penalty
   beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1], y = y_nons,
-                            penalty = penalty, family = family_outcome)
+                            penalty = penalty, family = family_outcome,
+                            nlambda = nlambda)
 
 
   beta_est <- beta$fit$beta[,beta$min]

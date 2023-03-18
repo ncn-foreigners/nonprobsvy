@@ -109,13 +109,7 @@ nonprobIPW <- function(selection,
                      method_selection)
 
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   ps_method <- method$make_propen_score # function for propensity score estimation
   loglike <- method$make_log_like

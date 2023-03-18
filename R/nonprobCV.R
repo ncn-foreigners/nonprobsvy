@@ -2,78 +2,68 @@
 #' @importFrom stats glm
 #' @importFrom stats residuals
 
-cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds) {
+cv_nonprobsvy <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda, lambda_min, nlambda, nfolds) {
 
-  loc_nons <- which(R == 1)
-  loc_rand <- which(R == 0)
-  X_nons <- cbind(X[loc_nons,], weights_X[loc_nons], R[loc_nons])
-  X_rand <- cbind(X[loc_rand,], weights_X[loc_rand], R[loc_rand])
-  k <- 1
+  if(!is.null(lambda)) {
+    lambda <- lambda
+  } else {
+    loc_nons <- which(R == 1)
+    loc_rand <- which(R == 0)
+    X_nons <- cbind(X[loc_nons,], weights_X[loc_nons], R[loc_nons])
+    X_rand <- cbind(X[loc_rand,], weights_X[loc_rand], R[loc_rand])
 
-  lambdas <- setup_lambda(X = X,
-                          y = R,
-                          weights = weights_X,
-                          method_selection = method_selection,
-                          lambda_min = 0,
-                          nlambda = 50)
-  #theta <- list(vector(mode = "numeric", length = length(lambdas)))
-  loss_theta_av <- vector(mode = "numeric", length = length(lambdas))
+    lambdas <- setup_lambda(X = X, y = R, weights = weights_X, method_selection = method_selection, lambda_min = 0, nlambda = 50)
 
-  X_nons <- X_nons[sample(nrow(X_nons)), ]
-  X_rand <- X_rand[sample(nrow(X_rand)), ]
+    X_nons <- X_nons[sample(nrow(X_nons)), ]
+    X_rand <- X_rand[sample(nrow(X_rand)), ]
 
-  folds_nons <- cut(seq(1,nrow(X_nons)), breaks=nfolds, labels=FALSE) #split nonprobability sample into K parts
-  folds_rand <- cut(seq(1,nrow(X_rand)), breaks=nfolds, labels=FALSE) #split probability sample into K parts
+    folds_nons <- cut(seq(1, nrow(X_nons)), breaks = nfolds, labels = FALSE)
+    folds_rand <- cut(seq(1, nrow(X_rand)), breaks = nfolds, labels = FALSE)
 
-  # pair K subsets randomly
-  sample_nons <- sample(1:nfolds, nfolds, replace = FALSE)
-  sample_rand <- sample(1:nfolds, nfolds, replace = FALSE)
+    sample_nons <- sample(1:nfolds, nfolds, replace = FALSE)
+    sample_rand <- sample(1:nfolds, nfolds, replace = FALSE)
 
-  for (lambda in lambdas) {
+    loss_theta_av <- sapply(lambdas, function(lambda) { # large elapsed time with parallel package
+      loss_theta_vec <- sapply(1:nfolds, function(i) {
+        # train data for X_nons
+        idx_nons <- which(folds_nons == sample_nons[i], arr.ind = TRUE)
+        X_nons_train <- X_nons[-idx_nons, ]
+        # test data for X_nons
+        X_nons_test <- X_nons[idx_nons, ]
 
-    loss_theta_vec <- vector(mode = "numeric", length = nfolds)
+        # train data for X_rand
+        idx_rand <- which(folds_rand == sample_rand[i], arr.ind = TRUE)
+        X_rand_train <- X_rand[-idx_rand, ]
+        # test data for X_rand
+        X_rand_test <- X_rand[idx_rand, ]
 
-    for(i in 1:nfolds){
-      # train data for X_nons
-      idx_nons <- which(folds_nons==sample_nons[i], arr.ind=TRUE)
-      X_nons_train <- X_nons[-idx_nons, ]
-      # test data for X_nons
-      X_nons_test <- X_nons[idx_nons, ]
+        X_train <- rbind(X_rand_train, X_nons_train)
+        X_test <- rbind(X_rand_test, X_nons_test)
+        ncols <- ncol(X_test)
+        idxx <- 1:(ncols - 2)
 
-      # train data for X_rand
-      idx_rand <- which(folds_rand==sample_rand[i], arr.ind=TRUE)
-      X_rand_train <- X_rand[-idx_rand, ]
-      # test data for X_rand
-      X_rand_test <- X_rand[idx_rand, ]
+        theta_est <- fit_nonprobsvy(X_train[, idxx], R = X_train[, ncols], weights = X_train[, ncols - 1],
+                                    method_selection, h, lambda, maxit, eps)
+        if (any(theta_est == 0)) {
+          idxx <- idxx[-which(theta_est == 0)]
+        }
+        X_testloss <- X_test[,idxx]
+        R_testloss <- X_test[, ncols]
+        weights_testloss <- X_test[, ncols-1]
+        loss_theta(par = theta_est[idxx], X = X_testloss, R = R_testloss,
+                   weights = weights_testloss, h = h, method_selection = method_selection)
+      })
+      mean(loss_theta_vec)}
+  )
 
-      X_train <- rbind(X_rand_train, X_nons_train)
-      X_test <- rbind(X_rand_test, X_nons_test)
-      ncols <- ncol(X_test)
-      idxx <- 1:(ncols-2)
-
-      theta_est <- fit_nonprobsvy(X_train[,idxx], R = X_train[, ncols],  weights = X_train[, ncols-1],
-                                  method_selection, h, lambda, maxit, eps)
-      if (any(theta_est==0)) {
-        i <- which(theta_est==0)
-        idxx <- idxx[-i]
-      }
-      X_testloss <- X_test[,idxx]
-      R_testloss <- X_test[, ncols]
-      weights_testloss <- X_test[, ncols-1]
-      loss_theta_vec[i] <- loss_theta(par = theta_est[idxx], X = X_testloss, R = R_testloss,
-                                      weights = weights_testloss, h = h, method_selection = method_selection)
+    min <- which.min(loss_theta_av)
+    lambda <- lambdas[min]
     }
-    loss_theta_av[k] <- mean(loss_theta_vec)
-    k <- k + 1
-  }
-  min <- which.min(loss_theta_av)
-  #print(data.frame(lambda = lambdas, loss = loss_theta_av))
-  lambda_min <- lambdas[min]
   theta_est <- fit_nonprobsvy(X = X, R = R,  weights = weights_X,
-                             method_selection, h, lambda_min, maxit, eps, warn = TRUE)
+                             method_selection, h, lambda, maxit, eps, warn = TRUE)
   theta_selected <- which(theta_est != 0) - 1
   list(min = min,
-       lambda_min = lambda_min,
+       lambda = lambda,
        theta_est = theta_est,
        theta_selected = theta_selected)
 
@@ -164,13 +154,7 @@ u_theta <- function(R,
                     N = NULL) {
 
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
 
@@ -202,13 +186,7 @@ u_theta_der <-  function(R,
                          h,
                          N = NULL) {
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
 
@@ -265,13 +243,7 @@ loss_theta <- function(par,
                        h,
                        method_selection) {
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
+  method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
 
