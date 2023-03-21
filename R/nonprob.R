@@ -188,14 +188,4 @@ nonprob <- function(selection = NULL,
   model_estimates
 }
 
-get_method <- function(method_selection) {
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
-}
-
 

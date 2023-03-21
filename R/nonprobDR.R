@@ -74,6 +74,7 @@ nonprobDR <- function(selection,
 
   #model for selection formula
   SelectionModel <- model_frame(formula = selection, data = data, svydesign = svydesign)
+  X_sel <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
 
   if(!is.null(pop_totals)){ # pop_totals, pop_means defined such as in `calibrate` function
     if(!all(SelectionModel$nons_names %in% names(pop_totals))) {
@@ -81,102 +82,88 @@ nonprobDR <- function(selection,
     }
   }
 
+  ps_rand <- svydesign$prob
+  optim_method <- control_selection$optim_method
+
   n_nons <- nrow(OutcomeModel$X_nons)
   n_rand <- nrow(OutcomeModel$X_rand)
-
   R_nons <- rep(1, n_nons)
   R_rand <- rep(0, n_rand)
   R <- c(R_rand, R_nons)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
-  ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
 
-  method <- get_method(method_selection)
+  # Estimation for outcome model
+  model_out <- internal_outcome(OutcomeModel$X_nons,
+                                OutcomeModel$X_rand,
+                                OutcomeModel$y_nons,
+                                weights,
+                                family_outcome)
 
-  ps_method <- method$make_propen_score # function for propensity score estimation
-  loglike <- method$make_log_like
-  gradient <- method$make_gradient
-  hessian <- method$make_hessian
+  y_rand_pred <- model_out$y_rand_pred
+  y_nons_pred <- model_out$y_nons_pred
+  model_nons_coefs <- model_out$model_nons_coefs
 
-  optim_method <- control_selection$optim_method
+  # Estimation for selection model
+  model_sel <- internal_selection(X_sel,
+                                  SelectionModel$X_nons,
+                                  SelectionModel$X_rand,
+                                  weights,
+                                  weights_rand,
+                                  R,
+                                  method_selection,
+                                  optim_method)
 
-  #if(is.null(start)){
+  maxLik_nons_obj <- model_sel$maxLik_nons_obj
+  maxLik_rand_obj <- model_sel$maxLik_rand_obj
+  log_likelihood <- model_sel$log_likelihood # maximum of the loglikelihood function
+  theta_hat <- model_sel$theta
 
-  #}
+  ps_nons <- maxLik_nons_obj$ps
+  est_ps_rand <- maxLik_rand_obj$ps
+  hess <- maxLik_nons_obj$hess
+  names(theta_hat) <- c("(Intercept)", SelectionModel$nons_names)
 
-  # estimation
-  model_nons <- nonprobMI_fit(x = OutcomeModel$X_nons,
-                              y = OutcomeModel$y_nons,
-                              weights = weights,
-                              family_outcome = family_outcome)
+  if (method_selection == "probit") { # for probit model, propensity score derivative is required
+    ps_nons_der <- maxLik_nons_obj$psd
+    est_ps_rand_der <- maxLik_rand_obj$psd
+  }
 
-  # initial values for propensity score estimation
-  start <- start_fit(SelectionModel$X,
-                     R,
-                     weights,
-                     weights_rand,
-                     method_selection)
+  weights_nons <- 1/ps_nons
+  N_est_nons <- sum(weights_nons)
+  N_est_rand <- sum(weights_rand)
 
-  model_nons_coefs <- model_nons$coefficients
+ # if(!is.null(pop_size)){
 
-  y_rand_pred <-  as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample
-  y_nons_pred <- as.numeric(OutcomeModel$X_nons %*% model_nons_coefs)
+ #  N_est_rand <- pop_size
+ #  N_est_nons <- pop_size
+ # }
+
+  mu_hat <- mu_hatDR(y = OutcomeModel$y_nons,
+                     y_nons = y_nons_pred,
+                     y_rand = y_rand_pred,
+                     weights_nons = weights_nons,
+                     weights_rand = weights_rand,
+                     N_nons = N_est_nons,
+                     N_rand = N_est_rand) #DR estimator
 
   # updating probability sample by adding y_hat variable
   svydesign <- stats::update(svydesign,
                              .y_hat_MI = y_rand_pred)
 
-  # inference based on mi method
 
-  nonprobDR_inference <- function(...) {
+  theta_h <- theta_h_estimation(R = R,
+                                X = X_sel,
+                                weights_rand = weights_rand,
+                                weights = weights,
+                                h = h,
+                                method_selection = method_selection,
+                                maxit = maxit)
+  names(theta_h) <- c("(Intercept)", SelectionModel$nons_names)
 
+  if (control_inference$var_method == "analytic") {
 
-    log_like <- loglike(SelectionModel$X_nons, SelectionModel$X_rand, weights_rand)
-    gradient <- gradient(SelectionModel$X_nons, SelectionModel$X_rand, weights_rand)
-    hessian <- hessian(SelectionModel$X_nons, SelectionModel$X_rand, weights_rand)
-
-    maxLik_nons_obj <- ps_method(SelectionModel$X_nons, log_like, gradient, hessian, start, optim_method)
-    maxLik_rand_obj <- ps_method(SelectionModel$X_rand, log_like, gradient, hessian, start, optim_method)
-
-    ps_nons <- maxLik_nons_obj$ps
-    est_ps_rand <- maxLik_rand_obj$ps
-    hess <- maxLik_nons_obj$hess
-    theta_hat <- maxLik_nons_obj$theta_hat
-    names(theta_hat) <- c("(Intercept)", SelectionModel$nons_names)
-    log_likelihood <- log_like(theta_hat) # maximum of the loglikelihood function
-
-    theta_h <- theta_h_estimation(R = R,
-                                  X = SelectionModel$X,
-                                  weights_rand = weights_rand,
-                                  weights = weights,
-                                  h = h,
-                                  method_selection = method_selection,
-                                  maxit = maxit)
-    names(theta_h) <- c("(Intercept)", SelectionModel$nons_names)
-
-    if (method_selection == "probit") { # for probit model, propensity score derivative is required
-      ps_nons_der <- maxLik_nons_obj$psd
-      est_ps_rand_der <- maxLik_rand_obj$psd
-    }
-
-    weights_nons <- 1/ps_nons
-    N_est_nons <- sum(weights_nons)
-    N_est_rand <- sum(weights_rand)
-
-   # if(!is.null(pop_size)){
-
-   #  N_est_rand <- pop_size
-   #  N_est_nons <- pop_size
-   # }
-
-    mu_hat <- mu_hatDR(y = OutcomeModel$y_nons,
-                       y_nons = y_nons_pred,
-                       y_rand = y_rand_pred,
-                       weights_nons = weights_nons,
-                       weights_rand = weights_rand,
-                       N_nons = N_est_nons,
-                       N_rand = N_est_rand) #DR estimator
     h_n <- 1/N_est_nons * sum(OutcomeModel$y_nons - y_nons_pred) # errors mean
     b <- switch(method_selection,
                 "logit" = (((1 - ps_nons)/ps_nons) * (OutcomeModel$y_nons - y_nons_pred - h_n)) %*% SelectionModel$X_nons %*% solve(hess),
@@ -206,60 +193,72 @@ nonprobDR <- function(selection,
     se_nonprob <- sqrt(V)
 
     var <- var_prob + var_nonprob
-    se <- sqrt(var)
 
-    alpha <- control_inference$alpha
-    z <- stats::qnorm(1-alpha/2)
-
-    # confidence interval based on the normal approximation
-    ci <- c(mu_hat - z * se, mu_hat + z * se)
-
-    # case when samples overlap - to finish
-    if (control_selection$overlap) {
-
-      weights_nons <- nonprobOv(SelectionModel$X_nons,
-                                SelectionModel$X_rand,
-                                weights_rand,
-                                dependent = control_selection$dependence,
-                                method_selection)
-      N <- sum(weights)
-
-      mu_hat_Ov <-  mu_hatDR(y = OutcomeModel$y_nons,
-                             y_nons = y_nons_pred,
-                             y_rand = y_rand_pred,
-                             weights_nons = weights,
-                             weights_rand = weights_rand,
-                             N_nons = N,
-                             N_rand = N_est_rand)
-
-    }
-
-    mu_hat <- ifelse(control_selection$overlap, mu_hat_Ov, mu_hat)
-
-    structure(
-      list(mean = mu_hat,
-           #VAR = var,
-           #VAR_nonprob = V,
-           #VAR_prob = W,
-           SE = se,
-           SE_nonprob = se_nonprob,
-           se_prob = se_prob,
-           CI = ci,
-           theta_h = theta_h,
-           theta = theta_hat,
-           #pearson_residuals = pearson_residuals,
-           #deviance_residuals = deviance_residuals,
-           #log_likelihood = log_likelihood,
-           beta = model_nons_coefs
-           ),
-      class = "Doubly-robust")
+  } else if (control_inference$var_method == "bootstrap") {
+    var <- bootDR(SelectionModel = SelectionModel,
+                  OutcomeModel = OutcomeModel,
+                  family_outcome = family_outcome,
+                  num_boot = 1000,
+                  weights = weights,
+                  weights_rand = weights_rand,
+                  R = R,
+                  mu_hat = mu_hat,
+                  method_selection = method_selection,
+                  n_nons = n_nons,
+                  n_rand = n_rand,
+                  optim_method = optim_method
+                  )
+    inf <- "not computed for bootstrap variance"
+  } else {
+    stop("Invalid method for variance estimation.")
   }
 
+  se <- sqrt(var)
+  alpha <- control_inference$alpha
+  z <- stats::qnorm(1-alpha/2)
 
-  infer <- nonprobDR_inference()
+  # confidence interval based on the normal approximation
+  ci <- c(mu_hat - z * se, mu_hat + z * se)
 
-  infer
+  # case when samples overlap - to finish
+  if (control_selection$overlap) {
 
+    weights_nons <- nonprobOv(SelectionModel$X_nons,
+                              SelectionModel$X_rand,
+                              weights_rand,
+                              dependent = control_selection$dependence,
+                              method_selection)
+    N <- sum(weights)
+
+    mu_hat_Ov <-  mu_hatDR(y = OutcomeModel$y_nons,
+                           y_nons = y_nons_pred,
+                           y_rand = y_rand_pred,
+                           weights_nons = weights,
+                           weights_rand = weights_rand,
+                           N_nons = N,
+                           N_rand = N_est_rand)
+
+  }
+
+  mu_hat <- ifelse(control_selection$overlap, mu_hat_Ov, mu_hat)
+
+  structure(
+    list(mean = mu_hat,
+         #VAR = var,
+         #VAR_nonprob = V,
+         #VAR_prob = W,
+         SE = se,
+         SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
+         SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
+         CI = ci,
+         theta_h = theta_h,
+         theta = theta_hat,
+         #pearson_residuals = pearson_residuals,
+         #deviance_residuals = deviance_residuals,
+         #log_likelihood = log_likelihood,
+         beta = model_nons_coefs
+         ),
+    class = "Doubly-robust")
 }
 
 #' mu_hatDR
@@ -288,62 +287,3 @@ mu_hatDR <- function(y,
 
 }
 
-
-
-
-
-#' start_fit
-#'
-#' start_fit: Function for obtaining initial values for propensity score estimation
-#'
-#' @param X - a
-#' @param R - a
-#' @param weights - a
-#' @param d - a
-#' @param method_selection - a
-#' @param control_selection - a
-
-start_fit <- function(X,
-                      R,
-                      weights,
-                      d,
-                      method_selection,
-                      control_selection = controlSel()) {
-
-  weights <- c(weights, d)
-
-  start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
-                                y = R,
-                                #weights = c(weights, d), # to fix
-                                family = binomial(link = method_selection),
-                                control = list(control_selection$epsilon,
-                                             control_selection$maxit,
-                                             control_selection$trace)
-                         )
-
-  start <- start_model$coefficients
-
-  start
-
-}
-
-
-model_frame <- function(formula, data, svydesign) {
-
-  XY_nons <- model.frame(formula, data)
-  X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
-  nons_names <- attr(terms(formula, data = data), "term.labels")
-  if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
-  } else {
-    stop("variable names in data and svydesign do not match")
-  }
-  y_nons <- XY_nons[,1]
-  X <- rbind(X_rand, X_nons)
-
-  list(X_nons = X_nons,
-       X_rand = X_rand,
-       nons_names = nons_names,
-       y_nons = y_nons,
-       X = X)
-}

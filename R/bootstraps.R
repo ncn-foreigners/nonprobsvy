@@ -59,40 +59,18 @@ bootIPW <- function(X_rand,
                     X_nons,
                     weights,
                     y,
+                    R,
                     family_outcome,
                     num_boot,
                     weights_rand,
                     mu_hat,
-                    dependency,
+                    method_selection,
+                    n_nons,
+                    n_rand,
+                    optim_method,
+                    pop_size = NULL,
                     ...){
-
-
-
-
-
-}
-
-bootDR <- function(SelectionModel,
-                   OutcomeModel,
-                   weights,
-                   y,
-                   family_outcome,
-                   num_boot,
-                   weights_rand,
-                   mu_hat,
-                   method_selection,
-                   ...){
-
-  method <- get_method(method_selection)
-
-  ps_method <- method$make_propen_score # function for propensity score estimation
-  loglike <- method$make_log_like
-  gradient <- method$make_gradient
-  hessian <- method$make_hessian
-
   mu_hats <- vector(mode = "numeric", length = num_boot)
-  n_nons <- nrow(X_nons)
-  n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
   k <- 1
 
@@ -100,42 +78,103 @@ bootDR <- function(SelectionModel,
 
     strap_nons <- sample.int(replace = TRUE, n = n_nons)
     strap_rand <- sample.int(replace = TRUE, n = n_rand)
-    weights_strap <- weights[strap_nons]
-    X_nons_strap <- X_nons[strap_nons, ]
-    y_strap <- y[strap_nons]
 
-    X_rand <- X_rand[strap_rand, ]
-    weights_rand_strap <- weights_rand[strap_rand]
+    X <- rbind(X_rand[strap_rand, ],
+               X_nons[strap_nons, ])
 
+    model_sel <- internal_selection(X,
+                                    X_nons[strap_nons, ],
+                                    X_rand[strap_rand, ],
+                                    weights[strap_nons],
+                                    weights_rand[strap_rand],
+                                    R,
+                                    method_selection,
+                                    optim_method)
 
-    model_strap <- nonprobMI_fit(x = X_nons_strap,
-                                 y = y_strap,
-                                 weights = weights_strap,
-                                 family_outcome = family_outcome)
-    beta <- model_strap$coefficients
-    ystrap_rand <- as.numeric(X_rand %*% beta)
-    ystrap_nons <- as.numeric(X_nons %*% beta)
-
-    log_like <- loglike(X_nons, X_rand, weights_rand)
-    gradient <- gradient(X_nons, X_rand, weights_rand)
-    hessian <- hessian(X_nons, X_rand, weights_rand)
-
-    maxLik_nons_obj <- ps_method(X_nons, log_like, gradient, hessian, start, optim_method)
-    maxLik_rand_obj <- ps_method(X_rand, log_like, gradient, hessian, start, optim_method)
+    maxLik_nons_obj <- model_sel$maxLik_nons_obj
 
     ps_nons <- maxLik_nons_obj$ps
-    est_ps_rand <- maxLik_rand_obj$ps
-    hess <- maxLik_nons_obj$hess
-    theta_hat <- maxLik_nons_obj$theta_hat
+    weights_nons <- 1/ps_nons
+    N_est_nons <- ifelse(is.null(pop_size), sum(1/ps_nons), pop_size)
 
+    mu_hat_boot <- mu_hatIPW(y = y[strap_nons],
+                            weights = weights_nons,
+                            N = N_est_nons) # IPW estimator
+    mu_hats[k] <- mu_hat_boot
+
+    k <- k + 1
+
+  }
+
+  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2)
+  boot_var
+
+
+
+}
+
+bootDR <- function(SelectionModel,
+                   OutcomeModel,
+                   family_outcome,
+                   num_boot,
+                   weights,
+                   weights_rand,
+                   R,
+                   mu_hat,
+                   method_selection,
+                   n_nons,
+                   n_rand,
+                   optim_method,
+                   ...){
+
+  mu_hats <- vector(mode = "numeric", length = num_boot)
+  N <- sum(weights_rand)
+  k <- 1
+
+
+
+  while (k <= num_boot) {
+
+    strap_nons <- sample.int(replace = TRUE, n = n_nons)
+    strap_rand <- sample.int(replace = TRUE, n = n_rand)
+
+    model_out <- internal_outcome(OutcomeModel$X_nons[strap_nons, ],
+                                  OutcomeModel$X_rand[strap_rand, ],
+                                  OutcomeModel$y[strap_nons],
+                                  weights[strap_nons],
+                                  family_outcome)
+
+    y_rand_pred <- model_out$y_rand_pred
+    y_nons_pred <- model_out$y_nons_pred
+    model_nons_coefs <- model_out$model_nons_coefs
+
+    X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
+                   SelectionModel$X_nons[strap_nons, ])
+
+    model_sel <- internal_selection(X_sel,
+                                    SelectionModel$X_nons[strap_nons, ],
+                                    SelectionModel$X_rand[strap_rand, ],
+                                    weights[strap_nons],
+                                    weights_rand[strap_rand],
+                                    R,
+                                    method_selection,
+                                    optim_method)
+
+
+    maxLik_nons_obj <- model_sel$maxLik_nons_obj
+    maxLik_rand_obj <- model_sel$maxLik_rand_obj
+    theta_hat <- model_sel$theta
+
+    ps_nons <- maxLik_nons_obj$ps
+    weights_nons <- 1/ps_nons
     N_est_nons <- sum(1/ps_nons)
-    N_est_rand <- sum(weights_rand_strap)
+    N_est_rand <- sum(weights_rand[strap_rand])
 
-    mu_hat_boot <- mu_hatDR(y = y_strap,
+    mu_hat_boot <- mu_hatDR(y = OutcomeModel$y_nons[strap_nons],
                             y_nons = y_nons_pred,
-                            y_rand = ystrap_rand,
-                            weights_nons = weights_strap,
-                            weights_rand = weights_rand_strap,
+                            y_rand = y_rand_pred,
+                            weights_nons = weights_nons,
+                            weights_rand = weights_rand[strap_rand],
                             N_nons = N_est_nons,
                             N_rand = N_est_rand)
     mu_hats[k] <- mu_hat_boot
