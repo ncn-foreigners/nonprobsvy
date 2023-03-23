@@ -9,6 +9,10 @@
 #' @param overlap - a
 #' @param dependence - a
 #' @param h_x - a
+#' @param lambda - a
+#' @param lambda_min - a
+#' @param nlambda - a
+#' @param nfolds - a
 #'
 #' @export
 
@@ -48,6 +52,9 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 #' @param maxit - a
 #' @param trace - a
 #' @param k - a
+#' @param penalty - a
+#' @param lambda_min - a
+#' @param nlambda - a
 #'
 #' @export
 
@@ -80,11 +87,7 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
 #' @param var_method variance method
 #' @param rep_type - a
 #' @param bias_inf - a
-#' @param penalty - a
 #' @param alpha - a
-#' @param lambda_min - a
-#' @param nlambda - a
-#' @param nfolds - a
 #'
 #' @export
 

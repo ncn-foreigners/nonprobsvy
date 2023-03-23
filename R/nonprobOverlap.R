@@ -1,11 +1,4 @@
 # Internal functions, no need for documenting them
-#' nonprobOv
-#'
-#' nonprobOv: Function for correcting selection bias considering the possible overlapping and dependency between the nonprobability and probability sample, function needs furher work
-#'
-#' @importFrom stats glm.fit
-#' @importFrom betareg betareg.fit
-#' @export
 
 
 # consider function structure as in nonprobDR, nonprobMI, nonprobIPW, nonprobSel
@@ -16,9 +9,9 @@ nonprobOv <- function(X_nons,
                       dependent,
                       method_selection) {
 
-  betamodel <- betareg.fit(x = X_rand,
-                           y = 1/weights_rand,
-                           link = method_selection)
+  betamodel <- betareg::betareg.fit(x = X_rand,
+                                    y = 1/weights_rand,
+                                    link = method_selection)
 
   method <- method_selection
   if (is.character(method)) {

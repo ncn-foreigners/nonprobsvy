@@ -10,10 +10,6 @@ controlInf(
   rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
     "Fay"),
   bias_inf = c("union", "div"),
-  penalty = c("SCAD", "LASSO"),
-  lambda_min = 0,
-  nlambda = 50,
-  nfolds = 10,
   alpha = 0.05
 )
 }
@@ -25,12 +21,6 @@ controlInf(
 \item{rep_type}{- a}
 
 \item{bias_inf}{- a}
-
-\item{penalty}{- a}
-
-\item{lambda_min}{- a}
-
-\item{nlambda}{- a}
 
 \item{alpha}{- a}
 }

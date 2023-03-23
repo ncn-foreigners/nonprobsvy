@@ -12,7 +12,11 @@ controlSel(
   optim_method = "NR",
   overlap = FALSE,
   dependence = FALSE,
-  h_x = c("1", "2")
+  h_x = c("1", "2"),
+  lambda = NULL,
+  lambda_min = 0.001,
+  nlambda = 50,
+  nfolds = 10
 )
 }
 \arguments{
@@ -31,6 +35,14 @@ controlSel(
 \item{dependence}{- a}
 
 \item{h_x}{- a}
+
+\item{lambda}{- a}
+
+\item{lambda_min}{- a}
+
+\item{nlambda}{- a}
+
+\item{nfolds}{- a}
 }
 \description{
 control function for the selection equation in the nonprob function

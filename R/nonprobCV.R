@@ -101,7 +101,7 @@ setup_lambda <- function(X, y, weights, method_selection, alpha = 1, lambda_min,
 }
 
 
-fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, eps, warn = FALSE,  ...) {
+fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, eps, warn = FALSE, pop_totals = NULL, ...) {
 
   p <- ncol(X)
   init_theta <- rep(0, p)
@@ -120,11 +120,13 @@ fit_nonprobsvy <- function(X, R, weights, method_selection, h, lambda, maxit, ep
 
     u_theta0 <- u_theta(R = R, X = X,
                         weights = weights, h = h,
-                        method_selection = method_selection)
+                        method_selection = method_selection,
+                        pop_totals = pop_totals)
 
     u_theta0_der <- u_theta_der(R = R, X = X,
                                 weights = weights, h = h,
-                                method_selection = method_selection)
+                                method_selection = method_selection,
+                                pop_totals = pop_totals)
 
     LAMBDA <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
     par <- par0 + MASS::ginv(u_theta0_der(par0) + diag(LAMBDA)) %*% (u_theta0(par0) - diag(LAMBDA) %*% par0) # perhaps 'solve' function instead of 'ginv'
@@ -151,7 +153,9 @@ u_theta <- function(R,
                     weights,
                     method_selection,
                     h,
-                    N = NULL) {
+                    N = NULL,
+                    pop_totals = NULL,
+                    pop_size = NULL) {
 
 
   method <- get_method(method_selection)
@@ -169,9 +173,13 @@ u_theta <- function(R,
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
 
-    eq <- switch(h,
-                 "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
-                 "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
+    if (is.null(pop_totals)) {
+      eq <- switch(h,
+                   "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
+                   "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
+    } else {
+      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(N_nons, pop_totals))/N_nons
+    }
     eq
   }
 }
@@ -184,7 +192,8 @@ u_theta_der <-  function(R,
                          weights,
                          method_selection,
                          h,
-                         N = NULL) {
+                         N = NULL,
+                         pop_totals = NULL) {
 
   method <- get_method(method_selection)
 
@@ -208,7 +217,8 @@ u_theta_der <-  function(R,
 
     N_nons <- sum(1/ps)
 
-    if (h == "1") {
+
+    if (h == "1" || !is.null(pop_totals)) {
           mxDer <-  switch(method_selection,
                            "logit" = t(R * as.data.frame(X0) * (1-ps)/ps) %*% X0,
                            "cloglog" = t(R * as.data.frame(X0) * (1-ps)/ps^2 * exp(eta_pi)) %*% X0,
@@ -218,7 +228,8 @@ u_theta_der <-  function(R,
                           "logit" = t(R_rand * as.data.frame(X0) * weights * ps/(exp(eta_pi)+1)) %*% X0,
                           "cloglog" = t(R_rand * as.data.frame(X0) * weights * (1-ps) * exp(eta_pi)) %*% X0,
                           "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
-        }
+    }
+
     mxDer/N_nons
 
   }

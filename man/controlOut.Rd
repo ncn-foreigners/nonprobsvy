@@ -10,7 +10,10 @@ controlOut(
   epsilon = 1e-06,
   maxit = 100,
   trace = FALSE,
-  k = 5
+  k = 5,
+  penalty = c("SCAD", "LASSO"),
+  lambda_min = 0.001,
+  nlambda = 100
 )
 }
 \arguments{
@@ -23,6 +26,12 @@ controlOut(
 \item{trace}{- a}
 
 \item{k}{- a}
+
+\item{penalty}{- a}
+
+\item{lambda_min}{- a}
+
+\item{nlambda}{- a}
 }
 \description{
 controlOut

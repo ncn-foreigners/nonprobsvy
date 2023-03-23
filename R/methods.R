@@ -1,10 +1,5 @@
 # Internal functions, no need for documenting them
-#' Summary statistics and diagnostic for model
-#'
-#'
-#' pearson_nonprobsvy
-#'
-#' pearson_nonprobsvy: Function for pearson residuals computing for propensity score model
+
 
 pearson_nonprobsvy <- function(X_nons,
                                X_rand,
@@ -18,10 +13,6 @@ pearson_nonprobsvy <- function(X_nons,
   res
 }
 
-
-#' deviance_nonprobsvy
-#'
-#' deviance_nonprobsvy: Function for deviance residuals computing for propensity score model
 
 deviance_nonprobsvy <- function(X_nons,
                                 X_rand,

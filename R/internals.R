@@ -100,11 +100,13 @@ theta_h_estimation <- function(R,
   # theta estimation by unbiased estimating function depending on the h_x function TODO
   u_theta <- u_theta(R = R, X = X,
                      weights = c(weights_rand, weights), h = h,
-                     method_selection = method_selection)
+                     method_selection = method_selection,
+                     pop_totals = pop_totals)
 
   u_theta_der <- u_theta_der(R = R, X = X,
                              weights = c(weights_rand, weights), h = h,
-                             method_selection = method_selection)
+                             method_selection = method_selection,
+                             pop_totals = pop_totals)
   p <- ncol(X)
   start0 <- rep(0, p)
   for (i in 1:maxit) {
@@ -117,9 +119,21 @@ theta_h_estimation <- function(R,
   theta_h
 }
 
+internal_varIPW <- function(){
 
-model_frame <- function(formula, data, svydesign) {
+}
 
+internal_varDR <- function(){
+
+}
+
+internal_varMI <- function(){
+
+}
+
+model_frame <- function(formula, data, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+
+  if (!is.null(svydesign)) {
   XY_nons <- model.frame(formula, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
   nons_names <- attr(terms(formula, data = data), "term.labels")
@@ -134,6 +148,22 @@ model_frame <- function(formula, data, svydesign) {
        X_rand = X_rand,
        nons_names = nons_names,
        y_nons = y_nons)
+  } else if (!is.null(pop_totals)) {
+    XY_nons <- model.frame(formula, data)
+    X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
+    nons_names <- attr(terms(formula, data = data), "term.labels")
+    if(all(nons_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
+      pop_totals <-  pop_totals[nons_names]
+    } else {
+      warning("Selection and population totals have different names.")
+    }
+    y_nons <- XY_nons[,1]
+
+    list(X_nons = X_nons,
+         pop_totals = pop_totals,
+         nons_names = nons_names,
+         y_nons = y_nons)
+  }
 }
 
 
