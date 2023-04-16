@@ -5,7 +5,6 @@ pearson_nonprobsvy <- function(X_nons,
                                X_rand,
                                ps_nons,
                                est_ps_rand) {
-
   Rnons <- c(rep(1, nrow(X_nons)), rep(0, nrow(X_rand)))
   ps <- c(ps_nons, est_ps_rand)
 

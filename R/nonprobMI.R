@@ -1,25 +1,28 @@
-#' nonprobMI
-#
-#' nonprobMI: Function for inference based on nonprobability surveys using mass imputation
-#
-#' @param outcome - `formula`, the outcome equation.
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param method_outcome - a `character` with method for response variable estimation
-#' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
-#' @param strata - an optional `vector` specifying strata.
-#' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
+#' @import mathjaxr
+NULL
+#' @title Inference with the non-probability survey samples.
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description \code{nonprobMI} fits model for mass imputation inference based on non-probability surveys using various methods.
+#' \loadmathjax
+#' @param outcome `formula`, the outcome equation.
+#' @param data an optional `data.frame` with data from the non-probability sample.
+#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
+#' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param method_outcome a `character` with method for response variable estimation
+#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata an optional `vector` specifying strata.
+#' @param weights an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na_action a function which indicates what should happen when the data contain `NAs`.
-#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
-#' @param control_inference a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method
-#' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
-#' @param verbose - verbose, numeric
+#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable.
+#' @param control_inference a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.
+#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation.
+#' @param verbose verbose, numeric.
 #' @param contrasts a
 #' @param model a
 #' @param x a
 #' @param y a
-#' @param ... a
+#' @param ... Additional, optional arguments.
 #'
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
@@ -49,7 +52,7 @@ nonprobMI <- function(outcome,
                       y,
                       ...) {
 
-  weights <- rep.int(1, nrow(data)) # to remove
+  #weights <- rep.int(1, nrow(data)) # to remove
 
   # model for outcome formula
   OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
@@ -91,14 +94,19 @@ nonprobMI <- function(outcome,
 
   } else if (control_outcome$method == "nn") {
 
-    model_rand <- nonprobMI_nn(data = X_nons, query = X_rand,
-                               k = control_outcome$k, treetype = "kd", searchtype = "standard")
-    model_nons <- nonprobMI_nn(data = X_nons, query = X_nons,
-                               k = control_outcome$k, treetype = "kd", searchtype = "standard")
+    model_rand <- nonprobMI_nn(data = X_nons,
+                               query = X_rand,
+                               k = control_outcome$k,
+                               treetype = "kd",
+                               searchtype = "standard")
+    model_nons <- nonprobMI_nn(data = X_nons,
+                               query = X_nons,
+                               k = control_outcome$k,
+                               treetype = "kd",
+                               searchtype = "standard")
     y_rand_pred <- vector(mode = "numeric", length = n_rand)
     y_nons_pred <- vector(mode = "numeric", length = n_nons)
     model_nons_coefs <- "Non-parametric method for outcome model"
-
 
     for (i in 1:n_rand) {
       idx <- model_rand$nn.idx[i,]
@@ -110,6 +118,8 @@ nonprobMI <- function(outcome,
       y_nons_pred[i] <- mean(y_nons[idx])
     }
 
+  } else {
+    stop("Invalid method for outcome variable.")
   }
 
   # updating probability sample by adding y_hat variable
@@ -122,40 +132,23 @@ nonprobMI <- function(outcome,
 
   # design based variance estimation based on approximations of the second-order inclusion probabilities
 
-  if (control_inference$var_method == "analytic") {
+  if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
 
     svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
-    var_prob <- as.vector(attr(svydesign_mean, "var")) #probability component
+    var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
 
     if (control_outcome$method == "nn") {
-
-      method_selection <- "logit"
-      optim_method = "NR"
-
-      # Estimation for selection model
-      model_sel <- internal_selection(X,
-                                      X_nons,
-                                      X_rand,
-                                      weights,
-                                      weights_rand,
-                                      R,
-                                      method_selection,
-                                      optim_method)
-
-      maxLik_nons_obj <- model_sel$maxLik_nons_obj
-      maxLik_rand_obj <- model_sel$maxLik_rand_obj
-      ps_nons <- maxLik_nons_obj$ps
-
 
       sigma_hat <- switch(family_outcome,
                           "gaussian" = mean((y_nons - y_nons_pred)^2),
                           "binomial" = y_nons_pred*(1 - y_nons_pred),
                           "poisson" = mean(y_nons_pred))
+
       N_est_nons <- sum(1/ps_nons)
-      var_nonprob <- n_rand/N_est_nons^2 * sum((1 - ps_nons)/ps_nons * sigma_hat)
+      esp_ps  <- n_nons/N_est_rand
+      var_nonprob <- n_rand/N_est_rand^2 * sum((1 - esp_ps)/eps_ps * sigma_hat)
 
     } else if (control_outcome$method == "glm") {
-
 
       mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
       c <- solve(1/n_nons * t(X_nons) %*% X_nons) %*% mx
@@ -164,12 +157,10 @@ nonprobMI <- function(outcome,
       # nonprobability component
       var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
-
     }
 
     se_nonprob <- sqrt(var_nonprob)
     se_prob <- sqrt(var_prob)
-
     # variance
     var <- var_nonprob + var_prob
 
@@ -186,7 +177,6 @@ nonprobMI <- function(outcome,
                   svydesign,
                   rep_type = control_inference$rep_type)
     inf <- "not computed for bootstrap variance"
-
   }
 
 
@@ -224,7 +214,6 @@ mu_hatMI <- function(y, weights, N) {
 
   mu_hat <- 1/N * sum(weights * y)
   mu_hat
-
 
 }
 
@@ -277,7 +266,6 @@ nonprobMI_fit <- function(outcome,
                                               control_outcome$trace),
                                family = family)
 
-
   model_nons
 }
 
@@ -312,7 +300,6 @@ nonprobMI_nn <- function(data,
                         searchtype = searchtype,
                         radius = radius,
                         eps = eps)
-
   model_nn
 
 }

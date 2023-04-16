@@ -2,7 +2,7 @@
 % Please edit documentation in R/nonprobVariablesSelection.R
 \name{nonprobSel}
 \alias{nonprobSel}
-\title{Title nonprobSel}
+\title{Inference with the non-probability survey samples.}
 \usage{
 nonprobSel(
   selection,
@@ -33,45 +33,45 @@ nonprobSel(
 )
 }
 \arguments{
-\item{selection}{- `formula`, the selection (propensity) equation.}
+\item{selection}{`formula`, the selection (propensity) equation.}
 
-\item{outcome}{- `formula`, the outcome equation.}
+\item{outcome}{`formula`, the outcome equation.}
 
-\item{data}{- an optional `data.frame` with data from the nonprobability sample.}
+\item{data}{an optional `data.frame` with data from the nonprobability sample.}
 
-\item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
+\item{svydesign}{an optional `svydesign` object (from the survey package) containing probability sample.}
 
-\item{pop_totals}{- an optional `named vector` with population totals.}
+\item{pop_totals}{an optional `named vector` with population totals.}
 
-\item{pop_means}{- an optional `named vector` with population means.}
+\item{pop_means}{an optional `named vector` with population means.}
 
-\item{pop_size}{- an optional `double` with population size.}
+\item{pop_size}{an optional `double` with population size.}
 
-\item{method_selection}{- a `character` with method for propensity scores estimation}
+\item{method_selection}{a `character` with method for propensity scores estimation}
 
-\item{method_outcome}{- a `character` with method for response variable estimation}
+\item{method_outcome}{a `character` with method for response variable estimation}
 
-\item{family_selection}{- a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
+\item{family_selection}{a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
-\item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
-\item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
+\item{subset}{an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
-\item{strata}{- a}
+\item{strata}{an optional `vector` specifying strata.}
 
-\item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
+\item{weights}{an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 
-\item{na_action}{a}
+\item{na_action}{a function which indicates what should happen when the data contain `NAs`.}
 
-\item{control_selection}{a}
+\item{control_selection}{a list indicating parameters to use in fitting selection model for propensity scores}
 
-\item{control_outcome}{a}
+\item{control_outcome}{a list indicating parameters to use in fitting model for outcome variable}
 
-\item{control_inference}{a}
+\item{control_inference}{a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method}
 
-\item{start}{a}
+\item{start}{an optional `list` with starting values for the parameters of the selection and outcome equation.}
 
-\item{verbose}{a}
+\item{verbose}{verbose, numeric.}
 
 \item{contrasts}{a}
 
@@ -81,8 +81,13 @@ nonprobSel(
 
 \item{y}{a}
 
-\item{...}{a}
+\item{...}{Additional, optional arguments.}
 }
 \description{
-nonprobSel: Function for selecting important variables for sampling score model and outcome model
+\code{nonprobVariablesSelection} fits model for inference based on non-probability surveys using various methods
+with variable selection techniques. Implementation is based on [IntegrativeFPM package](https://github.com/shuyang1987/IntegrativeFPM).
+}
+\author{
+Łukasz Chrostowski, Maciej Beręsewicz
+\loadmathjax
 }

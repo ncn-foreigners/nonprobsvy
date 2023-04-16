@@ -1,18 +1,24 @@
-#' controlSel
-#'
-#' control function for the selection equation in the nonprob function
-#' @param method estimation method
-#' @param epsilon - a
-#' @param maxit - a
-#' @param trace - a
-#' @param optim_method - a
-#' @param overlap - a
-#' @param dependence - a
-#' @param h_x - a
-#' @param lambda - a
-#' @param lambda_min - a
-#' @param nlambda - a
-#' @param nfolds - a
+#' @title Control parameters for selection model
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
+#' \loadmathjax
+#' @description \code{controlSel} constructs a list with all necessary control parameters
+#' for selection model.
+#' @param method estimation method.
+#' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
+#' @param maxit Maximum number of iterations.
+#' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
+#' @param optim_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
+#' @param overlap logical value - `TRUE` if samples overlap.
+#' @param dependence logical value - `TRUE` if samples are dependent.
+#' @param h_x Smooth function for the estimating equations.
+#' \itemize{
+#'    \item 1 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \bx_i$ - system of equations becomes calibration equations system.
+#'    \item 2 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \pi_i^A\left(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{theta} \right) \boldsymbol{x}_i$
+#' } Default is `1`.
+#' @param lambda A user-specified lambda value.
+#' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
+#' @param nlambda The number of lambda values. Default id 50.
+#' @param nfolds The number of folds for cross validation. Default is 10.
 #'
 #' @export
 
@@ -23,6 +29,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "NR",
                        overlap = FALSE,
                        dependence = FALSE,
+                       smooth = FALSE,
                        h_x = c("1", "2"),
                        lambda = NULL,
                        lambda_min = .001,
@@ -36,6 +43,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
        optim_method = optim_method,
        overlap = overlap,
        dependence = dependence,
+       smooth = smooth,
        h_x = if(missing(h_x)) "1" else h_x,
        lambda_min = lambda_min,
        nlambda = nlambda,
@@ -45,20 +53,21 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 
 }
 
-#' controlOut
-#' control function for the outcome equation in the nonprob function
-#' @param method estimation method
-#' @param epsilon - a
-#' @param maxit - a
-#' @param trace - a
-#' @param k - a
-#' @param penalty - a
-#' @param lambda_min - a
-#' @param nlambda - a
+#' @title Control parameters for outcome model
+#' @description \code{controlOUT} constructs a list with all necessary control parameters
+#' for outcome model.
+#' @param method estimation method.
+#' @param epsilon Tolerance for fitting algorithms. Default is \code{1e-6}.
+#' @param maxit Maximum number of iterations.
+#' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.
+#' @param k The k parameter in the [RANN2::nn()] function. Default is 5.
+#' @param penalty penalty algorithm for variable selection. Default is `SCAD`
+#' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
+#' @param nlambda The number of lambda values. Default is 100.
 #'
 #' @export
 
-controlOut <- function(method = c("glm", "nn"), #perhaps another control function for model with variables selection
+controlOut <- function(method = c("glm", "nn"),
                        epsilon = 1e-6,
                        maxit = 100,
                        trace = FALSE,
@@ -80,14 +89,14 @@ controlOut <- function(method = c("glm", "nn"), #perhaps another control functio
 }
 
 
-#' controlInf
-#'
-#' control function for the inference method in the nonprob function
-#' @param est_method estimation method
-#' @param var_method variance method
-#' @param rep_type - a
-#' @param bias_inf - a
-#' @param alpha - a
+#' @title Control parameters for inference
+#' @description \code{controlINF} constructs a list with all necessary control parameters
+#' for statistical inference.
+#' @param est_method estimation method.
+#' @param var_method variance method.
+#' @param rep_type replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.
+#' @param bias_inf inference method in the bias minimization. Default is `union`.
+#' @param alpha Significance level, Default is 0.05.
 #'
 #' @export
 

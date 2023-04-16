@@ -1,10 +1,5 @@
-#' Propensity score estimation by complementary loglog model
-#'
-#' a method for propensity score estimation using cloglog model basing on dependent variables
-#'
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
-#' @param ... a
 #' @export
 
 cloglog <- function(...) {
@@ -16,7 +11,6 @@ cloglog <- function(...) {
   log_like <- function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
-
       eta1 <- as.matrix(X_nons) %*% theta #linear predictor
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
@@ -25,23 +19,19 @@ cloglog <- function(...) {
       log_like1 <- sum(log(invLink1 / (1 - invLink1)))
       log_like2 <- sum(weights * log(1 - invLink2))
       log_like1 + log_like2
-
     }
-
   }
 
 
   gradient <- function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
-
       eta1 <- as.matrix(X_nons) %*% theta
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
       t(t(X_nons) %*% (exp(eta1)/invLink1) - t(X_rand) %*% (weights * exp(eta2)))
-
     }
   }
 
@@ -63,8 +53,11 @@ cloglog <- function(...) {
 
   ps_est <- function(X, log_like, gradient, hessian, start, optim.method) {
 
-    maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
-                                method = "BFGS", start = start)
+    maxLik_an <- maxLik::maxLik(logLik = log_like,
+                                grad = gradient,
+                                hess = hessian,
+                                method = "BFGS",
+                                start = start)
 
     cloglog_estim <- maxLik_an$estimate
     grad <- maxLik_an$gradient
@@ -75,48 +68,36 @@ cloglog <- function(...) {
          grad = grad,
          hess = hess,
          theta_hat = cloglog_estim)
-
   }
 
 
   variance_covariance1 <- function(X, y, mu, ps, N = NULL) {
 
-
     if (is.null(N)) {
-
       N <- sum(1/ps)
       v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
       v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% X
       v_1 <- t(v1_)
-
     } else {
-
       v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
       v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * y) %*% X
       v_1 <- t(v1_)
-
     }
 
     v_2 <- 0
     for (i in 1:nrow(X)) {
-
       v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
       v_2 <- v_2 + v_2i
-
     }
-
     v_2 <- 1/N^2 * v_2
 
     v1_vec <- cbind(v11, v1_)
     v2_mx <- cbind(v_1, v_2)
     V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
-
     V1
   }
 
   variance_covariance2 <- function(X, eps, ps, n, N) {
-
-
     s <- log(1 - eps) * as.data.frame(X)
     ci <- n/(n-1) * (1 - ps)
     B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
@@ -129,33 +110,8 @@ cloglog <- function(...) {
     p <- nrow(D) + 1
     V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
     V2[2:p,2:p] <- D
-
     V2
   }
-  # Move to nonprobIPW, MI, DR functions
-
-#  b_var <- function(){
-
- #   n_X_nons <- nrow(X_nons)
-
-  #  N_est_nons <- sum(1/estim_ps_nons)
-
-   # mu_hat <- (1/N_est_nons) * sum(XY_nons[,1]/estim_psA)
-
-    # n_A <- nrow(XA)
-
-    # a <- 0
-    # for(i in 1:n_A){
-
-    #  suma <- ((1 - estim_ps_nons[i])/estim_ps_nons[i]^2) * log(1 - estim_ps_nons[i]) * (XY_nons[,1] - mu_hat) * X_nons[i,]
-     # a <- a + suma
-
-    # }
-
-   #  a <- ((1 - estim_ps_nons)/estim_ps_nons^2 * log(1 - estim_ps_nons) * (XY_nons[,1] - mu_hat)) %*% as.matrix(X_nons)
-  #  b <- solve(hess)
-  #  a %*% b
-
 
   structure(
     list(
@@ -170,7 +126,7 @@ cloglog <- function(...) {
       variance_covariance2 = variance_covariance2
     ),
 
-    class = "method.selection"
+    class = "method_selection"
   )
 
 }

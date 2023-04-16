@@ -2,8 +2,7 @@
 % Please edit documentation in R/nonprobMI.R
 \name{nonprobMI}
 \alias{nonprobMI}
-\title{nonprobMI
-nonprobMI: Function for inference based on nonprobability surveys using mass imputation}
+\title{Inference with the non-probability survey samples.}
 \usage{
 nonprobMI(
   outcome,
@@ -27,31 +26,31 @@ nonprobMI(
 )
 }
 \arguments{
-\item{outcome}{- `formula`, the outcome equation.}
+\item{outcome}{`formula`, the outcome equation.}
 
-\item{data}{- an optional `data.frame` with data from the nonprobability sample.}
+\item{data}{an optional `data.frame` with data from the non-probability sample.}
 
-\item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
+\item{svydesign}{an optional `svydesign` object (from the survey package) containing probability sample.}
 
-\item{method_outcome}{- a `character` with method for response variable estimation}
+\item{method_outcome}{a `character` with method for response variable estimation}
 
-\item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
-\item{subset}{- an optional `vector` specifying a subset of observations to be used in the fitting process.}
+\item{subset}{an optional `vector` specifying a subset of observations to be used in the fitting process.}
 
-\item{strata}{- an optional `vector` specifying strata.}
+\item{strata}{an optional `vector` specifying strata.}
 
-\item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
+\item{weights}{an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
 
 \item{na_action}{a function which indicates what should happen when the data contain `NAs`.}
 
-\item{control_outcome}{a list indicating parameters to use in fitting model for outcome variable}
+\item{control_outcome}{a list indicating parameters to use in fitting model for outcome variable.}
 
-\item{control_inference}{a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method}
+\item{control_inference}{a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.}
 
-\item{start}{- an optional `list` with starting values for the parameters of the selection and outcome equation}
+\item{start}{an optional `list` with starting values for the parameters of the selection and outcome equation.}
 
-\item{verbose}{- verbose, numeric}
+\item{verbose}{verbose, numeric.}
 
 \item{contrasts}{a}
 
@@ -61,9 +60,12 @@ nonprobMI(
 
 \item{y}{a}
 
-\item{...}{a}
+\item{...}{Additional, optional arguments.}
 }
 \description{
-nonprobMI
-nonprobMI: Function for inference based on nonprobability surveys using mass imputation
+\code{nonprobMI} fits model for mass imputation inference based on non-probability surveys using various methods.
+\loadmathjax
+}
+\author{
+Łukasz Chrostowski, Maciej Beręsewicz
 }

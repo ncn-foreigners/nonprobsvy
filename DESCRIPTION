@@ -2,13 +2,21 @@ Package: nonprobsvy
 Type: Package
 Title: Package for inference based on nonprobability samples
 Version: 0.1.0
-Author: Maciej Beresewicz, Łukasz Chrostowski
-Maintainer: Maciej Beresewicz <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R:
+    c(person(given = "Łukasz",
+             family = "Chrostowski",
+             role = c("aut", "cre"),
+             email = "lukchr@st.amu.edu.pl"),
+      person(given = "Maciej",
+             family = "Beręsewicz",
+             role = c("aut", "ctb"),
+             email = "maciej.beresewicz@ue.poznan.pl"))
+Description: An R package for statistical inference with non-probability samples when auxiliary information from external sources like probability samples or population totals/means are available.
 License: MIT
 Encoding: UTF-8
 LazyData: true
+RdMacros: mathjaxr
 RoxygenNote: 7.2.3
 Suggests: tinytest
-Imports: maxLik, stats, Matrix, MASS, ncvreg, rootSolve, betareg, survey, RANN, sampling
+Imports: maxLik, stats, Matrix, MASS, ncvreg, rootSolve, betareg, survey, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr
+LinkingTo: RcppArmadillo, Rcpp

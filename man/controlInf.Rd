@@ -2,7 +2,7 @@
 % Please edit documentation in R/control.R
 \name{controlInf}
 \alias{controlInf}
-\title{controlInf}
+\title{Control parameters for inference}
 \usage{
 controlInf(
   est_method = c("likelihood", "integrative"),
@@ -14,16 +14,17 @@ controlInf(
 )
 }
 \arguments{
-\item{est_method}{estimation method}
+\item{est_method}{estimation method.}
 
-\item{var_method}{variance method}
+\item{var_method}{variance method.}
 
-\item{rep_type}{- a}
+\item{rep_type}{replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.}
 
-\item{bias_inf}{- a}
+\item{bias_inf}{inference method in the bias minimization. Default is `union`.}
 
-\item{alpha}{- a}
+\item{alpha}{Significance level, Default is 0.05.}
 }
 \description{
-control function for the inference method in the nonprob function
+\code{controlINF} constructs a list with all necessary control parameters
+for statistical inference.
 }

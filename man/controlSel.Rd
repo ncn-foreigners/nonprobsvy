@@ -2,7 +2,7 @@
 % Please edit documentation in R/control.R
 \name{controlSel}
 \alias{controlSel}
-\title{controlSel}
+\title{Control parameters for selection model}
 \usage{
 controlSel(
   method = "glm.fit",
@@ -12,6 +12,7 @@ controlSel(
   optim_method = "NR",
   overlap = FALSE,
   dependence = FALSE,
+  smooth = FALSE,
   h_x = c("1", "2"),
   lambda = NULL,
   lambda_min = 0.001,
@@ -20,30 +21,39 @@ controlSel(
 )
 }
 \arguments{
-\item{method}{estimation method}
+\item{method}{estimation method.}
 
-\item{epsilon}{- a}
+\item{epsilon}{Tolerance for fitting algorithms by default \code{1e-6}.}
 
-\item{maxit}{- a}
+\item{maxit}{Maximum number of iterations.}
 
-\item{trace}{- a}
+\item{trace}{logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`}
 
-\item{optim_method}{- a}
+\item{optim_method}{maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.}
 
-\item{overlap}{- a}
+\item{overlap}{logical value - `TRUE` if samples overlap.}
 
-\item{dependence}{- a}
+\item{dependence}{logical value - `TRUE` if samples are dependent.}
 
-\item{h_x}{- a}
+\item{h_x}{Smooth function for the estimating equations.
+\itemize{
+   \item 1 -- $\operatorname{h}\left(\bx_i\right) = \bx_i$ - system of equations becomes calibration equations system.
+   \item 2 -- $\operatorname{h}\left(\bx_i\right) = \pi_i^A\left(\bx_i^{\mathrm{T}} \btheta \right) \bx_i$
+} Default is `1`.}
 
-\item{lambda}{- a}
+\item{lambda}{A user-specified lambda value.}
 
-\item{lambda_min}{- a}
+\item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
-\item{nlambda}{- a}
+\item{nlambda}{The number of lambda values. Default id 50.}
 
-\item{nfolds}{- a}
+\item{nfolds}{The number of folds for cross validation. Default is 10.}
 }
 \description{
-control function for the selection equation in the nonprob function
+\code{controlSel} constructs a list with all necessary control parameters
+for selection model.
+}
+\author{
+Łukasz Chrostowski, Maciej Beręsewicz
+\loadmathjax
 }

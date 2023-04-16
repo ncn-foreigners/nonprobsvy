@@ -70,27 +70,12 @@ nonprobCL <- function(outcome,
   weights_rand <- 1/ps_rand
   N_est_rand <- sum(weights_rand)
 
-  nonprobCL_inference <- function(...) {
+  total <- t(X_rand) %*% as.matrix(weights_rand)
+  weights_nons <- sampling::calib(Xs = X_nons, d = weights, total = total, method = "linear")
+  N_est_nons <- sum(weights_nons)
+  mu_hat <- 1/N_est_nons * sum(weights_nons * y_nons)
 
-
-    total <- t(X_rand) %*% as.matrix(weights_rand)
-    weights_nons <- sampling::calib(Xs = X_nons, d = weights, total = total, method = "linear")
-    N_est_nons <- sum(weights_nons)
-    mu_hat <- 1/N_est_nons * sum(weights_nons * y_nons)
-
-    structure(
-      list(mean = mu_hat
-            ),
-      class = "Calibration Weighting")
-
-  }
-
-  #
-  infer_nons <- nonprobCL_inference()
-
-  infer_nons
-
-
-
-
+  structure(
+    list(mean = mu_hat),
+    class = "Calibration Weighting")
 }

@@ -2,8 +2,7 @@
 % Please edit documentation in R/control.R
 \name{controlOut}
 \alias{controlOut}
-\title{controlOut
-control function for the outcome equation in the nonprob function}
+\title{Control parameters for outcome model}
 \usage{
 controlOut(
   method = c("glm", "nn"),
@@ -17,23 +16,23 @@ controlOut(
 )
 }
 \arguments{
-\item{method}{estimation method}
+\item{method}{estimation method.}
 
-\item{epsilon}{- a}
+\item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-6}.}
 
-\item{maxit}{- a}
+\item{maxit}{Maximum number of iterations.}
 
-\item{trace}{- a}
+\item{trace}{logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.}
 
-\item{k}{- a}
+\item{k}{The k parameter in the [RANN2::nn()] function. Default is 5.}
 
-\item{penalty}{- a}
+\item{penalty}{penalty algorithm for variable selection. Default is `SCAD`}
 
-\item{lambda_min}{- a}
+\item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
-\item{nlambda}{- a}
+\item{nlambda}{The number of lambda values. Default is 100.}
 }
 \description{
-controlOut
-control function for the outcome equation in the nonprob function
+\code{controlOUT} constructs a list with all necessary control parameters
+for outcome model.
 }

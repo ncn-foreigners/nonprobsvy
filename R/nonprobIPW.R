@@ -1,29 +1,32 @@
-#' nonprobIPW
-#
-#' nonprobIPW: Function for inference based on nonprobability big data sample and estimated propensity scores.
-#
-#' @param selection - `formula`, the selection (propensity) equation.
-#' @param target - `formula` with target variables.
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param pop_totals - an optional `named vector` with population totals.
-#' @param pop_means - an optional `named vector` with population means.
-#' @param pop_size - an optional `double` with population size.
-#' @param method_selection - a `character` with method for propensity scores estimation
-#' @param family_selection - a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
-#' @param subset - an optional `vector` specifying a subset of observations to be used in the fitting process.
-#' @param strata - an optional `vector` specifying strata.
-#' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
+#' @import mathjaxr
+NULL
+#' @title Inference with the non-probability survey samples.
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description \code{nonprobIPW} fits model for propensity score inference based on non-probability surveys using various methods.
+#' \loadmathjax
+#' @param selection `formula`, the selection (propensity) equation.
+#' @param target `formula` with target variables.
+#' @param data an optional `data.frame` with data from the nonprobability sample.
+#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
+#' @param pop_total an optional `named vector` with population totals.
+#' @param pop_means an optional `named vector` with population means.
+#' @param pop_size an optional `double` with population size.
+#' @param method_selection a `character` with method for propensity scores estimation
+#' @param family_selection a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
+#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata an optional `vector` specifying strata.
+#' @param weights an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.
 #' @param na_action a function which indicates what should happen when the data contain `NAs`.
-#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
-#' @param control_inference a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method
-#' @param start - an optional `list` with starting values for the parameters of the selection and outcome equation
-#' @param verbose - verbose, numeric
+#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores.
+#' @param control_inference a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.
+#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation.
+#' @param verbose verbose, numeric
 #' @param contrasts a
 #' @param model a
 #' @param x a
 #' @param y a
-#' @param ... a
+#' @param ... Additional, optional arguments.
 #'
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -62,7 +65,9 @@ nonprobIPW <- function(selection,
   h <- control_selection$h_x
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
-  weights <- rep.int(1, nrow(data)) # to remove
+  var_method <- control_inference$var_method
+  smooth <- control_selection$smooth
+  #weights <- rep.int(1, nrow(data)) # to remove
 
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
@@ -73,7 +78,9 @@ nonprobIPW <- function(selection,
   # outcome <- stats::as.formula(paste(outcome[2], dependents))
 
   if (is.null(pop_totals) && !is.null(svydesign)) {
-    model <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+    model <- model_frame(formula = outcome,
+                         data = data,
+                         svydesign = svydesign)
     X_nons <- model$X_nons
     X_rand <- model$X_rand
     nons_names <- model$nons_names
@@ -94,108 +101,93 @@ nonprobIPW <- function(selection,
     ps_rand <- svydesign$prob
     weights_rand <- 1/ps_rand
 
-    # Estimation for selection model
-    model_sel <- internal_selection(X,
-                                    X_nons,
-                                    X_rand,
-                                    weights,
-                                    weights_rand,
-                                    R,
-                                    method_selection,
-                                    optim_method,
+    model_sel <- internal_selection(X = X,
+                                    X_nons = X_nons,
+                                    X_rand = X_rand,
+                                    weights = weights,
+                                    weights_rand = weights_rand,
+                                    R = R,
+                                    method_selection = method_selection,
+                                    optim_method = optim_method,
+                                    h = h,
+                                    smooth = smooth,
+                                    maxit = maxit,
                                     varcov = TRUE)
 
-    maxLik_nons_obj <- model_sel$maxLik_nons_obj
-    maxLik_rand_obj <- model_sel$maxLik_rand_obj
-    log_likelihood <- model_sel$log_likelihood # maximum of the loglikelihood function
-    theta_hat <- model_sel$theta
-    var_cov1 <- model_sel$var_cov1
-    var_cov2 <- model_sel$var_cov2
+    if (!smooth) {
 
-    ps_nons <- maxLik_nons_obj$ps
-    est_ps_rand <- maxLik_rand_obj$ps
-    hess <- maxLik_nons_obj$hess
-    names(theta_hat) <- c("(Intercept)", nons_names)
+      maxLik_nons_obj <- model_sel$maxLik_nons_obj
+      maxLik_rand_obj <- model_sel$maxLik_rand_obj
+      log_likelihood <- model_sel$log_likelihood # maximum of the loglikelihood function
+      theta_hat <- model_sel$theta
 
-    if (method_selection == "probit") { # for probit model, propensity score derivative is required
-      ps_nons_der <- maxLik_nons_obj$psd
-      est_ps_rand_der <- maxLik_rand_obj$psd
+      ps_nons <- maxLik_nons_obj$ps
+      est_ps_rand <- maxLik_rand_obj$ps
+      hess <- maxLik_nons_obj$hess
+      var_cov1 <- model_sel$var_cov1
+      var_cov2 <- model_sel$var_cov2
+
+
+      if (method_selection == "probit") { # for probit model, propensity score derivative is required
+        ps_nons_der <- maxLik_nons_obj$psd
+        est_ps_rand_der <- maxLik_rand_obj$psd
+      }
+
+    } else {
+      theta_hat <- model_sel$theta_hat
+      hess <- model_sel$hess
+      grad <- model_sel$grad
+      ps_nons <- model_sel$ps_nons
+      est_ps_rand <- model_sel$est_ps_rand
+      ps_nons_der <- model_sel$ps_nons_der
+      est_ps_rand_der <- model_sel$est_ps_rand_der
+      var_method <- "bootstrap"
+      #TO DO - variance estimation for theta_h
     }
 
+    names(theta_hat) <- c("(Intercept)", nons_names)
     weights_nons <- 1/ps_nons
-    N_est_nons <- sum(weights_nons)
-
-    theta_h <- theta_h_estimation(R = R,
-                                  X = X,
-                                  weights_rand = weights_rand,
-                                  weights = weights,
-                                  h = h,
-                                  method_selection = method_selection,
-                                  maxit = maxit)
-    names(theta_h) <- c("(Intercept)", nons_names)
-
 
     if (!is.null(pop_size)) {
-      N_est_nons <- pop_size
+      N <- pop_size
+    } else {
+      N <- sum(weights_nons)
     }
 
     mu_hat <- mu_hatIPW(y = y_nons,
                         weights = weights_nons,
-                        N = N_est_nons) # IPW estimator
+                        N = N) # IPW estimator
 
-    if (control_inference$var_method == "analytic") {
-      if (is.null(pop_size)) {
-        b <- switch(method_selection,
-                    "logit" = (((1 - ps_nons)/ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
-                    "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * (y_nons - mu_hat)) %*% X_nons %*% solve(hess),
-                    "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - mu_hat)) %*% X_nons %*% solve(hess)
-        )
-      } else {
-        b <- switch(method_selection,
-                    "logit" = (((1 - ps_nons)/ps_nons) * y_nons) %*% X_nons %*% solve(hess),
-                    "cloglog" = (((1 - ps_nons)/ps_nons^2) * log(1 - ps_nons) * y_nons) %*% X_nons %*% solve(hess),
-                    "probit" = - (ps_nons_der/ps_nons^2 * (y_nons - mu_hat + 1)) %*% X_nons %*% solve(hess)
-        )
-      }
+    if (var_method == "analytic") {
+     var_obj <- internal_varIPW(X_nons = X_nons,
+                                X_rand = X_rand,
+                                y_nons = y_nons,
+                                ps_nons = ps_nons,
+                                mu_hat = mu_hat,
+                                hess = hess,
+                                ps_nons_der = ps_nons_der,
+                                N = N,
+                                est_ps_rand = est_ps_rand,
+                                ps_rand = ps_rand,
+                                est_ps_rand_der = est_ps_rand_der,
+                                n_rand = n_rand,
+                                pop_size = pop_size,
+                                method_selection = method_selection,
+                                var_cov1 = var_cov1,
+                                var_cov2 = var_cov2)
 
-
-      # sparse matrix
-      b_vec <- cbind(-1, b)
-      H_mx <- cbind(0, N_est_nons * solve(hess))
-      sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)
-
-      if (method_selection == "probit") {
-
-        V1 <- var_cov1(X_nons, y_nons, mu_hat, ps_nons, ps_nons_der, pop_size) # fixed
-        V2 <- var_cov2(X_rand, est_ps_rand, ps_rand, est_ps_rand_der, n_rand, N_est_nons)
-
-      } else {
-
-        V1 <- var_cov1(X_nons, y_nons, mu_hat, ps_nons, pop_size) # fixed
-        V2 <- var_cov2(X_rand, est_ps_rand, ps_rand, n_rand, N_est_nons)
-
-      }
-
-      # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
-      V_mx_nonprob <- sparse_mx %*% V1 %*% t(as.matrix(sparse_mx)) # nonprobability component
-      V_mx_prob <- sparse_mx %*% V2 %*% t(as.matrix(sparse_mx)) # probability component - strange results for probit model
-      V_mx <- V_mx_nonprob + V_mx_prob
-
-      var_nonprob <- as.vector(V_mx_nonprob[1,1])
-      var_prob <- as.vector(V_mx_prob[1,1])
-      var <- as.vector(V_mx[1,1])
-
+      var_nonprob <- var_obj$var_nonprob
+      var_prob <- var_obj$var_prob
+      var <- var_obj$var
+      theta_hat_var <- var_obj$theta_hat_var
       se_nonprob <- sqrt(var_nonprob)
       se_prob <- sqrt(var_prob)
-
-      # vector of variances for theta_hat
-      theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
-    } else if (control_inference$var_method == "bootstrap") {
+    } else if (var_method == "bootstrap") {
       var <- bootIPW(X_rand = X_rand,
                      X_nons = X_nons,
                      y = y_nons,
                      family_outcome = family_outcome,
-                     num_boot = 1000,
+                     num_boot = 500,
                      weights = weights,
                      weights_rand = weights_rand,
                      R = R,
@@ -204,66 +196,51 @@ nonprobIPW <- function(selection,
                      n_nons = n_nons,
                      n_rand = n_rand,
                      optim_method = optim_method,
+                     smooth = smooth,
+                     h = h,
+                     maxit = maxit,
                      pop_size = pop_size,
-                     varcov = FALSE
       )
       inf <- "not computed for bootstrap variance"
     } else {
       stop("Invalid method for variance estimation.")
     }
 
-  } else if (is.null(pop_totals) && !is.null(svydesign)) {
-    # model for outcome formula
-    model <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
+  } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
-    theta_h <- theta_h_estimation(R = rep(1, nrow(model$X_nons)),
-                                  X = model$X_nons,
-                                  weights_rand = NULL,
-                                  weights = weights,
-                                  h = h,
-                                  method_selection = method_selection,
-                                  maxit = maxit,
-                                  pop_totals = model$pop_totals)
-    names(theta_h) <- c("(Intercept)", model$nons_names)
+    if (!is.null(pop_totals)) {
+      pop_totals <- pop_size * pop_means
+    }
+
+    # model for outcome formula
+    model <- model_frame(formula = outcome,
+                         data = data,
+                         pop_totals = pop_totals)
+
+    h_object <- theta_h_estimation(R = R,
+                                   X = X_sel,
+                                   weights_rand = weights_rand,
+                                   weights = weights,
+                                   h = h,
+                                   method_selection = method_selection,
+                                   maxit = maxit) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
+
+    theta_hat <- h_object$theta_h
+    hess_h <- h_object$hess
+    grad_h <- h_object$grad
+    names(theta_hat) <- c("(Intercept)", model$nons_names)
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
-    ps_nons <- inv_link(theta_h %*% t(model$X_nons))
+    ps_nons <- inv_link(theta_hat %*% t(model$X_nons))
     N_nons <- sum(1/ps_nons)
 
     mu_hat <- mu_hatIPW(model$y_nons, weights = 1/ps_nons, N = N_nons)
     var <- 0
     se_nonprob <- 0
     se_prob <- 0
-    theta_hat <- NULL
-  } else if (is.null(pop_totals) && is.null(svydesign) && !is.null(pop_means)) {
-    if (!is.null(pop_size)) pop_totals <- pop_size * pop_means
-
-    # model for outcome formula
-    model <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
-
-    theta_h <- theta_h_estimation(R = rep(1, nrow(model$X_nons)),
-                                  X = model$X_nons,
-                                  weights_rand = NULL,
-                                  weights = weights,
-                                  h = h,
-                                  method_selection = method_selection,
-                                  maxit = maxit,
-                                  pop_totals = model$pop_totals)
-    names(theta_h) <- c("(Intercept)", model$nons_names)
-    method <- get_method(method_selection)
-    inv_link <- method$make_link_inv
-    ps_nons <- inv_link(theta_h %*% t(model$X_nons))
-    N_nons <- sum(1/ps_nons)
-
-    mu_hat <- mu_hatIPW(model$y_nons, weights = 1/ps_nons, N = N_nons)
-    var <- 0
-    se_nonprob <- 0
-    se_prob <- 0
-    theta_hat <- NULL
   }
-
   else {
-    stop("Please, provide ...")
+    stop("Please, provide svydesign object or pop_totals/pop_means.")
   }
 
   # case when samples overlap - to finish
@@ -327,11 +304,10 @@ nonprobIPW <- function(selection,
          SE = se,
          #VAR_nonprob = V1,
          #VAR_prob = V2,
-         SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
-         SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
+         SE_nonprob = ifelse(var_method == "analytic", se_nonprob, inf),
+         SE_prob = ifelse(var_method == "analytic", se_prob, inf),
          #variance_covariance = V_mx,
          CI = ci,
-         theta_h = theta_h,
          theta = theta_hat
          #theta_variance = theta_hat_var,
          #pearson_residuals = pearson_residuals,
@@ -347,7 +323,7 @@ mu_hatIPW <- function(y,
                       weights,
                       N) {
 
-  mu_hat <- (1/N) * sum(y * weights)
+  mu_hat <- (1/N) * sum(weights * y)
   mu_hat
 
 }
