@@ -11,28 +11,30 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// fit_nonprobsvy_rcpp
-arma::vec fit_nonprobsvy_rcpp(arma::mat X, arma::vec R, arma::vec weights, std::string method_selection, std::string h, double lambda, int maxit, double eps, bool warn);
-RcppExport SEXP _nonprobsvy_fit_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weightsSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP lambdaSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP warnSEXP) {
+// cv_nonprobsvy_rcpp
+Rcpp::List cv_nonprobsvy_rcpp(arma::mat X, arma::vec R, arma::vec weights_X, std::string method_selection, std::string h, int maxit, double eps, double lambda_min, int nlambda, int nfolds, double lambda);
+RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type R(RSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type weights_X(weights_XSEXP);
     Rcpp::traits::input_parameter< std::string >::type method_selection(method_selectionSEXP);
     Rcpp::traits::input_parameter< std::string >::type h(hSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    Rcpp::traits::input_parameter< bool >::type warn(warnSEXP);
-    rcpp_result_gen = Rcpp::wrap(fit_nonprobsvy_rcpp(X, R, weights, method_selection, h, lambda, maxit, eps, warn));
+    Rcpp::traits::input_parameter< double >::type lambda_min(lambda_minSEXP);
+    Rcpp::traits::input_parameter< int >::type nlambda(nlambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type nfolds(nfoldsSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(cv_nonprobsvy_rcpp(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, lambda));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_nonprobsvy_fit_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_fit_nonprobsvy_rcpp, 9},
+    {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 11},
     {NULL, NULL, 0}
 };
 

@@ -4,9 +4,9 @@
 
 logit <- function(...) {
 
-  link <- function(x) {log(x / (1 - x))}
-  inv_link <- function(x) {exp(x)/(1 + exp(x))}
-  dlink <- function(x) {1 / (x**2 - x)}
+  link <- function(mu) {log(mu / (1 - mu))}
+  inv_link <- function(eta) {exp(eta)/(1 + exp(eta))}
+  dlink <- function(mu) {1 / (mu**2 - mu)}
 
 
   log_like <- function(X_nons, X_rand, weights, ...) {
@@ -110,6 +110,16 @@ logit <- function(...) {
       V2
     }
 
+    UTB <- function(X, R, weights, ps, mu_der, eta_pi, res, psd) {
+
+      n <- length(R)
+      R_rand <- 1 - R
+
+      utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
+               apply(X * R * (1/ps-1) * res, 2, sum))/n
+      utb
+
+    }
       structure(
         list(
           make_log_like = log_like,
@@ -120,7 +130,8 @@ logit <- function(...) {
           make_link_der = dlink,
           make_propen_score = ps_est,
           variance_covariance1 = variance_covariance1,
-          variance_covariance2 = variance_covariance2
+          variance_covariance2 = variance_covariance2,
+          UTB = UTB
         ),
         class = "method_selection"
       )

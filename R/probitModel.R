@@ -6,8 +6,9 @@
 
 probit <- function(...) {
 
-  inv_link <- function(x) {pnorm(x)}
-  dinv_link <- function(x) {dnorm(x)}
+  link <- function(mu) qnorm(mu)
+  inv_link <- function(eta) {pnorm(eta)}
+  dinv_link <- function(eta) {dnorm(eta)}
 
   log_like <- function(X_nons, X_rand, weights, ...) {
 
@@ -120,6 +121,15 @@ probit <- function(...) {
     V2
   }
 
+  UTB <- function(X, R, weights, ps, eta_pi, mu_der, psd) {
+
+    n0 <- length(R)
+    R_rand <- 1 - R
+
+    utb <- c(apply(X *R /ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
+              apply(X * R * psd/ps^2 * res, 2, sum))/n
+  }
+
   structure(
     list(
       make_log_like = log_like,
@@ -129,7 +139,8 @@ probit <- function(...) {
       make_link_inv_der = dinv_link,
       make_propen_score = ps_est,
       variance_covariance1 = variance_covariance1,
-      variance_covariance2 = variance_covariance2
+      variance_covariance2 = variance_covariance2,
+      UTB = UTB
     ),
     class = "method_selection"
   )

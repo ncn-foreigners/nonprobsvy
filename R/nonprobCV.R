@@ -32,8 +32,8 @@ cv_nonprobsvy <- function(X,
                             y = R,
                             weights = weights_X,
                             method_selection = method_selection,
-                            lambda_min = 0,
-                            nlambda = 50)
+                            lambda_min = lambda_min,
+                            nlambda = nlambda)
 
     X_nons <- X_nons[sample(nrow(X_nons)), ]
     X_rand <- X_rand[sample(nrow(X_rand)), ]
@@ -63,7 +63,7 @@ cv_nonprobsvy <- function(X,
         ncols <- ncol(X_test)
         idxx <- 1:(ncols - 2)
 
-        theta_est <- fit_nonprobsvy_rcpp(X = X_train[, idxx], # fit_nonprobsvy_cpp
+        theta_est <- fit_nonprobsvy(X = X_train[, idxx], # fit_nonprobsvy_cpp
                                     R = X_train[, ncols],
                                     weights = X_train[, ncols - 1],
                                     method_selection = method_selection,
@@ -71,7 +71,6 @@ cv_nonprobsvy <- function(X,
                                     lambda = lambda,
                                     maxit = maxit,
                                     eps = eps)
-        print(theta_est)
             if (any(theta_est == 0)) {
           idxx <- idxx[-which(theta_est == 0)]
         }
@@ -84,13 +83,14 @@ cv_nonprobsvy <- function(X,
                    weights = weights_testloss,
                    h = h,
                    method_selection = method_selection)
+        print(theta_est)
       })
       mean(loss_theta_vec)}
   )
     min <- which.min(loss_theta_av)
     lambda <- lambdas[min]
     }
-  theta_est <- fit_nonprobsvy_rcpp(X = X,
+  theta_est <- fit_nonprobsvy(X = X,
                               R = R,
                               weights = weights_X,
                               method_selection = method_selection,
@@ -112,10 +112,10 @@ setup_lambda <- function(X,
                          y,
                          weights,
                          method_selection,
-                         alpha = 1,
                          lambda_min,
-                         log_lambda = FALSE,
                          nlambda,
+                         alpha = 1,
+                         log_lambda = FALSE,
                          ...) { #consider penalty factor here
 
   #fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
@@ -265,7 +265,6 @@ u_theta_der <-  function(R,
     theta <- as.matrix(par)
     X0 <- as.matrix(X)
     p <- ncol(X0)
-    n <- length(R)
     eta_pi <- X0 %*% theta
     ps <- inv_link(eta_pi)
     ps <- as.vector(ps)
@@ -315,13 +314,12 @@ loss_theta <- function(par,
                        R,
                        X,
                        weights,
-                       h,
-                       method_selection) {
+                       method_selection,
+                       h) {
 
   method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
-
 
   theta <- as.matrix(par)
   nAB <- length(R)
@@ -334,8 +332,10 @@ loss_theta <- function(par,
 
   R_rand <- 1 - R
   ps <- as.vector(ps)
-  N_est_rand <- sum(weights[loc_rand])
-  N_est_nons <- sum(1/ps)
+
+  R <- as.vector(R) # <------ required if Rcpp
+  weights <- as.vector(weights) # <------ required if Rcpp
+  R_rand <- as.vector(R_rand) # <------ required if Rcpp
 
   loss <- switch(h,
                  "1" = sum(apply((X0*R/ps - X0*R_rand*weights), 2, sum)^2),

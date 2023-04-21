@@ -14,7 +14,7 @@ controlSel(
   dependence = FALSE,
   smooth = FALSE,
   h_x = c("1", "2"),
-  lambda = NULL,
+  lambda = -1,
   lambda_min = 0.001,
   nlambda = 50,
   nfolds = 10
@@ -35,10 +35,12 @@ controlSel(
 
 \item{dependence}{logical value - `TRUE` if samples are dependent.}
 
+\item{smooth}{-}
+
 \item{h_x}{Smooth function for the estimating equations.
 \itemize{
-   \item 1 -- $\operatorname{h}\left(\bx_i\right) = \bx_i$ - system of equations becomes calibration equations system.
-   \item 2 -- $\operatorname{h}\left(\bx_i\right) = \pi_i^A\left(\bx_i^{\mathrm{T}} \btheta \right) \bx_i$
+   \item 1 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \bx_i$ - system of equations becomes calibration equations system.
+   \item 2 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \pi_i^A\left(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{theta} \right) \boldsymbol{x}_i$
 } Default is `1`.}
 
 \item{lambda}{A user-specified lambda value.}

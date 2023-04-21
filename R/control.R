@@ -10,6 +10,7 @@
 #' @param optim_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param overlap logical value - `TRUE` if samples overlap.
 #' @param dependence logical value - `TRUE` if samples are dependent.
+#' @param smooth -
 #' @param h_x Smooth function for the estimating equations.
 #' \itemize{
 #'    \item 1 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \bx_i$ - system of equations becomes calibration equations system.
@@ -31,7 +32,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        dependence = FALSE,
                        smooth = FALSE,
                        h_x = c("1", "2"),
-                       lambda = NULL,
+                       lambda = -1,
                        lambda_min = .001,
                        nlambda = 50,
                        nfolds = 10

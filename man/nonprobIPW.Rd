@@ -38,6 +38,8 @@ nonprobIPW(
 
 \item{svydesign}{an optional `svydesign` object (from the survey package) containing probability sample.}
 
+\item{pop_totals}{an optional `named vector` with population totals.}
+
 \item{pop_means}{an optional `named vector` with population means.}
 
 \item{pop_size}{an optional `double` with population size.}
@@ -71,8 +73,6 @@ nonprobIPW(
 \item{y}{a}
 
 \item{...}{Additional, optional arguments.}
-
-\item{pop_total}{an optional `named vector` with population totals.}
 }
 \description{
 \code{nonprobIPW} fits model for propensity score inference based on non-probability surveys using various methods.

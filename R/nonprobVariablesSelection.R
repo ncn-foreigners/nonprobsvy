@@ -70,6 +70,13 @@ nonprobSel <- function(selection,
                        y,
                        ...) {
 
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
+  }
+  #if(is.function(family_outcome)) family_outcome <- family_outcome()
+
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
   h <- control_selection$h_x
@@ -87,6 +94,7 @@ nonprobSel <- function(selection,
   } else {
     stop("variable names in data and svydesign do not match")
   }
+
 
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
@@ -114,17 +122,17 @@ nonprobSel <- function(selection,
   p <- ncol(X)
   N_rand <- sum(weights_rand)
 
-  cv <- cv_nonprobsvy(X = X_stand,
-                      R = R,
-                      weights_X = weights_X,
-                      method_selection = method_selection,
-                      h = h,
-                      maxit = maxit,
-                      eps = eps,
-                      lambda_min = lambda_min,
-                      nlambda = nlambda,
-                      nfolds = nfolds,
-                      lambda = lambda)
+  cv <- cv_nonprobsvy_rcpp(X = X_stand,
+                           R = R,
+                           weights_X = weights_X,
+                           method_selection = method_selection,
+                           h = h,
+                           maxit = maxit,
+                           eps = eps,
+                           lambda_min = lambda_min,
+                           nlambda = nlambda,
+                           nfolds = nfolds,
+                           lambda = lambda)
   theta_est <- cv$theta_est[cv$theta_est != 0]
   min <- cv$min
   lambda <- cv$lambda
@@ -171,110 +179,36 @@ nonprobSel <- function(selection,
   weights_nons <- 1/ps_nons_est[loc_nons]
   N_nons <- sum(weights_nons)
 
-  if (family_outcome == "gaussian") {
+  eta <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+  y_hat <- family_nonprobsvy$mu(eta)
+  y_rand <- y_hat[loc_rand]
+  y_nons <- y_hat[loc_nons]
+  sigma <- family_nonprobsvy$variance(mu = y_rand, y = y[loc_rand])
 
-    y_hat <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+  mu_hat <- mu_hatDR(y = y_nons,
+                     y_nons = y_nons,
+                     y_rand = y_rand,
+                     weights_nons = weights_nons,
+                     weights_rand = weights_rand,
+                     N_nons = N_nons,
+                     N_rand = N_rand) #DR estimator
 
-    mu_hat <- mu_hatDR(y = y_nons,
-                       y_nons = y_hat[loc_nons],
-                       y_rand = y_hat[loc_rand],
-                       weights_nons = weights_nons,
-                       weights_rand = weights_rand,
-                       N_nons = N_nons,
-                       N_rand = N_rand) #DR estimator
+  infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
+  infl2 <- (y - y_hat)^2 * R/ps_nons_est
 
-    y_rand <- y_hat[loc_rand]
-    sigmasqhat <- mean((y[loc_rand] - y_hat[loc_rand])^2)
+  # Variance estimatiors ####
+  svydesign <- stats::update(svydesign,
+                             y_rand = y_rand)
+  svydesign_mean <- survey::svymean(~y_rand, svydesign)
 
-    infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
-    infl2 <- (y - y_hat)^2 * R/ps_nons_est
+  var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
+  var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigma))/N_nons^2 # nonprobability component
 
-    # Variance estimatiors ####
-    svydesign <- stats::update(svydesign,
-                               y_rand = y_rand)
-    svydesign_mean <- survey::svymean(~y_rand, svydesign)
+  se_nonprob <- sqrt(var_nonprob)
+  se_prob <- sqrt(var_prob)
 
-    var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigmasqhat))/N_nons^2 # nonprobability component
-
-    se_nonprob <- sqrt(var_nonprob)
-    se_prob <- sqrt(var_prob)
-
-    var <- var_prob + var_nonprob #variance of an estimator
-    se <- sqrt(var) # standard error
-
-  } else if (family_outcome == "binomial") {
-
-    lm <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
-    pi <- exp(lm)/(1 + exp(lm))
-
-    mu_hat <- mu_hatDR(y = y_nons,
-                       y_nons = pi[loc_nons],
-                       y_rand = pi[loc_rand],
-                       weights_nons = weights_nons,
-                       weights_rand = weights_rand,
-                       N_nons = N_nons,
-                       N_rand = N_rand)
-
-
-    pi_rand <- pi[loc_rand]
-
-    sigmasqhat <- pi[loc_rand] * (1 - pi[loc_rand])
-
-    infl1 <- (y - pi)^2 * R/(ps_nons_est^2)
-    infl2 <- (y - pi)^2 * R/ps_nons_est
-
-    # Variance estimators
-    svydesign_mean <- survey::svymean(~pi_rand, svydesign) # probability componemt based on survey package
-
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand*sigmasqhat))/(N_nons^2)
-
-    se_nonprob <- sqrt(var_nonprob)
-    se_prob <- sqrt(var_prob)
-
-    # variance of an estimator
-    var <- var_prob + var_nonprob
-    # standard error
-    se <- sqrt(var)
-
-  } else if (family_outcome == "poisson") { # to fix [variance] # to do with Hajek approximation and/or survey package
-
-    lm <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
-    y_hat <- exp(lm)
-
-    mu_hat <- mu_hatDR(y = y_nons,
-                       y_nons = y_hat[loc_nons],
-                       y_rand = y_hat[loc_rand],
-                       weights_nons = weights_nons,
-                       weights_rand = weights_rand,
-                       N_nons = N_nons,
-                       N_rand = N_rand) #DR estimator
-
-
-    sigmasqhat <- mean(y_hat[loc_rand])
-    y_rand <- y_hat[loc_rand]
-
-    # Variance estimators
-    svydesign <- stats::update(svydesign,
-                               y_rand = y_rand)
-
-    svydesign_mean <- survey::svymean(~y_rand, svydesign)
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
-
-    infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
-    infl2 <- (y - y_hat)^2 * R/ps_nons_est
-
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand*sigmasqhat))/(N_nons^2)
-
-    se_nonprob <- sqrt(V2)
-    se_prob <- sqrt(V1_svy)
-
-    # variance of an estimator
-    var <- var_prob + var_nonprob
-    # standard error
-    se <- sqrt(var)
-  }
+  var <- var_prob + var_nonprob #variance of an estimator
+  se <- sqrt(var) # standard error
 
   alpha <- control_inference$alpha
   z <- stats::qnorm(1-alpha/2)
@@ -454,25 +388,29 @@ u_theta_beta <- function(par,
                          method_selection,
                          family_outcome) {
 
-  method <- method_selection
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
+  method <- get_method(method_selection)
+
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
   }
   inv_link <- method$make_link_inv
 
   p <- ncol(X)
-  n0 <- length(R)
   theta <- par[1:(p+1)]
   beta <- par[(p+2):(2*p+2)]
   X0 <- cbind(1, X)
   eta_pi <- X0 %*% theta
   ps <- inv_link(eta_pi)
-  R_rand <- 1 - R
   y[which(is.na(y))] <- 0
   ps <- as.vector(ps)
+
+  eta <- X0 %*% beta
+  mu <- family_nonprobsvy$mu(eta)
+  mu_der <- family_nonprobsvy$mu_der(mu)
+  res <- family_nonprobsvy$residuals(mu = mu, y = y)
+  psd = NULL
 
   if (method_selection == "probit") {
     dinv_link <- method$make_link_inv_der
@@ -480,48 +418,14 @@ u_theta_beta <- function(par,
     psd <- as.vector(psd)
   }
 
-  if (family_outcome == "gaussian") {
+  UTB <- method$UTB(X = X0,
+                    R= R,
+                    weights = weights,
+                    ps = ps,
+                    eta_pi = eta_pi,
+                    mu_der = mu_der,
+                    res = res,
+                    psd = psd)
 
-    res <- (y - (X0 %*% beta))
-    res <- as.vector(res)
-
-    UTB <- switch(method_selection,
-                  "logit" = c(apply(X0*R/ps-X0*R_rand*weights, 2, sum), # estimating function
-                              apply(X0*R*(1/ps-1)*res, 2, sum))/n0,
-                  "cloglog" = c(apply(X0*R/ps-X0*R_rand*weights, 2, sum), # estimating function
-                                apply(X0*R*(1-ps)/ps^2 * as.vector(exp(eta_pi))*res, 2, sum))/n0,
-                  "probit" = c(apply(X0*R/ps-X0*R_rand*weights, 2, sum), # estimating function
-                               apply(X0*R*psd/ps^2*res, 2, sum))/n0)
-
-  } else if (family_outcome == "binomial") {
-
-    m <- as.vector(exp(X0 %*% beta)/(1 + exp(X0 %*% beta)))
-    res <- as.vector(y - m)
-    m_der <- m * (1 - m) #derivative of m
-
-    UTB <- switch(method_selection,
-                  "logit" = c(apply(X0*R/ps*m_der - X0*R_rand*weights*m_der, 2, sum),
-                              apply(X0*R*(1/ps-1)*res, 2, sum))/n0,
-                  "cloglog" = c(apply(X0*R/ps*m_der - X0*R_rand*weights*m_der, 2, sum),
-                                apply(X0*R*(1-ps)/ps^2 * exp(eta_pi)*res, 2, sum))/n0,
-                  "probit" = c(apply(X0*R/ps*m_der - X0*R_rand*weights*m_der, 2, sum),
-                               apply(X0*R*psd/ps^2*res, 2, sum))/n0)
-
-
-  } else if (family_outcome == "poisson") {
-
-    m <- as.vector(exp(X0 %*% beta))
-    res <- as.vector(y - m)
-    #derivative of is equal to m
-
-    UTB <- switch(method_selection,
-                "logit" = c(apply(X0*R/ps*m - X0*R_rand*weights*m, 2, sum),
-                            apply(X0*R*(1/ps-1)*res, 2, sum))/n0,
-                "cloglog" = c(apply(X0*R/ps*m - X0*R_rand*weights*m, 2, sum),
-                              apply(X0*R*(1-ps)/ps^2 * exp(eta_pi)*res, 2, sum))/n0,
-                "probit" = c(apply(X0*R/ps*m - X0*R_rand*weights*m, 2, sum),
-                             apply(X0*R*psd/ps^2*res, 2, sum))/n0)
-
-  }
   UTB
 }

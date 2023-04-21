@@ -9,7 +9,7 @@ NULL
 #' @param target `formula` with target variables.
 #' @param data an optional `data.frame` with data from the nonprobability sample.
 #' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param pop_total an optional `named vector` with population totals.
+#' @param pop_totals an optional `named vector` with population totals.
 #' @param pop_means an optional `named vector` with population means.
 #' @param pop_size an optional `double` with population size.
 #' @param method_selection a `character` with method for propensity scores estimation
