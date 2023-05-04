@@ -2,11 +2,10 @@
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
-#' @export
 
 probit <- function(...) {
 
-  link <- function(mu) qnorm(mu)
+  link <- function(mu) {qnorm(mu)}
   inv_link <- function(eta) {pnorm(eta)}
   dinv_link <- function(eta) {dnorm(eta)}
 
@@ -28,8 +27,8 @@ probit <- function(...) {
   gradient <-  function(X_nons, X_rand, weights, ...) {
 
     function(theta) {
-      eta1 <- as.matrix(X_nons)%*%theta #linear predictor
-      eta2 <- as.matrix(X_rand) %*%theta
+      eta1 <- as.matrix(X_nons) %*% theta #linear predictor
+      eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
       dlink1 <- dinv_link(eta1)
@@ -59,8 +58,8 @@ probit <- function(...) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like,
                                 grad = gradient,
-                                hess = hessian,
-                                method = "BFGS",
+                                #hess = hessian, # hessian to fix
+                                method = optim_method,
                                 start = start) # NA in gradient for Newton-Raphson method
 
     estim_probit <- maxLik_an$estimate
@@ -76,24 +75,60 @@ probit <- function(...) {
          theta_hat = estim_probit)
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, N = NULL) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h) {
 
-    if (is.null(N)) {
+    N <- pop_size
+    if (est_method == "mle"){
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
+        v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
+        v1_ <- 1/N^2 *  (psd/ps^2 * y) %*% X
+        v_1 <- t(v1_)
+      }
 
-      N <- sum(1/ps)
-      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-      v1_ <- 1/N^2 *  (psd/ps^2 * (y - mu)) %*% X
-      v_1 <- t(v1_)
-    } else {
-      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
-      v1_ <- 1/N^2 *  (psd/ps^2 * y) %*% X
-      v_1 <- t(v1_)
-    }
+      v_2 <- 0
+      for (i in 1:nrow(X)) {
+        v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
+    } else if (est_method == "ee" && h == "1") {
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps^2 * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+        v_1 <- t(v1_)
+      }
 
-    v_2 <- 0
-    for (i in 1:nrow(X)) {
-      v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
-      v_2 <- v_2 + v_2i
+      v_2 <- 0
+      for(i in 1:nrow(X)){
+        v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
+    } else if (est_method == "ee" && h == "2") {
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+        v_1 <- t(v1_)
+      }
+
+      v_2 <- 0
+      for(i in 1:nrow(X)){
+        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
     }
 
     v_2 <- 1/N^2 * v_2
@@ -103,30 +138,44 @@ probit <- function(...) {
     V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, psd, n, N) {
+  variance_covariance2 <- function(X, eps, ps, psd, n, N, est_method, h) {
 
+    if (est_method == "mle") {
+      s <- psd/(1-eps) * as.data.frame(X)
+      ci <- n/(n-1) * (1 - ps)
+      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+      ei <- (s/ps) - B_hat
+      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+      #D.var <- b %*% D %*% t(b) # significantly different than for logit and cloglog
+  } else if (est_method == "ee") {
+    if (h == "1") {
+      s <- as.data.frame(X)
+      ci <- n/(n-1) * (1 - ps)
+      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+      ei <- (s/ps) - B_hat
+      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+    } else if (h == "2") {
+      s <- eps * as.data.frame(X)
+      ci <- n/(n-1) * (1 - ps)
+      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+      ei <- (s/ps) - B_hat
+      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+    }
+  }
 
-    s <- psd/(1-eps) * as.data.frame(X)
-    ci <- n/(n-1) * (1 - ps)
-    B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
-    ei <- (s/ps) - B_hat
-    db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
-
-    D <- (1/N^2) * db_var
-    #D.var <- b %*% D %*% t(b) # significantly different than for logit and cloglog
-
+    D <- 1/N^2 * db_var
     p <- nrow(D) + 1
     V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
     V2[2:p,2:p] <- D
     V2
   }
 
-  UTB <- function(X, R, weights, ps, eta_pi, mu_der, psd) {
+  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res, psd) {
 
     n0 <- length(R)
     R_rand <- 1 - R
 
-    utb <- c(apply(X *R /ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
+    utb <- c(apply(X * R /ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
               apply(X * R * psd/ps^2 * res, 2, sum))/n
   }
 

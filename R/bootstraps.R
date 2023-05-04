@@ -64,7 +64,7 @@ bootIPW <- function(X_rand,
                     n_nons,
                     n_rand,
                     optim_method,
-                    smooth,
+                    est_method,
                     h,
                     maxit,
                     pop_size = NULL,
@@ -72,6 +72,7 @@ bootIPW <- function(X_rand,
   mu_hats <- vector(mode = "numeric", length = num_boot)
   N <- sum(weights_rand)
   k <- 1
+  est_method_fun <- get(est_method, mode = "function", envir = parent.frame())
 
   while (k <= num_boot) {
 
@@ -90,15 +91,12 @@ bootIPW <- function(X_rand,
                                     method_selection = method_selection,
                                     optim_method = optim_method,
                                     h = h,
-                                    smooth = smooth,
+                                    est_method =  est_method,
                                     maxit = maxit)
+    est_method_obj <- est_method_fun(model = model_sel,
+                                     method_selection = method_selection)
 
-    if (!smooth) {
-      maxLik_nons_obj <- model_sel$maxLik_nons_obj
-      ps_nons <- maxLik_nons_obj$ps
-    } else {
-      ps_nons <- model_sel$ps_nons
-    }
+    ps_nons <- est_method_obj$ps_nons
     weights_nons <- 1/ps_nons
     N_est_nons <- ifelse(is.null(pop_size), sum(1/ps_nons), pop_size)
 
@@ -111,7 +109,7 @@ bootIPW <- function(X_rand,
 
   }
 
-  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2)
+  boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
   boot_var
 }
 
@@ -127,16 +125,15 @@ bootDR <- function(SelectionModel,
                    n_nons,
                    n_rand,
                    optim_method,
-                   smooth = FALSE,
-                   h = NULL,
+                   est_method,
+                   h,
                    maxit = NULL,
                    ...) {
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
   N <- sum(weights_rand)
   k <- 1
-
-
+  est_method_fun <- get(est_method, mode = "function", envir = parent.frame())
 
   while (k <= num_boot) {
 
@@ -156,30 +153,23 @@ bootDR <- function(SelectionModel,
     X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
                    SelectionModel$X_nons[strap_nons, ])
 
-      model_sel <- internal_selection(X = X_sel,
-                                      X_nons = SelectionModel$X_nons[strap_nons, ],
-                                      X_rand = SelectionModel$X_rand[strap_rand, ],
-                                      weights = weights[strap_nons],
-                                      weights_rand = weights_rand[strap_rand],
-                                      R = R,
-                                      method_selection = method_selection,
-                                      optim_method = optim_method,
-                                      h = h,
-                                      smooth = smooth,
-                                      maxit = maxit)
+    model_sel <- internal_selection(X = X_sel,
+                                    X_nons = SelectionModel$X_nons[strap_nons, ],
+                                    X_rand = SelectionModel$X_rand[strap_rand, ],
+                                    weights = weights[strap_nons],
+                                    weights_rand = weights_rand[strap_rand],
+                                    R = R,
+                                    method_selection = method_selection,
+                                    optim_method = optim_method,
+                                    h = h,
+                                    est_method = est_method,
+                                    maxit = maxit)
 
-
-    if (!smooth) {
-      maxLik_nons_obj <- model_sel$maxLik_nons_obj
-      maxLik_rand_obj <- model_sel$maxLik_rand_obj
-      theta_hat <- model_sel$theta
-      ps_nons <- maxLik_nons_obj$ps
-    } else {
-      theta_hat <- model_sel$theta_hat
-      ps_nons <- model_sel$ps_nons
-    }
+    est_method_obj <- est_method_fun(model = model_sel,
+                                      method_selection = method_selection)
+    ps_nons <- est_method_obj$ps_nons
     weights_nons <- 1/ps_nons
-    N_est_nons <- sum(1/ps_nons)
+    N_est_nons <- sum(weights_nons)
     N_est_rand <- sum(weights_rand[strap_rand])
 
     mu_hat_boot <- mu_hatDR(y = OutcomeModel$y_nons[strap_nons],
@@ -195,6 +185,6 @@ bootDR <- function(SelectionModel,
 
   }
 
-  boot_var <- 1/num_boot * sum((mu_hats - mean(mu_hats))^2)
+  boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
   boot_var
 }

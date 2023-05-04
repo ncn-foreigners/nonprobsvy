@@ -1,8 +1,10 @@
 #' @title Control parameters for selection model
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
-#' \loadmathjax
 #' @description \code{controlSel} constructs a list with all necessary control parameters
 #' for selection model.
+#'
+#' \loadmathjax
+#'
 #' @param method estimation method.
 #' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
 #' @param maxit Maximum number of iterations.
@@ -10,15 +12,11 @@
 #' @param optim_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param overlap logical value - `TRUE` if samples overlap.
 #' @param dependence logical value - `TRUE` if samples are dependent.
-#' @param smooth -
+#' @param est_method_sel -
 #' @param h_x Smooth function for the estimating equations.
-#' \itemize{
-#'    \item 1 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \bx_i$ - system of equations becomes calibration equations system.
-#'    \item 2 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \pi_i^A\left(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{theta} \right) \boldsymbol{x}_i$
-#' } Default is `1`.
 #' @param lambda A user-specified lambda value.
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
-#' @param nlambda The number of lambda values. Default id 50.
+#' @param nlambda The number of lambda values. Default is 50.
 #' @param nfolds The number of folds for cross validation. Default is 10.
 #'
 #' @export
@@ -30,7 +28,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "NR",
                        overlap = FALSE,
                        dependence = FALSE,
-                       smooth = FALSE,
+                       est_method_sel = c("mle", "ee"),
                        h_x = c("1", "2"),
                        lambda = -1,
                        lambda_min = .001,
@@ -44,7 +42,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
        optim_method = optim_method,
        overlap = overlap,
        dependence = dependence,
-       smooth = smooth,
+       est_method_sel = if(missing(est_method_sel)) "mle" else est_method_sel,
        h_x = if(missing(h_x)) "1" else h_x,
        lambda_min = lambda_min,
        nlambda = nlambda,

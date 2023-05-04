@@ -76,6 +76,7 @@ nonprobIPW(
 }
 \description{
 \code{nonprobIPW} fits model for propensity score inference based on non-probability surveys using various methods.
+
 \loadmathjax
 }
 \author{

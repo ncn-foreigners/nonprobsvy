@@ -1,6 +1,5 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
-#' @export
 
 logit <- function(...) {
 
@@ -38,14 +37,16 @@ logit <- function(...) {
       function(theta) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
-        - t(as.data.frame(X_rand) * (weights * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
+       - t(as.data.frame(X_rand) * (weights * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
 
 
     ps_est <- function(X, log_like, gradient, hessian, start, optim_method) {
 
-      maxLik_an <- maxLik::maxLik(logLik = log_like, grad = gradient, hess = hessian,
+      maxLik_an <- maxLik::maxLik(logLik = log_like,
+                                  grad = gradient,
+                                  hess = hessian,
                                   method = optim_method, start = start)
       logit_estim <- maxLik_an$estimate
       grad <- maxLik_an$gradient
@@ -57,25 +58,48 @@ logit <- function(...) {
            theta_hat = logit_estim)
     }
 
+    # Additional function for b value in Variance - to consider
+    #b_obj <- function(X, y, mu, ps, hess, pop_size, ps_nons_der = NULL) {
+    #}
 
-    variance_covariance1 <- function(X, y, mu, ps, pop_size) { # fixed
+
+    variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method, h) { # fixed
 
       N <- pop_size
-      if (is.null(N)) {
-        N <- sum(1/ps)
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * (y - mu)) %*% X
-        v_1 <- t(v1_)
-      } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
-        v_1 <- t(v1_)
-      }
+      if (est_method == "mle" || (est_method == "ee" && h == "2")) {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps * (y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+          v_1 <- t(v1_)
+        }
 
-      v_2 <- 0
-      for(i in 1:nrow(X)){
-        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
-        v_2 <- v_2 + v_2i
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
+      } else if (est_method == "ee" && h == "1") {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * (y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+          v_1 <- t(v1_)
+        }
+
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i]) / ps[i] * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
       }
 
       v_2 <- 1/N^2 * v_2
@@ -85,20 +109,29 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, eps, ps, n, N) {
-      s <- eps * as.data.frame(X)
+    variance_covariance2 <- function(X, eps, ps, n, N, est_method, h) {
+
+      if (est_method == "mle" || (est_method == "ee" && h == "2")) {
+        s <- eps * as.data.frame(X)
+        ci <- n/(n-1) * (1 - ps)
+        B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+        ei <- (s/ps) - B_hat
+        db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+    } else if (est_method == "ee" && h == "1") {
+      s <- as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
       B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
       ei <- (s/ps) - B_hat
       db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+    }
 
-      D <- (1/N^2) * db_var
+      D <- 1/N^2 * db_var
       #D.var <- b %*% D %*% t(b)
 
       p <- nrow(D) + 1
       V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
 
-      ###################### consider using survey package for D estimator
+      ###################### consider using survey package for D estimation
       #svydesign <- stats::update(svydesign,
       #                           eps = as.vector(eps))
       #svydesign_mean <- survey::svymean(~eps, svydesign)
@@ -135,6 +168,5 @@ logit <- function(...) {
         ),
         class = "method_selection"
       )
-
 
 }

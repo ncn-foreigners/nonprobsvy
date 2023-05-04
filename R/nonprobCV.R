@@ -1,11 +1,7 @@
 # These functions are only used internally in the nonprobSel function, so there is no need for documenting them
-#' @useDynLib nonprobsvy
-#' @import RcppArmadillo
-#' @import Rcpp
-#' @importFrom Rcpp evalCpp
+
 #' @importFrom stats glm
 #' @importFrom stats residuals
-#' @export
 
 
 cv_nonprobsvy <- function(X,
@@ -20,7 +16,7 @@ cv_nonprobsvy <- function(X,
                           nlambda,
                           nfolds) {
 
-  if(!is.null(lambda)) {
+  if(lambda != -1) {
     lambda <- lambda
   } else {
     loc_nons <- which(R == 1)
@@ -83,7 +79,6 @@ cv_nonprobsvy <- function(X,
                    weights = weights_testloss,
                    h = h,
                    method_selection = method_selection)
-        print(theta_est)
       })
       mean(loss_theta_vec)}
   )
@@ -236,10 +231,10 @@ u_theta <- function(R,
 
     if (is.null(pop_totals)) {
       eq <- switch(h,
-                   "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum))/N_nons,
-                   "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum))/N_nons)
+                   "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+                   "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum)))
     } else {
-      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(N_nons, pop_totals))/N_nons
+      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(N_nons, pop_totals))
     }
     eq
   }
@@ -281,7 +276,6 @@ u_theta_der <-  function(R,
     }
     N_nons <- sum(1/ps)
 
-
     if (h == "1" || !is.null(pop_totals)) {
       mxDer <-  switch(method_selection,
                        "logit" = t(R * as.data.frame(X0) * (1-ps)/ps) %*% X0,
@@ -289,12 +283,11 @@ u_theta_der <-  function(R,
                        "probit" = t(R * as.data.frame(X0) * psd/ps^2) %*% X0)
     } else if (h == "2") {
       mxDer <- switch(method_selection,
-                      "logit" = t(R_rand * as.data.frame(X0) * weights * ps/(exp(eta_pi)+1)) %*% X0,
+                      "logit" =  t(R_rand * as.data.frame(X0) * weights * ps * (1-ps)) %*% X0,
                       "cloglog" = t(R_rand * as.data.frame(X0) * weights * (1-ps) * exp(eta_pi)) %*% X0,
                       "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
     }
-    matrix(mxDer/N_nons, nrow = p)
-
+    as.matrix(mxDer, nrow = p) # consider division by N_nons
   }
 }
 

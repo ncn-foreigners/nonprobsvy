@@ -12,7 +12,7 @@ controlSel(
   optim_method = "NR",
   overlap = FALSE,
   dependence = FALSE,
-  smooth = FALSE,
+  est_method_sel = c("mle", "ee"),
   h_x = c("1", "2"),
   lambda = -1,
   lambda_min = 0.001,
@@ -35,27 +35,24 @@ controlSel(
 
 \item{dependence}{logical value - `TRUE` if samples are dependent.}
 
-\item{smooth}{-}
+\item{est_method_sel}{-}
 
-\item{h_x}{Smooth function for the estimating equations.
-\itemize{
-   \item 1 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \bx_i$ - system of equations becomes calibration equations system.
-   \item 2 -- $\operatorname{h}\left(\boldsymbol{x}_i\right) = \pi_i^A\left(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{theta} \right) \boldsymbol{x}_i$
-} Default is `1`.}
+\item{h_x}{Smooth function for the estimating equations.}
 
 \item{lambda}{A user-specified lambda value.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
-\item{nlambda}{The number of lambda values. Default id 50.}
+\item{nlambda}{The number of lambda values. Default is 50.}
 
 \item{nfolds}{The number of folds for cross validation. Default is 10.}
 }
 \description{
 \code{controlSel} constructs a list with all necessary control parameters
 for selection model.
+
+\loadmathjax
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
-\loadmathjax
 }

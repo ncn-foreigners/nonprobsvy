@@ -1,6 +1,5 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
-#' @export
 
 cloglog <- function(...) {
 
@@ -51,18 +50,19 @@ cloglog <- function(...) {
   }
 
 
-  ps_est <- function(X, log_like, gradient, hessian, start, optim.method) {
+  ps_est <- function(X, log_like, gradient, hessian, start, optim_method) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like,
                                 grad = gradient,
                                 hess = hessian,
-                                method = "BFGS",
-                                start = start)
+                                method = optim_method,
+                                start = rep(0, length(start)))
 
     cloglog_estim <- maxLik_an$estimate
     grad <- maxLik_an$gradient
     hess <- maxLik_an$hessian
     estim_ps <- inv_link(cloglog_estim %*% t(as.matrix(X)))
+
 
     list(ps = estim_ps,
          grad = grad,
@@ -71,55 +71,109 @@ cloglog <- function(...) {
   }
 
 
-  variance_covariance1 <- function(X, y, mu, ps, N = NULL) {
+  variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method, h) {
 
-    if (is.null(N)) {
-      N <- sum(1/ps)
-      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
-      v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% X
-      v_1 <- t(v1_)
-    } else {
-      v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
-      v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * y) %*% X
-      v_1 <- t(v1_)
+    N <- pop_size
+    if (est_method == "mle") {
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (y - mu)^2))
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * y) %*% X
+        v_1 <- t(v1_)
+      }
+
+      v_2 <- 0
+      for (i in 1:nrow(X)) {
+        v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
+      v_2 <- 1/N^2 * v_2
+    } else if (est_method == "ee" && h == "1") {
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps^2 * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+        v_1 <- t(v1_)
+      }
+
+      v_2 <- 0
+      for(i in 1:nrow(X)){
+        v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
+    } else if (est_method == "ee" && h == "2") {
+      if (is.null(N)) {
+        N <- sum(1/ps)
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * (y - mu)) %*% X
+        v_1 <- t(v1_)
+      } else {
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps * y) %*% X
+        v_1 <- t(v1_)
+      }
+
+      v_2 <- 0
+      for(i in 1:nrow(X)){
+        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+        v_2 <- v_2 + v_2i
+      }
     }
 
-    v_2 <- 0
-    for (i in 1:nrow(X)) {
-      v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
-      v_2 <- v_2 + v_2i
-    }
     v_2 <- 1/N^2 * v_2
-
     v1_vec <- cbind(v11, v1_)
     v2_mx <- cbind(v_1, v_2)
     V1 <- Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
     V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, n, N) {
-    s <- log(1 - eps) * as.data.frame(X)
-    ci <- n/(n-1) * (1 - ps)
-    B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
-    ei <- (s/ps) - B_hat
-    db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+  variance_covariance2 <- function(X, eps, ps, n, N, est_method, h) {
 
-    D <- (1/N^2) * db_var
-    #D.var <- b %*% D %*% t(b)
+    if (est_method == "mle") {
+      s <- log(1 - eps) * as.data.frame(X)
+      ci <- n/(n-1) * (1 - ps)
+      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+      ei <- (s/ps) - B_hat
+      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+      #D.var <- b %*% D %*% t(b)
+    } else if (est_method == "ee"){
+      if (h == "1"){
+        s <- as.data.frame(X)
+        ci <- n/(n-1) * (1 - ps)
+        B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+        ei <- (s/ps) - B_hat
+        db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+      } else if (h == "2") {
+        s <- eps * as.data.frame(X)
+        ci <- n/(n-1) * (1 - ps)
+        B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+        ei <- (s/ps) - B_hat
+        db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+      }
+    }
 
+    D <- 1/N^2 * db_var
     p <- nrow(D) + 1
     V2 <- Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
     V2[2:p,2:p] <- D
     V2
   }
 
-  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res) {
+  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res, psd) {
 
     n <- length(R)
     R_rand <- 1 - R
 
     utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
-             apply(X * R * (1-ps)/ps^2 * exp(eta_pi) * res, 2, sum))/n
+             apply(X * R * (1-ps)/ps^2 * as.vector(exp(eta_pi)) * res, 2, sum))/n
     utb
 
   }

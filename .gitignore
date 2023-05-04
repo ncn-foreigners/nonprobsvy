@@ -7,3 +7,5 @@ playground
 .Rdata
 .httr-oauth
 .DS_Store
+.o
+.so

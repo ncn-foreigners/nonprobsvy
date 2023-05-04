@@ -84,10 +84,11 @@ nonprobSel(
 \item{...}{Additional, optional arguments.}
 }
 \description{
-\code{nonprobVariablesSelection} fits model for inference based on non-probability surveys using various methods
-with variable selection techniques. Implementation is based on [IntegrativeFPM package](https://github.com/shuyang1987/IntegrativeFPM).
+\code{nonprobSel} fits model for inference based on non-probability surveys using various methods
+with variable selection techniques and doubly robust approach. Implementation is based on [IntegrativeFPM package](https://github.com/shuyang1987/IntegrativeFPM).
+
+\loadmathjax
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
-\loadmathjax
 }

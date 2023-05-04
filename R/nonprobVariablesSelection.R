@@ -2,10 +2,11 @@
 NULL
 #' @title Inference with the non-probability survey samples.
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
-#' \loadmathjax
 #'
-#' @description \code{nonprobVariablesSelection} fits model for inference based on non-probability surveys using various methods
-#' with variable selection techniques. Implementation is based on [IntegrativeFPM package](https://github.com/shuyang1987/IntegrativeFPM).
+#' @description \code{nonprobSel} fits model for inference based on non-probability surveys using various methods
+#' with variable selection techniques and doubly robust approach. Implementation is based on [IntegrativeFPM package](https://github.com/shuyang1987/IntegrativeFPM).
+#'
+#' \loadmathjax
 #'
 #' @param selection `formula`, the selection (propensity) equation.
 #' @param outcome `formula`, the outcome equation.
@@ -33,6 +34,7 @@ NULL
 #' @param y a
 #' @param ... Additional, optional arguments.
 #'
+#' @useDynLib nonprobsvy
 #' @importFrom MASS ginv
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom rootSolve multiroot
@@ -40,6 +42,9 @@ NULL
 #' @importFrom survey svymean
 #' @importFrom Matrix Matrix
 #' @importFrom stats terms
+#' @import RcppArmadillo
+#' @import Rcpp
+#' @importFrom Rcpp evalCpp
 #' @export
 #'
 
@@ -230,9 +235,39 @@ nonprobSel <- function(selection,
          beta = beta_sel
          ),
     class = "Doubly-robust")
-
-
 }
+
+#' @title Inference with the non-probability survey samples.
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description \code{nonprobSelM} fits model for inference based on non-probability surveys using various methods
+#' with variable selection techniques and mass imputation approach.
+#'
+#' \loadmathjax
+#'
+#' @param outcome `formula`, the outcome equation.
+#' @param data an optional `data.frame` with data from the nonprobability sample.
+#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
+#' @param pop_totals an optional `named vector` with population totals.
+#' @param pop_means an optional `named vector` with population means.
+#' @param pop_size an optional `double` with population size.
+#' @param method_outcome a `character` with method for response variable estimation
+#' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
+#' @param strata an optional `vector` specifying strata.
+#' @param weights an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
+#' @param na_action a function which indicates what should happen when the data contain `NAs`.
+#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
+#' @param control_inference a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method
+#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation.
+#' @param verbose verbose, numeric.
+#' @param contrasts a
+#' @param model a
+#' @param x a
+#' @param y a
+#' @param ... Additional, optional arguments.
+#'
+
 
 nonprobSelM <- function(outcome,
                         data,
@@ -374,8 +409,6 @@ nonprobSelM <- function(outcome,
          beta = beta_sel
     ),
     class = "Mass Imputation")
-
-
 }
 
 # joint score equation for theta and beta, used in estimation
@@ -416,6 +449,8 @@ u_theta_beta <- function(par,
     dinv_link <- method$make_link_inv_der
     psd <- dinv_link(eta_pi)
     psd <- as.vector(psd)
+
+
   }
 
   UTB <- method$UTB(X = X0,

@@ -82,7 +82,7 @@ arma::vec u_theta(arma::vec par,
       eq = sum(temp, 0).t() / N_nons;
       break;
     case 2:
-      temp = X0.each_col() % (R/ps - R_rand % weights);
+      temp = X0.each_col() % (R - R_rand % weights % ps);
       eq = sum(temp, 0).t() / N_nons;
       break;
     }
@@ -121,8 +121,9 @@ arma::mat u_theta_der(arma::vec par,
   if (method_selection == "probit") {
     Function inv_link_der = method["make_link_inv_der"];
     SEXP psdd = inv_link_der(eta_pi);
-    arma::vec psd(Rcpp::as<arma::vec>(psdd));
+    psd = Rcpp::as<arma::vec>(psdd);
   }
+
   int n = X0.n_rows;
   int p = X0.n_cols;
   arma::mat mxDer(p, p, arma::fill::zeros);
@@ -156,7 +157,7 @@ arma::mat u_theta_der(arma::vec par,
       }
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
-        arma::mat temp = R_rand(i) * weights(i) * (1-ps(i)) * exp(eta_pi) * X0.row(i).t();
+        arma::mat temp = R_rand(i) * weights(i) * (1-ps(i)) * exp(eta_pi(i)) * X0.row(i).t();
         mxDer += temp * X0.row(i);
       }
     } else if (method_selection == "probit") {
@@ -174,6 +175,22 @@ arma::mat u_theta_der(arma::vec par,
 
   return mxDer / N_nons;
 
+}
+
+arma::vec q_lambda_cpp(arma::vec par, double lambda, double a = 3.7) {
+
+  arma::vec abs_par = arma::abs(par);
+  arma::vec penaltyd(par.size());
+
+  penaltyd.elem(arma::find(abs_par < lambda)).fill(lambda);
+
+  arma::vec tmp = ((a * lambda) - abs_par.elem(arma::find(abs_par >= lambda))) / (a - 1);
+  penaltyd.elem(arma::find(abs_par >= lambda)) = tmp % (tmp > 0);
+
+  // No penalty on the intercept
+  penaltyd(0) = 0;
+
+  return penaltyd;
 }
 
 arma::vec fit_nonprobsvy_rcpp(arma::mat X,
@@ -194,8 +211,8 @@ arma::vec fit_nonprobsvy_rcpp(arma::mat X,
   arma::vec LAMBDA(p, arma::fill::zeros);
   arma::vec par;
 
-  Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function q_lambda_cpp = nonprobsvy_env["q_lambda"]; // to replace on Cpp function
+  //Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
+  //Rcpp::Function q_lambda_cpp = nonprobsvy_env["q_lambda"]; // to replace on Cpp function
 
   int it = 0;
   for (int jj = 1; jj <= maxit; jj++) {
@@ -219,8 +236,11 @@ arma::vec fit_nonprobsvy_rcpp(arma::mat X,
                                           method_selection,
                                           h);
 
-    SEXP q_lambda_output = q_lambda_cpp(par0, lambda);
-    LAMBDA = arma::abs(Rcpp::as<arma::vec>(q_lambda_output)) / (eps + arma::abs(par0));
+    //SEXP q_lambda_output = q_lambda_cpp(par0, lambda);
+    //LAMBDA = arma::abs(Rcpp::as<arma::vec>(q_lambda_output)) / (eps + arma::abs(par0));
+    arma::vec q_lambda_output = q_lambda_cpp(par0, lambda);
+    LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0));
+    //Rcout << "The value of lambda is: " << q_lambda_output << "\n";
 
     par = par0 + arma::inv(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA)) * (u_theta0v - arma::diagmat(LAMBDA) * par0);
 
@@ -238,6 +258,7 @@ arma::vec fit_nonprobsvy_rcpp(arma::mat X,
 }
 
 
+
 // [[Rcpp::export]]
 Rcpp::List cv_nonprobsvy_rcpp(arma::mat X,
                               arma::vec R,
@@ -252,7 +273,6 @@ Rcpp::List cv_nonprobsvy_rcpp(arma::mat X,
                               double lambda = -1) {
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-
   Rcpp::Function setup_lambda_cpp = nonprobsvy_env["setup_lambda"];
 
   arma::vec weights;

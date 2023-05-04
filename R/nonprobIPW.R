@@ -4,7 +4,9 @@ NULL
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
 #' @description \code{nonprobIPW} fits model for propensity score inference based on non-probability surveys using various methods.
+#'
 #' \loadmathjax
+#'
 #' @param selection `formula`, the selection (propensity) equation.
 #' @param target `formula` with target variables.
 #' @param data an optional `data.frame` with data from the nonprobability sample.
@@ -66,7 +68,7 @@ nonprobIPW <- function(selection,
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
   var_method <- control_inference$var_method
-  smooth <- control_selection$smooth
+  est_method <- control_selection$est_method_sel
   #weights <- rep.int(1, nrow(data)) # to remove
 
   # formula for outcome variable if target defined
@@ -110,40 +112,22 @@ nonprobIPW <- function(selection,
                                     method_selection = method_selection,
                                     optim_method = optim_method,
                                     h = h,
-                                    smooth = smooth,
+                                    est_method = est_method,
                                     maxit = maxit,
                                     varcov = TRUE)
 
-    if (!smooth) {
-
-      maxLik_nons_obj <- model_sel$maxLik_nons_obj
-      maxLik_rand_obj <- model_sel$maxLik_rand_obj
-      log_likelihood <- model_sel$log_likelihood # maximum of the loglikelihood function
-      theta_hat <- model_sel$theta
-
-      ps_nons <- maxLik_nons_obj$ps
-      est_ps_rand <- maxLik_rand_obj$ps
-      hess <- maxLik_nons_obj$hess
-      var_cov1 <- model_sel$var_cov1
-      var_cov2 <- model_sel$var_cov2
-
-
-      if (method_selection == "probit") { # for probit model, propensity score derivative is required
-        ps_nons_der <- maxLik_nons_obj$psd
-        est_ps_rand_der <- maxLik_rand_obj$psd
-      }
-
-    } else {
-      theta_hat <- model_sel$theta_hat
-      hess <- model_sel$hess
-      grad <- model_sel$grad
-      ps_nons <- model_sel$ps_nons
-      est_ps_rand <- model_sel$est_ps_rand
-      ps_nons_der <- model_sel$ps_nons_der
-      est_ps_rand_der <- model_sel$est_ps_rand_der
-      var_method <- "bootstrap"
-      #TO DO - variance estimation for theta_h
-    }
+    est_method_fun <- get(est_method, mode = "function", envir = parent.frame())
+    est_method_obj <- est_method_fun(model = model_sel,
+                                     method_selection = method_selection)
+    theta_hat <- est_method_obj$theta_hat
+    grad <- est_method_obj$grad
+    hess <- est_method_obj$hess
+    var_cov1 <- est_method_obj$var_cov1
+    var_cov2 <- est_method_obj$var_cov2
+    ps_nons <- est_method_obj$ps_nons
+    est_ps_rand <- est_method_obj$est_ps_rand
+    ps_nons_der <- est_method_obj$ps_nons_der
+    est_ps_rand_der <- est_method_obj$est_ps_rand_der
 
     names(theta_hat) <- c("(Intercept)", nons_names)
     weights_nons <- 1/ps_nons
@@ -159,6 +143,9 @@ nonprobIPW <- function(selection,
                         N = N) # IPW estimator
 
     if (var_method == "analytic") {
+      #print(hess)
+      #print(is.positive.definite(round(hess, 3)))
+      #print(is.symmetric.matrix(round(hess, 3)))
      var_obj <- internal_varIPW(X_nons = X_nons,
                                 X_rand = X_rand,
                                 y_nons = y_nons,
@@ -173,6 +160,9 @@ nonprobIPW <- function(selection,
                                 n_rand = n_rand,
                                 pop_size = pop_size,
                                 method_selection = method_selection,
+                                est_method = est_method,
+                                theta = theta_hat,
+                                h = h,
                                 var_cov1 = var_cov1,
                                 var_cov2 = var_cov2)
 
@@ -196,7 +186,7 @@ nonprobIPW <- function(selection,
                      n_nons = n_nons,
                      n_rand = n_rand,
                      optim_method = optim_method,
-                     smooth = smooth,
+                     est_method = est_method,
                      h = h,
                      maxit = maxit,
                      pop_size = pop_size,
