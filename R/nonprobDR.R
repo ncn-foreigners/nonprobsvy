@@ -138,7 +138,7 @@ nonprobDR <- function(selection,
     est_ps_rand_der = est_method_obj$est_ps_rand_der
 
 
-    names(theta_hat) <- c("(Intercept)", SelectionModel$nons_names)
+    names(theta_hat) <- colnames(X_sel)
     weights_nons <- 1/ps_nons
     N_nons <- sum(weights_nons)
     N_rand <- sum(weights_rand)

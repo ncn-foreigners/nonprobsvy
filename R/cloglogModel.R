@@ -3,9 +3,11 @@
 
 cloglog <- function(...) {
 
-  link <- function(mu) {log(-log(1 - mu))}
-  inv_link <- function(eta) {1 - exp(-exp(eta))}
-  dlink <- function(mu) {1 / ((mu - 1) * log(1 - mu))}
+  link <- function(mu) {log(-log(1 - mu))} # link
+  inv_link <- function(eta) {1 - exp(-exp(eta))} # inverse link
+  dlink <- function(mu) {1 / ((mu - 1) * log(1 - mu))} # first derivative of link
+  dinv_link <- function(eta) {exp(eta - exp(eta))} # first derivative of inverse link
+  inv_link_rev <- function(eta){exp(eta + exp(eta))/(1 - exp(-exp(eta)))^2}
 
   log_like <- function(X_nons, X_rand, weights, ...) {
 
@@ -167,13 +169,17 @@ cloglog <- function(...) {
     V2
   }
 
-  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res, psd) {
+  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res) {
 
     n <- length(R)
     R_rand <- 1 - R
 
+    #print(summary((1 - ps)/ps^2 * as.vector(exp(eta_pi))))
+    #print(summary(ps))
+
     utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
-             apply(X * R * (1-ps)/ps^2 * as.vector(exp(eta_pi)) * res, 2, sum))/n
+             apply(X * R * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n ## as.vector(exp(eta))
+
     utb
 
   }
@@ -186,6 +192,8 @@ cloglog <- function(...) {
       make_link_fun = link,
       make_link_inv = inv_link,
       make_link_der = dlink,
+      make_link_inv_der = dinv_link,
+      make_link_inv_rev = inv_link_rev,
       make_propen_score = ps_est,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,

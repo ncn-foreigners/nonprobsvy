@@ -255,37 +255,26 @@ u_theta_der <-  function(R,
 
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
+  dinv_link <- method$make_link_inv_der
+  inv_link_rev <- method$make_link_inv_rev
 
   function(par) {
     theta <- as.matrix(par)
     X0 <- as.matrix(X)
     p <- ncol(X0)
-    eta_pi <- X0 %*% theta
-    ps <- inv_link(eta_pi)
+    eta <- X0 %*% theta
+    ps <- inv_link(eta)
     ps <- as.vector(ps)
     R_rand <- 1 - R
 
-    R <- as.vector(R) # <------ required if Rcpp
-    weights <- as.vector(weights) # <------ required if Rcpp
-    R_rand <- as.vector(R_rand) # <------ required if Rcpp
-
-    if (method_selection == "probit") {
-      dinv_link <- method$make_link_inv_der
-      psd <- dinv_link(eta_pi)
-      psd <- as.vector(psd)
-    }
-    N_nons <- sum(1/ps)
+    #R <- as.vector(R) # <------ required if Rcpp
+    #weights <- as.vector(weights) # <------ required if Rcpp
+    #R_rand <- as.vector(R_rand) # <------ required if Rcpp
 
     if (h == "1" || !is.null(pop_totals)) {
-      mxDer <-  switch(method_selection,
-                       "logit" = t(R * as.data.frame(X0) * (1-ps)/ps) %*% X0,
-                       "cloglog" = t(R * as.data.frame(X0) * (1-ps)/ps^2 * exp(eta_pi)) %*% X0,
-                       "probit" = t(R * as.data.frame(X0) * psd/ps^2) %*% X0)
+      mxDer <- t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0
     } else if (h == "2") {
-      mxDer <- switch(method_selection,
-                      "logit" =  t(R_rand * as.data.frame(X0) * weights * ps * (1-ps)) %*% X0,
-                      "cloglog" = t(R_rand * as.data.frame(X0) * weights * (1-ps) * exp(eta_pi)) %*% X0,
-                      "probit" = t(R_rand * as.data.frame(X0) * weights * psd) %*% X0)
+      mxDer <-  t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
   }

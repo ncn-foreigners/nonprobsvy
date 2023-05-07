@@ -162,7 +162,12 @@ nonprobSel <- function(selection,
   idx <- unique(c(beta_selected[-1], theta_selected[-1])) # excluding intercepts
   psel <- length(idx)
   Xsel <- as.matrix(X[, idx + 1])
-
+  #start <- start_fit(Xsel,
+  #                   R,
+  #                   weights,
+  #                   weights_rand,
+  #                   method_selection)
+  #par0 <- c(rep(0, psel + 2), start)
   par0 <- rep(0, 2*(psel + 1))
 
   # root for joint score equation
@@ -443,24 +448,15 @@ u_theta_beta <- function(par,
   mu <- family_nonprobsvy$mu(eta)
   mu_der <- family_nonprobsvy$mu_der(mu)
   res <- family_nonprobsvy$residuals(mu = mu, y = y)
-  psd = NULL
 
-  if (method_selection == "probit") {
-    dinv_link <- method$make_link_inv_der
-    psd <- dinv_link(eta_pi)
-    psd <- as.vector(psd)
-
-
-  }
 
   UTB <- method$UTB(X = X0,
-                    R= R,
+                    R = R,
                     weights = weights,
-                    ps = ps,
+                    ps,
                     eta_pi = eta_pi,
                     mu_der = mu_der,
-                    res = res,
-                    psd = psd)
+                    res = res)
 
   UTB
 }

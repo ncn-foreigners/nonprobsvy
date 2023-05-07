@@ -3,9 +3,11 @@
 
 logit <- function(...) {
 
-  link <- function(mu) {log(mu / (1 - mu))}
-  inv_link <- function(eta) {exp(eta)/(1 + exp(eta))}
-  dlink <- function(mu) {1 / (mu**2 - mu)}
+  link <- function(mu) {log(mu / (1 - mu))} # link
+  inv_link <- function(eta) {exp(eta)/(1 + exp(eta))} # inverse link
+  dlink <- function(mu) {1 / (mu**2 - mu)} # first derivative of link
+  dinv_link <- function(eta) {exp(eta) / ((1 + exp(eta))^2)} # first derivative of inverse link
+  inv_link_rev <- function(eta){exp(-eta)} # first derivative of 1/inv_link
 
 
   log_like <- function(X_nons, X_rand, weights, ...) {
@@ -143,13 +145,16 @@ logit <- function(...) {
       V2
     }
 
-    UTB <- function(X, R, weights, ps, mu_der, eta_pi, res, psd) {
+    UTB <- function(X, R, weights, ps, mu_der, eta_pi, res) {
 
       n <- length(R)
       R_rand <- 1 - R
 
+      #print(summary((1/ps-1)))
+      #print(summary(ps))
+
       utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
-               apply(X * R * (1/ps-1) * res, 2, sum))/n
+               apply(X * R * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n
       utb
 
     }
@@ -161,6 +166,8 @@ logit <- function(...) {
           make_link = link,
           make_link_inv = inv_link,
           make_link_der = dlink,
+          make_link_inv_der = dinv_link,
+          make_link_inv_rev = inv_link_rev,
           make_propen_score = ps_est,
           variance_covariance1 = variance_covariance1,
           variance_covariance2 = variance_covariance2,

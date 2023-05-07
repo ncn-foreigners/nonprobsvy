@@ -5,9 +5,11 @@
 
 probit <- function(...) {
 
-  link <- function(mu) {qnorm(mu)}
-  inv_link <- function(eta) {pnorm(eta)}
-  dinv_link <- function(eta) {dnorm(eta)}
+  link <- function(mu) {qnorm(mu)} # link
+  inv_link <- function(eta) {pnorm(eta)} # inverse link
+  dinv_link <- function(eta) {dnorm(eta)} # first derivative of inverse link
+  dlink <- function(mu) 1/dnorm(qnorm(mu)) # first derivative of link
+  inv_link_rev <- function(eta){dnorm(eta)/pnorm(eta)^2} # first derivative of 1/inv_link
 
   log_like <- function(X_nons, X_rand, weights, ...) {
 
@@ -170,22 +172,30 @@ probit <- function(...) {
     V2
   }
 
-  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res, psd) {
+  UTB <- function(X, R, weights, ps, eta_pi, mu_der, res) {
 
-    n0 <- length(R)
+    n <- length(R)
     R_rand <- 1 - R
 
-    utb <- c(apply(X * R /ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
-              apply(X * R * psd/ps^2 * res, 2, sum))/n
+    #print(summary(psd/ps^2))
+    #print(summary(ps))
+
+    utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
+              apply(X * R * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n
+
+    utb
   }
 
   structure(
     list(
+      make_link = link,
+      make_dlink = dlink,
       make_log_like = log_like,
       make_gradient = gradient,
       make_hessian = hessian,
       make_link_inv = inv_link,
       make_link_inv_der = dinv_link,
+      make_link_inv_rev = inv_link_rev,
       make_propen_score = ps_est,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,

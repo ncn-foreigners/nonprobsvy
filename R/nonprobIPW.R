@@ -129,7 +129,7 @@ nonprobIPW <- function(selection,
     ps_nons_der <- est_method_obj$ps_nons_der
     est_ps_rand_der <- est_method_obj$est_ps_rand_der
 
-    names(theta_hat) <- c("(Intercept)", nons_names)
+    names(theta_hat) <- colnames(X)
     weights_nons <- 1/ps_nons
 
     if (!is.null(pop_size)) {
@@ -143,7 +143,6 @@ nonprobIPW <- function(selection,
                         N = N) # IPW estimator
 
     if (var_method == "analytic") {
-      #print(hess)
       #print(is.positive.definite(round(hess, 3)))
       #print(is.symmetric.matrix(round(hess, 3)))
      var_obj <- internal_varIPW(X_nons = X_nons,

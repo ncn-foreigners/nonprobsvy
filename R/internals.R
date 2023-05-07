@@ -143,7 +143,12 @@ theta_h_estimation <- function(R,
                                pop_means = NULL){
 
   p <- ncol(X)
-  start0 <- rep(0, p)
+  #start0 <- rep(0, p)
+  start0 <- start_fit(X = X,
+                      R = R,
+                      weights = weights,
+                      d = weights_rand,
+                      method_selection = method_selection)
   # theta estimation by unbiased estimating function depending on the h_x function TODO
   u_theta <- u_theta(R = R,
                      X = X,
@@ -158,6 +163,8 @@ theta_h_estimation <- function(R,
                              h = h,
                              method_selection = method_selection,
                              pop_totals = pop_totals)
+
+
   for (i in 1:maxit) {
     start <- start0 + MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
     if (sum(abs(start - start0)) < 0.001) break;
@@ -165,6 +172,8 @@ theta_h_estimation <- function(R,
     start0 <- start
   }
   theta_h <- as.vector(start)
+  # opt <- rootSolve::multiroot(f = u_theta, start = start0) <---- just for tests
+
 
   list(theta_h = theta_h,
        hess = u_theta_der(theta_h),
@@ -290,6 +299,7 @@ internal_varDR <- function(OutcomeModel,
                            h) {
 
   exp_eta <- as.vector(exp(SelectionModel$X_nons %*% as.matrix(theta)))
+  print(hess)
   h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # errors mean
   b <- switch(method_selection,
               "logit" = - (((1 - ps_nons)/ps_nons) * (OutcomeModel$y_nons - y_nons_pred - h_n)) %*% SelectionModel$X_nons %*% solve(hess),
@@ -342,7 +352,7 @@ model_frame <- function(formula, data, svydesign = NULL, pop_totals = NULL, pop_
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
   nons_names <- attr(terms(formula, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+    X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
   } else {
     stop("variable names in data and svydesign do not match")
   }
