@@ -299,7 +299,6 @@ internal_varDR <- function(OutcomeModel,
                            h) {
 
   exp_eta <- as.vector(exp(SelectionModel$X_nons %*% as.matrix(theta)))
-  print(hess)
   h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # errors mean
   b <- switch(method_selection,
               "logit" = - (((1 - ps_nons)/ps_nons) * (OutcomeModel$y_nons - y_nons_pred - h_n)) %*% SelectionModel$X_nons %*% solve(hess),
