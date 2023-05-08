@@ -257,6 +257,7 @@ nonprobMI_fit <- function(outcome,
     family <- family()
   }
 
+  print(summary(weights))
   model_nons <- stats::glm.fit(x = x,
                                y = y,
                                weights = weights,

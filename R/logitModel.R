@@ -7,7 +7,7 @@ logit <- function(...) {
   inv_link <- function(eta) {exp(eta)/(1 + exp(eta))} # inverse link
   dlink <- function(mu) {1 / (mu**2 - mu)} # first derivative of link
   dinv_link <- function(eta) {exp(eta) / ((1 + exp(eta))^2)} # first derivative of inverse link
-  inv_link_rev <- function(eta){exp(-eta)} # first derivative of 1/inv_link
+  inv_link_rev <- function(eta) {exp(-eta)} # first derivative of 1/inv_link
 
 
   log_like <- function(X_nons, X_rand, weights, ...) {
@@ -68,7 +68,7 @@ logit <- function(...) {
     variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method, h) { # fixed
 
       N <- pop_size
-      if (est_method == "mle" || (est_method == "ee" && h == "2")) {
+      if (est_method == "mle" || (est_method == "gee" && h == "2")) {
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
@@ -85,7 +85,7 @@ logit <- function(...) {
           v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
-      } else if (est_method == "ee" && h == "1") {
+      } else if (est_method == "gee" && h == "1") {
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
@@ -113,13 +113,13 @@ logit <- function(...) {
 
     variance_covariance2 <- function(X, eps, ps, n, N, est_method, h) {
 
-      if (est_method == "mle" || (est_method == "ee" && h == "2")) {
+      if (est_method == "mle" || (est_method == "gee" && h == "2")) {
         s <- eps * as.data.frame(X)
         ci <- n/(n-1) * (1 - ps)
         B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
         ei <- (s/ps) - B_hat
         db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
-    } else if (est_method == "ee" && h == "1") {
+    } else if (est_method == "gee" && h == "1") {
       s <- as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
       B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
@@ -158,6 +158,32 @@ logit <- function(...) {
       utb
 
     }
+
+    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size) {
+
+      hess_inv <- solve(hess)
+      if (is.null(pop_size)) {
+        b <- - ((1 - ps)/ps * (y - mu)) %*% X %*% hess_inv
+      } else {
+        b <- - ((1 - ps)/ps * y) %*% X %*% hess_inv
+      }
+      list(b = b,
+           hess_inv = hess_inv)
+    }
+
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess) {
+      hess_inv <- solve(hess)
+      - (((1 - ps)/ps) * (y - y_pred - h_n)) %*% X %*% hess_inv
+    }
+
+    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N) {
+      as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(y_nons)
+    }
+
+    var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N) {
+      1/N^2 * sum((1 - ps) * ((y - y_pred - h_n)/ps - b %*% t(X))^2)
+    }
+
       structure(
         list(
           make_log_like = log_like,
@@ -171,7 +197,11 @@ logit <- function(...) {
           make_propen_score = ps_est,
           variance_covariance1 = variance_covariance1,
           variance_covariance2 = variance_covariance2,
-          UTB = UTB
+          UTB = UTB,
+          b_vec_ipw = b_vec_ipw,
+          b_vec_dr = b_vec_dr,
+          t_vec = t_vec,
+          var_nonprob = var_nonprob
         ),
         class = "method_selection"
       )

@@ -4,7 +4,14 @@
 \alias{start_fit}
 \title{start_fit}
 \usage{
-start_fit(X, R, weights, d, method_selection, control_selection = controlSel())
+start_fit(
+  X,
+  R,
+  weights,
+  weights_rand,
+  method_selection,
+  control_selection = controlSel()
+)
 }
 \arguments{
 \item{X}{- a}
@@ -13,7 +20,7 @@ start_fit(X, R, weights, d, method_selection, control_selection = controlSel())
 
 \item{weights}{- a}
 
-\item{d}{- a}
+\item{weights_rand}{- a}
 
 \item{method_selection}{- a}
 

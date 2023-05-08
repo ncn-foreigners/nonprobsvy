@@ -12,7 +12,7 @@ controlSel(
   optim_method = "NR",
   overlap = FALSE,
   dependence = FALSE,
-  est_method_sel = c("mle", "ee"),
+  est_method_sel = c("mle", "gee"),
   h_x = c("1", "2"),
   lambda = -1,
   lambda_min = 0.001,

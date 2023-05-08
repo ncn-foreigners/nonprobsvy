@@ -116,9 +116,9 @@ nonprobIPW <- function(selection,
                                     maxit = maxit,
                                     varcov = TRUE)
 
-    est_method_fun <- get(est_method, mode = "function", envir = parent.frame())
-    est_method_obj <- est_method_fun(model = model_sel,
-                                     method_selection = method_selection)
+    est_method_fun <- get_method(est_method)
+    est_method_obj <- est_method_fun$estimation_model(model = model_sel,
+                                                      method_selection = method_selection)
     theta_hat <- est_method_obj$theta_hat
     grad <- est_method_obj$grad
     hess <- est_method_obj$hess
@@ -207,7 +207,7 @@ nonprobIPW <- function(selection,
                          pop_totals = pop_totals)
 
     h_object <- theta_h_estimation(R = R,
-                                   X = X_sel,
+                                   X = X,
                                    weights_rand = weights_rand,
                                    weights = weights,
                                    h = h,
@@ -324,29 +324,29 @@ mu_hatIPW <- function(y,
 #' @param X - a
 #' @param R - a
 #' @param weights - a
-#' @param d - a
+#' @param weights_rand - a
 #' @param method_selection - a
 #' @param control_selection - a
 
 start_fit <- function(X,
                       R,
                       weights,
-                      d,
+                      weights_rand,
                       method_selection,
                       control_selection = controlSel()) {
 
-  weights <- c(weights, d)
+  weights_to_glm <- c(weights_rand, weights)
 
   start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
                                 y = R,
-                                #weights = c(weights, d), # to fix
+                                weights = weights_to_glm, # to fix
                                 family = binomial(link = method_selection),
                                 control = list(control_selection$epsilon,
                                                control_selection$maxit,
                                                control_selection$trace)
   )
-  start <- start_model$coefficients
-  start
+  start_model$coefficients
+
 }
 
 

@@ -97,7 +97,7 @@ probit <- function(...) {
         v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
-    } else if (est_method == "ee" && h == "1") {
+    } else if (est_method == "gee" && h == "1") {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
@@ -114,7 +114,7 @@ probit <- function(...) {
         v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
-    } else if (est_method == "ee" && h == "2") {
+    } else if (est_method == "gee" && h == "2") {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (y - mu)^2))
@@ -149,7 +149,7 @@ probit <- function(...) {
       ei <- (s/ps) - B_hat
       db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
       #D.var <- b %*% D %*% t(b) # significantly different than for logit and cloglog
-  } else if (est_method == "ee") {
+  } else if (est_method == "gee") {
     if (h == "1") {
       s <- as.data.frame(X)
       ci <- n/(n-1) * (1 - ps)
@@ -186,6 +186,31 @@ probit <- function(...) {
     utb
   }
 
+  b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size) {
+
+    hess_inv <- solve(hess)
+    if (is.null(pop_size)) {
+      b <- - (psd/ps^2 * (y - mu)) %*% X %*% hess_inv
+    } else {
+      b <- - (psd/ps^2 * (y - mu + 1)) %*% X %*% hess_inv
+    }
+    list(b = b,
+         hess_inv = hess_inv)
+  }
+
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess) {
+    hess_inv <- solve(hess)
+    - (psd/ps^2 * (y - y_pred - h_n)) %*% X %*% hess_inv
+  }
+
+  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N) {
+    as.vector(psd/(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(y_nons)
+  }
+
+  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N) {
+    1/N^2 * sum((1 - ps) * (((y - y_pred - h_n)/ps) - b %*% t(as.matrix(psd/(ps*(1 - ps)) * as.data.frame(X))))^2)
+  }
+
   structure(
     list(
       make_link = link,
@@ -199,7 +224,11 @@ probit <- function(...) {
       make_propen_score = ps_est,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
-      UTB = UTB
+      UTB = UTB,
+      b_vec_ipw = b_vec_ipw,
+      b_vec_dr = b_vec_dr,
+      t_vec = t_vec,
+      var_nonprob = var_nonprob
     ),
     class = "method_selection"
   )
