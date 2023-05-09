@@ -85,7 +85,7 @@ nonprob <- function(selection = NULL,
     data <- data.frame(data)
   }
 
-  if (is.null(weights)) weights <- rep.int(1, nrow(data))
+  if (is.null(weights)) weights <- rep(1, nrow(data))
 
   if(missing(method_selection)) method_selection <- "logit"
   if(missing(family_outcome)) family_outcome <- "gaussian"

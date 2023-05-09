@@ -313,7 +313,7 @@ Rcpp::List cv_nonprobsvy_rcpp(arma::mat X,
     for(int i = 0; i < nlambda; i++) {
       lambda = lambdas1(i);
       arma::vec loss_theta_vec(nfolds);
-    #pragma omp parallel for schedule(dynamic)
+    //#pragma omp parallel for schedule(dynamic)
       for(int j = 0; j < nfolds; j++) {
         // train data for X_nons
         arma::uvec idx_nons = find(folds_nons != sample_nons(j));

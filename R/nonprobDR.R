@@ -110,6 +110,7 @@ nonprobDR <- function(selection,
     y_rand_pred <- model_out$y_rand_pred
     y_nons_pred <- model_out$y_nons_pred
     model_nons_coefs <- model_out$model_nons_coefs
+    beta_statistics <- model_out$parameters_statistics
 
     # Estimation for selection model
     X_nons <- SelectionModel$X_nons
@@ -126,9 +127,9 @@ nonprobDR <- function(selection,
                                     est_method = est_method,
                                     maxit = maxit)
 
-    est_method_fun <- get(est_method, mode = "function", envir = parent.frame())
-    est_method_obj <- est_method_fun(model = model_sel,
-                                     method_selection = method_selection)
+    estimation_method <- get_method(est_method)
+    est_method_obj <- estimation_method$estimation_model(model = model_sel,
+                                                         method_selection = method_selection)
     theta_hat <- est_method_obj$theta_hat
     grad = est_method_obj$grad
     hess = est_method_obj$hess
@@ -136,6 +137,7 @@ nonprobDR <- function(selection,
     est_ps_rand = est_method_obj$est_ps_rand
     ps_nons_der = est_method_obj$ps_nons_der
     est_ps_rand_der = est_method_obj$est_ps_rand_der
+    theta_standard_errors <- sqrt(diag(est_method_obj$variance_covariance))
 
 
     names(theta_hat) <- colnames(X_sel)
@@ -185,25 +187,28 @@ nonprobDR <- function(selection,
       var <- var_prob + var_nonprob
       se_prob <- sqrt(var_prob)
       se_nonprob <- sqrt(var_nonprob)
+      SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
 
     } else if (var_method == "bootstrap") {
-      var <- bootDR(SelectionModel = SelectionModel,
-                    OutcomeModel = OutcomeModel,
-                    family_outcome = family_outcome,
-                    num_boot = 500,
-                    weights = weights,
-                    weights_rand = weights_rand,
-                    R = R,
-                    mu_hat = mu_hat,
-                    method_selection = method_selection,
-                    n_nons = n_nons,
-                    n_rand = n_rand,
-                    optim_method = optim_method,
-                    est_method = est_method,
-                    h = h,
-                    maxit = maxit
-                    )
-      inf <- "not computed for bootstrap variance"
+      var_obj <- bootDR(SelectionModel = SelectionModel,
+                        OutcomeModel = OutcomeModel,
+                        family_outcome = family_outcome,
+                        num_boot = 500,
+                        weights = weights,
+                        weights_rand = weights_rand,
+                        R = R,
+                        theta_hat,
+                        mu_hat = mu_hat,
+                        method_selection = method_selection,
+                        n_nons = n_nons,
+                        n_rand = n_rand,
+                        optim_method = optim_method,
+                        est_method = est_method,
+                        h = h,
+                        maxit = maxit
+                        )
+      SE_values <- "not computed for bootstrap variance"
+      var <- var_obj$boot_var
     } else {
       stop("Invalid method for variance estimation.")
     }
@@ -219,14 +224,17 @@ nonprobDR <- function(selection,
     OutcomeModel <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
     #model for selection formula
     SelectionModel <- model_frame(formula = selection, data = data, pop_totals = pop_totals)
-    theta_hat <- theta_h_estimation(R = rep(1, nrow(SelectionModel$X_nons)),
-                                    X = SelectionModel$X_nons,
-                                    weights_rand = NULL,
-                                    weights = weights,
-                                    h = h,
-                                    method_selection = method_selection,
-                                    maxit = maxit,
-                                    pop_totals = SelectionModel$pop_totals)
+    h_object <- theta_h_estimation(R = rep(1, nrow(SelectionModel$X_nons)),
+                                   X = SelectionModel$X_nons,
+                                   weights_rand = NULL,
+                                   weights = weights,
+                                   h = h,
+                                   method_selection = method_selection,
+                                   maxit = maxit,
+                                   pop_totals = SelectionModel$pop_totals)
+    theta_hat <- h_object$theta_h
+    hess_h <- h_object$hess
+    grad_h <- h_object$grad
     names(theta_hat) <- c("(Intercept)", SelectionModel$nons_names)
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
@@ -266,14 +274,7 @@ nonprobDR <- function(selection,
     stop("Please, provide svydesign object or pop_totals/pop_means.")
   }
 
-  se <- sqrt(var)
-  alpha <- control_inference$alpha
-  z <- stats::qnorm(1-alpha/2)
-
-  # confidence interval based on the normal approximation
-  ci <- c(mu_hat - z * se, mu_hat + z * se)
-
-  # case when samples overlap - to finish
+  # case when samples overlap - TODO
   if (control_selection$overlap) {
 
     weights_nons <- nonprobOv(SelectionModel$X_nons,
@@ -294,21 +295,25 @@ nonprobDR <- function(selection,
   }
 
   mu_hat <- ifelse(control_selection$overlap, mu_hat_Ov, mu_hat)
+  se <- sqrt(var)
+  alpha <- control_inference$alpha
+  z <- stats::qnorm(1-alpha/2)
+  # confidence interval based on the normal approximation
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                              upper_bound = mu_hat + z * se
+  ))))
+  output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+  parameters <- data.frame("Estimate" = theta_hat,
+                           "Std. errors" = theta_standard_errors,
+                           row.names = names(theta_hat))
+
 
   structure(
-    list(mean = mu_hat,
-         #VAR = var,
-         #VAR_nonprob = V,
-         #VAR_prob = W,
-         SE = se,
-         SE_nonprob = ifelse(var_method == "analytic", se_nonprob, inf),
-         SE_prob = ifelse(var_method == "analytic", se_prob, inf),
-         CI = ci,
-         theta = theta_hat,
-         #pearson_residuals = pearson_residuals,
-         #deviance_residuals = deviance_residuals,
-         #log_likelihood = log_likelihood,
-         beta = model_nons_coefs
+    list(output = output,
+         SE_values = SE_values,
+         confidence_interval = confidence_interval,
+         parameters = parameters,
+         beta = beta_statistics
          ),
     class = "Doubly-robust")
 }

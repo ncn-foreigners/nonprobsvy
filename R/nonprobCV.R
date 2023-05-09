@@ -234,7 +234,7 @@ u_theta <- function(R,
                    "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
                    "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum)))
     } else {
-      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(N_nons, pop_totals))
+      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(294294, pop_totals))
     }
     eq
   }
@@ -271,10 +271,13 @@ u_theta_der <-  function(R,
     #weights <- as.vector(weights) # <------ required if Rcpp
     #R_rand <- as.vector(R_rand) # <------ required if Rcpp
 
-    if (h == "1" || !is.null(pop_totals)) {
+    if (!is.null(pop_totals)) {
       mxDer <- t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0
-    } else if (h == "2") {
-      mxDer <-  t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0
+    } else {
+
+      mxDer <-switch(h,
+                    "1" = t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0,
+                    "2" = t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
   }

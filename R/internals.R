@@ -3,6 +3,8 @@
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix
 #' @importFrom stats delete.response
+#' @importFrom stats summary.glm
+#' @importFrom stats contrasts
 
 # Selection model object
 internal_selection <- function(X,
@@ -19,89 +21,20 @@ internal_selection <- function(X,
                                varcov = FALSE,
                                ...) {
 
-  method <- get_method(method = method_selection)
-
-  if (est_method == "mle") {
-
-    ps_method <- method$make_propen_score # function for propensity score estimation
-    loglike <- method$make_log_like
-    gradient <- method$make_gradient
-    hessian <- method$make_hessian
-
-    # initial values for propensity score estimation
-    start <- start_fit(X = X,
-                       R = R,
-                       weight = weights,
-                       weights_rand = weights_rand,
-                       method_selection = method_selection)
-
-    log_like <- loglike(X_nons,
-                        X_rand,
-                        weights_rand)
-
-    gradient <- gradient(X_nons,
-                         X_rand,
-                         weights_rand)
-
-    hessian <- hessian(X_nons,
-                       X_rand,
-                       weights_rand)
-
-    maxLik_nons_obj <- ps_method(X_nons,
-                                 log_like,
-                                 gradient,
-                                 hessian,
-                                 start,
-                                 optim_method)
-
-    maxLik_rand_obj <- ps_method(X_rand,
-                                 log_like,
-                                 gradient,
-                                 hessian,
-                                 start,
-                                 optim_method)
-
-    theta <- maxLik_nons_obj$theta_hat
-    log_likelihood <- log_like(theta)
-
-    list(maxLik_rand_obj = maxLik_rand_obj,
-         maxLik_nons_obj = maxLik_nons_obj,
-         theta = theta,
-         log_likelihood = log_likelihood,
-         var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
-         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"))
-  } else if (est_method == "gee"){
-
-    inv_link <- method$make_link_inv
-    h_object <- theta_h_estimation(R = R,
-                                   X = X,
-                                   weights_rand = weights_rand,
-                                   weights = weights,
-                                   h = h,
-                                   method_selection = method_selection,
-                                   maxit = maxit) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
-    theta_hat <- h_object$theta_h
-    hess <- h_object$hess
-    grad <- h_object$grad
-    ps_nons <- inv_link(theta_hat %*% t(as.matrix(X_nons)))
-    est_ps_rand <- inv_link(theta_hat %*% t(as.matrix(X_rand)))
-
-    if (method_selection == "probit") { # for probit model, propensity score derivative is required
-      dinv_link <- method$make_link_inv_der
-      ps_nons_der <- dinv_link(theta_hat %*% t(as.matrix(X_nons)))
-      est_ps_rand_der <- dinv_link(theta_hat %*% t(as.matrix(X_rand)))
-    }
-
-    list(theta_hat = theta_hat,
-         hess = hess,
-         grad = grad,
-         ps_nons = ps_nons,
-         est_ps_rand = est_ps_rand,
-         ps_nons_der = ifelse(method_selection == "probit", ps_nons_der, NA),
-         est_ps_rand_der = ifelse(method_selection == "probit", est_ps_rand_der, NA),
-         var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
-         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"))
-  }
+  estimation_method <- get_method(est_method)
+  estimation_method$model_selection(X,
+                                    X_nons,
+                                    X_rand,
+                                    weights,
+                                    weights_rand,
+                                    R,
+                                    method_selection,
+                                    optim_method,
+                                    h = h,
+                                    est_method,
+                                    maxit,
+                                    varcov,
+                                    ...)
 
 }
 # Outcome model object
@@ -120,6 +53,7 @@ internal_outcome <- function(X_nons,
 
 
   model_nons_coefs <- model_nons$coefficients
+  parameters_statistics <- stats::summary.glm(model_nons)$coefficients
 
   if (pop_totals) {
     y_rand_pred <- sum(X_rand * model_nons_coefs)
@@ -130,7 +64,8 @@ internal_outcome <- function(X_nons,
 
   list(y_rand_pred = y_rand_pred,
        y_nons_pred = y_nons_pred,
-       model_nons_coefs = model_nons_coefs)
+       model_nons_coefs = model_nons_coefs,
+       parameters_statistics = parameters_statistics)
 
 }
 theta_h_estimation <- function(R,
@@ -144,12 +79,12 @@ theta_h_estimation <- function(R,
                                pop_means = NULL){
 
   p <- ncol(X)
-  #start0 <- rep(0, p)
   start0 <- start_fit(X = X,
                       R = R,
                       weights = weights,
                       weights_rand = weights_rand,
                       method_selection = method_selection)
+  start0 <- rep(0, p)
   # theta estimation by unbiased estimating function depending on the h_x function TODO
   u_theta <- u_theta(R = R,
                      X = X,
@@ -173,12 +108,15 @@ theta_h_estimation <- function(R,
     start0 <- start
   }
   theta_h <- as.vector(start)
+  grad = u_theta(theta_h)
+  hess = u_theta_der(theta_h)
   # opt <- rootSolve::multiroot(f = u_theta, start = start0) <---- just for tests
 
 
   list(theta_h = theta_h,
-       hess = u_theta_der(theta_h),
-       grad = u_theta(theta_h))
+       hess = hess,
+       grad = grad,
+       variance_covariance = solve(hess))
 }
 # Variance for inverse probability weighted estimator
 internal_varIPW <- function(X_nons,
@@ -339,38 +277,48 @@ internal_varDR <- function(OutcomeModel,
        var_nonprob = var_nonprob)
 }
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
 
   if (!is.null(svydesign)) {
   XY_nons <- model.frame(formula, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
   nons_names <- attr(terms(formula, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+    X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #matrix of probability sample with intercept
   } else {
     stop("variable names in data and svydesign do not match")
   }
   y_nons <- XY_nons[,1]
+  outcome_name <- names(XY_nons)[1]
 
   list(X_nons = X_nons,
        X_rand = X_rand,
        nons_names = nons_names,
-       y_nons = y_nons)
-  } else if (!is.null(pop_totals)) {
+       y_nons = y_nons,
+       outcome_name = outcome_name)
+
+  } else if (!is.null(pop_totals)) { # TODO
     XY_nons <- model.frame(formula, data)
-    X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
-    nons_names <- attr(terms(formula, data = data), "term.labels")
+    dep_name <- names(XY_nons)[2] # name of the dependent variable
+    #matrix for nonprobability sample with intercept
+    X_nons <- model.matrix(XY_nons, data, contrasts.arg = list(klasa_pr = contrasts(as.factor(XY_nons[,dep_name]), contrasts = FALSE)))
+    #X_nons <- model.matrix(XY_nons, data)
+    #nons_names <- attr(terms(formula, data = data), "term.labels")
+    nons_names <- colnames(X_nons)[-1]
+    #pop_totals <- pop_totals[which(attr(X_nons, "assign") == 1)]
     if(all(nons_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
-      pop_totals <-  pop_totals[nons_names]
+      pop_totals <- pop_totals[nons_names]
     } else {
       warning("Selection and population totals have different names.")
     }
     y_nons <- XY_nons[,1]
+    outcome_name <- names(XY_nons)[1]
 
     list(X_nons = X_nons,
          pop_totals = pop_totals,
          nons_names = nons_names,
-         y_nons = y_nons)
+         y_nons = y_nons,
+         outcome_name = outcome_name)
   }
 }
 # Function for getting function from the selected method

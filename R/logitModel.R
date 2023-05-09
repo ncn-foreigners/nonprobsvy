@@ -49,7 +49,8 @@ logit <- function(...) {
       maxLik_an <- maxLik::maxLik(logLik = log_like,
                                   grad = gradient,
                                   hess = hessian,
-                                  method = optim_method, start = start)
+                                  method = optim_method,
+                                  start = start)
       logit_estim <- maxLik_an$estimate
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian

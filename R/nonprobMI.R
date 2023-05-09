@@ -91,6 +91,7 @@ nonprobMI <- function(outcome,
     y_rand_pred <- model_out$y_rand_pred
     y_nons_pred <- model_out$y_nons_pred
     model_nons_coefs <- model_out$model_nons_coefs
+    parameters <- model_out$parameters_statistics
 
   } else if (control_outcome$method == "nn") {
 
@@ -161,6 +162,7 @@ nonprobMI <- function(outcome,
 
     se_nonprob <- sqrt(var_nonprob)
     se_prob <- sqrt(var_prob)
+    SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
     # variance
     var <- var_nonprob + var_prob
 
@@ -176,7 +178,7 @@ nonprobMI <- function(outcome,
                   mu_hat,
                   svydesign,
                   rep_type = control_inference$rep_type)
-    inf <- "not computed for bootstrap variance"
+    SE_values <- "not computed for bootstrap variance"
   }
 
 
@@ -186,18 +188,17 @@ nonprobMI <- function(outcome,
   z <- stats::qnorm(1-alpha/2)
 
   # confidence interval based on the normal approximation
-  ci <- c(mu_hat - z*se, mu_hat + z*se)
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                              upper_bound = mu_hat + z * se
+  ))))
+
+  output <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
 
   structure(
-    list(mean = mu_hat,
-         #VAR = var,
-         SE = se,
-         #variance_nonprob = ifelse(control_inference$var_method == "analytic", v_a, inf),
-         #variance_prob = ifelse(control_inference$var_method == "analytic", v_b, inf),
-         SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
-         SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
-         CI = ci,
-         beta = model_nons_coefs
+    list(output = output,
+         SE_values = SE_values,
+         confidence_interval = confidence_interval,
+         parameters = parameters
          ),
     class = "Mass imputation")
 
@@ -257,7 +258,6 @@ nonprobMI_fit <- function(outcome,
     family <- family()
   }
 
-  print(summary(weights))
   model_nons <- stats::glm.fit(x = x,
                                y = y,
                                weights = weights,

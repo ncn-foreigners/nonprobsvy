@@ -63,7 +63,6 @@ nonprobIPW <- function(selection,
                        y,
                        ...){
 
-
   h <- control_selection$h_x
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
@@ -80,6 +79,7 @@ nonprobIPW <- function(selection,
   # outcome <- stats::as.formula(paste(outcome[2], dependents))
 
   if (is.null(pop_totals) && !is.null(svydesign)) {
+
     model <- model_frame(formula = outcome,
                          data = data,
                          svydesign = svydesign)
@@ -98,7 +98,6 @@ nonprobIPW <- function(selection,
 
     n_nons <- nrow(X_nons)
     n_rand <- nrow(X_rand)
-    X <- rbind(X_rand, X_nons)
 
     ps_rand <- svydesign$prob
     weights_rand <- 1/ps_rand
@@ -116,9 +115,9 @@ nonprobIPW <- function(selection,
                                     maxit = maxit,
                                     varcov = TRUE)
 
-    est_method_fun <- get_method(est_method)
-    est_method_obj <- est_method_fun$estimation_model(model = model_sel,
-                                                      method_selection = method_selection)
+    estimation_method <- get_method(est_method)
+    est_method_obj <- estimation_method$estimation_model(model = model_sel,
+                                                         method_selection = method_selection)
     theta_hat <- est_method_obj$theta_hat
     grad <- est_method_obj$grad
     hess <- est_method_obj$hess
@@ -128,6 +127,7 @@ nonprobIPW <- function(selection,
     est_ps_rand <- est_method_obj$est_ps_rand
     ps_nons_der <- est_method_obj$ps_nons_der
     est_ps_rand_der <- est_method_obj$est_ps_rand_der
+    theta_standard_errors <- sqrt(diag(est_method_obj$variance_covariance))
 
     names(theta_hat) <- colnames(X)
     weights_nons <- 1/ps_nons
@@ -143,8 +143,6 @@ nonprobIPW <- function(selection,
                         N = N) # IPW estimator
 
     if (var_method == "analytic") {
-      #print(is.positive.definite(round(hess, 3)))
-      #print(is.symmetric.matrix(round(hess, 3)))
      var_obj <- internal_varIPW(X_nons = X_nons,
                                 X_rand = X_rand,
                                 y_nons = y_nons,
@@ -165,75 +163,111 @@ nonprobIPW <- function(selection,
                                 var_cov1 = var_cov1,
                                 var_cov2 = var_cov2)
 
+
       var_nonprob <- var_obj$var_nonprob
       var_prob <- var_obj$var_prob
       var <- var_obj$var
-      theta_hat_var <- var_obj$theta_hat_var
       se_nonprob <- sqrt(var_nonprob)
       se_prob <- sqrt(var_prob)
+      SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
     } else if (var_method == "bootstrap") {
-      var <- bootIPW(X_rand = X_rand,
-                     X_nons = X_nons,
-                     y = y_nons,
-                     family_outcome = family_outcome,
-                     num_boot = 500,
-                     weights = weights,
-                     weights_rand = weights_rand,
-                     R = R,
-                     mu_hat = mu_hat,
-                     method_selection = method_selection,
-                     n_nons = n_nons,
-                     n_rand = n_rand,
-                     optim_method = optim_method,
-                     est_method = est_method,
-                     h = h,
-                     maxit = maxit,
-                     pop_size = pop_size,
+      var_obj <- bootIPW(X_rand = X_rand,
+                         X_nons = X_nons,
+                         y = y_nons,
+                         family_outcome = family_outcome,
+                         num_boot = 500,
+                         weights = weights,
+                         weights_rand = weights_rand,
+                         R = R,
+                         theta_hat = theta_hat,
+                         mu_hat = mu_hat,
+                         method_selection = method_selection,
+                         n_nons = n_nons,
+                         n_rand = n_rand,
+                         optim_method = optim_method,
+                         est_method = est_method,
+                         h = h,
+                         maxit = maxit,
+                         pop_size = pop_size,
       )
-      inf <- "not computed for bootstrap variance"
+      var <- var_obj$boot_var
+      SE_values <- "not computed for bootstrap variance"
     } else {
       stop("Invalid method for variance estimation.")
     }
 
   } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
-    if (!is.null(pop_totals)) {
+    if (!is.null(pop_means)) {
       pop_totals <- pop_size * pop_means
     }
+
+    names_pop <- names(pop_totals)
+    pop_totals <- as.vector(pop_totals)
+    names(pop_totals) <- names_pop
 
     # model for outcome formula
     model <- model_frame(formula = outcome,
                          data = data,
                          pop_totals = pop_totals)
 
+    X <- model$X_nons
+    nons_names <- model$nons_names
+    y_nons <- model$y_nons
+    R <- rep(1, nrow(X))
+    n_nons <- nrow(X)
+    pop_totals <- model$pop_totals
+
     h_object <- theta_h_estimation(R = R,
                                    X = X,
-                                   weights_rand = weights_rand,
+                                   weights_rand = NULL,
                                    weights = weights,
                                    h = h,
                                    method_selection = method_selection,
-                                   maxit = maxit) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
+                                   maxit = maxit,
+                                   pop_totals = pop_totals) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
 
     theta_hat <- h_object$theta_h
-    hess_h <- h_object$hess
-    grad_h <- h_object$grad
+    hess <- h_object$hess
+    grad <- h_object$grad
     names(theta_hat) <- c("(Intercept)", model$nons_names)
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
-    ps_nons <- inv_link(theta_hat %*% t(model$X_nons))
+    ps_nons <- inv_link(theta_hat %*% t(X))
     N_nons <- sum(1/ps_nons)
+    theta_standard_errors <- sqrt(diag(h_object$variance_covariance))
 
     mu_hat <- mu_hatIPW(model$y_nons, weights = 1/ps_nons, N = N_nons)
-    var <- 0
-    se_nonprob <- 0
-    se_prob <- 0
+
+    var_method = "bootstrap"
+    SE_values <- "not computed for bootstrap variance"
+    var_obj <- bootIPW(X_rand = NULL,
+                       X_nons = X,
+                       y = y_nons,
+                       family_outcome = family_outcome,
+                       num_boot = 500,
+                       weights = weights,
+                       weights_rand = NULL,
+                       R = R,
+                       theta_hat = theta_hat,
+                       mu_hat = mu_hat,
+                       method_selection = method_selection,
+                       n_nons = n_nons,
+                       n_rand = NULL,
+                       optim_method = optim_method,
+                       est_method = est_method,
+                       h = h,
+                       maxit = maxit,
+                       pop_size = pop_size,
+                       pop_totals = pop_totals)
+    var <- var_obj$boot_var
   }
   else {
     stop("Please, provide svydesign object or pop_totals/pop_means.")
   }
 
   # case when samples overlap - to finish
-  if (control_selection$overlap) {
+  if (control_selection$overlap) { # TODO
 
     weights <- nonprobOv(X_nons,
                          X_rand,
@@ -285,23 +319,22 @@ nonprobIPW <- function(selection,
   z <- stats::qnorm(1-alpha/2)
 
   # confidence interval based on the normal approximation
-  ci <- c(mu_hat - z * se, mu_hat + z * se)
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                   upper_bound = mu_hat + z * se
+                                                   ))))
+
+  output <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
+  parameters <- data.frame("Estimate" = theta_hat,
+                           "Std. Error" = theta_standard_errors,
+                            row.names = names(theta_hat))
+
 
   structure(
-    list(mean = mu_hat,
-         #VAR = var,
-         SE = se,
-         #VAR_nonprob = V1,
-         #VAR_prob = V2,
-         SE_nonprob = ifelse(var_method == "analytic", se_nonprob, inf),
-         SE_prob = ifelse(var_method == "analytic", se_prob, inf),
-         #variance_covariance = V_mx,
-         CI = ci,
-         theta = theta_hat
-         #theta_variance = theta_hat_var,
-         #pearson_residuals = pearson_residuals,
-         #deviance_residuals = deviance_residuals,
-         #log_likelihood = log_likelihood
+    list(output = output,
+         SE = SE_values,
+         confidence_interval = confidence_interval,
+         parameters = parameters
+
   ),
   class = "Inverse probability weighted")
 
