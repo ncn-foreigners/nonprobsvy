@@ -308,3 +308,41 @@ get_method <- function(method) {
   }
   method
 }
+
+# summary helper functions
+# for now just a rough sketch
+specific_summary_info <- function(object, ...) {
+  UseMethod("specific_summary_info")
+}
+
+specific_summary_info.nonprobsvy_ipw <- function(object,
+                                                 ...) {
+  res <- list(
+    theta = object$parameters
+  )
+
+  attr(res$theta, "glm") <- TRUE
+  attr(res, "TODO")     <- c("glm regression on selection variable")
+
+  res
+}
+
+specific_summary_info.nonprobsvy_mi <- function(object,
+                                                ...) {
+  # TODO
+}
+
+specific_summary_info.nonprobsvy_dr <- function(object,
+                                                ...) {
+  res <- list(
+    theta = object$parameters,
+    beta  = object$beta
+  )
+
+  attr(res$beta,  "glm") <- TRUE
+  attr(res$theta, "glm") <- TRUE
+  attr(res, "TODO")     <- c("glm regression on selection variable",
+                             "glm regression on outcome variable")
+
+  res
+}

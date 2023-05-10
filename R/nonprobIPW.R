@@ -334,7 +334,7 @@ nonprobIPW <- function(selection,
          parameters = parameters
 
   ),
-  class = "Inverse probability weighted")
+  class = c("nonprobsvy", "nonprobsvy_ipw"))
 }
 
 
