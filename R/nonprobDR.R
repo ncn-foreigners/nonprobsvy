@@ -74,7 +74,6 @@ nonprobDR <- function(selection,
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
   est_method <- control_selection$est_method_sel
-  #weights <- rep.int(1, nrow(data)) # to remove
   var_method <- control_inference$var_method
 
 
@@ -224,6 +223,7 @@ nonprobDR <- function(selection,
     OutcomeModel <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
     #model for selection formula
     SelectionModel <- model_frame(formula = selection, data = data, pop_totals = pop_totals)
+
     h_object <- theta_h_estimation(R = rep(1, nrow(SelectionModel$X_nons)),
                                    X = SelectionModel$X_nons,
                                    weights_rand = NULL,
@@ -300,8 +300,7 @@ nonprobDR <- function(selection,
   z <- stats::qnorm(1-alpha/2)
   # confidence interval based on the normal approximation
   confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                              upper_bound = mu_hat + z * se
-  ))))
+                                                              upper_bound = mu_hat + z * se))))
   output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
   parameters <- data.frame("Estimate" = theta_hat,
                            "Std. errors" = theta_standard_errors,

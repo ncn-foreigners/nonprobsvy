@@ -350,7 +350,7 @@ Rcpp::List cv_nonprobsvy_rcpp(arma::mat X,
         arma::vec R_testloss = X_test.col(ncols - 1);
         arma::vec weights_testloss = X_test.col(ncols - 2);
         arma::vec par = theta_est(idxx);
-        Rcout << "The value of w is: " << par << "\n";
+        //Rcout << "The value of w is: " << par << "\n";
         double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h);
         loss_theta_vec(j) = loss;
       }

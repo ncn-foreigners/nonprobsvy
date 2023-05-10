@@ -60,20 +60,20 @@ cloglog <- function(...) {
                                 method = optim_method,
                                 start = rep(0, length(start)))
 
-    cloglog_estim <- maxLik_an$estimate
+    theta <- maxLik_an$estimate
     grad <- maxLik_an$gradient
     hess <- maxLik_an$hessian
-    estim_ps <- inv_link(cloglog_estim %*% t(as.matrix(X)))
+    estim_ps <- inv_link(theta %*% t(as.matrix(X)))
 
 
     list(ps = estim_ps,
          grad = grad,
          hess = hess,
-         theta_hat = cloglog_estim)
+         theta_hat = theta)
   }
 
 
-  variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method, h) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h) {
 
     N <- pop_size
     if (est_method == "mle") {
@@ -137,7 +137,7 @@ cloglog <- function(...) {
     V1
   }
 
-  variance_covariance2 <- function(X, eps, ps, n, N, est_method, h) {
+  variance_covariance2 <- function(X, eps, ps, psd, n, N, est_method, h) {
 
     if (est_method == "mle") {
       s <- log(1 - eps) * as.data.frame(X)

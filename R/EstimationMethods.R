@@ -1,5 +1,6 @@
+# Estimation methods for integrated sources
 
-# Object with output parameters for Maximum likelihood estimation for propensity scores
+# Object with output parameters for Maximum likelihood Estimation for propensity scores
 mle <- function(...) {
 
   estimation_model <- function(model, method_selection, ...) {
@@ -21,6 +22,7 @@ mle <- function(...) {
       ps_nons_der <- maxLik_nons_obj$psd
       est_ps_rand_der <- maxLik_rand_obj$psd
     }
+
     variance_covariance <- solve(-hess) # variance-covariance matrix of estimated parameters
 
     list(theta_hat = theta_hat,
@@ -124,20 +126,20 @@ mle <- function(...) {
          var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
          var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"))
   }
-
   structure(
     list(estimation_model = estimation_model,
          make_t = make_t,
          make_var_nonprob = make_var_nonprob,
          model_selection = model_selection),
-    class = "est_method"
+    class = "method"
   )
-
 }
+
 # Object with output parameters for estimation by Generalized Estimating Equations for propensity scores
 gee <- function(...) {
 
   estimation_model <- function(model, method_selection) {
+
     theta_hat <- model$theta_hat
     hess <- model$hess
     grad <- model$grad
@@ -147,7 +149,7 @@ gee <- function(...) {
     est_ps_rand_der <- model$est_ps_rand_der
     var_cov1 <- model$var_cov1
     var_cov2 <- model$var_cov2
-    variance_covariance <- solve(hess)
+    variance_covariance <- solve(hess) # variance-covariance matrix of estimated parameters
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -230,7 +232,7 @@ gee <- function(...) {
          make_t = make_t,
          make_var_nonprob = make_var_nonprob,
          model_selection = model_selection),
-    class = "est_method"
+    class = "method"
   )
 
 }

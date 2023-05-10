@@ -52,8 +52,6 @@ nonprobMI <- function(outcome,
                       y,
                       ...) {
 
-  #weights <- rep.int(1, nrow(data)) # to remove
-
   # model for outcome formula
   OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
   X_nons <- OutcomeModel$X_nons
@@ -107,7 +105,7 @@ nonprobMI <- function(outcome,
                                searchtype = "standard")
     y_rand_pred <- vector(mode = "numeric", length = n_rand)
     y_nons_pred <- vector(mode = "numeric", length = n_nons)
-    model_nons_coefs <- "Non-parametric method for outcome model"
+    parameters <- "Non-parametric method for outcome model"
 
     for (i in 1:n_rand) {
       idx <- model_rand$nn.idx[i,]
@@ -140,14 +138,22 @@ nonprobMI <- function(outcome,
 
     if (control_outcome$method == "nn") {
 
-      sigma_hat <- switch(family_outcome,
-                          "gaussian" = mean((y_nons - y_nons_pred)^2),
-                          "binomial" = y_nons_pred*(1 - y_nons_pred),
-                          "poisson" = mean(y_nons_pred))
+      if(is.character(family_outcome)) {
+        family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+        family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+        family_nonprobsvy <- family_nonprobsvy()
+      }
 
-      N_est_nons <- sum(1/ps_nons)
-      esp_ps  <- n_nons/N_est_rand
-      var_nonprob <- n_rand/N_est_rand^2 * sum((1 - esp_ps)/eps_ps * sigma_hat)
+      sigma_hat <- family_nonprobsvy$variance(mu = y_nons_pred, y  = y_nons)
+
+      #sigma_hat <- switch(family_outcome,
+      #                    "gaussian" = mean((y_nons - y_nons_pred)^2),
+      #                    "binomial" = y_nons_pred*(1 - y_nons_pred),
+      #                    "poisson" = mean(y_nons_pred))
+
+      #N_est_nons <- sum(1/ps_nons)
+      est_ps  <- n_nons/N_est_rand
+      var_nonprob <- n_rand/N_est_rand^2 * sum((1 - est_ps)/est_ps * sigma_hat)
 
     } else if (control_outcome$method == "glm") {
 

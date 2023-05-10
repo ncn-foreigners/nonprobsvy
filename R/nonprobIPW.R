@@ -68,7 +68,6 @@ nonprobIPW <- function(selection,
   optim_method <- control_selection$optim_method
   var_method <- control_inference$var_method
   est_method <- control_selection$est_method_sel
-  #weights <- rep.int(1, nrow(data)) # to remove
 
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
@@ -188,8 +187,7 @@ nonprobIPW <- function(selection,
                          est_method = est_method,
                          h = h,
                          maxit = maxit,
-                         pop_size = pop_size,
-      )
+                         pop_size = pop_size)
       var <- var_obj$boot_var
       SE_values <- "not computed for bootstrap variance"
     } else {
@@ -241,25 +239,25 @@ nonprobIPW <- function(selection,
 
     var_method = "bootstrap"
     SE_values <- "not computed for bootstrap variance"
-    var_obj <- bootIPW(X_rand = NULL,
-                       X_nons = X,
+    var_obj <- bootIPW(X_nons = X,
                        y = y_nons,
                        family_outcome = family_outcome,
                        num_boot = 500,
                        weights = weights,
-                       weights_rand = NULL,
                        R = R,
                        theta_hat = theta_hat,
                        mu_hat = mu_hat,
                        method_selection = method_selection,
                        n_nons = n_nons,
-                       n_rand = NULL,
                        optim_method = optim_method,
                        est_method = est_method,
                        h = h,
                        maxit = maxit,
                        pop_size = pop_size,
-                       pop_totals = pop_totals)
+                       pop_totals = pop_totals,
+                       X_rand = NULL,
+                       weights_rand = NULL,
+                       n_rand = NULL)
     var <- var_obj$boot_var
   }
   else {
@@ -337,7 +335,6 @@ nonprobIPW <- function(selection,
 
   ),
   class = "Inverse probability weighted")
-
 }
 
 

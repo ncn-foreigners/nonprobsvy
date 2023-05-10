@@ -51,22 +51,17 @@ logit <- function(...) {
                                   hess = hessian,
                                   method = optim_method,
                                   start = start)
-      logit_estim <- maxLik_an$estimate
+      theta <- maxLik_an$estimate
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian
 
-      list(ps = inv_link(logit_estim %*% t(as.matrix(X))),
+      list(ps = inv_link(theta %*% t(as.matrix(X))),
            grad = grad,
            hess = hess,
-           theta_hat = logit_estim)
+           theta_hat = theta)
     }
 
-    # Additional function for b value in Variance - to consider
-    #b_obj <- function(X, y, mu, ps, hess, pop_size, ps_nons_der = NULL) {
-    #}
-
-
-    variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method, h) { # fixed
+    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h) { # fixed
 
       N <- pop_size
       if (est_method == "mle" || (est_method == "gee" && h == "2")) {
@@ -112,7 +107,7 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, eps, ps, n, N, est_method, h) {
+    variance_covariance2 <- function(X, eps, ps, psd, n, N, est_method, h) {
 
       if (est_method == "mle" || (est_method == "gee" && h == "2")) {
         s <- eps * as.data.frame(X)
@@ -120,12 +115,12 @@ logit <- function(...) {
         B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
         ei <- (s/ps) - B_hat
         db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
-    } else if (est_method == "gee" && h == "1") {
-      s <- as.data.frame(X)
-      ci <- n/(n-1) * (1 - ps)
-      B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
-      ei <- (s/ps) - B_hat
-      db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
+      } else if (est_method == "gee" && h == "1") {
+        s <- as.data.frame(X)
+        ci <- n/(n-1) * (1 - ps)
+        B_hat <- (t(as.matrix(ci)) %*% as.matrix(s/ps))/sum(ci)
+        ei <- (s/ps) - B_hat
+        db_var <- t(as.matrix(ei * ci)) %*% as.matrix(ei)
     }
 
       D <- 1/N^2 * db_var
@@ -150,9 +145,6 @@ logit <- function(...) {
 
       n <- length(R)
       R_rand <- 1 - R
-
-      #print(summary((1/ps-1)))
-      #print(summary(ps))
 
       utb <- c(apply(X * R/ps * mu_der - X * R_rand * weights * mu_der, 2, sum),
                apply(X * R * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n

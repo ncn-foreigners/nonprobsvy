@@ -110,8 +110,6 @@ theta_h_estimation <- function(R,
   theta_h <- as.vector(start)
   grad = u_theta(theta_h)
   hess = u_theta_der(theta_h)
-  # opt <- rootSolve::multiroot(f = u_theta, start = start0) <---- just for tests
-
 
   list(theta_h = theta_h,
        hess = hess,
@@ -157,43 +155,22 @@ internal_varIPW <- function(X_nons,
   H_mx <- cbind(0, N * hess_inv)
   sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)
 
-  if (method_selection == "probit") { # change this chunk of code - condition is redundant
-
-    V1 <- var_cov1(X = X_nons,
-                   y = y_nons,
-                   mu = mu_hat,
-                   ps = ps_nons,
-                   psd = ps_nons_der,
-                   pop_size = pop_size,
-                   est_method = est_method,
-                   h = h) # fixed
-    V2 <- var_cov2(X = X_rand,
-                   eps = est_ps_rand,
-                   ps = ps_rand,
-                   psd = est_ps_rand_der,
-                   n = n_rand,
-                   N = N,
-                   est_method = est_method,
-                   h = h)
-
-  } else {
-
-    V1 <- var_cov1(X = X_nons,
-                   y = y_nons,
-                   mu = mu_hat,
-                   ps = ps_nons,
-                   pop_size = pop_size,
-                   est_method = est_method,
-                   h = h) # fixed
-    V2 <- var_cov2(X = X_rand,
-                   eps = est_ps_rand,
-                   ps = ps_rand,
-                   n = n_rand,
-                   N = N,
-                   est_method = est_method,
-                   h = h)
-
-  }
+  V1 <- var_cov1(X = X_nons,
+                 y = y_nons,
+                 mu = mu_hat,
+                 ps = ps_nons,
+                 psd = ps_nons_der,
+                 pop_size = pop_size,
+                 est_method = est_method,
+                 h = h) # fixed
+  V2 <- var_cov2(X = X_rand,
+                 eps = est_ps_rand,
+                 ps = ps_rand,
+                 psd = est_ps_rand_der,
+                 n = n_rand,
+                 N = N,
+                 est_method = est_method,
+                 h = h)
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
   V_mx_nonprob <- sparse_mx %*% V1 %*% t(as.matrix(sparse_mx)) # nonprobability component

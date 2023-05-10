@@ -64,17 +64,17 @@ probit <- function(...) {
                                 method = optim_method,
                                 start = start) # NA in gradient for Newton-Raphson method
 
-    estim_probit <- maxLik_an$estimate
+    theta <- maxLik_an$estimate
     grad <- maxLik_an$gradient
     hess <- maxLik_an$hessian
-    estim_ps <- inv_link(estim_probit %*% t(X))
-    estim_psd <- dinv_link(estim_probit %*% t(X))
+    estim_ps <- inv_link(theta %*% t(X))
+    estim_psd <- dinv_link(theta %*% t(X))
 
     list(ps = estim_ps,
          psd = estim_psd,
          grad = grad,
          hess = hess,
-         theta_hat = estim_probit)
+         theta_hat = theta)
   }
 
   variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h) {

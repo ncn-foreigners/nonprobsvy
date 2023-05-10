@@ -39,6 +39,7 @@ NULL
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom rootSolve multiroot
 #' @importFrom stats qnorm
+#' @importFrom stats delete.response
 #' @importFrom survey svymean
 #' @importFrom Matrix Matrix
 #' @importFrom stats terms
@@ -95,7 +96,7 @@ nonprobSel <- function(selection,
   X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
   nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+    X_rand <- model.matrix(delete.response(terms(outcome)), svydesign$variables) #X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
   } else {
     stop("variable names in data and svydesign do not match")
   }
@@ -127,6 +128,7 @@ nonprobSel <- function(selection,
   p <- ncol(X)
   N_rand <- sum(weights_rand)
 
+  # Cross-validation for variable selection
   cv <- cv_nonprobsvy_rcpp(X = X_stand,
                            R = R,
                            weights_X = weights_X,
@@ -181,15 +183,15 @@ nonprobSel <- function(selection,
                                   family_outcome = family_outcome)$root
 
 
-  theta_sel <- par_sel[1:(psel+1)]
-  beta_sel <- par_sel[(psel+2):(2*psel+2)]
-  names(theta_sel) <- names(beta_sel) <- c("(Intercept)", nons_names[idx])
+  theta_hat <- par_sel[1:(psel+1)]
+  beta_hat <- par_sel[(psel+2):(2*psel+2)]
+  names(theta_hat) <- names(beta_hat) <- c("(Intercept)", nons_names[idx])
 
-  ps_nons_est <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_sel)))
+  ps_nons_est <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
   weights_nons <- 1/ps_nons_est[loc_nons]
   N_nons <- sum(weights_nons)
 
-  eta <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_sel))
+  eta <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_hat))
   y_hat <- family_nonprobsvy$mu(eta)
   y_rand <- y_hat[loc_rand]
   y_nons <- y_hat[loc_nons]
@@ -213,31 +215,36 @@ nonprobSel <- function(selection,
 
   var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
   var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigma))/N_nons^2 # nonprobability component
-
-  se_nonprob <- sqrt(var_nonprob)
   se_prob <- sqrt(var_prob)
+  se_nonprob <- sqrt(var_nonprob)
+
+
+  SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
 
   var <- var_prob + var_nonprob #variance of an estimator
   se <- sqrt(var) # standard error
+  output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
 
   alpha <- control_inference$alpha
   z <- stats::qnorm(1-alpha/2)
 
   # confidence interval based on the normal approximation
-  ci <- c(mu_hat - z * se, mu_hat + z * se)
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                              upper_bound = mu_hat + z * se))))
+
+  parameters <- data.frame("Estimate selected" = theta_est,
+                           "Estimate" = theta_hat)
+
+  beta <- data.frame("Estimate selected" = beta_est,
+                     "Estimate" = beta_hat)
 
 
   structure(
-    list(mean = mu_hat,
-         #VAR = var,
-         CI = ci,
-         SE = se,
-         SE_nonprob = se_nonprob,
-         SE_prob = se_prob,
-         theta_sel = theta_est,
-         beta_sel = beta_est,
-         theta = theta_sel,
-         beta = beta_sel
+    list(output = output,
+         confidence_interval = confidence_interval,
+         SE_values = SE_values,
+         parameters = parameters,
+         beta = beta
          ),
     class = "Doubly-robust")
 }
@@ -352,6 +359,7 @@ nonprobSelM <- function(outcome,
   y_nons_pred <- model_out$y_nons_pred
   beta_sel <- model_out$model_nons_coefs
   names(beta_sel) <- c("(Intercept)", nons_names[beta_selected])
+  beta <- model_out$parameters_statistics
   N_est_rand <- sum(weights_rand)
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
@@ -379,6 +387,8 @@ nonprobSelM <- function(outcome,
     se_prob <- sqrt(var_prob)
     # variance
     var <- var_nonprob + var_prob
+    SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+
 
   } else if (control_inference$var_method == "bootstrap") {
     # bootstrap variance
@@ -392,26 +402,26 @@ nonprobSelM <- function(outcome,
                   mu_hat,
                   svydesign,
                   rep_type = control_inference$rep_type)
-    inf <- "not computed for bootstrap variance"
+    SE_values <- "not computed for bootstrap variance"
 
   }
 
   se <- sqrt(var)
+  output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
 
   alpha <- control_inference$alpha
   z <- stats::qnorm(1-alpha/2)
 
   # confidence interval based on the normal approximation
-  ci <- c(mu_hat - z*se, mu_hat + z*se)
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                              upper_bound = mu_hat + z * se))))
+
 
   structure(
-    list(mean = mu_hat,
-         #VAR = var,
-         CI = ci,
-         SE = se,
-         SE_nonprob = ifelse(control_inference$var_method == "analytic", se_nonprob, inf),
-         SE_prob = ifelse(control_inference$var_method == "analytic", se_prob, inf),
-         beta = beta_sel
+    list(output = output,
+         confidence_interval = confidence_interval,
+         SE_values = SE_values,
+         beta = beta
     ),
     class = "Mass Imputation")
 }
