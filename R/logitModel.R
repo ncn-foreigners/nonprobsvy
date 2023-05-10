@@ -46,11 +46,24 @@ logit <- function(...) {
 
     ps_est <- function(X, log_like, gradient, hessian, start, optim_method) {
 
+      #start <- rep(0, length(start))
       maxLik_an <- maxLik::maxLik(logLik = log_like,
                                   grad = gradient,
                                   hess = hessian,
                                   method = optim_method,
                                   start = start)
+
+      if (maxLik_an$code %in% c(3:7, 100)) {
+        switch (as.character(maxLik_an$code),
+                "3" = warning("Sam nie wiem co panu jest"),
+                "4" = warning("Maxiteration limit reached in fitting ps_est by maxLik."),
+                "5" = stop("Inifinite value of log_like in fitting ps_est by maxLik, error code 5"),
+                "6" = stop("Inifinite value of gradient in fitting ps_est by maxLik, error code 6"),
+                "7" = stop("Inifinite value of hessian in fitting ps_est by maxLik, error code 7"),
+                "100" = stop("Error in fitting ps_est with maxLik, error code 100:: Bad start."),
+        )
+      }
+
       theta <- maxLik_an$estimate
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian

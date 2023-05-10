@@ -206,7 +206,7 @@ nonprobMI <- function(outcome,
          confidence_interval = confidence_interval,
          parameters = parameters
          ),
-    class = "Mass imputation")
+    class = c("nonprobsvy", "nonprobsvy_mi"))
 
   }
 

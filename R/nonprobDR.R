@@ -314,7 +314,7 @@ nonprobDR <- function(selection,
          parameters = parameters,
          beta = beta_statistics
          ),
-    class = "Doubly-robust")
+    class = c("nonprobsvy", "nonprobsvy_dr"))
 }
 
 #' mu_hatDR
