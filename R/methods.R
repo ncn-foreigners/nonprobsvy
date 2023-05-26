@@ -216,6 +216,11 @@ pop_size.nonprobsvy <- function(object,
   object$pop_size
 }
 
+#' @export
+pop_size <- function(object, ...) {
+  UseMethod("pop_size")
+}
+
 #' @method residuals nonprobsvy
 #' @exportS3Method
 residuals.nonprobsvy <- function(object,
