@@ -4,25 +4,21 @@
 mle <- function(...) {
 
   estimation_model <- function(model, method_selection, ...) {
+    method <- get_method(method_selection)
+    dinv_link <- method$make_link_inv_der
     maxLik_nons_obj <- model$maxLik_nons_obj
-    maxLik_rand_obj <- model$maxLik_rand_obj
     log_likelihood <- model$log_likelihood # maximum of the loglikelihood function
     theta_hat <- model$theta
 
-    ps_nons <- maxLik_nons_obj$ps
-    est_ps_rand <- maxLik_rand_obj$ps
+    ps_nons <- model$ps
+    ps_nons_der <- model$ps_der
+    est_ps_rand <- model$ps_rand
+    est_ps_rand_der <- model$ps_rand_der
     hess <- maxLik_nons_obj$hess
-    grad <- maxLik_rand_obj$grad
+    grad <- maxLik_nons_obj$grad
     var_cov1 <- model$var_cov1
     var_cov2 <- model$var_cov2
-    ps_nons_der <- NULL
-    est_ps_rand_der <- NULL
-
-    if (method_selection == "probit") { # for probit model, propensity score derivative is required
-      ps_nons_der <- maxLik_nons_obj$psd
-      est_ps_rand_der <- maxLik_rand_obj$psd
-    }
-
+    df_residual <- model$df_residual
     variance_covariance <- solve(-hess) # variance-covariance matrix of estimated parameters
 
     list(theta_hat = theta_hat,
@@ -34,10 +30,12 @@ mle <- function(...) {
          est_ps_rand = est_ps_rand,
          ps_nons_der = ps_nons_der,
          est_ps_rand_der = est_ps_rand_der,
-         variance_covariance = variance_covariance)
+         variance_covariance = variance_covariance,
+         log_likelihood = log_likelihood,
+         df_residual = df_residual)
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection) {
+  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
     method <- get_method(method_selection)
     t <- method$t_vec(X = X,
                       ps = ps,
@@ -45,11 +43,12 @@ mle <- function(...) {
                       b = b,
                       y_rand = y_rand,
                       y_nons = y_nons,
-                      N = N)
+                      N = N,
+                      weights = weights)
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights) {
     method <- get_method(method_selection)
     var_nonprob <-  method$var_nonprob(ps = ps,
                                        psd = psd,
@@ -58,7 +57,8 @@ mle <- function(...) {
                                        h_n = h_n,
                                        X = X,
                                        b = b,
-                                       N = N)
+                                       N = N,
+                                       weights = weights)
     as.numeric(var_nonprob)
 
   }
@@ -78,10 +78,12 @@ mle <- function(...) {
                               ...) {
 
     method <- get_method(method = method_selection)
-    ps_method <- method$make_propen_score # function for propensity score estimation
+    max_lik <- method$make_max_lik # function for propensity score estimation
     loglike <- method$make_log_like
     gradient <- method$make_gradient
     hessian <- method$make_hessian
+    inv_link <- method$make_link_inv
+    dinv_link <- method$make_link_inv_der
 
     # initial values for propensity score estimation
     start <- start_fit(X = X,
@@ -90,41 +92,51 @@ mle <- function(...) {
                        weights_rand = weights_rand,
                        method_selection = method_selection)
 
+    df_reduced <- nrow(X) - length(start)
+
     log_like <- loglike(X_nons,
                         X_rand,
+                        weights,
                         weights_rand)
 
     gradient <- gradient(X_nons,
                          X_rand,
+                         weights,
                          weights_rand)
 
     hessian <- hessian(X_nons,
                        X_rand,
+                       weights,
                        weights_rand)
 
-    maxLik_nons_obj <- ps_method(X_nons,
-                                 log_like,
-                                 gradient,
-                                 hessian,
-                                 start,
-                                 optim_method)
-
-    maxLik_rand_obj <- ps_method(X_rand,
-                                 log_like,
-                                 gradient,
-                                 hessian,
-                                 start,
-                                 optim_method)
+    maxLik_nons_obj <- max_lik(X_nons,
+                               log_like,
+                               gradient,
+                               hessian,
+                               start,
+                               optim_method)
 
     theta <- maxLik_nons_obj$theta_hat
+    eta_nons <- theta %*% t(X_nons)
+    eta_rand <- theta %*% t(X_rand)
     log_likelihood <- log_like(theta)
 
-    list(maxLik_rand_obj = maxLik_rand_obj,
-         maxLik_nons_obj = maxLik_nons_obj,
+    ps_nons <- inv_link(eta_nons)
+    est_ps_rand <- inv_link(eta_rand)
+
+    ps_nons_der <- dinv_link(eta_nons)
+    est_ps_rand_der <- dinv_link(eta_rand)
+
+    list(maxLik_nons_obj = maxLik_nons_obj,
          theta = theta,
          log_likelihood = log_likelihood,
+         ps = ps_nons,
+         ps_der = ps_nons_der,
+         ps_rand = est_ps_rand,
+         ps_rand_der = est_ps_rand_der,
          var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
-         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"))
+         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"),
+         df_residual = df_reduced)
   }
   structure(
     list(estimation_model = estimation_model,
@@ -149,7 +161,8 @@ gee <- function(...) {
     est_ps_rand_der <- model$est_ps_rand_der
     var_cov1 <- model$var_cov1
     var_cov2 <- model$var_cov2
-    variance_covariance <- solve(hess) # variance-covariance matrix of estimated parameters
+    df_residual <- model$df_residual
+    variance_covariance <- model$variance_covariance # variance-covariance matrix of estimated parameters
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -160,23 +173,25 @@ gee <- function(...) {
          est_ps_rand = est_ps_rand,
          ps_nons_der = ps_nons_der,
          est_ps_rand_der = est_ps_rand_der,
-         variance_covariance = variance_covariance)
+         variance_covariance = variance_covariance,
+         df_residual = df_residual,
+         log_likelihood = "NULL")
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection) {
+  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
     if (h == "1") {
-      t <- X %*% t(as.matrix(b)) + y_rand - 1/N * sum(y_nons)
+      t <- X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     } else if (h == "2") {
-      t <- as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(y_nons)
+      t <- as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     }
     t
   }
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection) {
-    if (h == "1") {
-      var_nonprob <- 1/N^2 * sum((1 - ps) * (((y - y_pred - h_n)/ps) - b %*% t(X))^2)
-    } else if (h == "2") {
-      var_nonprob <- 1/N^2 * sum((1 - ps) * (((y - y_pred - h_n) - b %*% t(X))/ps)^2)
+    if (h == "2") {
+      var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n)/ps) - b %*% t(X))^2)
+    } else if (h == "1") {
+      var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n) - b %*% t(X))/ps)^2)
     }
     as.numeric(var_nonprob)
   }
@@ -209,6 +224,9 @@ gee <- function(...) {
     grad <- h_object$grad
     ps_nons <- inv_link(theta_hat %*% t(as.matrix(X_nons)))
     est_ps_rand <- inv_link(theta_hat %*% t(as.matrix(X_rand)))
+    variance_covariance <- solve(-hess)
+
+    df_reduced <- nrow(X) - length(theta_hat)
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
       dinv_link <- method$make_link_inv_der
@@ -223,8 +241,10 @@ gee <- function(...) {
          est_ps_rand = est_ps_rand,
          ps_nons_der = ifelse(method_selection == "probit", ps_nons_der, NA),
          est_ps_rand_der = ifelse(method_selection == "probit", est_ps_rand_der, NA),
+         variance_covariance = variance_covariance,
          var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
-         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"))
+         var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"),
+         df_residual = df_reduced)
   }
 
   structure(

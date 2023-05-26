@@ -29,6 +29,7 @@ NULL
 #' @importFrom stats model.matrix
 #' @importFrom stats update
 #' @importFrom stats qnorm
+#' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
 #' @importFrom stats terms
 #' @export
@@ -107,14 +108,17 @@ nonprobMI <- function(outcome,
     y_nons_pred <- vector(mode = "numeric", length = n_nons)
     parameters <- "Non-parametric method for outcome model"
 
+    # idx <- model_rand$nn.idx
+    # y_rand_pred <- y_nons[idx] TODO without loop
+
     for (i in 1:n_rand) {
       idx <- model_rand$nn.idx[i,]
-      y_rand_pred[i] <- mean(y_nons[idx])
+      y_rand_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
     }
 
     for (i in 1:n_nons) {
       idx <- model_nons$nn.idx[i,]
-      y_nons_pred[i] <- mean(y_nons[idx])
+      y_nons_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
     }
 
   } else {
@@ -126,45 +130,27 @@ nonprobMI <- function(outcome,
                              y_hat_MI = y_rand_pred)
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
-                     weights = weights_rand,
+                     weights_rand = weights_rand,
                      N = N_est_rand)
 
   # design based variance estimation based on approximations of the second-order inclusion probabilities
 
   if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
 
-    svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
-    var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
+    var_obj <- internal_varMI(svydesign = svydesign,
+                              X_nons = X_nons,
+                              X_rand = X_rand,
+                              y = y_nons,
+                              y_pred = y_nons_pred,
+                              weights_rand = weights_rand,
+                              method = control_outcome$method,
+                              n_rand = n_rand,
+                              n_nons = n_nons,
+                              N = N_est_rand,
+                              family = family_outcome)
 
-    if (control_outcome$method == "nn") {
-
-      if(is.character(family_outcome)) {
-        family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
-        family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-        family_nonprobsvy <- family_nonprobsvy()
-      }
-
-      sigma_hat <- family_nonprobsvy$variance(mu = y_nons_pred, y  = y_nons)
-
-      #sigma_hat <- switch(family_outcome,
-      #                    "gaussian" = mean((y_nons - y_nons_pred)^2),
-      #                    "binomial" = y_nons_pred*(1 - y_nons_pred),
-      #                    "poisson" = mean(y_nons_pred))
-
-      #N_est_nons <- sum(1/ps_nons)
-      est_ps  <- n_nons/N_est_rand
-      var_nonprob <- n_rand/N_est_rand^2 * sum((1 - est_ps)/est_ps * sigma_hat)
-
-    } else if (control_outcome$method == "glm") {
-
-      mx <- 1/N_est_rand * colSums(weights_rand * X_rand)
-      c <- solve(1/n_nons * t(X_nons) %*% X_nons) %*% mx
-      e <- y_nons - y_nons_pred
-
-      # nonprobability component
-      var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% c)^2
-      var_nonprob <- as.vector(var_nonprob)
-    }
+    var_nonprob <- var_obj$var_nonprob
+    var_prob <- var_obj$var_prob
 
     se_nonprob <- sqrt(var_nonprob)
     se_prob <- sqrt(var_prob)
@@ -183,11 +169,14 @@ nonprobMI <- function(outcome,
                   weights_rand,
                   mu_hat,
                   svydesign,
-                  rep_type = control_inference$rep_type)
+                  rep_type = control_inference$rep_type,
+                  method = control_outcome$method,
+                  k = control_outcome$k)
     SE_values <- "not computed for bootstrap variance"
   }
 
-
+  X <- rbind(X_nons, X_rand) # joint model matrix
+  pop_size <- N_est_rand # estimated pop_size
   se <- sqrt(var)
 
   alpha <- control_inference$alpha
@@ -201,10 +190,16 @@ nonprobMI <- function(outcome,
   output <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
 
   structure(
-    list(output = output,
+    list(X = X,
+         control = list(control_outcome = control_outcome,
+                        control_inference = control_inference),
+         output = output,
          SE_values = SE_values,
          confidence_interval = confidence_interval,
-         parameters = parameters
+         parameters = parameters,
+         nonprob_size = n_nons,
+         prob_size = n_rand,
+         pop_size = pop_size
          ),
     class = c("nonprobsvy", "nonprobsvy_mi"))
 
@@ -217,9 +212,9 @@ nonprobMI <- function(outcome,
 #' @param weights - a
 #' @param N - a
 
-mu_hatMI <- function(y, weights, N) {
+mu_hatMI <- function(y, weights_rand, N) {
 
-  mu_hat <- 1/N * sum(weights * y)
+  mu_hat <- 1/N * sum(weights_rand * y)
   mu_hat
 
 }

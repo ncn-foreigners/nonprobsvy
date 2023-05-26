@@ -3,7 +3,6 @@
 #' @importFrom stats glm
 #' @importFrom stats residuals
 
-
 cv_nonprobsvy <- function(X,
                           R,
                           weights_X,
@@ -208,7 +207,7 @@ u_theta <- function(R,
                     N = NULL,
                     pop_totals = NULL,
                     pop_size = NULL
-                    ) {
+                    ) { # TODO add prior weights
 
 
   method <- get_method(method_selection)
@@ -231,10 +230,10 @@ u_theta <- function(R,
 
     if (is.null(pop_totals)) {
       eq <- switch(h,
-                   "1" = c(apply(X0 * R/ps - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
-                   "2" = c(apply(X0 * R - X0 * R_rand * weights * ps, 2, sum)))
+                   "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+                   "2" = c(apply(X0 * R * weights - X0 * R_rand * weights * ps, 2, sum)))
     } else {
-      eq <- (c(apply(X0 * R/ps, 2, sum)) - c(294294, pop_totals))
+      eq <- (c(apply(X0 * R/ps, 2, sum)) - pop_totals)
     }
     eq
   }
@@ -251,7 +250,7 @@ u_theta_der <-  function(R,
                          N = NULL,
                          pop_totals = NULL
                          )
-                         {
+                         { # TODO add prior weights
 
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
@@ -276,8 +275,8 @@ u_theta_der <-  function(R,
     } else {
 
       mxDer <-switch(h,
-                    "1" = t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0,
-                    "2" = t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
+                    "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0,
+                    "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
   }

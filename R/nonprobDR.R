@@ -88,6 +88,15 @@ nonprobDR <- function(selection,
                                   data = data,
                                   svydesign = svydesign)
     X_sel <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
+    #if (all(svydesign$prob) == 1) { # TODO
+    #  if (!is.null(pop_size)) {
+    #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
+    #    } else {
+    #      ps_rand <- svydesign$prob/sum(svydesign$prob)
+    #    }
+    #} else {
+    #  ps_rand <- svydesign$prob
+    #}
     ps_rand <- svydesign$prob
 
     n_nons <- nrow(OutcomeModel$X_nons)
@@ -130,29 +139,26 @@ nonprobDR <- function(selection,
     est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                          method_selection = method_selection)
     theta_hat <- est_method_obj$theta_hat
-    grad = est_method_obj$grad
-    hess = est_method_obj$hess
-    ps_nons = est_method_obj$ps_nons
-    est_ps_rand = est_method_obj$est_ps_rand
-    ps_nons_der = est_method_obj$ps_nons_der
-    est_ps_rand_der = est_method_obj$est_ps_rand_der
+    grad <- est_method_obj$grad
+    hess <- est_method_obj$hess
+    ps_nons <- est_method_obj$ps_nons
+    est_ps_rand <- est_method_obj$est_ps_rand
+    ps_nons_der <- est_method_obj$ps_nons_der
+    est_ps_rand_der <- est_method_obj$est_ps_rand_der
     theta_standard_errors <- sqrt(diag(est_method_obj$variance_covariance))
-
+    log_likelihood <- est_method_obj$log_likelihood
+    df_residual <- est_method_obj$df_residual
 
     names(theta_hat) <- colnames(X_sel)
     weights_nons <- 1/ps_nons
-    N_nons <- sum(weights_nons)
+    N_nons <- sum(weights * weights_nons)
     N_rand <- sum(weights_rand)
 
-   # if(!is.null(pop_size)){
-
-   #  N_est_rand <- pop_size
-   #  N_est_nons <- pop_size
-   # }
-
+    if(is.null(pop_size)) pop_size <- N_nons
     mu_hat <- mu_hatDR(y = OutcomeModel$y_nons,
                        y_nons = y_nons_pred,
                        y_rand = y_rand_pred,
+                       weights = weights,
                        weights_nons = weights_nons,
                        weights_rand = weights_rand,
                        N_nons = N_nons,
@@ -167,6 +173,7 @@ nonprobDR <- function(selection,
       var_obj <- internal_varDR(OutcomeModel = OutcomeModel,
                                 SelectionModel = SelectionModel,
                                 y_nons_pred = y_nons_pred,
+                                weights = weights,
                                 method_selection = method_selection,
                                 ps_nons = ps_nons,
                                 theta = theta_hat,
@@ -235,15 +242,22 @@ nonprobDR <- function(selection,
     theta_hat <- h_object$theta_h
     hess_h <- h_object$hess
     grad_h <- h_object$grad
-    names(theta_hat) <- c("(Intercept)", SelectionModel$nons_names)
+    names(theta_hat) <- SelectionModel$nons_names
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
+    n_nons <- nrow(SelectionModel$X_nons)
     ps_nons <- inv_link(theta_hat %*% t(SelectionModel$X_nons))
-    N_est <- sum(1/ps_nons)
+    weights_nons <- 1/ps_nons
+    N_est <- sum(weights * weights_nons)
+    theta_standard_errors <- sqrt(diag(solve(-hess_h)))
+    df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
     if(is.null(pop_size)) pop_size <- N_est
+    n_rand <- NULL
+    est_ps_rand <- NULL
+    log_likelihood <- "NULL"
 
     model_out <- internal_outcome(X_nons = OutcomeModel$X_nons,
-                                  X_rand = c(pop_size, OutcomeModel$pop_totals), # <--- pop_size is an intercept in the model
+                                  X_rand =  OutcomeModel$pop_totals, # <--- pop_size is an intercept in the model
                                   y = OutcomeModel$y_nons,
                                   weights = weights,
                                   family_outcome = family_outcome,
@@ -252,13 +266,14 @@ nonprobDR <- function(selection,
     y_rand_pred <- model_out$y_rand_pred
     y_nons_pred <- model_out$y_nons_pred
     model_nons_coefs <- model_out$model_nons_coefs
+    beta_statistics <- model_out$parameters_statistics
 
-    mu_hat <- 1/N_est * sum((1/ps_nons)*(OutcomeModel$y_nons - y_nons_pred)) + 1/pop_size * y_rand_pred
+    mu_hat <- 1/N_est * sum((1/ps_nons)*(weights * (OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
 
     # var_prob <- as.vector(attr(svydesign_mean, "var")) # to consider
 
     var_nonprob <- switch(method_selection,
-                  "logit" = 1/N_est^2 * sum((1 - ps_nons)/ps_nons^2 * (OutcomeModel$y_nons - y_nons_pred)^2),
+                  "logit" = 1/N_est^2 * sum((1 - ps_nons)/ps_nons^2 * (weights*(OutcomeModel$y_nons - y_nons_pred))^2),
                   "cloglog" = 0,
                   "probit" = 0) # variance based on section 4.2 in the article
 
@@ -269,6 +284,7 @@ nonprobDR <- function(selection,
     se_prob <- sqrt(var_prob)
     se_nonprob <- sqrt(var_nonprob)
     var <- var_nonprob + var_prob
+    SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
 
   } else {
     stop("Please, provide svydesign object or pop_totals/pop_means.")
@@ -294,6 +310,7 @@ nonprobDR <- function(selection,
 
   }
 
+  X <- rbind(SelectionModel$X_nons, SelectionModel$X_rand) # joint model matrix
   mu_hat <- ifelse(control_selection$overlap, mu_hat_Ov, mu_hat)
   se <- sqrt(var)
   alpha <- control_inference$alpha
@@ -305,14 +322,27 @@ nonprobDR <- function(selection,
   parameters <- data.frame("Estimate" = theta_hat,
                            "Std. errors" = theta_standard_errors,
                            row.names = names(theta_hat))
+  weights_summary <- summary(as.vector(weights_nons))
+  prop_scores <- c(ps_nons, est_ps_rand)
 
 
   structure(
-    list(output = output,
+    list(X = X,
+         prop_scores = prop_scores,
+         weights = as.vector(weights_nons),
+         control = list(control_selection = control_selection,
+                        control_outcome = control_outcome,
+                        control_inference = control_inference),
+         output = output,
          SE_values = SE_values,
          confidence_interval = confidence_interval,
          parameters = parameters,
-         beta = beta_statistics
+         beta = beta_statistics,
+         nonprob_size = n_nons,
+         prob_size = n_rand,
+         pop_size = pop_size,
+         log_likelihood = log_likelihood,
+         df_residual = df_residual
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }
@@ -332,14 +362,13 @@ nonprobDR <- function(selection,
 mu_hatDR <- function(y,
                      y_nons,
                      y_rand,
+                     weights,
                      weights_nons,
                      weights_rand,
                      N_nons,
                      N_rand) {
 
-  mu_hat <- 1/N_nons * sum(weights_nons*(y - y_nons)) + 1/N_rand * sum(weights_rand * y_rand)
-
+  mu_hat <- 1/N_nons * sum(weights * weights_nons*(y - y_nons)) + 1/N_rand * sum(weights_rand * y_rand)
   mu_hat
-
 }
 

@@ -11,40 +11,77 @@ bootMI <- function(X_rand,
                    mu_hat,
                    svydesign,
                    rep_type,
+                   method,
+                   k,
                    ...
-                   ){
+                   ){ # TODO for nearest neighbor
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
-  rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
   k <- 1
 
-  while (k <= num_boot) {
+  if (method == "glm") {
+    rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
-    strap <- sample.int(replace = TRUE, n = n_nons)
-    weights_strap <- weights[strap]
-    X_nons_strap <- X_nons[strap,]
-    y_strap <- y[strap]
+    while (k <= num_boot) {
 
-    #using svy package
-    strap_rand_svy <- which(rep_weights[,k] != 0)
-    weights_rand_strap_svy <- rep_weights[,k] * weights_rand
+      strap <- sample.int(replace = TRUE, n = n_nons)
+      weights_strap <- weights[strap]
+      X_nons_strap <- X_nons[strap,]
+      y_strap <- y[strap]
+
+      #using svy package
+      strap_rand_svy <- which(rep_weights[,k] != 0)
+      weights_rand_strap_svy <- rep_weights[,k] * weights_rand
+      N_strap <- sum(weights_rand_strap_svy)
 
 
-    model_strap <- nonprobMI_fit(x = X_nons_strap,
-                                 y = y_strap,
-                                 weights = weights_strap,
-                                 family_outcome = family_outcome)
+      model_strap <- nonprobMI_fit(x = X_nons_strap,
+                                   y = y_strap,
+                                   weights = weights_strap,
+                                   family_outcome = family_outcome)
 
-    beta <- model_strap$coefficients
+      beta <- model_strap$coefficients
 
-    ystrap_rand <- as.numeric(X_rand %*% beta)
+      ystrap_rand <- as.numeric(X_rand %*% beta)
 
-    mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N)
-    mu_hats[k] <- mu_hat_boot
-    k <- k + 1
+      mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
+      mu_hats[k] <- mu_hat_boot
+      k <- k + 1
+    }
+  } else if (method == "nn") {
+
+    while (k <= num_boot) {
+
+      strap <- sample.int(replace = TRUE, n = n_nons)
+      weights_strap <- weights[strap]
+      X_nons_strap <- X_nons[strap,]
+      y_strap <- y[strap]
+
+      strap_rand <- sample.int(replace = TRUE, n = n_rand)
+      weights_rand_strap <- weights_rand[strap_rand]
+      X_rand_strap <- X_rand[strap_rand,]
+      N_strap <- sum(weights_rand_strap)
+
+      model_rand <- nonprobMI_nn(data = X_nons_strap,
+                                 query = X_rand_strap,
+                                 k = k,
+                                 treetype = "kd",
+                                 searchtype = "standard")
+      y_rand_strap <- vector(mode = "numeric", length = n_rand)
+
+      for (i in 1:n_rand) {
+        idx <- model_rand$nn.idx[i,]
+        y_rand_strap[i] <- mean(y_strap[idx])
+      }
+
+      mu_hat_boot <- mu_hatMI(y_rand_strap, weights_rand_strap, N_strap)
+      mu_hats[k] <- mu_hat_boot
+      k <- k + 1
+    }
+
   }
 
   boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
@@ -104,11 +141,12 @@ bootIPW <- function(X_rand,
 
       ps_nons <- est_method_obj$ps_nons
       weights_nons <- 1/ps_nons
-      N_est_nons <- ifelse(is.null(pop_size), sum(1/ps_nons), pop_size)
+      N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * 1/ps_nons), pop_size)
 
       mu_hat_boot <- mu_hatIPW(y = y[strap_nons],
-                              weights = weights_nons,
-                              N = N_est_nons) # IPW estimator
+                               weights = weights[strap_nons],
+                               weights_nons = weights_nons,
+                               N = N_est_nons) # IPW estimator
       mu_hats[k] <- mu_hat_boot
 
     } else {
@@ -130,10 +168,11 @@ bootIPW <- function(X_rand,
       ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
 
       weights_nons <- 1/ps_nons
-      N_est_nons <- ifelse(is.null(pop_size), sum(weights_nons), pop_size)
+      N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
 
       mu_hat_boot <- mu_hatIPW(y = y[strap],
-                               weights = weights_nons,
+                               weights = weights_strap,
+                               weights_nons = weights_nons,
                                N = N_est_nons) # IPW estimator
       mu_hats[k] <- mu_hat_boot
     }
@@ -210,6 +249,7 @@ bootDR <- function(SelectionModel,
       mu_hat_boot <- mu_hatDR(y = OutcomeModel$y_nons[strap_nons],
                               y_nons = y_nons_pred,
                               y_rand = y_rand_pred,
+                              weights = weights[strap_nons],
                               weights_nons = weights_nons,
                               weights_rand = weights_rand[strap_rand],
                               N_nons = N_est_nons,
@@ -237,7 +277,7 @@ bootDR <- function(SelectionModel,
       ethod <- get_method(method_selection)
       inv_link <- method$make_link_inv
       ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap))
-      N_est <- sum(1/ps_nons_strap)
+      N_est <- sum(weights_strap * 1/ps_nons_strap)
       if(is.null(pop_size)) pop_size <- N_est
 
       model_out_strap <- internal_outcome(X_nons = X_strap,
@@ -254,6 +294,7 @@ bootDR <- function(SelectionModel,
       mu_hat_boot <- mu_hatDR(y = y_strap,
                               y_nons = y_nons_pred,
                               y_rand = y_rand_pred,
+                              weights = weights_strap,
                               weights_nons = weights_nons,
                               weights_rand = weights_rand[strap_rand],
                               N_nons = N_est,

@@ -96,7 +96,9 @@ nonprobSel <- function(selection,
   X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
   nons_names <- attr(terms(outcome, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- model.matrix(delete.response(terms(outcome)), svydesign$variables) #X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #matrix of probability sample with intercept
+    xx <- paste("~", paste(nons_names, collapse = "+"))
+    outcome_rand <- as.formula(paste(outcome[2], xx))
+    X_rand <- model.matrix(delete.response(terms(outcome_rand)), svydesign$variables[, nons_names]) # bug if formula is y~. #matrix of probability sample with intercept X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #
   } else {
     stop("variable names in data and svydesign do not match")
   }
@@ -105,6 +107,7 @@ nonprobSel <- function(selection,
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
+  prior_weights <- c(weights_rand, weights)
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
@@ -129,7 +132,7 @@ nonprobSel <- function(selection,
   N_rand <- sum(weights_rand)
 
   # Cross-validation for variable selection
-  cv <- cv_nonprobsvy_rcpp(X = X_stand,
+  cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO add weights
                            R = R,
                            weights_X = weights_X,
                            method_selection = method_selection,
@@ -173,44 +176,49 @@ nonprobSel <- function(selection,
   par0 <- rep(0, 2*(psel + 1))
 
   # root for joint score equation
-  par_sel <- rootSolve::multiroot(u_theta_beta,
-                                  start = par0,
-                                  R = R,
-                                  X = Xsel,
-                                  y = y,
-                                  weights = weights_X,
-                                  method_selection = method_selection,
-                                  family_outcome = family_outcome)$root
+  multiroot <- rootSolve::multiroot(u_theta_beta_dr,
+                                    start = par0,
+                                    R = R,
+                                    X = Xsel,
+                                    y = y,
+                                    weights = weights_X,
+                                    method_selection = method_selection,
+                                    family_outcome = family_outcome,
+                                    prior_weights = prior_weights)
+
+  par_sel <- multiroot$root
 
 
   theta_hat <- par_sel[1:(psel+1)]
   beta_hat <- par_sel[(psel+2):(2*psel+2)]
   names(theta_hat) <- names(beta_hat) <- c("(Intercept)", nons_names[idx])
+  df_residual <- nrow(Xsel) - length(theta_hat)
 
-  ps_nons_est <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
-  weights_nons <- 1/ps_nons_est[loc_nons]
-  N_nons <- sum(weights_nons)
+  ps <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
+  weights_nons <- 1/ps[loc_nons]
+  N_nons <- sum(weights * weights_nons)
 
   eta <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_hat))
   y_hat <- family_nonprobsvy$mu(eta)
-  y_rand <- y_hat[loc_rand]
-  y_nons <- y_hat[loc_nons]
-  sigma <- family_nonprobsvy$variance(mu = y_rand, y = y[loc_rand])
+  y_rand_pred <- y_hat[loc_rand]
+  y_nons_pred <- y_hat[loc_nons]
+  sigma <- family_nonprobsvy$variance(mu = y_rand_pred, y = y[loc_rand])
 
   mu_hat <- mu_hatDR(y = y_nons,
-                     y_nons = y_nons,
-                     y_rand = y_rand,
+                     y_nons = y_nons_pred,
+                     y_rand = y_rand_pred,
+                     weights = weights,
                      weights_nons = weights_nons,
                      weights_rand = weights_rand,
                      N_nons = N_nons,
                      N_rand = N_rand) #DR estimator
 
-  infl1 <- (y - y_hat)^2 * R/(ps_nons_est^2)
-  infl2 <- (y - y_hat)^2 * R/ps_nons_est
+  infl1 <- (prior_weights * (y - y_hat))^2 * R/(ps^2) # TODO add weights
+  infl2 <- (prior_weights * (y - y_hat))^2 * R/ps # TODO add weights
 
   # Variance estimatiors ####
   svydesign <- stats::update(svydesign,
-                             y_rand = y_rand)
+                             y_rand = y_rand_pred)
   svydesign_mean <- survey::svymean(~y_rand, svydesign)
 
   var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
@@ -232,21 +240,35 @@ nonprobSel <- function(selection,
   confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
                                                               upper_bound = mu_hat + z * se))))
 
-  parameters <- data.frame("Estimate selected" = theta_est,
-                           "Estimate" = theta_hat)
+  parameters <- data.frame(#"Estimate selected" = theta_est,
+                           "Estimate" = theta_hat
+                           )
 
-  beta <- data.frame("Estimate selected" = beta_est,
+  beta <- data.frame(#"Estimate selected" = beta_est,
                      "Estimate" = beta_hat)
 
+  probabilities_summary <- summary(as.vector(ps[loc_nons]))
+  prop_scores <- as.vector(ps)
 
   structure(
-    list(output = output,
+    list(X = X,
+         prop_scores = prop_scores,
+         weights = as.vector(weights_nons),
+         control = list(control_selection = control_selection,
+                        control_outcome = control_outcome,
+                        control_inference = control_inference),
+         output = output,
          confidence_interval = confidence_interval,
          SE_values = SE_values,
          parameters = parameters,
-         beta = beta
+         beta = beta,
+         nonprob_size = n_nons,
+         prob_size = n_rand,
+         pop_size = N_nons,
+         df_residual = df_residual,
+         log_likelihood = NULL
          ),
-    class = "Doubly-robust")
+    class = c("nonprobsvy", "nonprobsvy_dr"))
 }
 
 #' @title Inference with the non-probability survey samples.
@@ -279,7 +301,6 @@ nonprobSel <- function(selection,
 #' @param y a
 #' @param ... Additional, optional arguments.
 #'
-
 
 nonprobSelM <- function(outcome,
                         data,
@@ -347,8 +368,21 @@ nonprobSelM <- function(outcome,
 
   X_rand <- Xsel[loc_rand, ]
   X_nons <- Xsel[loc_nons, ]
+  X <- rbind(X_nons, X_rand) # joint model matrix
 
-  # Estimation for outcome model
+  # TODO Estimation with bias minimisation
+  #multiroot <- rootSolve::multiroot(u_theta_beta_mi,
+  #                                  start = rep(0, ncol(Xsel) + 1),
+  #                                  R = R,
+  #                                  X = Xsel,
+  #                                  y = y,
+  #                                  weights = weights_X,
+  #                                  method_selection = method_selection,
+  #                                  family_outcome = family_outcome)
+
+  #beta_sel <- multiroot$root
+
+  # Estimation for outcome model with ordinary least squares method (glm)
   model_out <- internal_outcome(X_nons = X_nons,
                                 X_rand = X_rand,
                                 y = y_nons,
@@ -418,23 +452,181 @@ nonprobSelM <- function(outcome,
 
 
   structure(
-    list(output = output,
+    list(X = X,
+         control = list(control_outcome = control_outcome,
+                        control_inference = control_inference),
+         output = output,
          confidence_interval = confidence_interval,
          SE_values = SE_values,
-         beta = beta
+         beta = beta,
+         nonprob_size = n_nons,
+         prob_size = n_rand,
+         pop_size = pop_size
     ),
-    class = "Mass Imputation")
+    class = c("nonprobsvy", "nonprobsvy_mi"))
 }
 
-# joint score equation for theta and beta, used in estimation
 
-u_theta_beta <- function(par,
-                         R,
-                         X,
-                         y,
-                         weights,
-                         method_selection,
-                         family_outcome) {
+nonprobSelP <- function(selection, # TODO
+                        target,
+                        data,
+                        svydesign,
+                        pop_totals,
+                        pop_means,
+                        pop_size,
+                        method_selection,
+                        method_outcome,
+                        family_selection,
+                        family_outcome,
+                        subset,
+                        strata,
+                        weights,
+                        na_action,
+                        control_selection,
+                        control_outcome,
+                        control_inference,
+                        start,
+                        verbose,
+                        contrasts,
+                        model,
+                        x,
+                        y,
+                        ...) { #TODO
+
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
+  }
+  #if(is.function(family_outcome)) family_outcome <- family_outcome()
+
+  eps <- control_selection$epsilon
+  maxit <- control_selection$maxit
+  h <- control_selection$h_x
+  lambda <- control_selection$lambda
+  lambda_min <- control_selection$lambda_min
+  nlambda <- control_selection$nlambda
+  nfolds <- control_selection$nfolds
+  #weights <- rep.int(1, nrow(data)) # to remove
+
+  dependents <- paste(selection, collapse = " ")
+  outcome <- stats::as.formula(paste(target[2], dependents))
+
+  XY_nons <- model.frame(outcome, data)
+  X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
+  nons_names <- attr(terms(outcome, data = data), "term.labels")
+  if (all(nons_names %in% colnames(svydesign$variables))) {
+    X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #X_rand <- model.matrix(delete.response(terms(outcome)) , svydesign$variables) bug if formula is y~. #matrix of probability sample with intercept
+  } else {
+    stop("variable names in data and svydesign do not match")
+  }
+
+
+  y_nons <- XY_nons[,1]
+  ps_rand <- svydesign$prob
+  weights_rand <- 1/ps_rand
+
+  R_nons <- rep(1, nrow(X_nons))
+  R_rand <- rep(0, nrow(X_rand))
+  R <- c(R_rand, R_nons)  # a vector of the binary indicator of belonging to the nonprobability sample; 1 if the unit belongs, 0 otherwise
+
+  loc_nons <- which(R == 1)
+  loc_rand <- which(R == 0)
+
+  n_nons <- nrow(X_nons)
+  n_rand <- nrow(X_rand)
+  X <- rbind(X_rand, X_nons) # joint matrix
+  X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
+  weights_X <- c(weights_rand, weights)
+
+  method <- get_method(method_selection)
+  inv_link <- method$make_link_inv
+
+  y_rand <- vector(mode = "numeric", length = n_rand)
+  y <- c(y_rand, y_nons) # outcome variable for joint model
+  n <- nrow(X)
+  p <- ncol(X)
+  N_rand <- sum(weights_rand)
+
+  # Cross-validation for variable selection
+  cv <- cv_nonprobsvy_rcpp(X = X_stand,
+                           R = R,
+                           weights_X = weights_X,
+                           method_selection = method_selection,
+                           h = h,
+                           maxit = maxit,
+                           eps = eps,
+                           lambda_min = lambda_min,
+                           nlambda = nlambda,
+                           nfolds = nfolds,
+                           lambda = lambda)
+  theta_est <- cv$theta_est[cv$theta_est != 0]
+  min <- cv$min
+  lambda <- cv$lambda
+  theta_selected <- cv$theta_selected
+  names(theta_est) <- c("(Intercept)", nons_names[theta_selected[-1]])
+
+  idx <- theta_selected[-1] # excluding intercepts
+  psel <- length(idx)
+  Xsel <- as.matrix(X[, idx + 1])
+
+  par1 <- rep(0, length(theta_est))
+  par0 <- start_fit(Xsel,
+                    R,
+                    weights,
+                    weights_rand,
+                    method_selection)
+
+  multiroot <- rootSolve::multiroot(u_theta_beta_ipw,
+                                    start = c(0, par0),
+                                    R = R,
+                                    X = Xsel,
+                                    y = y,
+                                    weights = weights_X,
+                                    method_selection = method_selection)
+
+  theta_hat <- multiroot$root
+
+  names(theta_hat) <- c("(Intercept)", nons_names[idx])
+  df_residual <- nrow(Xsel) - length(theta_hat)
+
+  ps <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
+  weights_nons <- 1/ps[loc_nons]
+  N_nons <- sum(weights, weights_nons)
+
+  mu_hat <- mu_hatIPW(y = y_nons,
+                      weights = weights,
+                      weights_nons = weights_nons,
+                      N = N_nons)
+
+  structure(
+    list(propensity_scores_nonprob = as.vector(ps_nons),
+         est_propensity_scores_prob = as.vector(est_ps_rand),
+         output = output,
+         SE = SE_values,
+         confidence_interval = confidence_interval,
+         parameters = parameters,
+         probabilities = probabilities_summary,
+         nonprob_size = n_nons,
+         prob_size = n_rand,
+         pop_size = pop_size,
+         log_likelihood = log_likelihood,
+         df_residual = df_residual
+    ),
+    class = c("nonprobsvy", "nonprobsvy_ipw"))
+
+
+}
+
+# joint score equation for theta and beta, used in estimation when variable selections
+u_theta_beta_dr <- function(par,
+                            R,
+                            X,
+                            y,
+                            weights,
+                            prior_weights,
+                            method_selection,
+                            family_outcome) {
 
   method <- get_method(method_selection)
 
@@ -444,6 +636,7 @@ u_theta_beta <- function(par,
     family_nonprobsvy <- family_nonprobsvy()
   }
   inv_link <- method$make_link_inv
+  inv_link_rev <- method$make_link_inv_rev
 
   p <- ncol(X)
   theta <- par[1:(p+1)]
@@ -459,14 +652,64 @@ u_theta_beta <- function(par,
   mu_der <- family_nonprobsvy$mu_der(mu)
   res <- family_nonprobsvy$residuals(mu = mu, y = y)
 
+  n <- length(R)
+  R_rand <- 1 - R
 
-  UTB <- method$UTB(X = X0,
-                    R = R,
-                    weights = weights,
-                    ps,
-                    eta_pi = eta_pi,
-                    mu_der = mu_der,
-                    res = res)
+  utb <- c(apply(X0 * R/ps * mu_der * prior_weights - X0 * R_rand * weights * mu_der, 2, sum),
+           apply(X0 * R * prior_weights * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n
+
+  utb
+}
+
+u_theta_beta_ipw <- function(par,
+                             R,
+                             X,
+                             y,
+                             weights,
+                             method_selection) { # TODO
+
+  method <- get_method(method_selection)
+  inv_link_rev <- method$make_link_inv_rev
+
+  p <- ncol(X)
+  theta <- par
+  X0 <- cbind(1, X)
+  eta_pi <- X0 %*% theta
+  y[which(is.na(y))] <- 0
+
+  n <- length(R)
+
+  UTB <- apply(X0 * R * as.vector(inv_link_rev(eta_pi)) * y, 2, sum)/n
+
+  UTB
+
+}
+
+u_theta_beta_mi <- function(par,
+                            R,
+                            X,
+                            y,
+                            weights,
+                            method_selection,
+                            family_outcome) { # TODO
+
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
+  }
+
+  p <- ncol(X)
+  beta <- par
+  X0 <- cbind(1, X)
+  eta <- X0 %*% beta
+  mu <- family_nonprobsvy$mu(eta)
+  mu_der <- family_nonprobsvy$mu_der(mu)
+
+  n <- length(R)
+  R_rand <- 1 - R
+
+  UTB <- apply(X0 * R_rand * weights * mu_der, 2, sum)/n
 
   UTB
 }

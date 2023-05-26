@@ -58,7 +58,7 @@ internal_outcome <- function(X_nons,
   if (pop_totals) {
     y_rand_pred <- sum(X_rand * model_nons_coefs)
   } else {
-     y_rand_pred <-  as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
+     y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
   }
   y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
 
@@ -76,10 +76,10 @@ theta_h_estimation <- function(R,
                                method_selection,
                                maxit,
                                pop_totals = NULL,
-                               pop_means = NULL){
+                               pop_means = NULL){ # TODO add prior weights
 
   p <- ncol(X)
-  start0 <- start_fit(X = X,
+  start0 <- start_fit(X = X, # <--- does not work with pop_totals
                       R = R,
                       weights = weights,
                       weights_rand = weights_rand,
@@ -102,24 +102,26 @@ theta_h_estimation <- function(R,
 
 
   for (i in 1:maxit) {
-    start <- start0 + MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
+    start <- start0 - MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
     if (sum(abs(start - start0)) < 0.001) break;
     if (sum(abs(start - start0)) > 1000) break;
     start0 <- start
   }
   theta_h <- as.vector(start)
-  grad = u_theta(theta_h)
-  hess = u_theta_der(theta_h)
+  grad <- u_theta(theta_h)
+  hess <- u_theta_der(theta_h)
 
   list(theta_h = theta_h,
        hess = hess,
-       grad = grad,
-       variance_covariance = solve(hess))
+       grad = grad)
 }
 # Variance for inverse probability weighted estimator
-internal_varIPW <- function(X_nons,
+internal_varIPW <- function(svydesign,
+                            selection_formula,
+                            X_nons,
                             X_rand,
                             y_nons,
+                            weights,
                             ps_nons,
                             mu_hat,
                             hess,
@@ -130,6 +132,7 @@ internal_varIPW <- function(X_nons,
                             est_ps_rand_der,
                             n_rand,
                             pop_size,
+                            pop_totals,
                             method_selection,
                             est_method,
                             theta,
@@ -146,7 +149,8 @@ internal_varIPW <- function(X_nons,
                             mu = mu_hat,
                             hess = hess,
                             eta = eta,
-                            pop_size = pop_size)
+                            pop_size = pop_size,
+                            weights = weights)
   b <- b_obj$b
   hess_inv <- b_obj$hess_inv
 
@@ -162,15 +166,16 @@ internal_varIPW <- function(X_nons,
                  psd = ps_nons_der,
                  pop_size = pop_size,
                  est_method = est_method,
-                 h = h) # fixed
+                 h = h,
+                 weights = weights) # fixed
   V2 <- var_cov2(X = X_rand,
+                 svydesign = svydesign,
                  eps = est_ps_rand,
-                 ps = ps_rand,
-                 psd = est_ps_rand_der,
-                 n = n_rand,
-                 N = N,
                  est_method = est_method,
-                 h = h)
+                 h = h,
+                 pop_totals = pop_totals,
+                 psd = est_ps_rand_der)
+
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
   V_mx_nonprob <- sparse_mx %*% V1 %*% t(as.matrix(sparse_mx)) # nonprobability component
@@ -181,17 +186,17 @@ internal_varIPW <- function(X_nons,
   var_prob <- as.vector(V_mx_prob[1,1])
   var <- as.vector(V_mx[1,1])
   # vector of variances for theta_hat
-  theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
+  #theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
 
   list(var_nonprob = var_nonprob,
        var_prob = var_prob,
-       var = var,
-       theta_hat_var = theta_hat_var)
+       var = var)
 }
 # Variance for doubly robust estimator
 internal_varDR <- function(OutcomeModel,
                            SelectionModel,
                            y_nons_pred,
+                           weights,
                            method_selection,
                            theta,
                            ps_nons,
@@ -206,7 +211,7 @@ internal_varDR <- function(OutcomeModel,
                            h) {
 
   eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
-  h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # errors mean
+  h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
   method <- get_method(method_selection)
   est_method <- get_method(est_method)
   #psd <- method$make_link_inv_der(eta)
@@ -219,7 +224,8 @@ internal_varDR <- function(OutcomeModel,
                        hess = hess,
                        eta = eta,
                        h_n = h_n,
-                       y_pred = y_nons_pred)
+                       y_pred = y_nons_pred,
+                       weights = weights)
 
   t <- est_method$make_t(X = SelectionModel$X_rand,
                          ps = est_ps_rand,
@@ -229,7 +235,8 @@ internal_varDR <- function(OutcomeModel,
                          y_rand = y_rand_pred,
                          y_nons = y_nons_pred,
                          N = N_nons,
-                         method_selection = method_selection)
+                         method_selection = method_selection,
+                         weights = weights)
   # asymptotic variance by each propensity score method (nonprobability component)
   var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
                                              psd = ps_nons_der,
@@ -240,7 +247,8 @@ internal_varDR <- function(OutcomeModel,
                                              b = b,
                                              N = N_nons,
                                              h = h,
-                                             method_selection = method_selection)
+                                             method_selection = method_selection,
+                                             weights = weights)
 
 
 
@@ -249,6 +257,51 @@ internal_varDR <- function(OutcomeModel,
                              t = t)
   svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
   var_prob <- as.vector(attr(svydesign_mean, "var"))
+
+  list(var_prob = var_prob,
+       var_nonprob = var_nonprob)
+}
+# Variance for mass imputation estimator
+internal_varMI <- function(svydesign,
+                           X_nons,
+                           X_rand,
+                           y,
+                           y_pred,
+                           y_hat,
+                           weights_rand,
+                           method,
+                           n_rand,
+                           n_nons,
+                           N,
+                           family
+                           ) {
+
+  svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
+  var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
+
+  if (method == "nn") {
+
+    if(is.character(family)) {
+      family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
+      family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+      family_nonprobsvy <- family_nonprobsvy()
+    }
+
+    sigma_hat <- family_nonprobsvy$variance(mu = y_pred, y  = y)
+
+    est_ps  <- n_nons/N
+    var_nonprob <- n_rand/N^2 * sum((1 - est_ps)/est_ps * sigma_hat)
+
+  } else if (method == "glm") { # control_outcome$method
+
+    mx <- 1/N * colSums(weights_rand * X_rand)
+    c <- solve(1/n_nons * t(X_nons) %*% X_nons) %*% mx
+    e <- y - y_pred
+
+    # nonprobability component
+    var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% c)^2
+    var_nonprob <- as.vector(var_nonprob)
+  }
 
   list(var_prob = var_prob,
        var_nonprob = var_nonprob)
@@ -262,7 +315,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
   nons_names <- attr(terms(formula, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
     X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #matrix of probability sample with intercept
-  } else {
+    } else {
     stop("variable names in data and svydesign do not match")
   }
   y_nons <- XY_nons[,1]
@@ -278,10 +331,10 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     XY_nons <- model.frame(formula, data)
     dep_name <- names(XY_nons)[2] # name of the dependent variable
     #matrix for nonprobability sample with intercept
-    X_nons <- model.matrix(XY_nons, data, contrasts.arg = list(klasa_pr = contrasts(as.factor(XY_nons[,dep_name]), contrasts = FALSE)))
-    #X_nons <- model.matrix(XY_nons, data)
+    #X_nons <- model.matrix(XY_nons, data, contrasts.arg = list(klasa_pr = contrasts(as.factor(XY_nons[,dep_name]), contrasts = FALSE)))
+    X_nons <- model.matrix(XY_nons, data)
     #nons_names <- attr(terms(formula, data = data), "term.labels")
-    nons_names <- colnames(X_nons)[-1]
+    nons_names <- colnames(X_nons)
     #pop_totals <- pop_totals[which(attr(X_nons, "assign") == 1)]
     if(all(nons_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
       pop_totals <- pop_totals[nons_names]
@@ -295,7 +348,8 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
          pop_totals = pop_totals,
          nons_names = nons_names,
          y_nons = y_nons,
-         outcome_name = outcome_name)
+         outcome_name = outcome_name,
+         X_rand = NULL)
   }
 }
 # Function for getting function from the selected method
@@ -318,10 +372,14 @@ specific_summary_info <- function(object, ...) {
 specific_summary_info.nonprobsvy_ipw <- function(object,
                                                  ...) {
   res <- list(
-    theta = object$parameters
+    theta = object$parameters,
+    weights = object$weights,
+    df_residual = object$df_residual
   )
 
   attr(res$theta, "glm") <- TRUE
+  attr(res$weights, "glm") <- FALSE
+  attr(res$df_residual, "glm") <- FALSE
   attr(res, "TODO")     <- c("glm regression on selection variable")
 
   res
@@ -329,18 +387,29 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
-  # TODO
+
+  res <- list(
+    beta = object$parameters
+  )
+  attr(res$beta, "glm") <- TRUE
+  attr(res, "TODO") <- "glm regression on outcome variable"
+
+  res
 }
 
 specific_summary_info.nonprobsvy_dr <- function(object,
                                                 ...) {
   res <- list(
     theta = object$parameters,
-    beta  = object$beta
+    beta  = object$beta,
+    weights = object$weights,
+    df_residual = object$df_residual
   )
 
   attr(res$beta,  "glm") <- TRUE
   attr(res$theta, "glm") <- TRUE
+  attr(res$weights, "glm") <- FALSE
+  attr(res$df_residual, "glm") <- FALSE
   attr(res, "TODO")     <- c("glm regression on selection variable",
                              "glm regression on outcome variable")
 

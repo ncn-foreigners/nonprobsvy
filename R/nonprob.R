@@ -79,6 +79,9 @@ nonprob <- function(selection = NULL,
                     x = TRUE,
                     y = TRUE,
                     ...) {
+
+  call <- match.call()
+
   est_method <- control_inference$est_method
 
   if (!is.data.frame(data)) {
@@ -252,7 +255,8 @@ nonprob <- function(selection = NULL,
                        ...)
   )
 
-  model_estimates
+  names <- names(model_estimates)
+  res <- append(model_estimates, call, after = 0)
+  names(res) <- c("call", names)
+  structure(res, class = class(model_estimates))
 }
-
-
