@@ -1,5 +1,6 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
+#' @export
 
 cloglog <- function(...) {
 

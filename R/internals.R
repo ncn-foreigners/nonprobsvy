@@ -307,14 +307,23 @@ internal_varMI <- function(svydesign,
        var_nonprob = var_nonprob)
 }
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+model_frame <- function(formula, data, outcome = FALSE, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
 
   if (!is.null(svydesign)) {
   XY_nons <- model.frame(formula, data)
   X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
   nons_names <- attr(terms(formula, data = data), "term.labels")
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #matrix of probability sample with intercept
+    if (outcome) {
+      xx <- paste("~", paste(nons_names, collapse = "+"))
+      formula <- as.formula(paste(formula[2], xx))
+      X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables[, nons_names])
+    } else {
+      xx <- paste(nons_names[1], "~", paste(nons_names[2:length(nons_names)], collapse = "+"))
+      formula <- as.formula(xx)
+      X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables[, nons_names])# matrix of probability sample with intercept
+      X_nons <- X_nons[,-2] # TODO
+      }
     } else {
     stop("variable names in data and svydesign do not match")
   }

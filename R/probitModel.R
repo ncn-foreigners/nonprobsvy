@@ -2,6 +2,7 @@
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
+#' @export
 
 probit <- function(...) {
 

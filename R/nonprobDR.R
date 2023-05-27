@@ -81,7 +81,8 @@ nonprobDR <- function(selection,
     # model for outcome formula
     OutcomeModel <- model_frame(formula = outcome,
                                 data = data,
-                                svydesign = svydesign)
+                                svydesign = svydesign,
+                                outcome = TRUE)
 
     #model for selection formula
     SelectionModel <- model_frame(formula = selection,

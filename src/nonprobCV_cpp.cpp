@@ -220,6 +220,12 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
   arma::vec LAMBDA(p, arma::fill::zeros);
   arma::vec par(p, arma::fill::zeros);
 
+  Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
+
+  Rcpp::Function logit = nonprobsvy_env["logit"];
+  Rcpp::Function cloglog = nonprobsvy_env["cloglog"];
+  Rcpp::Function probit = nonprobsvy_env["probit"];
+
   int it = 0;
   for (int jj = 1; jj <= maxit; jj++) {
     it++;
