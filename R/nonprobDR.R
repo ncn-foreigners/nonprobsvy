@@ -354,6 +354,7 @@ nonprobDR <- function(selection,
 #' @param y - a
 #' @param y_nons - a
 #' @param y_rand - a
+#' @param weights - a
 #' @param weights_nons - a
 #' @param weights_rand - a
 #' @param N_nons - a

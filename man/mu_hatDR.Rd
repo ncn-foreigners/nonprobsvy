@@ -23,6 +23,8 @@ mu_hatDR(
 
 \item{y_rand}{- a}
 
+\item{weights}{- a}
+
 \item{weights_nons}{- a}
 
 \item{weights_rand}{- a}

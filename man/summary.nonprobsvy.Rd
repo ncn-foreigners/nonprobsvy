@@ -18,11 +18,6 @@ and \code{"t"} is used in other cases.}
 be computed from covariance matrix by default \code{FALSE}.}
 
 \item{...}{Additional optional arguments}
-
-\item{regression_confint}{confint Logical value indicating whether confidence intervals for
-regression parameters should be constructed}
-
-\item{cov}{Covariance matrix corresponding to regression parameters}
 }
 \description{
 Summary statistics for model of nonprobsvy class.

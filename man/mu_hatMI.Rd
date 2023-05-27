@@ -10,9 +10,9 @@ mu_hatMI(y, weights_rand, N)
 \arguments{
 \item{y}{- a}
 
-\item{N}{- a}
+\item{weights_rand}{- a}
 
-\item{weights}{- a}
+\item{N}{- a}
 }
 \description{
 mu_hatMI

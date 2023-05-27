@@ -209,7 +209,7 @@ nonprobMI <- function(outcome,
 #
 #' mu_hatMI: Function for outcome variable estimation based on mass imputation
 #' @param y - a
-#' @param weights - a
+#' @param weights_rand - a
 #' @param N - a
 
 mu_hatMI <- function(y, weights_rand, N) {

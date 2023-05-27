@@ -5,11 +5,8 @@
 #' and \code{"z"} for normal approximation of students t distribution, by
 #' default \code{"z"} is used if there are more than 30 degrees of freedom
 #' and \code{"t"} is used in other cases.
-#' @param regression_confint confint Logical value indicating whether confidence intervals for
-#' regression parameters should be constructed
 #' @param correlation correlation Logical value indicating whether correlation matrix should
 #' be computed from covariance matrix by default \code{FALSE}.
-#' @param cov Covariance matrix corresponding to regression parameters
 #' @param ... Additional optional arguments
 #'
 #'
@@ -21,8 +18,9 @@
 summary.nonprobsvy <- function(object,
                                test = c("t", "z"),
                                correlation = FALSE,
-                               # regression_confint = FALSE,
-                               # cov = NULL, # in case of adding sandwich methods
+                               # regression_confint = FALSE, confint Logical value indicating whether confidence intervals for
+                               #                             regression parameters should be constructed TODO
+                               # cov = NULL, # in case of adding sandwich methods Covariance matrix corresponding to regression parameters
                                ...) {
 
   model_specific_info <- specific_summary_info(
@@ -216,17 +214,24 @@ pop_size.nonprobsvy <- function(object,
   object$pop_size
 }
 
+#' @title Estimate size of population
+#' @description -
+#' @param object -
+#' @param pop_size -
+#' @param ... additional parameters
 #' @export
 pop_size <- function(object, ...) {
   UseMethod("pop_size")
 }
 
 #' @method residuals nonprobsvy
+#' @importFrom stats residuals
 #' @exportS3Method
 residuals.nonprobsvy <- function(object,
                                  type = c("pearson",
                                           "deviance",
-                                          "response")) { # TODO for pop_totals
+                                          "response"),
+                                 ...) { # TODO for pop_totals
 
   propensity_scores <- object$prop_scores
   if (!is.null(object$prob_size)) {
@@ -244,31 +249,32 @@ residuals.nonprobsvy <- function(object,
   res
 }
 
-#' @method pearson nonprobsvy
+#' @method cooks.distance nonprobsvy
+#' @importFrom stats cooks.distance
 #' @exportS3Method
-cooks.distance.nonprobsvy <- function(object,
+cooks.distance.nonprobsvy <- function(model,
                                       ...) { # TODO basing on Hat_matrix
 
 }
 
-#' @method pearson nonprobsvy
+#' @method hatvalues nonprobsvy
 #' @importFrom stats hatvalues
 #' @importFrom Matrix Diagonal
 #' @exportS3Method
-hatvalues.nonprobsvy <- function(object,
+hatvalues.nonprobsvy <- function(model,
                                   ...) { #TODO reduce execution time
-  propensity_scores <- object$prop_scores
+  propensity_scores <- model$prop_scores
   W <- Matrix::Diagonal(x = propensity_scores * (1 - propensity_scores))
-  XWX_inv <-  solve(t(object$X) %*% W %*% object$X)
+  XWX_inv <-  solve(t(model$X) %*% W %*% model$X)
   hats <- vector(mode = "numeric", length = length(propensity_scores))
   for (i in 1:length(hats)) {
-    hats[i] <- W[i,i] * object$X[i,] %*% XWX_inv %*% object$X[i,]
+    hats[i] <- W[i,i] * model$X[i,] %*% XWX_inv %*% model$X[i,]
   }
   #hats <- Matrix::Diagonal(x = W %*% object$X %*% XWX_inv %*% t(object$X))
   hats
 }
 
-#' @method pearson nonprobsvy
+#' @method AIC nonprobsvy
 #' @importFrom stats AIC
 #' @exportS3Method
 AIC.nonprobsvy <- function(object,
@@ -281,7 +287,7 @@ AIC.nonprobsvy <- function(object,
   res
 }
 
-#' @method pearson nonprobsvy
+#' @method BIC nonprobsvy
 #' @importFrom stats BIC
 #' @exportS3Method
 BIC.nonprobsvy <- function(object,
@@ -294,23 +300,49 @@ BIC.nonprobsvy <- function(object,
   res
 }
 
+#' @title Confidence Intervals for Model Parameters
+#'
+#' @description A function that computes confidence intervals
+#' for selection model coefficients.
+#'
+#' @param object object of nonprobsvy class.
+#' @param parm names of parameters for which confidence intervals are to be
+#' computed, if missing all parameters will be considered.
+#' @param level confidence level for intervals.
+#' @param ... additional arguments
+#'
 #' @method confint nonprobsvy
 #' @return An object with named columns that include upper and
 #' lower limit of confidence intervals.
 #' @exportS3Method
-confint.nonprobsvy <- function(object,
+confint.nonprobsvy <- function(object, # TODO
+                               parm,
                                level = 0.95,
                                ...) {
-  res <- object$confidence_interval
+  #std <- sqrt(diag(vcov.nonprobsvy(object)))
+  #sc <- qnorm(p = 1 - (1 - level) / 2)
+  #res <- data.frame(coef - sc * std, coef + sc * std)
   colnames(res) <- c(paste0(100 * (1 - level) / 2, "%"),
                      paste0(100 * (1 - (1 - level) / 2), "%"))
   res
 }
 
+
+#' @title Obtain Covariance Matrix estimation.
+#'
+#' @description A \code{vcov} method for \code{nonprobsvy} class.
+#'
+#' @param object object of nonprobsvy class.
+#' @param ... additional arguments for method functions
+#'
+#' @details  Returns a estimated covariance matrix for model coefficients
+#' calculated from analytic hessian or Fisher information matrix usually
+#' utilising asymptotic effectiveness of maximum likelihood estimates.
+#'
 #' @method vcov nonprobsvy
 #' @return A covariance matrix for fitted coefficients
 #' @exportS3Method
 vcov.nonprobsvy <- function(object,
-                            ...) {
+                            ...) { # TODO
 
 }
