@@ -76,6 +76,8 @@ nonprobSel <- function(selection,
                        y,
                        ...) {
 
+  print(1)
+
   if(is.character(family_outcome)) {
     family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
@@ -182,7 +184,7 @@ nonprobSel <- function(selection,
                                     y = y,
                                     weights = weights_X,
                                     method_selection = method_selection,
-                                    family_outcome = family_outcome,
+                                    family_nonprobsvy = family_nonprobsvy,
                                     prior_weights = prior_weights)
 
   par_sel <- multiroot$root
@@ -625,15 +627,15 @@ u_theta_beta_dr <- function(par,
                             weights,
                             prior_weights,
                             method_selection,
-                            family_outcome) {
+                            family_nonprobsvy) {
 
   method <- get_method(method_selection)
 
-  if(is.character(family_outcome)) {
-    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
-    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-    family_nonprobsvy <- family_nonprobsvy()
-  }
+  #if(is.character(family_outcome)) {
+  #  family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+  #  family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+  #  family_nonprobsvy <- family_nonprobsvy()
+  #}
   inv_link <- method$make_link_inv
   inv_link_rev <- method$make_link_inv_rev
 
