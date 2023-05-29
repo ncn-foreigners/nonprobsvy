@@ -103,7 +103,6 @@ nonprobSel <- function(selection,
     stop("variable names in data and svydesign do not match")
   }
 
-
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand

@@ -1,5 +1,6 @@
 # family
 
+#' @export
 poisson_nonprobsvy <- function(link = "log") {
   mu <- function(eta) exp(eta)
   variance <- function(mu, y = NULL) mu
@@ -13,6 +14,7 @@ poisson_nonprobsvy <- function(link = "log") {
             class = "family")
 }
 
+#' @export
 gaussian_nonprobsvy <- function(link = "identity") {
   mu <- function(eta) eta
   variance <- function(mu, y)  mean((y - mu)^2)
@@ -26,6 +28,7 @@ gaussian_nonprobsvy <- function(link = "identity") {
              class = "family")
 }
 
+#' @export
 binomial_nonprobsvy <- function(link = "logit") {
   link <- get_method(link)
   mu <- function(eta) link$make_link_inv(eta)
