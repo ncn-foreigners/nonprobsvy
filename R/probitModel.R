@@ -1,8 +1,16 @@
+#' @title - probit model
+#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description -
+#'
+#' @param ... -
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @export
 
 probit <- function(...) {
 

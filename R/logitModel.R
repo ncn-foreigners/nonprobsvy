@@ -1,6 +1,14 @@
+#' @title - logit model
+#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description -
+#'
+#' @param ... -
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @export
 
 logit <- function(...) {
 
