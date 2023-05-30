@@ -71,7 +71,7 @@ nonprobIPW <- function(selection,
 
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
-  outcome <- stats::as.formula(paste(target[2], dependents))
+  outcome <- stats::as.formula(paste(target[2], dependents)) # TODO reformulate
 
   # formula for outcome variable if outcome defined
   # dependents <- paste(selection, collapse = " ")
@@ -151,7 +151,8 @@ nonprobIPW <- function(selection,
     mu_hat <- mu_hatIPW(y = y_nons,
                         weights = weights,
                         weights_nons = weights_nons,
-                        N = N) # IPW estimator
+                        N = N) # IPW estimator # consider using weighted.mean function
+    #mu_hat <- weighted.mean(y_nons, w = weights * weights_rand)
 
   } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
@@ -194,7 +195,7 @@ nonprobIPW <- function(selection,
     theta_hat <- h_object$theta_h
     hess <- h_object$hess
     grad <- h_object$grad
-    names(theta_hat) <- model$nons_names
+    names(theta_hat) <- model$total_names
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der

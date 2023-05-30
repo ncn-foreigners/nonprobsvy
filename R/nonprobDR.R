@@ -81,8 +81,8 @@ nonprobDR <- function(selection,
     # model for outcome formula
     OutcomeModel <- model_frame(formula = outcome,
                                 data = data,
-                                svydesign = svydesign,
-                                outcome = TRUE)
+                                svydesign = svydesign)
+
 
     #model for selection formula
     SelectionModel <- model_frame(formula = selection,
@@ -163,7 +163,7 @@ nonprobDR <- function(selection,
                        weights_nons = weights_nons,
                        weights_rand = weights_rand,
                        N_nons = N_nons,
-                       N_rand = N_rand) #DR estimator
+                       N_rand = N_rand) #DR estimator # consider using weighted.mean function
 
     # updating probability sample by adding y_hat variable
     svydesign <- stats::update(svydesign,
@@ -243,7 +243,7 @@ nonprobDR <- function(selection,
     theta_hat <- h_object$theta_h
     hess_h <- h_object$hess
     grad_h <- h_object$grad
-    names(theta_hat) <- SelectionModel$nons_names
+    names(theta_hat) <- SelectionModel$total_names
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
     n_nons <- nrow(SelectionModel$X_nons)

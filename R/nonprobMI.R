@@ -131,7 +131,8 @@ nonprobMI <- function(outcome,
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
                      weights_rand = weights_rand,
-                     N = N_est_rand)
+                     N = N_est_rand) # consider using weighted.mean function
+  #mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
 
   # design based variance estimation based on approximations of the second-order inclusion probabilities
 

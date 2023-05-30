@@ -35,10 +35,10 @@ double loss_theta(const vec& par,
   // Calculate the loss using the appropriate method
   double loss;
   if (h == "1") {
-    temp = X.each_col() % (R / ps / N_nons - R_rand % weights / N_rand);
+    temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
     loss = accu(square(sum(temp, 0)));
   } else if (h == "2") {
-    temp = X.each_col() % (R / N_nons - R_rand % weights % ps / N_rand);
+    temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
     loss = accu(square(sum(temp, 0)));
   } else {
     loss = 0;
@@ -76,17 +76,17 @@ arma::vec u_theta(const arma::vec& par,
   if (pop_totals.isNull()) {
     switch(h_) {
     case 1:
-      temp = X.each_col() % (R/ps - R_rand % weights);
+      temp = X.each_col() % (R/ps % weights - R_rand % weights);
       eq = sum(temp, 0).t() / N_nons;
       break;
     case 2:
-      temp = X.each_col() % (R - R_rand % weights % ps);
+      temp = X.each_col() % (R % weights - R_rand % weights % ps);
       eq = sum(temp, 0).t() / N_nons;
       break;
     }
   } else {
     vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
-    temp = X.each_col() % (R/ps);
+    temp = X.each_col() % (R/ps % weights);
     eq = (sum(temp, 0).t() - total_pop) / N_nons;
   }
 
@@ -134,19 +134,19 @@ arma::mat u_theta_der(const arma::vec& par,
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R(i) * (1-ps(i))/ps(i) * X_row.t();
+        temp = R(i) * weights(i) * (1-ps(i))/ps(i) * X_row.t();
         mxDer += temp * X_row;
       }
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R(i) * (1-ps(i))/pow(ps(i), 2) * exp(eta_pi(i)) * X_row.t();
+        temp = R(i) * weights(i) * (1-ps(i))/pow(ps(i), 2) * exp(eta_pi(i)) * X_row.t();
         mxDer += temp * X_row;
       }
     } else if (method_selection == "probit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R(i) * psd(i)/pow(ps(i), 2) * X_row.t();
+        temp = R(i) * weights(i) * psd(i)/pow(ps(i), 2) * X_row.t();
         mxDer += temp * X_row;
       }
     }

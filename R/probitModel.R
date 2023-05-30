@@ -2,7 +2,7 @@
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
-#' @export
+#' @importFrom survey svyrecvar
 
 probit <- function(...) {
 

@@ -3,6 +3,7 @@
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix
 #' @importFrom stats delete.response
+#' @importFrom stats model.response
 #' @importFrom stats summary.glm
 #' @importFrom stats contrasts
 
@@ -307,29 +308,38 @@ internal_varMI <- function(svydesign,
        var_nonprob = var_nonprob)
 }
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, outcome = FALSE, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
 
   if (!is.null(svydesign)) {
-  XY_nons <- model.frame(formula, data)
-  X_nons <- model.matrix(XY_nons, data) #matrix for nonprobability sample with intercept
-  nons_names <- attr(terms(formula, data = data), "term.labels")
+  model_Frame <- model.frame(formula, data)
+  y_nons <- model.response(model_Frame)
+  outcome_name <- names(model_Frame)[1]
+  mt <- attr(model_Frame, "terms")
+  nons_names <- attr(mt, "term.labels") # names of variables of nonprobability sample terms(formula, data = data)
   if (all(nons_names %in% colnames(svydesign$variables))) {
-    X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #matrix of probability sample with intercept
+    dot_check <- sapply(formula, FUN = function(x) {x == "."})
+    if (length(formula) == 2) nons_names <- nons_names[-1]
+    if (any(dot_check)) {
+      xx <- paste("~", paste(nons_names, collapse = "+"))
+      formula <- as.formula(paste(outcome_name, xx))
+      X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables[, nons_names])
+    } else {
+      X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables) #matrix of probability sample with intercept
+    }
+    frame_nons <- model.frame(formula, data)
+    X_nons <- model.matrix(frame_nons, data) #matrix for nonprobability sample with intercept
     #if (outcome) {
-    #  xx <- paste("~", paste(nons_names, collapse = "+"))
+    #  xx <- paste("~", paste(nons_names[2:length(nons_names)], collapse = "+"))
     #  formula <- as.formula(paste(formula[2], xx))
     #  X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables[, nons_names])
     #} else {
-    #  xx <- paste(nons_names[1], "~", paste(nons_names[2:length(nons_names)], collapse = "+"))
+    #  xx <- paste("~", paste(nons_names, collapse = "+"))
     #  formula <- as.formula(xx)
-    #  X_rand <- model.matrix(delete.response(terms(formula)), svydesign$variables[, nons_names])# matrix of probability sample with intercept
-    #  X_nons <- X_nons[,-2] # TODO
+    #  X_rand <- model.matrix(formula, svydesign$variables[, nons_names])# matrix of probability sample with intercept
     #  }
     } else {
     stop("variable names in data and svydesign do not match")
   }
-  y_nons <- XY_nons[,1]
-  outcome_name <- names(XY_nons)[1]
 
   list(X_nons = X_nons,
        X_rand = X_rand,
@@ -338,25 +348,27 @@ model_frame <- function(formula, data, outcome = FALSE, weights = NULL, svydesig
        outcome_name = outcome_name)
 
   } else if (!is.null(pop_totals)) { # TODO
-    XY_nons <- model.frame(formula, data)
-    dep_name <- names(XY_nons)[2] # name of the dependent variable
+    model_Frame <- model.frame(formula, data)
+    X_nons <- model.matrix(model_Frame, data)
     #matrix for nonprobability sample with intercept
     #X_nons <- model.matrix(XY_nons, data, contrasts.arg = list(klasa_pr = contrasts(as.factor(XY_nons[,dep_name]), contrasts = FALSE)))
-    X_nons <- model.matrix(XY_nons, data)
     #nons_names <- attr(terms(formula, data = data), "term.labels")
-    nons_names <- colnames(X_nons)
+    #nons_names <- colnames(X_nons)
     #pop_totals <- pop_totals[which(attr(X_nons, "assign") == 1)]
-    if(all(nons_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
-      pop_totals <- pop_totals[nons_names]
+    mt <- attr(model_Frame, "terms")
+    #nons_names <- attr(mt, "term.labels")
+    total_names <- colnames(X_nons)
+    if(all(total_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
+      pop_totals <- pop_totals[total_names]
     } else {
       warning("Selection and population totals have different names.")
     }
-    y_nons <- XY_nons[,1]
-    outcome_name <- names(XY_nons)[1]
+    y_nons <- model.response(model_Frame)
+    outcome_name <- names(model_Frame)[1]
 
     list(X_nons = X_nons,
          pop_totals = pop_totals,
-         nons_names = nons_names,
+         total_names = total_names,
          y_nons = y_nons,
          outcome_name = outcome_name,
          X_rand = NULL)

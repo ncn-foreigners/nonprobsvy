@@ -76,8 +76,6 @@ nonprobSel <- function(selection,
                        y,
                        ...) {
 
-  print(1)
-
   if(is.character(family_outcome)) {
     family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
@@ -103,12 +101,11 @@ nonprobSel <- function(selection,
     X_rand <- model.matrix(delete.response(terms(outcome_rand)), svydesign$variables[, nons_names]) # bug if formula is y~. #matrix of probability sample with intercept X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #
   } else {
     stop("variable names in data and svydesign do not match")
-  }
+  } # TODO with dot_check for factor variables
 
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
-  prior_weights <- c(weights_rand, weights)
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
@@ -121,7 +118,7 @@ nonprobSel <- function(selection,
   n_rand <- nrow(X_rand)
   X <- rbind(X_rand, X_nons) # joint matrix
   X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
-  weights_X <- c(weights_rand, weights)
+  prior_weights <- c(weights_rand, weights)
 
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
@@ -135,7 +132,7 @@ nonprobSel <- function(selection,
   # Cross-validation for variable selection
   cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO add weights
                            R = R,
-                           weights_X = weights_X,
+                           weights_X = prior_weights,
                            method_selection = method_selection,
                            h = h,
                            maxit = maxit,
@@ -182,17 +179,16 @@ nonprobSel <- function(selection,
                                     R = R,
                                     X = Xsel,
                                     y = y,
-                                    weights = weights_X,
+                                    weights = prior_weights,
                                     method_selection = method_selection,
-                                    family_nonprobsvy = family_nonprobsvy,
-                                    prior_weights = prior_weights)
+                                    family_nonprobsvy = family_nonprobsvy)
 
   par_sel <- multiroot$root
 
 
   theta_hat <- par_sel[1:(psel+1)]
   beta_hat <- par_sel[(psel+2):(2*psel+2)]
-  names(theta_hat) <- names(beta_hat) <- c("(Intercept)", nons_names[idx])
+  names(theta_hat) <- names(beta_hat) <- c("(Intercept)", colnames(X_nons)[idx+1]) # nons_names[idx]
   df_residual <- nrow(Xsel) - length(theta_hat)
 
   ps <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
@@ -204,6 +200,18 @@ nonprobSel <- function(selection,
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
   sigma <- family_nonprobsvy$variance(mu = y_rand_pred, y = y[loc_rand])
+
+  # TODO std for coefficients
+  #standard_errors <- sqrt(diag(solve(-rootSolve::gradient(u_theta_beta_dr,
+  #                                                        x = par_sel,
+  #                                                        R = R,
+  #                                                        X = Xsel,
+  #                                                        y = y,
+  #                                                        weights = prior_weights,
+  #                                                        method_selection = method_selection,
+  #                                                        family_nonprobsvy = family_nonprobsvy))))
+  #theta_errors <- standard_errors[1:(psel+1)]
+  #beta_errors <- standard_errors[(psel+2):(2*psel+2)]
 
   mu_hat <- mu_hatDR(y = y_nons,
                      y_nons = y_nons_pred,
@@ -217,7 +225,7 @@ nonprobSel <- function(selection,
   infl1 <- (prior_weights * (y - y_hat))^2 * R/(ps^2) # TODO add weights
   infl2 <- (prior_weights * (y - y_hat))^2 * R/ps # TODO add weights
 
-  # Variance estimatiors ####
+  # Variance estimators ####
   svydesign <- stats::update(svydesign,
                              y_rand = y_rand_pred)
   svydesign_mean <- survey::svymean(~y_rand, svydesign)
@@ -242,11 +250,14 @@ nonprobSel <- function(selection,
                                                               upper_bound = mu_hat + z * se))))
 
   parameters <- data.frame(#"Estimate selected" = theta_est,
-                           "Estimate" = theta_hat
-                           )
+                           "Estimate" = theta_hat,
+                           #"Std. errors" = theta_errors,
+                           row.names = names(theta_hat))
 
   beta <- data.frame(#"Estimate selected" = beta_est,
-                     "Estimate" = beta_hat)
+                     "Estimate" = beta_hat,
+                     #"Std. errors" = beta_errors,
+                     row.names = names(beta_hat))
 
   probabilities_summary <- summary(as.vector(ps[loc_nons]))
   prop_scores <- as.vector(ps)
@@ -267,7 +278,7 @@ nonprobSel <- function(selection,
          prob_size = n_rand,
          pop_size = N_nons,
          df_residual = df_residual,
-         log_likelihood = NULL
+         log_likelihood = "NULL"
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }
@@ -350,7 +361,7 @@ nonprobSelM <- function(outcome,
   n_rand <- nrow(X_rand)
   X <- rbind(X_rand, X_nons) # joint matrix
   X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
-  weights_X <- c(weights_rand, weights)
+  prior_weights <- c(weights_rand, weights)
 
   nlambda <- control_outcome$nlambda
   penalty <- control_outcome$penalty
@@ -372,7 +383,7 @@ nonprobSelM <- function(outcome,
   X <- rbind(X_nons, X_rand) # joint model matrix
 
   # TODO Estimation with bias minimisation
-  #multiroot <- rootSolve::multiroot(u_theta_beta_mi,
+  # multiroot <- rootSolve::multiroot(u_theta_beta_mi,
   #                                  start = rep(0, ncol(Xsel) + 1),
   #                                  R = R,
   #                                  X = Xsel,
@@ -387,7 +398,7 @@ nonprobSelM <- function(outcome,
   model_out <- internal_outcome(X_nons = X_nons,
                                 X_rand = X_rand,
                                 y = y_nons,
-                                weights = weights,
+                                weights = prior_weights,
                                 family_outcome = family_outcome)
 
   y_rand_pred <- model_out$y_rand_pred
@@ -398,7 +409,7 @@ nonprobSelM <- function(outcome,
   N_est_rand <- sum(weights_rand)
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
-                     weights = weights_rand,
+                     weights_rand = weights_rand,
                      N = N_est_rand)
 
   if (control_inference$var_method == "analytic"){
@@ -625,17 +636,11 @@ u_theta_beta_dr <- function(par,
                             X,
                             y,
                             weights,
-                            prior_weights,
                             method_selection,
                             family_nonprobsvy) {
 
   method <- get_method(method_selection)
 
-  #if(is.character(family_outcome)) {
-  #  family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
-  #  family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-  #  family_nonprobsvy <- family_nonprobsvy()
-  #}
   inv_link <- method$make_link_inv
   inv_link_rev <- method$make_link_inv_rev
 
@@ -656,11 +661,12 @@ u_theta_beta_dr <- function(par,
   n <- length(R)
   R_rand <- 1 - R
 
-  utb <- c(apply(X0 * R/ps * mu_der * prior_weights - X0 * R_rand * weights * mu_der, 2, sum),
-           apply(X0 * R * prior_weights * as.vector(inv_link_rev(eta_pi)) * res, 2, sum))/n
+  utb <- c(apply(X0 * R/ps * mu_der * weights - X0 * R_rand * weights * mu_der, 2, sum),
+           apply(X0 * R * weights * as.vector(-inv_link_rev(eta_pi)) * res, 2, sum))/n
 
   utb
 }
+
 
 u_theta_beta_ipw <- function(par,
                              R,

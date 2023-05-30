@@ -1,6 +1,6 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
-#' @export
+#' @importFrom survey svyrecvar
 
 logit <- function(...) {
 
@@ -133,9 +133,9 @@ logit <- function(...) {
           #X <- as.matrix(eps * as.data.frame(X))
         }
         if (is.null(postStrata)) {
-        cov <- 1/N^2 * svyrecvar(X/svydesign$prob, svydesign$cluster, stratas = svydesign$strata, fpcs = svydesign$fpc)
+        cov <- 1/N^2 * survey::svyrecvar(X/svydesign$prob, svydesign$cluster, stratas = svydesign$strata, fpcs = svydesign$fpc)
         } else {
-          cov <- 1/N^2 * svyrecvar(X/svydesign$prob, svydesign$cluster, stratas = svydesign$strata, fpcs = svydesign$fpc,
+          cov <- 1/N^2 * survey::svyrecvar(X/svydesign$prob, svydesign$cluster, stratas = svydesign$strata, fpcs = svydesign$fpc,
                                    postStrata = postStrata)
         }
       }
