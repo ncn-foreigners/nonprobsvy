@@ -113,6 +113,108 @@ Residuals:
 -0.99998  0.07888  0.24200  0.25508  0.42308  0.58251 
 ```
 
+Mass imputation estimator 
+
+
+```r
+result_mi <- nonprob(
+  outcome = y1 ~ x1 + x2,
+  data = subset(population, flag_bd1 == 1),
+  svydesign = sample_prob
+)
+```
+
+Results
+
+```r
+> summary(result_mi)
+
+Call:
+nonprob(outcome = y1 ~ x1 + x2, data = subset(population, flag_bd1 == 
+    1), svydesign = sample_prob)
+
+-------------------------
+Estimated population mean: 2.95 with overall std.err of: 0.04203
+And std.err for nonprobability and probability samples being respectively:
+0.001227 and 0.04201
+
+Based on: Mass Imputation method
+
+95% Confidence inverval for popualtion mean:
+       lower_bound upper_bound
+normal    2.867433    3.032186
+
+For a population of estimate size: 1e+06
+Obtained on a nonprobability sample of size: 693011
+With an auxiliary probability sample of size: 1000
+-------------------------
+
+Regression coefficients:
+-----------------------
+For glm regression on outcome variable :
+            Estimate Std. Error z value P(>|z|)    
+(Intercept) 0.996282   0.002139   465.8  <2e-16 ***
+x1          1.001931   0.001200   835.3  <2e-16 ***
+x2          0.999125   0.001098   910.2  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
+Inverse probability weighting estimator
+
+```r
+result_ipw <- nonprob(
+  selection = ~ x2,
+  target = ~y1,
+  data = subset(population, flag_bd1 == 1),
+  svydesign = sample_prob, 
+  control_selection = controlSel(est_method_sel = "gee") ## calibration constraints for X2
+```
+
+Results
+
+```r
+> summary(result_ipw)
+
+Call:
+nonprob(selection = ~x2, target = ~y1, data = subset(population, 
+    flag_bd1 == 1), svydesign = sample_prob, control_selection = controlSel(est_method_sel = "gee"))
+
+-------------------------
+Estimated population mean: 2.949 with overall std.err of: 0.02904
+And std.err for nonprobability and probability samples being respectively:
+0.0009898 and 0.02902
+
+Based on: Inverse probability weighted method
+
+95% Confidence inverval for popualtion mean:
+       lower_bound upper_bound
+normal    2.891599    3.005433
+
+For a population of estimate size: 1e+06
+Obtained on a nonprobability sample of size: 693011
+With an auxiliary probability sample of size: 1000
+-------------------------
+
+Regression coefficients:
+-----------------------
+For glm regression on selection variable :
+      Estimate Std. Error z value P(>|z|)    
+[1,] -0.333074   0.002593  -128.5  <2e-16 ***
+[2,]  1.671383   0.004376   381.9  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+-------------------------
+
+Weights:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.086   1.320   1.443   1.734   2.395 
+-------------------------
+
+Residuals:
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-0.99998  0.07888  0.24200  0.25508  0.42308  0.58251 
+```
 ## Funding
 
 Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.
