@@ -207,7 +207,7 @@ u_theta <- function(R,
                     N = NULL,
                     pop_totals = NULL,
                     pop_size = NULL
-                    ) { # TODO add prior weights
+                    ) {
 
 
   method <- get_method(method_selection)
@@ -224,9 +224,9 @@ u_theta <- function(R,
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
 
-    R <- as.vector(R) # <------ required if Rcpp
-    weights <- as.vector(weights) # <------ required if Rcpp
-    R_rand <- as.vector(R_rand) # <------ required if Rcpp
+    #R <- as.vector(R) # <------ required if Rcpp
+    #weights <- as.vector(weights) # <------ required if Rcpp
+    #R_rand <- as.vector(R_rand) # <------ required if Rcpp
 
     if (is.null(pop_totals)) {
       eq <- switch(h,
@@ -250,7 +250,7 @@ u_theta_der <-  function(R,
                          N = NULL,
                          pop_totals = NULL
                          )
-                         { # TODO add prior weights
+                         {
 
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
@@ -275,7 +275,7 @@ u_theta_der <-  function(R,
     } else {
 
       mxDer <-switch(h,
-                    "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0,
+                    "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data
                     "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons

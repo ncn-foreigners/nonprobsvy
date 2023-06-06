@@ -185,6 +185,18 @@ nonprobSel <- function(selection,
 
   par_sel <- multiroot$root
 
+  # TODO std for coefficients
+  #standard_errors <- sqrt(diag(solve(-rootSolve::gradient(u_theta_beta_dr,
+  #                                                        x = par_sel,
+  #                                                        R = R,
+  #                                                        X = Xsel,
+  #                                                        y = y,
+  #                                                        weights = prior_weights,
+  #                                                        method_selection = method_selection,
+  #                                                        family_nonprobsvy = family_nonprobsvy))))
+  #theta_errors <- standard_errors[1:(psel+1)]
+  #beta_errors <- standard_errors[(psel+2):(2*psel+2)]
+
 
   theta_hat <- par_sel[1:(psel+1)]
   beta_hat <- par_sel[(psel+2):(2*psel+2)]
@@ -254,6 +266,11 @@ nonprobSel <- function(selection,
                            #"Std. errors" = theta_errors,
                            row.names = names(theta_hat))
 
+  #parameters <- matrix(c(theta_hat, theta_standard_errors),
+  #                     ncol = 2,
+  #                     dimnames = list(names(theta_hat),
+  #                                     c("Estimate", "Std. Error")))
+
   beta <- data.frame(#"Estimate selected" = beta_est,
                      "Estimate" = beta_hat,
                      #"Std. errors" = beta_errors,
@@ -262,7 +279,7 @@ nonprobSel <- function(selection,
   probabilities_summary <- summary(as.vector(ps[loc_nons]))
   prop_scores <- as.vector(ps)
 
-  structure(
+  structure( # TODO selection and outcome object in output list
     list(X = X,
          prop_scores = prop_scores,
          weights = as.vector(weights_nons),
@@ -278,6 +295,8 @@ nonprobSel <- function(selection,
          prob_size = n_rand,
          pop_size = N_nons,
          df_residual = df_residual,
+         #outcome = model_out,
+         #selection = model_sel
          log_likelihood = "NULL"
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
@@ -394,19 +413,28 @@ nonprobSelM <- function(outcome,
 
   #beta_sel <- multiroot$root
 
-  # Estimation for outcome model with ordinary least squares method (glm)
-  model_out <- internal_outcome(X_nons = X_nons,
-                                X_rand = X_rand,
-                                y = y_nons,
-                                weights = prior_weights,
+  # Estimation for outcome model
+  model_out <- internal_outcome(outcome = outcome,
+                                data = data,
+                                weights = weights,
                                 family_outcome = family_outcome)
 
-  y_rand_pred <- model_out$y_rand_pred
-  y_nons_pred <- model_out$y_nons_pred
-  beta_sel <- model_out$model_nons_coefs
+  beta_sel <- model_out$glm_summary$coefficients
   names(beta_sel) <- c("(Intercept)", nons_names[beta_selected])
-  beta <- model_out$parameters_statistics
+  beta <- model_out$glm_summary$coefficients
   N_est_rand <- sum(weights_rand)
+  y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
+  y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
+
+  # Estimation for outcome model with ordinary least squares method (glm)
+  #model_out <- internal_outcome(X_nons = X_nons,
+  #                              X_rand = X_rand,
+  #                              y = y_nons,
+  #                              weights = prior_weights,
+  #                              family_outcome = family_outcome)
+
+  #y_rand_pred <- model_out$y_rand_pred
+  #y_nons_pred <- model_out$y_nons_pred
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
                      weights_rand = weights_rand,
@@ -448,7 +476,7 @@ nonprobSelM <- function(outcome,
                   mu_hat,
                   svydesign,
                   rep_type = control_inference$rep_type)
-    SE_values <- "not computed for bootstrap variance"
+    SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
 
   }
 

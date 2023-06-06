@@ -81,16 +81,16 @@ nonprobMI <- function(outcome,
   if (control_outcome$method == "glm") {
 
     # Estimation for outcome model
-    model_out <- internal_outcome(X_nons,
-                                  X_rand,
-                                  y_nons,
-                                  weights,
-                                  family_outcome)
+    model_out <- internal_outcome(outcome = outcome,
+                                  data = data,
+                                  weights = weights,
+                                  family_outcome = family_outcome)
 
-    y_rand_pred <- model_out$y_rand_pred
-    y_nons_pred <- model_out$y_nons_pred
-    model_nons_coefs <- model_out$model_nons_coefs
-    parameters <- model_out$parameters_statistics
+    model_nons_coefs <- model_out$glm$coefficients
+    parameters <- model_out$glm_summary$coefficients
+
+    y_rand_pred <- as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
+    y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
 
   } else if (control_outcome$method == "nn") {
 
@@ -173,7 +173,7 @@ nonprobMI <- function(outcome,
                   rep_type = control_inference$rep_type,
                   method = control_outcome$method,
                   k = control_outcome$k)
-    SE_values <- "not computed for bootstrap variance"
+    SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
   }
 
   X <- rbind(X_nons, X_rand) # joint model matrix
@@ -200,7 +200,8 @@ nonprobMI <- function(outcome,
          parameters = parameters,
          nonprob_size = n_nons,
          prob_size = n_rand,
-         pop_size = pop_size
+         pop_size = pop_size,
+         outcome = model_out
          ),
     class = c("nonprobsvy", "nonprobsvy_mi"))
 
@@ -260,14 +261,14 @@ nonprobMI_fit <- function(outcome,
     family <- family()
   }
 
-  model_nons <- stats::glm.fit(x = x,
-                               y = y,
-                               weights = weights,
-                               start = start,
-                               control = list(control_outcome$epsilon,
-                                              control_outcome$maxit,
-                                              control_outcome$trace),
-                               family = family)
+  model_nons <- stats::glm(formula = outcome,
+                           family = family,
+                           data = data,
+                           #weights = weights,
+                           start = start,
+                           control = list(control_outcome$epsilon,
+                                          control_outcome$maxit,
+                                          control_outcome$trace))
 
   model_nons
 }

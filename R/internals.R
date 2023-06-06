@@ -39,34 +39,19 @@ internal_selection <- function(X,
 
 }
 # Outcome model object
-internal_outcome <- function(X_nons,
-                             X_rand,
-                             y,
+internal_outcome <- function(outcome,
+                             data,
                              weights,
-                             family_outcome,
-                             pop_totals = FALSE) {
-
+                             family_outcome) {
   # estimation
-  model_nons <- nonprobMI_fit(x = X_nons,
-                              y = y,
+  model_nons <- nonprobMI_fit(outcome = outcome,
+                              data = data,
                               weights = weights,
                               family_outcome = family_outcome)
+  model_nons_summary <- summary(model_nons)
 
-
-  model_nons_coefs <- model_nons$coefficients
-  parameters_statistics <- stats::summary.glm(model_nons)$coefficients
-
-  if (pop_totals) {
-    y_rand_pred <- sum(X_rand * model_nons_coefs)
-  } else {
-     y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample
-  }
-  y_nons_pred <- as.numeric(X_nons %*% model_nons_coefs)
-
-  list(y_rand_pred = y_rand_pred,
-       y_nons_pred = y_nons_pred,
-       model_nons_coefs = model_nons_coefs,
-       parameters_statistics = parameters_statistics)
+  list(glm = model_nons,
+       glm_summary = model_nons_summary)
 
 }
 theta_h_estimation <- function(R,
@@ -85,7 +70,7 @@ theta_h_estimation <- function(R,
                       weights = weights,
                       weights_rand = weights_rand,
                       method_selection = method_selection)
-  start0 <- rep(0, p)
+  #start0 <- rep(0, p)
   # theta estimation by unbiased estimating function depending on the h_x function TODO
   u_theta <- u_theta(R = R,
                      X = X,
@@ -101,13 +86,22 @@ theta_h_estimation <- function(R,
                              method_selection = method_selection,
                              pop_totals = pop_totals)
 
-
+  #root <- rootSolve::multiroot(u_theta,
+  #                             jacfunc = u_theta_der,
+  #                             start = start0)
+  #print(root$root)
+  it <- 0
   for (i in 1:maxit) {
+    it <- it + 1
     start <- start0 - MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
     if (sum(abs(start - start0)) < 0.001) break;
-    if (sum(abs(start - start0)) > 1000) break;
+    if (sum(abs(start - start0)) > 1000)  {
+      warning("algorithm did not converge")
+      break
+    }
     start0 <- start
   }
+  if (it == maxit) warning("algorithm did not converge.")
   theta_h <- as.vector(start)
   grad <- u_theta(theta_h)
   hess <- u_theta_der(theta_h)
@@ -402,7 +396,7 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
   attr(res$theta, "glm") <- TRUE
   attr(res$weights, "glm") <- FALSE
   attr(res$df_residual, "glm") <- FALSE
-  attr(res, "TODO")     <- c("glm regression on selection variable")
+  attr(res, "model")     <- c("glm regression on selection variable")
 
   res
 }
@@ -414,7 +408,7 @@ specific_summary_info.nonprobsvy_mi <- function(object,
     beta = object$parameters
   )
   attr(res$beta, "glm") <- TRUE
-  attr(res, "TODO") <- "glm regression on outcome variable"
+  attr(res, "model") <- "glm regression on outcome variable"
 
   res
 }
@@ -432,7 +426,7 @@ specific_summary_info.nonprobsvy_dr <- function(object,
   attr(res$theta, "glm") <- TRUE
   attr(res$weights, "glm") <- FALSE
   attr(res$df_residual, "glm") <- FALSE
-  attr(res, "TODO")     <- c("glm regression on selection variable",
+  attr(res, "model")     <- c("glm regression on selection variable",
                              "glm regression on outcome variable")
 
   res

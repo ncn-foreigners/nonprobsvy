@@ -178,6 +178,7 @@ nonprobIPW <- function(selection,
 
     X_rand <- NULL
     est_ps_rand <- NULL
+    est_ps_rand_der <- NULL
     ps_rand <- NULL
     n_rand <- NULL
     weights_rand <- NULL
@@ -203,11 +204,24 @@ nonprobIPW <- function(selection,
     ps_nons <- inv_link(eta_nons)
     ps_nons_der <- dinv_link(eta_nons)
     N <- sum(weights * 1/ps_nons)
-    theta_standard_errors <- sqrt(diag(solve(-hess)))
+    variance_covariance <- solve(-hess)
+    theta_standard_errors <- sqrt(diag(variance_covariance))
     var_cov1 <- method$variance_covariance1
     var_cov2 <- method$variance_covariance2
     df_residual <- nrow(X_nons) - length(theta_hat)
     weights_nons <- 1/ps_nons
+
+    model_sel <- list(theta_hat = theta_hat,
+                      hess = hess,
+                      grad = grad,
+                      ps_nons = ps_nons,
+                      est_ps_rand = est_ps_rand,
+                      ps_nons_der =  ps_nons_der,
+                      est_ps_rand_der = est_ps_rand_der,
+                      variance_covariance = variance_covariance,
+                      var_cov1 = var_cov1,
+                      var_cov2 = var_cov2,
+                      df_residual = df_residual)
 
     mu_hat <- mu_hatIPW(model$y_nons, weights = weights, weights_nons = weights_nons, N = N)
   }
@@ -268,7 +282,7 @@ nonprobIPW <- function(selection,
                        pop_size = pop_size,
                        pop_totals = pop_totals)
     var <- var_obj$boot_var
-    SE_values <- "not computed for bootstrap variance"
+    SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
   } else {
     stop("Invalid method for variance estimation.")
   }
@@ -335,9 +349,10 @@ nonprobIPW <- function(selection,
 
   X <- rbind(X_nons, X_rand) # joint model matrix
   output <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
-  parameters <- data.frame("Estimate" = theta_hat,
-                           "Std. Error" = theta_standard_errors,
-                            row.names = names(theta_hat))
+  parameters <- matrix(c(theta_hat, theta_standard_errors),
+                       ncol = 2,
+                       dimnames = list(names(theta_hat),
+                                       c("Estimate", "Std. Error")))
   weights_summary <- summary(as.vector(weights_nons))
   prop_scores <- c(ps_nons, est_ps_rand)
 
@@ -356,7 +371,8 @@ nonprobIPW <- function(selection,
          prob_size = n_rand,
          pop_size = pop_size,
          log_likelihood = log_likelihood,
-         df_residual = df_residual
+         df_residual = df_residual,
+         selection = model_sel
   ),
   class = c("nonprobsvy", "nonprobsvy_ipw"))
 }
@@ -395,13 +411,13 @@ start_fit <- function(X,
   start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
                                 y = R,
                                 weights = weights_to_glm, # to fix
-                                family = binomial(link = method_selection),
+                                #family = binomial(link = method_selection),
                                 control = list(control_selection$epsilon,
                                                control_selection$maxit,
                                                control_selection$trace)
+
   )
   start_model$coefficients
-
 }
 
 

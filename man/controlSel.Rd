@@ -7,7 +7,7 @@
 controlSel(
   method = "glm.fit",
   epsilon = 1e-06,
-  maxit = 100,
+  maxit = 500,
   trace = FALSE,
   optim_method = "NR",
   overlap = FALSE,

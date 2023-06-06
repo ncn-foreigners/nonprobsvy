@@ -23,7 +23,7 @@
 
 controlSel <- function(method = "glm.fit", #perhaps another control function for model with variables selection
                        epsilon = 1e-6,
-                       maxit = 100,
+                       maxit = 500,
                        trace = FALSE,
                        optim_method = "NR",
                        overlap = FALSE,

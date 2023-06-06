@@ -65,6 +65,7 @@ probit <- function(...) {
     }
   }
 
+  # TODO error when svydesign is provided with no weights argument (works with method == "BFGS", but NaN in SE)
   max_lik <- function(X, log_like, gradient, hessian, start, optim_method) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like,
@@ -75,12 +76,12 @@ probit <- function(...) {
 
     if (maxLik_an$code %in% c(3:7, 100)) {
       switch (as.character(maxLik_an$code),
-              "3" = warning("Error in fitting ps_est with maxLik: probably not converged."),
-              "4" = warning("Maxiteration limit reached in fitting ps_est by maxLik."),
-              "5" = stop("Inifinite value of log_like in fitting ps_est by maxLik, error code 5"),
-              "6" = stop("Inifinite value of gradient in fitting ps_est by maxLik, error code 6"),
-              "7" = stop("Inifinite value of hessian in fitting ps_est by maxLik, error code 7"),
-              "100" = stop("Error in fitting ps_est with maxLik, error code 100:: Bad start."),
+              "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+              "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
+              "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
+              "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
+              "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
+              "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
       )
     }
 

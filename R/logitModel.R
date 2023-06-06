@@ -52,7 +52,7 @@ logit <- function(...) {
       }
     }
 
-
+    # TODO error and some other models when svydesign is provided with no weights argument (works with method == "BFGS")
     max_lik <- function(X, log_like, gradient, hessian, start, optim_method) {
 
       #start <- rep(0, length(start))
@@ -64,12 +64,12 @@ logit <- function(...) {
 
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch (as.character(maxLik_an$code),
-                "3" = warning("Error in fitting ps_est with maxLik: probably not converged."),
-                "4" = warning("Maxiteration limit reached in fitting ps_est by maxLik."),
-                "5" = stop("Inifinite value of log_like in fitting ps_est by maxLik, error code 5"),
-                "6" = stop("Inifinite value of gradient in fitting ps_est by maxLik, error code 6"),
-                "7" = stop("Inifinite value of hessian in fitting ps_est by maxLik, error code 7"),
-                "100" = stop("Error in fitting ps_est with maxLik, error code 100:: Bad start."),
+                "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+                "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
+                "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
+                "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
+                "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
+                "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
         )
       }
 
@@ -109,7 +109,7 @@ logit <- function(...) {
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
           v_1 <- t(v1_)
         } else {
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * y^2))
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
           v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
           v_1 <- t(v1_)
         }

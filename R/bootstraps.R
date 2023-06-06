@@ -21,6 +21,13 @@ bootMI <- function(X_rand,
   n_rand <- nrow(X_rand)
   N <- sum(weights_rand)
   k <- 1
+  family <- family_outcome
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
 
   if (method == "glm") {
     rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
@@ -37,15 +44,14 @@ bootMI <- function(X_rand,
       weights_rand_strap_svy <- rep_weights[,k] * weights_rand
       N_strap <- sum(weights_rand_strap_svy)
 
-
-      model_strap <- nonprobMI_fit(x = X_nons_strap,
-                                   y = y_strap,
-                                   weights = weights_strap,
-                                   family_outcome = family_outcome)
+      model_strap <- stats::glm.fit(x = X_nons_strap,
+                                    y = y_strap,
+                                    weights = weights_strap,
+                                    family = family)
 
       beta <- model_strap$coefficients
 
-      ystrap_rand <- as.numeric(X_rand %*% beta)
+      ystrap_rand <- as.numeric(X_rand %*% beta) # TODO with predict.glm
 
       mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
       mu_hats[k] <- mu_hat_boot
@@ -207,6 +213,13 @@ bootDR <- function(SelectionModel,
   N <- sum(weights_rand)
   estimation_method <- get_method(est_method)
   k <- 1
+  family <- family_outcome
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
 
   while (k <= num_boot) {
 
@@ -214,15 +227,21 @@ bootDR <- function(SelectionModel,
       strap_nons <- sample.int(replace = TRUE, n = n_nons)
       strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-      model_out <- internal_outcome(X_nons = OutcomeModel$X_nons[strap_nons, ],
-                                    X_rand = OutcomeModel$X_rand[strap_rand, ],
-                                    y = OutcomeModel$y[strap_nons],
-                                    weights = weights[strap_nons],
-                                    family_outcome = family_outcome)
+      #model_out <- internal_outcome(X_nons = OutcomeModel$X_nons[strap_nons, ],
+      #                                X_rand = OutcomeModel$X_rand[strap_rand, ],
+      #                                y = OutcomeModel$y[strap_nons],
+      #                                weights = weights[strap_nons],
+      #                                family_outcome = family_outcome)
 
-      y_rand_pred <- model_out$y_rand_pred
-      y_nons_pred <- model_out$y_nons_pred
-      model_nons_coefs <- model_out$model_nons_coefs
+      model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
+                                  y = OutcomeModel$y[strap_nons],
+                                  weights = weights[strap_nons],
+                                  family = family)
+
+
+      model_nons_coefs <- model_out$coefficients
+      y_rand_pred <- as.numeric(OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs) # TODO with predict.glm
+      y_nons_pred <- model_out$fitted.values
 
       X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
                      SelectionModel$X_nons[strap_nons, ])
@@ -280,16 +299,14 @@ bootDR <- function(SelectionModel,
       N_est <- sum(weights_strap * 1/ps_nons_strap)
       if(is.null(pop_size)) pop_size <- N_est
 
-      model_out_strap <- internal_outcome(X_nons = X_strap,
-                                          X_rand = c(pop_size, pop_totals), # <--- pop_size is an intercept in the model
-                                          y = y_strap,
-                                          weights = weights,
-                                          family_outcome = family_outcome,
-                                          pop_totals = TRUE)
-
-      y_rand_pred <- model_out$y_rand_pred
-      y_nons_pred <- model_out$y_nons_pred
-      model_nons_coefs <- model_out$model_nons_coefs
+      model_out_strap <- glm.fit(x = X_strap, # <--- pop_size is an intercept in the model
+                                  y = y_strap,
+                                  weights = weights,
+                                  family = family_outcome)
+      X_rand = c(pop_size, pop_totals)
+      model_nons_coefs <- model_out_strap$coefficients
+      y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # TODO with predict.glm
+      y_nons_pred <- model_out$fitted.values
 
       mu_hat_boot <- mu_hatDR(y = y_strap,
                               y_nons = y_nons_pred,

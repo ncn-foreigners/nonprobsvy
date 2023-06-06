@@ -110,16 +110,16 @@ nonprobDR <- function(selection,
     weights_rand <- 1/ps_rand
 
     # Estimation for outcome model
-    model_out <- internal_outcome(X_nons = OutcomeModel$X_nons,
-                                  X_rand = OutcomeModel$X_rand,
-                                  y = OutcomeModel$y_nons,
+    model_out <- internal_outcome(outcome = outcome,
+                                  data = data,
                                   weights = weights,
                                   family_outcome = family_outcome)
 
-    y_rand_pred <- model_out$y_rand_pred
-    y_nons_pred <- model_out$y_nons_pred
-    model_nons_coefs <- model_out$model_nons_coefs
-    beta_statistics <- model_out$parameters_statistics
+    model_nons_coefs <- model_out$glm$coefficients
+    beta_statistics <- model_out$glm_summary$coefficients
+
+    y_rand_pred <- as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample
+    y_nons_pred <- model_out$glm$linear.predictors #as.numeric(X_nons %*% model_nons_coefs)
 
     # Estimation for selection model
     X_nons <- SelectionModel$X_nons
@@ -214,7 +214,7 @@ nonprobDR <- function(selection,
                         h = h,
                         maxit = maxit
                         )
-      SE_values <- "not computed for bootstrap variance"
+      SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
       var <- var_obj$boot_var
     } else {
       stop("Invalid method for variance estimation.")
@@ -241,33 +241,55 @@ nonprobDR <- function(selection,
                                    maxit = maxit,
                                    pop_totals = SelectionModel$pop_totals)
     theta_hat <- h_object$theta_h
-    hess_h <- h_object$hess
-    grad_h <- h_object$grad
+    hess <- h_object$hess
+    grad <- h_object$grad
     names(theta_hat) <- SelectionModel$total_names
     method <- get_method(method_selection)
     inv_link <- method$make_link_inv
+    dinv_link <- method$make_link_inv_der
     n_nons <- nrow(SelectionModel$X_nons)
     ps_nons <- inv_link(theta_hat %*% t(SelectionModel$X_nons))
+    ps_nons_der <- dinv_link(theta_hat %*% t(SelectionModel$X_nons))
     weights_nons <- 1/ps_nons
     N_est <- sum(weights * weights_nons)
-    theta_standard_errors <- sqrt(diag(solve(-hess_h)))
+    variance_covariance <- solve(-hess)
+    theta_standard_errors <- sqrt(diag(variance_covariance))
     df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
     if(is.null(pop_size)) pop_size <- N_est
     n_rand <- NULL
     est_ps_rand <- NULL
+    est_ps_rand_der <- NULL
     log_likelihood <- "NULL"
 
-    model_out <- internal_outcome(X_nons = OutcomeModel$X_nons,
-                                  X_rand =  OutcomeModel$pop_totals, # <--- pop_size is an intercept in the model
-                                  y = OutcomeModel$y_nons,
-                                  weights = weights,
-                                  family_outcome = family_outcome,
-                                  pop_totals = TRUE)
+    model_sel <- list(theta_hat = theta_hat,
+                      hess = hess,
+                      grad = grad,
+                      ps_nons = ps_nons,
+                      est_ps_rand = est_ps_rand,
+                      ps_nons_der =  ps_nons_der,
+                      est_ps_rand_der = est_ps_rand_der,
+                      variance_covariance = variance_covariance,
+                      #var_cov1 = var_cov1,
+                      #var_cov2 = var_cov2,
+                      df_residual = df_residual)
 
-    y_rand_pred <- model_out$y_rand_pred
-    y_nons_pred <- model_out$y_nons_pred
-    model_nons_coefs <- model_out$model_nons_coefs
-    beta_statistics <- model_out$parameters_statistics
+
+    #model_out <- internal_outcome(X_nons = OutcomeModel$X_nons,
+    #                              X_rand =  OutcomeModel$pop_totals, # <--- pop_size is an intercept in the model
+    #                              y = OutcomeModel$y_nons,
+    #                              weights = weights,
+    #                              family_outcome = family_outcome)
+
+    model_out <- internal_outcome(outcome = outcome,
+                                  data = data,
+                                  weights = weights,
+                                  family_outcome = family_outcome)
+
+    model_nons_coefs <- model_out$glm$coefficients
+    beta_statistics <- model_out$glm_summary$coefficients
+    y_rand_pred <- sum(OutcomeModel$pop_totals * model_nons_coefs) # consider %*% instead of sum()
+    y_nons_pred <- model_out$glm$linear.predictors
+
 
     mu_hat <- 1/N_est * sum((1/ps_nons)*(weights * (OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
 
@@ -320,9 +342,10 @@ nonprobDR <- function(selection,
   confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
                                                               upper_bound = mu_hat + z * se))))
   output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
-  parameters <- data.frame("Estimate" = theta_hat,
-                           "Std. errors" = theta_standard_errors,
-                           row.names = names(theta_hat))
+  parameters <- matrix(c(theta_hat, theta_standard_errors),
+                       ncol = 2,
+                       dimnames = list(names(theta_hat),
+                                       c("Estimate", "Std. Error")))
   weights_summary <- summary(as.vector(weights_nons))
   prop_scores <- c(ps_nons, est_ps_rand)
 
@@ -343,7 +366,9 @@ nonprobDR <- function(selection,
          prob_size = n_rand,
          pop_size = pop_size,
          log_likelihood = log_likelihood,
-         df_residual = df_residual
+         df_residual = df_residual,
+         outcome = model_out,
+         selection = model_sel
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }

@@ -61,6 +61,7 @@ cloglog <- function(...) {
   }
 
 
+  # TODO error when svydesign is provided with no weights argument (works with method == "BFGS", NaN in Std. errors)
    max_lik <- function(X, log_like, gradient, hessian, start, optim_method) {
 
     maxLik_an <- maxLik::maxLik(logLik = log_like,
@@ -71,12 +72,12 @@ cloglog <- function(...) {
 
     if (maxLik_an$code %in% c(3:7, 100)) {
       switch (as.character(maxLik_an$code),
-              "3" = warning("Error in fitting ps_est with maxLik: probably not converged."),
-              "4" = warning("Maxiteration limit reached in fitting ps_est by maxLik."),
-              "5" = stop("Inifinite value of log_like in fitting ps_est by maxLik, error code 5"),
-              "6" = stop("Inifinite value of gradient in fitting ps_est by maxLik, error code 6"),
-              "7" = stop("Inifinite value of hessian in fitting ps_est by maxLik, error code 7"),
-              "100" = stop("Error in fitting ps_est with maxLik, error code 100:: Bad start."),
+              "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+              "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
+              "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
+              "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
+              "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
+              "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
       )
     }
 
@@ -97,14 +98,13 @@ cloglog <- function(...) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X # TODO opposite sign here (?)
         v_1 <- t(v1_)
       } else {
-        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * y^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X
+        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights*y)^2))
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X # TODO opposite sign here (?)
         v_1 <- t(v1_)
       }
-
       v_2 <- 0
       for (i in 1:nrow(X)) {
         v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
@@ -122,7 +122,6 @@ cloglog <- function(...) {
         v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
         v_1 <- t(v1_)
       }
-
       v_2 <- 0
       for(i in 1:nrow(X)){
         v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
@@ -135,11 +134,10 @@ cloglog <- function(...) {
         v1_ <- 1/N^2 * ((1 - ps)/ps * weights * (y - mu)) %*% X
         v_1 <- t(v1_)
       } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights * y)^2))
         v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
         v_1 <- t(v1_)
       }
-
       v_2 <- 0
       for(i in 1:nrow(X)){
         v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
