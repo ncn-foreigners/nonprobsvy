@@ -42,14 +42,6 @@ International Statistical Review 87 (2019): S177-S191 \[section 5.2\]
 
 ``` r
 library(survey)
-#> Loading required package: grid
-#> Loading required package: Matrix
-#> Loading required package: survival
-#> 
-#> Attaching package: 'survey'
-#> The following object is masked from 'package:graphics':
-#> 
-#>     dotchart
 library(nonprobsvy)
 
 set.seed(1234567890)

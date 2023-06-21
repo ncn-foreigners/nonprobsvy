@@ -39,7 +39,7 @@ remotes::install_github("ncn-foreigners/nonprobsvy")
 
 Simulate example data from the following paper: Kim, Jae Kwang, and Zhonglei Wang. "Sampling techniques for big data analysis." International Statistical Review 87 (2019): S177-S191 [section 5.2]
 
-```{r example}
+```{r example, message=FALSE}
 library(survey)
 library(nonprobsvy)
 
