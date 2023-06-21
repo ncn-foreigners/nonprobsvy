@@ -21,14 +21,14 @@ summary.nonprobsvy <- function(object,
                                # regression_confint = FALSE, confint Logical value indicating whether confidence intervals for
                                #                             regression parameters should be constructed TODO
                                # cov = NULL, # in case of adding sandwich methods Covariance matrix corresponding to regression parameters
-                               ...) { # TODO when bootstrap variance
+                               ...) {
 
   model_specific_info <- specific_summary_info(
     object,
     correlation = correlation,
     ...
   )
-  df_residual <- model_specific_info$df_residuals
+  df_residual <- model_specific_info$df_residual
   if (!is.null(df_residual)) {
     if (missing(test)) {if (df_residual > 30) test <- "z" else test <- "t"}
   } else {
@@ -75,7 +75,7 @@ summary.nonprobsvy <- function(object,
         cnf_int = object$confidence_interval
       ),
       sample_size = nobs(object, ...),
-      population_size = pop_size.nonprobsvy(object, ...), # change to pop_size
+      population_size = pop.size(object, ...),
       test = test,
       control = object$control,
       model = switch(
@@ -87,8 +87,8 @@ summary.nonprobsvy <- function(object,
       aic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), AIC(object), ""),
       bic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), BIC(object), ""),
       residuals = residuals.nonprobsvy(object, type = "response"),
-      likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$log_likelihood, ""),
-      df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$df_residual, ""),
+      likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, ""),
+      df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, ""),
       weights = summary(object$weights),
       coef = cf,
       std_err = se,
@@ -179,12 +179,13 @@ print.summary_nonprobsvy <- function(x,
     cat("Residuals:\n")
     print(summary(x$residuals$selection))
 
-    cat("\nAIC:")
-    print(x$aic)
-    cat("BIC:")
-    print(x$bic)
+    #cat("\nAIC:")
+    #print(x$aic)
+    #cat("BIC:")
+    #print(x$bic)
+    cat("\nAIC: ", x$aic[[1]], "\nBIC: ",x$bic[[1]], sep = "")
 
-    cat("Log-Likelihood:", x$likelihood, "on", x$df_residual, "Degrees of freedom\n")
+    cat("\nLog-Likelihood:", x$likelihood, "on", x$df_residual, "Degrees of freedom\n")
 
     #cat("-------------------------\n\n")
 
@@ -205,20 +206,20 @@ nobs.nonprobsvy <- function(object,
                             ...) {
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
-#' @method pop_size nonprobsvy
+#' @method pop.size nonprobsvy
 #' @exportS3Method
-pop_size.nonprobsvy <- function(object,
+pop.size.nonprobsvy <- function(object,
                                 ...) {
   object$pop_size
 }
 #' @title Estimate size of population
 #' @description -
 #' @param object -
-#' @param pop_size -
+#' @param pop.size -
 #' @param ... additional parameters
 #' @export
-pop_size <- function(object, ...) {
-  UseMethod("pop_size")
+pop.size <- function(object, ...) {
+  UseMethod("pop.size")
 }
 #' @method residuals nonprobsvy
 #' @importFrom stats residuals
@@ -230,7 +231,17 @@ residuals.nonprobsvy <- function(object,
                                  ...) { # TODO for pop_totals and variable selection
 
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-    res_out <- residuals(object$outcome$glm, type = type)
+    if (object$control$control_inference$est_method == "likelihood") {
+      res_out <- residuals(object$outcome$glm) # TODO for variable selection
+    } else { # TODO for variable selection
+      r <- object$outcome$family$residuals
+      res_out <- switch(type,
+                        "response" = r,
+                        "working" = r/object$oucome$family$mu,
+                        # TODO "deviance" =
+                        "pearson" = r/sqrt(object$outcome$family$variance)
+                        )
+    }
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
     propensity_scores <- object$prop_scores
@@ -269,24 +280,24 @@ cooks.distance.nonprobsvy <- function(model, # TODO for variable selection
 #' @exportS3Method
 hatvalues.nonprobsvy <- function(model,
                                  ...) { # TODO reduce execution time and glm.fit object and customise to variable selection
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(model))) {
     propensity_scores <- model$prop_scores
     W <- Matrix::Diagonal(x = propensity_scores * (1 - propensity_scores))
     XWX_inv <-  solve(t(model$X) %*% W %*% model$X)
     hat_values_sel <- vector(mode = "numeric", length = length(propensity_scores))
-    for (i in 1:length(hat_values_res)) {
+    for (i in 1:length(hat_values_sel)) {
       hat_values_sel[i] <- W[i,i] * model$X[i,] %*% XWX_inv %*% model$X[i,]
     }
     #hats <- Matrix::Diagonal(x = W %*% object$X %*% XWX_inv %*% t(object$X))
     #names(hat_values) <- row.names(model$parameters)
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
+  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(model))) {
   hat_values_out <- hatvalues(model$outcome$glm) # TODO
   }
 
-  if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = hat_values_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = hat_values_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = hat_values_sel, outcome = hat_values_out)
+  if (class(model)[2] == "nonprobsvy_mi") res <- list(outcome = hat_values_out)
+  if (class(model)[2] == "nonprobsvy_ipw") res <- list(selection = hat_values_sel)
+  if (class(model)[2] == "nonprobsvy_dr") res <- list(selection = hat_values_sel, outcome = hat_values_out)
   res
 }
 # CODE MODIFIED FROM stats:::logLik.glm
@@ -294,12 +305,16 @@ hatvalues.nonprobsvy <- function(model,
 #' @importFrom stats logLik
 #' @exportS3Method
 logLik.nonprobsvy <- function(object, ...) {
-  val_sel <- object$log_likelihood
-  attr(val_sel, "nobs") <- dim(residuals(object))[1]
-  attr(val_sel, "df") <- nrow(object$parameters)#length(object$coefficients)
-  class(val_sel) <- "logLik"
+  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+    val_sel <- object$selection$log_likelihood
+    attr(val_sel, "nobs") <- dim(residuals(object, type = "pearson"))[1]
+    attr(val_sel, "df") <- nrow(object$parameters) #length(object$coefficients)
+    class(val_sel) <- "logLik"
+  }
   val_out <- ifelse(any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object)), logLik(object$outcome$glm), 0) # TODO for gee
-  val <- c("selection" = val_sel, "outcome" = val_out)
+  if (class(object)[2] == "nonprobsvy_mi") val <- c("outcome" = val_out)
+  if (class(object)[2] == "nonprobsvy_ipw") val <- c("selection" = val_sel)
+  if (class(object)[2] == "nonprobsvy_dr") val <- c("selection" = val_sel, "outcome" = val_out)
   val
 }
 #' @method AIC nonprobsvy
@@ -307,31 +322,30 @@ logLik.nonprobsvy <- function(object, ...) {
 #' @exportS3Method
 AIC.nonprobsvy <- function(object,
                            ...) {
-  if (!is.character(object$log_likelihood)) {
-    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- 2 * (length(object$parameters) - object$log_likelihood)
+  if (!is.character(object$selection$log_likelihood)) {
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- 2 * (length(object$parameters) - object$selection$log_likelihood)
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome$glm$aic
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
     if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
     if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
   } else{
-    res <- "AIC not available for this method"
+    res <- "not available for this method"
   }
   res
 }
-
 #' @method BIC nonprobsvy
 #' @importFrom stats BIC
 #' @exportS3Method
 BIC.nonprobsvy <- function(object,
                            ...) {
-  if (!is.character(object$log_likelihood)) {
-    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- length(object$parameters) * log(object$nonprob_size + object$prob_size) - 2 * object$log_likelihood
+  if (!is.character(object$selection$log_likelihood)) {
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- length(object$parameters) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <-  BIC(object$outcome$glm) # TODO
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
     if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
     if (class(object)[2] == "nonprobsvy_dr") res <- list("selection" = res_sel, "outcome" = res_out)
   } else {
-    res <- "BIC not available for this method"
+    res <- "not available for this method"
   }
   res
 }
@@ -350,18 +364,28 @@ BIC.nonprobsvy <- function(object,
 #' @return An object with named columns that include upper and
 #' lower limit of confidence intervals.
 #' @exportS3Method
-confint.nonprobsvy <- function(object, # TODO for variable selection
+confint.nonprobsvy <- function(object,
                                parm,
                                level = 0.95,
                                ...) {
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
-    std <- sqrt(diag(vcov.nonprobsvy(object)))
+    std <- sqrt(diag(vcov.nonprobsvy(object)[[1]]))
     sc <- qnorm(p = 1 - (1 - level) / 2)
-    res_sel <- data.frame(object$parameters - sc * std, object$parameters + sc * std)
+    res_sel <- data.frame(object$parameters[,1] - sc * std, object$parameters[,1] + sc * std)
     colnames(res_sel) <- c(paste0(100 * (1 - level) / 2, "%"),
                            paste0(100 * (1 - (1 - level) / 2), "%"))
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- confint(object$outcome$glm)
+  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
+    if (object$control$control_inference$est_method == "likelihood") {
+    res_out <- confint(object$outcome$glm)
+    } else {
+      std <- sqrt(diag(vcov.nonprobsvy(object)[[1]]))
+      sc <- qnorm(p = 1 - (1 - level) / 2)
+      res_out <- data.frame(object$beta[,1] - sc * std, object$beta[,1] + sc * std)
+      colnames(res_out) <- c(paste0(100 * (1 - level) / 2, "%"),
+                             paste0(100 * (1 - (1 - level) / 2), "%"))
+    }
+  }
   if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
   if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
   if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
@@ -382,12 +406,21 @@ confint.nonprobsvy <- function(object, # TODO for variable selection
 #' @return A covariance matrix for fitted coefficients
 #' @exportS3Method
 vcov.nonprobsvy <- function(object,
-                            ...) { # TODO for variable selection
-  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- vcov(object$outcome$glm)
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object)))  res_sel <- solve(-object$selection$hess)
-  if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+                            ...) { # TODO consider different vcov methods for selection and outcome models
+  if (object$control$control_inference$est_method == "integrative") {
+    if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome$variance_covariance
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object)))  res_sel <- object$selection$variance_covariance
+    if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
+    if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
+    if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+
+  } else {
+    if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- vcov(object$outcome$glm)
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object)))  res_sel <- object$selection$variance_covariance
+    if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
+    if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
+    if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+    }
   res
 }
 #' @method deviance nonprobsvy

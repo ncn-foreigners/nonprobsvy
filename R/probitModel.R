@@ -19,6 +19,7 @@ probit <- function(...) {
   dinv_link <- function(eta) {dnorm(eta)} # first derivative of inverse link
   dlink <- function(mu) 1/dnorm(qnorm(mu)) # first derivative of link
   inv_link_rev <- function(eta){-dnorm(eta)/pnorm(eta)^2} # first derivative of 1/inv_link
+  dinv_link_rev <- function(eta) {-dnorm(eta) * (eta + dnorm(eta)) / pnorm(eta)^3} # second derivative of 1/inv_link
 
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
 
@@ -187,9 +188,9 @@ probit <- function(...) {
 
     hess_inv <- solve(hess)
     if (is.null(pop_size)) {
-      b <- - (psd/ps^2 * weights * (y - mu)) %*% X %*% hess_inv
+      b <- - (psd/ps^2 * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
     } else {
-      b <- - (psd/ps^2 * weights * (y - mu + 1)) %*% X %*% hess_inv
+      b <- - (psd/ps^2 * weights * (y - mu + 1)) %*% X %*% hess_inv # TODO opposite sign here (?)
     }
     list(b = b,
          hess_inv = hess_inv)
@@ -218,6 +219,7 @@ probit <- function(...) {
       make_link_inv = inv_link,
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
+      make_link_inv_rev_der = dinv_link_rev,
       make_max_lik = max_lik,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,

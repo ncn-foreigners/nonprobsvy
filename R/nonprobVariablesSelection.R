@@ -37,7 +37,7 @@ NULL
 #' @useDynLib nonprobsvy
 #' @importFrom MASS ginv
 #' @importFrom ncvreg cv.ncvreg
-#' @importFrom rootSolve multiroot
+#' @importFrom nleqslv nleqslv
 #' @importFrom stats qnorm
 #' @importFrom stats delete.response
 #' @importFrom survey svymean
@@ -165,6 +165,7 @@ nonprobSel <- function(selection,
   idx <- unique(c(beta_selected[-1], theta_selected[-1])) # excluding intercepts
   psel <- length(idx)
   Xsel <- as.matrix(X[, idx + 1])
+  X_design <- cbind(1, Xsel)
   #start <- start_fit(Xsel,
   #                   R,
   #                   weights,
@@ -174,56 +175,86 @@ nonprobSel <- function(selection,
   par0 <- rep(0, 2*(psel + 1))
 
   # root for joint score equation
-  multiroot <- rootSolve::multiroot(u_theta_beta_dr,
-                                    start = par0,
-                                    R = R,
-                                    X = Xsel,
-                                    y = y,
-                                    weights = prior_weights,
-                                    method_selection = method_selection,
-                                    family_nonprobsvy = family_nonprobsvy)
+  #multiroot <- rootSolve::multiroot(u_theta_beta_dr,
+  #                                  start = par0,
+  #                                  R = R,
+  #                                  X = Xsel,
+  #                                  y = y,
+  #                                  weights = prior_weights,
+  #                                  method_selection = method_selection,
+  #                                  family_nonprobsvy = family_nonprobsvy)
+  #par_sel <- multiroot$root
 
-  par_sel <- multiroot$root
-
-  # TODO std for coefficients
-  #standard_errors <- sqrt(diag(solve(-rootSolve::gradient(u_theta_beta_dr,
-  #                                                        x = par_sel,
-  #                                                        R = R,
-  #                                                        X = Xsel,
-  #                                                        y = y,
-  #                                                        weights = prior_weights,
-  #                                                        method_selection = method_selection,
-  #                                                        family_nonprobsvy = family_nonprobsvy))))
-  #theta_errors <- standard_errors[1:(psel+1)]
-  #beta_errors <- standard_errors[(psel+2):(2*psel+2)]
-
+  multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions
+                                fn = u_theta_beta_dr,
+                                method = "Newton", # TODO consider the method
+                                global = "qline",
+                                xscalm = "fixed",
+                                jacobian = TRUE,
+                                control = list(scalex = rep(1, length(par0))), # TODO algorithm did not converge in maxit iterations for cloglog
+                                R = R,
+                                X = Xsel,
+                                y = y,
+                                weights = prior_weights,
+                                method_selection = method_selection,
+                                family_nonprobsvy = family_nonprobsvy)
+  par_sel <- multiroot$x
+  if (multiroot$termcd %in% c(2:7, -10)) {
+    switch(as.character(multiroot$termcd),
+           "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
+           "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable new point when fitting selection model by nleqslv."),
+           "4" = warning("Iteration limit exceeded when fitting selection model by nleqslv."),
+           "5" = warning("ill-conditioned Jacobian when fitting selection model by nleqslv."),
+           "6" = warning("Jacobian is singular when fitting selection model by nleqslv."),
+           "7" = warning("Jacobian is unusable when fitting selection model by nleqslv."),
+           "-10" = warning("user specified Jacobian is incorrect when fitting selection model by nleqslv."))
+  }
 
   theta_hat <- par_sel[1:(psel+1)]
   beta_hat <- par_sel[(psel+2):(2*psel+2)]
   names(theta_hat) <- names(beta_hat) <- c("(Intercept)", colnames(X_nons)[idx+1]) # nons_names[idx]
   df_residual <- nrow(Xsel) - length(theta_hat)
 
-  ps <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
+  ps <- inv_link(as.vector(X_design %*% as.matrix(theta_hat)))
   weights_nons <- 1/ps[loc_nons]
   N_nons <- sum(weights * weights_nons)
 
-  eta <- as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(beta_hat))
+  # variance-covariance matrix for selection model
+  V <- diag(ps * (1 - ps))
+  vcov_selection <- solve(t(X_design) %*% V %*% X_design)
+  theta_errors <- sqrt(diag(vcov_selection))
+
+
+  eta <- as.vector(X_design %*% as.matrix(beta_hat))
   y_hat <- family_nonprobsvy$mu(eta)
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
   sigma <- family_nonprobsvy$variance(mu = y_rand_pred, y = y[loc_rand])
+  residuals <- family_nonprobsvy$residuals(mu = y_rand_pred, y = y[loc_rand])
+
+  # variance-covariance matrix for outcome model
+  vcov_outcome <- sigma * solve(t(X_design) %*% X_design)
+  beta_errors <- sqrt(diag(vcov_outcome))
 
   # TODO std for coefficients
-  #standard_errors <- sqrt(diag(solve(-rootSolve::gradient(u_theta_beta_dr,
-  #                                                        x = par_sel,
-  #                                                        R = R,
-  #                                                        X = Xsel,
-  #                                                        y = y,
-  #                                                        weights = prior_weights,
-  #                                                        method_selection = method_selection,
-  #                                                        family_nonprobsvy = family_nonprobsvy))))
-  #theta_errors <- standard_errors[1:(psel+1)]
-  #beta_errors <- standard_errors[(psel+2):(2*psel+2)]
+
+  selection <- list(theta_hat = theta_hat,
+                    grad = multiroot$fvec[1:(psel+1)], # TODO
+                    hess = NULL, # TODO
+                    ps_nons = ps,
+                    variance_covariance = vcov_selection,
+                    df_residual = df_residual,
+                    log_likelihood = "NULL")
+
+  outcome <- list(beta_hat = beta_hat,
+                  grad = multiroot$f.root[(psel+2):(2*psel+2)],
+                  hess = NULL, # TODO
+                  variance_covariance = vcov_outcome,
+                  df_residual = df_residual,
+                  family = list(mu = y_hat,
+                                var = sigma,
+                                residuals = residuals),
+                  log_likelihood = "NULL")
 
   mu_hat <- mu_hatDR(y = y_nons,
                      y_nons = y_nons_pred,
@@ -261,25 +292,20 @@ nonprobSel <- function(selection,
   confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
                                                               upper_bound = mu_hat + z * se))))
 
-  parameters <- data.frame(#"Estimate selected" = theta_est,
-                           "Estimate" = theta_hat,
-                           #"Std. errors" = theta_errors,
-                           row.names = names(theta_hat))
+  parameters <- matrix(c(theta_hat, theta_errors),
+                       ncol = 2,
+                       dimnames = list(names(theta_hat),
+                                       c("Estimate", "Std. Error")))
 
-  #parameters <- matrix(c(theta_hat, theta_standard_errors),
-  #                     ncol = 2,
-  #                     dimnames = list(names(theta_hat),
-  #                                     c("Estimate", "Std. Error")))
-
-  beta <- data.frame(#"Estimate selected" = beta_est,
-                     "Estimate" = beta_hat,
-                     #"Std. errors" = beta_errors,
-                     row.names = names(beta_hat))
+  beta <- matrix(c(beta_hat, beta_errors),
+                 ncol = 2,
+                 dimnames = list(names(theta_hat),
+                                 c("Estimate", "Std. Error")))
 
   probabilities_summary <- summary(as.vector(ps[loc_nons]))
   prop_scores <- as.vector(ps)
 
-  structure( # TODO selection and outcome object in output list
+  structure(
     list(X = X,
          prop_scores = prop_scores,
          weights = as.vector(weights_nons),
@@ -294,10 +320,10 @@ nonprobSel <- function(selection,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = N_nons,
-         df_residual = df_residual,
-         #outcome = model_out,
-         #selection = model_sel
-         log_likelihood = "NULL"
+         #df_residual = df_residual,
+         outcome = outcome,
+         selection = selection
+         #log_likelihood = "NULL"
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }
@@ -354,7 +380,13 @@ nonprobSelM <- function(outcome,
                         x,
                         y,
                         ...) {
-  weights <- rep.int(1, nrow(data)) # to remove
+  #weights <- rep.int(1, nrow(data)) # to remove
+
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
+  }
 
   XY_nons <- model.frame(outcome, data)
   X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
@@ -378,6 +410,8 @@ nonprobSelM <- function(outcome,
 
   n_nons <- nrow(X_nons)
   n_rand <- nrow(X_rand)
+  y_rand <- vector(mode = "numeric", length = n_rand)
+  y <- c(y_rand, y_nons) # outcome variable for joint model
   X <- rbind(X_rand, X_nons) # joint matrix
   X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
   prior_weights <- c(weights_rand, weights)
@@ -413,32 +447,47 @@ nonprobSelM <- function(outcome,
 
   #beta_sel <- multiroot$root
 
-  # Estimation for outcome model
+  # Estimation for outcome model with ordinary least squares method (glm)
   model_out <- internal_outcome(outcome = outcome,
-                                data = data,
+                                data = data[,beta_selected+1],
                                 weights = weights,
                                 family_outcome = family_outcome)
 
-  beta_sel <- model_out$glm_summary$coefficients
+  beta_sel <- model_out$glm_summary$coefficients[,1]
+  parameters <- model_out$glm_summary$coefficients
   names(beta_sel) <- c("(Intercept)", nons_names[beta_selected])
-  beta <- model_out$glm_summary$coefficients
+  #beta <- model_out$glm_summary$coefficients
   N_est_rand <- sum(weights_rand)
-  y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
+  y_rand_pred <- as.numeric(X_rand %*% beta_sel) # y_hat for probability sample # consider predict function
   y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
+  df_residual <- nrow(X) - length(beta_sel)
 
-  # Estimation for outcome model with ordinary least squares method (glm)
-  #model_out <- internal_outcome(X_nons = X_nons,
-  #                              X_rand = X_rand,
-  #                              y = y_nons,
+  outcome <- list(beta_hat = beta_sel,
+                  grad = NULL,
+                  hess = NULL,
+                  variance_covariance = vcov(model_out$glm),
+                  df_residual = df_residual,
+                  log_likelihood = "NULL")
+
+  #par0 <- rep(0, length(beta_sel))
+
+  #multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions
+  #                              fn = u_theta_beta_mi,
+  #                              method = "Newton", # TODO consider the method
+  #                              global = "qline",
+  #                              xscalm = "fixed",
+  #                              jacobian = TRUE,
+  #                              R = R,
+  #                              X = Xsel,
+  #                              y = y,
   #                              weights = prior_weights,
-  #                              family_outcome = family_outcome)
-
-  #y_rand_pred <- model_out$y_rand_pred
-  #y_nons_pred <- model_out$y_nons_pred
+  #                              family_nonprobsvy = family_nonprobsvy)
+  #print(multiroot$x)
 
   mu_hat <- mu_hatMI(y = y_rand_pred,
                      weights_rand = weights_rand,
                      N = N_est_rand)
+  if (is.null(pop_size)) pop_size <- N_est_rand # estimated pop_size
 
   if (control_inference$var_method == "analytic"){
 
@@ -498,10 +547,11 @@ nonprobSelM <- function(outcome,
          output = output,
          confidence_interval = confidence_interval,
          SE_values = SE_values,
-         beta = beta,
+         parameters = parameters,
          nonprob_size = n_nons,
          prob_size = n_rand,
-         pop_size = pop_size
+         pop_size = pop_size,
+         outcome = outcome
     ),
     class = c("nonprobsvy", "nonprobsvy_mi"))
 }
@@ -609,6 +659,7 @@ nonprobSelP <- function(selection, # TODO
   idx <- theta_selected[-1] # excluding intercepts
   psel <- length(idx)
   Xsel <- as.matrix(X[, idx + 1])
+  X_design <- cbind(1, Xsel)
 
   par1 <- rep(0, length(theta_est))
   par0 <- start_fit(Xsel,
@@ -617,41 +668,81 @@ nonprobSelP <- function(selection, # TODO
                     weights_rand,
                     method_selection)
 
-  multiroot <- rootSolve::multiroot(u_theta_beta_ipw,
-                                    start = c(0, par0),
-                                    R = R,
-                                    X = Xsel,
-                                    y = y,
-                                    weights = weights_X,
-                                    method_selection = method_selection)
+  #multiroot <- rootSolve::multiroot(u_theta_beta_ipw,
+  #                                  start = c(0, par0),
+  #                                  R = R,
+  #                                  X = Xsel,
+  #                                  y = y,
+  #                                  weights = weights_X,
+  #                                  method_selection = method_selection)
 
-  theta_hat <- multiroot$root
+  multiroot <- nleqslv::nleqslv(x = c(0, par0), # TODO add user-specified parameters to control functions
+                                fn = u_theta_beta_ipw,
+                                method = "Newton", # TODO consider the method
+                                global = "qline",
+                                xscalm = "fixed",
+                                jacobian = TRUE,
+                                R = R,
+                                X = Xsel,
+                                y = y,
+                                weights = weights_X,
+                                method_selection = method_selection)
+
+  theta_hat <- multiroot$x
 
   names(theta_hat) <- c("(Intercept)", nons_names[idx])
   df_residual <- nrow(Xsel) - length(theta_hat)
 
-  ps <- inv_link(as.vector(as.matrix(cbind(1, Xsel)) %*% as.matrix(theta_hat)))
+  ps <- inv_link(as.vector(as.matrix(X_design) %*% as.matrix(theta_hat)))
   weights_nons <- 1/ps[loc_nons]
   N_nons <- sum(weights, weights_nons)
+
+  # variance-covariance matrix for selection model
+  V <- diag(ps * (1 - ps))
+  vcov_selection <- solve(t(X_design) %*% V %*% X_design)
+  theta_errors <- sqrt(diag(vcov_selection))
+
+  selection <- list(theta_hat = theta_hat,
+                    grad = multiroot$fvec, # TODO
+                    hess = NULL, # TODO
+                    ps_nons = ps[loc_nons],
+                    variance_covariance = vcov_selection,
+                    df_residual = df_residual,
+                    log_likelihood = "NULL")
 
   mu_hat <- mu_hatIPW(y = y_nons,
                       weights = weights,
                       weights_nons = weights_nons,
                       N = N_nons)
+  SE_values <- data.frame(t(data.frame("SE" = c(prob = .5, nonprob = .5))))
+  se <- 1 # TODO now just small number
+  alpha <- control_inference$alpha
+  z <- stats::qnorm(1-alpha/2)
+    # confidence interval based on the normal approximation
+  confidence_interval <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                              upper_bound = mu_hat + z * se
+  ))))
+  parameters <- matrix(c(theta_hat, theta_errors),
+                       ncol = 2,
+                       dimnames = list(names(theta_hat),
+                                       c("Estimate", "Std. Error")))
+
+  output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
 
   structure(
-    list(propensity_scores_nonprob = as.vector(ps_nons),
-         est_propensity_scores_prob = as.vector(est_ps_rand),
+    list(X = X_design,
+         prop_scores = ps,
+         weights = weights_nons,
+         control = list(control_selection = control_selection,
+                        control_inference = control_inference),
          output = output,
          SE = SE_values,
          confidence_interval = confidence_interval,
          parameters = parameters,
-         probabilities = probabilities_summary,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         log_likelihood = log_likelihood,
-         df_residual = df_residual
+         selection = selection
     ),
     class = c("nonprobsvy", "nonprobsvy_ipw"))
 
@@ -705,6 +796,7 @@ u_theta_beta_ipw <- function(par,
 
   method <- get_method(method_selection)
   inv_link_rev <- method$make_link_inv_rev
+  inv_link <- method$make_link_inv
 
   p <- ncol(X)
   theta <- par
@@ -712,9 +804,10 @@ u_theta_beta_ipw <- function(par,
   eta_pi <- X0 %*% theta
   y[which(is.na(y))] <- 0
 
+  R_rand <- 1- R
   n <- length(R)
 
-  UTB <- apply(X0 * R * as.vector(inv_link_rev(eta_pi)) * y, 2, sum)/n
+  UTB <- apply(X0 * (R * as.vector(inv_link_rev(eta_pi)) * y - y), 2, sum)/n
 
   UTB
 
@@ -725,26 +818,64 @@ u_theta_beta_mi <- function(par,
                             X,
                             y,
                             weights,
-                            method_selection,
-                            family_outcome) { # TODO
+                            family_nonprobsvy) { # TODO
 
-  if(is.character(family_outcome)) {
-    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+  if(is.character(family_nonprobsvy)) {
+    family_nonprobsvy <- paste(family_nonprobsvy, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
 
+
   p <- ncol(X)
   beta <- par
-  X0 <- cbind(1, X)
-  eta <- X0 %*% beta
+  eta <- X %*% beta
   mu <- family_nonprobsvy$mu(eta)
   mu_der <- family_nonprobsvy$mu_der(mu)
 
   n <- length(R)
   R_rand <- 1 - R
 
-  UTB <- apply(X0 * R_rand * weights * mu_der, 2, sum)/n
+  UTB <- apply(X * (R_rand * weights * as.vector(mu) - y), 2, sum)/n # TODO
 
   UTB
+}
+
+# TODO Jacobian of the estimating equations for dr method
+u_theta_beta_dr_jacob <- function(par,
+                                  R,
+                                  X,
+                                  y,
+                                  weights,
+                                  method_selection,
+                                  family_nonprobsvy){
+  method <- get_method(method_selection)
+
+  inv_link <- method$make_link_inv
+  inv_link_rev <- method$make_link_inv_rev
+  dinv_link_rev <- method$make_link_inv_rev_de
+
+  p <- ncol(X)
+  theta <- par[1:(p+1)]
+  beta <- par[(p+2):(2*p+2)]
+  X0 <- cbind(1, X)
+  eta_pi <- X0 %*% theta
+  ps <- inv_link(eta_pi)
+  y[which(is.na(y))] <- 0
+  ps <- as.vector(ps)
+
+  eta <- X0 %*% beta
+  mu <- family_nonprobsvy$mu(eta)
+  mu_der <- family_nonprobsvy$mu_der(mu)
+  mu_der2 <- family_nonprobsvy$mu_der2(mu)
+  res <- family_nonprobsvy$residuals(mu = mu, y = y)
+  n <- length(R)
+  R_rand <- 1 - R
+
+  jac <- c(apply(- X0 * R * weights * as.vector(inv_link_rev(eta_pi)) * mu_der, 2, sum),
+           apply(X0 * R/ps * mu_der2 * weights - X0 * R_rand * weights * mu_der2, 2, sum),
+           apply(X0 * R * weights * as.vector(dinv_link_rev(eta_pi)) * res * X0, 2, sum),
+           apply(X0 * R * weights * as.vector(inv_link_rev(eta_pi)) * mu_der, 2, sum))/n
+  jac
+
 }

@@ -137,18 +137,18 @@ nonprobDR <- function(selection,
                                     maxit = maxit)
 
     estimation_method <- get_method(est_method)
-    est_method_obj <- estimation_method$estimation_model(model = model_sel,
+    selection <- estimation_method$estimation_model(model = model_sel,
                                                          method_selection = method_selection)
-    theta_hat <- est_method_obj$theta_hat
-    grad <- est_method_obj$grad
-    hess <- est_method_obj$hess
-    ps_nons <- est_method_obj$ps_nons
-    est_ps_rand <- est_method_obj$est_ps_rand
-    ps_nons_der <- est_method_obj$ps_nons_der
-    est_ps_rand_der <- est_method_obj$est_ps_rand_der
-    theta_standard_errors <- sqrt(diag(est_method_obj$variance_covariance))
-    log_likelihood <- est_method_obj$log_likelihood
-    df_residual <- est_method_obj$df_residual
+    theta_hat <- selection$theta_hat
+    #grad <- est_method_obj$grad
+    hess <- selection$hess
+    ps_nons <- selection$ps_nons
+    est_ps_rand <- selection$est_ps_rand
+    ps_nons_der <- selection$ps_nons_der
+    est_ps_rand_der <- selection$est_ps_rand_der
+    theta_standard_errors <- sqrt(diag(selection$variance_covariance))
+    #log_likelihood <- est_method_obj$log_likelihood
+    #df_residual <- est_method_obj$df_residual
 
     names(theta_hat) <- colnames(X_sel)
     weights_nons <- 1/ps_nons
@@ -163,7 +163,7 @@ nonprobDR <- function(selection,
                        weights_nons = weights_nons,
                        weights_rand = weights_rand,
                        N_nons = N_nons,
-                       N_rand = N_rand) #DR estimator # consider using weighted.mean function
+                       N_rand = N_rand) # DR estimator - consider using weighted.mean function
 
     # updating probability sample by adding y_hat variable
     svydesign <- stats::update(svydesign,
@@ -171,7 +171,7 @@ nonprobDR <- function(selection,
 
     if (var_method == "analytic") {
 
-      var_obj <- internal_varDR(OutcomeModel = OutcomeModel,
+      var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
                                 SelectionModel = SelectionModel,
                                 y_nons_pred = y_nons_pred,
                                 weights = weights,
@@ -256,12 +256,12 @@ nonprobDR <- function(selection,
     theta_standard_errors <- sqrt(diag(variance_covariance))
     df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
     if(is.null(pop_size)) pop_size <- N_est
-    n_rand <- NULL
+    n_rand <- 0
     est_ps_rand <- NULL
     est_ps_rand_der <- NULL
     log_likelihood <- "NULL"
 
-    model_sel <- list(theta_hat = theta_hat,
+    selection <- list(theta_hat = theta_hat,
                       hess = hess,
                       grad = grad,
                       ps_nons = ps_nons,
@@ -271,7 +271,8 @@ nonprobDR <- function(selection,
                       variance_covariance = variance_covariance,
                       #var_cov1 = var_cov1,
                       #var_cov2 = var_cov2,
-                      df_residual = df_residual)
+                      df_residual = df_residual,
+                      log_likelihood = log_likelihood)
 
 
     #model_out <- internal_outcome(X_nons = OutcomeModel$X_nons,
@@ -303,7 +304,7 @@ nonprobDR <- function(selection,
     #svydesign <- svydesign(ids = ~1, probs = 1, data = data.frame(y = y_rand_pred))
     #svydesign_mean <- survey::svymean(~y, svydesign)
     #var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
-    var_prob <- 1/pop_size^2 * y_rand_pred
+    var_prob <- 1/pop_size^2 * y_rand_pred # TODO
     se_prob <- sqrt(var_prob)
     se_nonprob <- sqrt(var_nonprob)
     var <- var_nonprob + var_prob
@@ -365,10 +366,10 @@ nonprobDR <- function(selection,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         log_likelihood = log_likelihood,
-         df_residual = df_residual,
+         #log_likelihood = log_likelihood,
+         #df_residual = df_residual,
          outcome = model_out,
-         selection = model_sel
+         selection = selection
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }

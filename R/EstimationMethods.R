@@ -226,6 +226,13 @@ gee <- function(...) {
     est_ps_rand <- inv_link(theta_hat %*% t(as.matrix(X_rand)))
     variance_covariance <- solve(-hess)
 
+    # just for testing
+    # ps <- c(ps_nons, est_ps_rand)
+    # V <- diag(ps * (1 - ps))
+    # vcov_selection <- solve(t(X) %*% V %*% X)
+    # print(sqrt(diag(vcov_selection)))
+
+
     df_reduced <- nrow(X) - length(theta_hat)
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required

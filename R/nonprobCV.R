@@ -275,7 +275,7 @@ u_theta_der <-  function(R,
     } else {
 
       mxDer <-switch(h,
-                    "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data
+                    "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
                     "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons

@@ -3,7 +3,8 @@
 poisson_nonprobsvy <- function(link = "log") {
   mu <- function(eta) exp(eta)
   variance <- function(mu, y = NULL) mu
-  mu_der <- function(mu) mu
+  mu_der <- function(mu) mu # first derivative
+  mu_der2 <- function(mu) 1 # second derivative
   residuals <- function(mu, y) as.vector(y - mu)
 
   structure(list(mu = mu,
@@ -15,8 +16,9 @@ poisson_nonprobsvy <- function(link = "log") {
 
 gaussian_nonprobsvy <- function(link = "identity") {
   mu <- function(eta) eta
-  variance <- function(mu, y)  mean((y - mu)^2)
-  mu_der <- function(mu) 1
+  variance <- function(mu, y) mean((y - mu)^2) # rep.int(1, length(mu))
+  mu_der <- function(mu) 1 # first derivative
+  mu_der2 <- function(mu) 0 # second derivative
   residuals <- function(mu, y) as.vector(y - mu)
 
   structure(list(mu = mu,
@@ -30,7 +32,8 @@ binomial_nonprobsvy <- function(link = "logit") {
   link <- get_method(link)
   mu <- function(eta) link$make_link_inv(eta)
   variance <- function(mu, y = NULL) mu*(1-mu)
-  mu_der <- function(mu) mu * (1 - mu)
+  mu_der <- function(mu) mu * (1 - mu) # first derivative
+  mu_der2 <- function(mu) 1 - 2 * mu # second derivative
   residuals <- function(mu, y) as.vector(y - mu)
 
   structure(list(mu = mu,

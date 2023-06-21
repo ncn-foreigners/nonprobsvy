@@ -16,7 +16,8 @@ cloglog <- function(...) {
   inv_link <- function(eta) {1 - exp(-exp(eta))} # inverse link
   dlink <- function(mu) {1 / ((mu - 1) * log(1 - mu))} # first derivative of link
   dinv_link <- function(eta) {exp(eta - exp(eta))} # first derivative of inverse link
-  inv_link_rev <- function(eta) {-exp(eta + exp(eta))/(1 - exp(-exp(eta)))^2} # first derivative of 1/inv_link
+  inv_link_rev <- function(eta) {-exp(eta + exp(eta))/(exp(exp(eta)) - 1)^2} # TODO first derivative of 1/inv_link
+  dinv_link_rev <- function(eta) {exp( exp(eta) + x) * (- exp(exp(eta)) + exp(eta) + exp(eta + exp(eta)) + 1) / (exp(exp(eta)) - 1)^3} # second derivative of 1/inv_link
 
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
 
@@ -98,11 +99,11 @@ cloglog <- function(...) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X # TODO opposite sign here (?)
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X # TODO opposite sign here (?) check the calculates
         v_1 <- t(v1_)
       } else {
         v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights*y)^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X # TODO opposite sign here (?)
+        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X # TODO opposite sign here (?) check the calculates
         v_1 <- t(v1_)
       }
       v_2 <- 0
@@ -182,9 +183,9 @@ cloglog <- function(...) {
 
     hess_inv <- solve(hess)
     if (is.null(pop_size)) {
-      b <- - ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv
+      b <- ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
     } else {
-      b <- - ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv
+      b <-  ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
     }
 
     list(b = b,
@@ -214,6 +215,7 @@ cloglog <- function(...) {
       make_link_der = dlink,
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
+      make_link_inv_rev_der = dinv_link_rev,
       make_max_lik = max_lik,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,

@@ -14,7 +14,7 @@ bootMI <- function(X_rand,
                    method,
                    k,
                    ...
-                   ){ # TODO for nearest neighbor
+                   ){
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)

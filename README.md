@@ -25,20 +25,13 @@ and doubly robust estimators based on the following papers:
   nonprobability survey samples. Journal of the American Statistical
   Association, 115(532), 2011-2021.
 
-## Basic usage
+## Installation
 
-Install `remotes` package
+You can install the development version of `nonprobsvy` package from
+[Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
-install.packages("remotes")
 remotes::install_github("ncn-foreigners/nonprobsvy")
-```
-
-Load required packages
-
-``` r
-library(survey)
-library(nonprobsvy)
 ```
 
 ## Example
@@ -48,6 +41,17 @@ Zhonglei Wang. “Sampling techniques for big data analysis.”
 International Statistical Review 87 (2019): S177-S191 \[section 5.2\]
 
 ``` r
+library(survey)
+#> Loading required package: grid
+#> Loading required package: Matrix
+#> Loading required package: survival
+#> 
+#> Attaching package: 'survey'
+#> The following object is masked from 'package:graphics':
+#> 
+#>     dotchart
+library(nonprobsvy)
+
 set.seed(1234567890)
 N <- 1e6 ## 1000000
 n <- 1000
@@ -135,10 +139,8 @@ summary(result_dr)
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
 #> 
-#> AIC:[1] 1010626
-#> BIC:[[1]]
-#> [1] 1010672
-#> 
+#> AIC: 1010626
+#> BIC: 1010672
 #> Log-Likelihood: -505309 on 694009 Degrees of freedom
 ```
 
@@ -243,8 +245,8 @@ summary(result_ipw)
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
 #> 
-#> AIC:[1] 1010626
-#> BIC:[1] 1010672
+#> AIC: 1010626
+#> BIC: 1010672
 #> Log-Likelihood: -505309 on 694009 Degrees of freedom
 ```
 

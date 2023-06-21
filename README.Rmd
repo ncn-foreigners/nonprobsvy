@@ -27,20 +27,12 @@ This package implements mass imputation, inverse probability weighting and doubl
 + Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining non-probability and probability survey samples through mass imputation. Journal of the Royal Statistical Society Series A: Statistics in Society, 184(3), 941-963.
 + Chen, Y., Li, P., & Wu, C. (2020). Doubly robust inference with nonprobability survey samples. Journal of the American Statistical Association, 115(532), 2011-2021.
 
-## Basic usage
+## Installation
 
-Install `remotes` package
+You can install the development version of `nonprobsvy` package from [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
-```r
-install.packages("remotes")
+```{r, eval=FALSE}
 remotes::install_github("ncn-foreigners/nonprobsvy")
-```
-
-Load required packages
-
-```{r, message=FALSE}
-library(survey)
-library(nonprobsvy)
 ```
 
 ## Example
@@ -48,6 +40,9 @@ library(nonprobsvy)
 Simulate example data from the following paper: Kim, Jae Kwang, and Zhonglei Wang. "Sampling techniques for big data analysis." International Statistical Review 87 (2019): S177-S191 [section 5.2]
 
 ```{r example}
+library(survey)
+library(nonprobsvy)
+
 set.seed(1234567890)
 N <- 1e6 ## 1000000
 n <- 1000

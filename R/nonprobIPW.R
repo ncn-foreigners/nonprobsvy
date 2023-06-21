@@ -71,7 +71,7 @@ nonprobIPW <- function(selection,
 
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
-  outcome <- stats::as.formula(paste(target[2], dependents)) # TODO reformulate
+  outcome <- stats::as.formula(paste(target[2], dependents))
 
   # formula for outcome variable if outcome defined
   # dependents <- paste(selection, collapse = " ")
@@ -124,20 +124,20 @@ nonprobIPW <- function(selection,
                                     varcov = TRUE)
 
     estimation_method <- get_method(est_method)
-    est_method_obj <- estimation_method$estimation_model(model = model_sel,
+    selection <- estimation_method$estimation_model(model = model_sel,
                                                          method_selection = method_selection)
-    theta_hat <- est_method_obj$theta_hat
-    grad <- est_method_obj$grad
-    hess <- est_method_obj$hess
-    var_cov1 <- est_method_obj$var_cov1
-    var_cov2 <- est_method_obj$var_cov2
-    ps_nons <- est_method_obj$ps_nons
-    est_ps_rand <- est_method_obj$est_ps_rand
-    ps_nons_der <- est_method_obj$ps_nons_der
-    est_ps_rand_der <- est_method_obj$est_ps_rand_der
-    theta_standard_errors <- sqrt(diag(est_method_obj$variance_covariance))
-    log_likelihood <- est_method_obj$log_likelihood
-    df_residual <- est_method_obj$df_residual
+    theta_hat <- selection$theta_hat
+    #grad <- est_method_obj$grad
+    hess <- selection$hess
+    var_cov1 <- selection$var_cov1
+    var_cov2 <- selection$var_cov2
+    ps_nons <- selection$ps_nons
+    est_ps_rand <- selection$est_ps_rand
+    ps_nons_der <- selection$ps_nons_der
+    est_ps_rand_der <- selection$est_ps_rand_der
+    theta_standard_errors <- sqrt(diag(selection$variance_covariance))
+    #log_likelihood <- est_method_obj$log_likelihood
+    #df_residual <- est_method_obj$df_residual
 
     names(theta_hat) <- colnames(X)
     weights_nons <- 1/ps_nons
@@ -180,7 +180,7 @@ nonprobIPW <- function(selection,
     est_ps_rand <- NULL
     est_ps_rand_der <- NULL
     ps_rand <- NULL
-    n_rand <- NULL
+    n_rand <- 0
     weights_rand <- NULL
     log_likelihood <- "NULL"
 
@@ -211,7 +211,7 @@ nonprobIPW <- function(selection,
     df_residual <- nrow(X_nons) - length(theta_hat)
     weights_nons <- 1/ps_nons
 
-    model_sel <- list(theta_hat = theta_hat,
+    selection <- list(theta_hat = theta_hat,
                       hess = hess,
                       grad = grad,
                       ps_nons = ps_nons,
@@ -221,7 +221,8 @@ nonprobIPW <- function(selection,
                       variance_covariance = variance_covariance,
                       var_cov1 = var_cov1,
                       var_cov2 = var_cov2,
-                      df_residual = df_residual)
+                      df_residual = df_residual,
+                      log_likelihood = "NULL")
 
     mu_hat <- mu_hatIPW(model$y_nons, weights = weights, weights_nons = weights_nons, N = N)
   }
@@ -370,9 +371,9 @@ nonprobIPW <- function(selection,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         log_likelihood = log_likelihood,
-         df_residual = df_residual,
-         selection = model_sel
+         #log_likelihood = log_likelihood,
+         #df_residual = df_residual,
+         selection = selection
   ),
   class = c("nonprobsvy", "nonprobsvy_ipw"))
 }

@@ -17,6 +17,7 @@ logit <- function(...) {
   dlink <- function(mu) {1 / (mu**2 - mu)} # first derivative of link
   dinv_link <- function(eta) {exp(eta) / ((1 + exp(eta))^2)} # first derivative of inverse link
   inv_link_rev <- function(eta) {-exp(-eta)} # first derivative of 1/inv_link
+  dinv_link_rev <- function(eta) {exp(-eta)} # second derivative of 1/inv_link
 
 
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
@@ -65,7 +66,7 @@ logit <- function(...) {
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch (as.character(maxLik_an$code),
                 "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
-                "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
+                "4" = warning("Max iteration limit reached in fitting selection model by maxLik."),
                 "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
                 "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
                 "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
@@ -159,9 +160,9 @@ logit <- function(...) {
 
       hess_inv <- solve(hess)
       if (is.null(pop_size)) {
-        b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv
+        b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
       } else {
-        b <- - ((1 - ps)/ps * weights * y) %*% X %*% hess_inv
+        b <- - ((1 - ps)/ps * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
       }
       list(b = b,
            hess_inv = hess_inv)
@@ -190,6 +191,7 @@ logit <- function(...) {
           make_link_der = dlink,
           make_link_inv_der = dinv_link,
           make_link_inv_rev = inv_link_rev,
+          make_link_inv_rev_der = dinv_link_rev,
           make_max_lik = max_lik,
           variance_covariance1 = variance_covariance1,
           variance_covariance2 = variance_covariance2,

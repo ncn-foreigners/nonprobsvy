@@ -6,6 +6,7 @@
 #' @importFrom stats model.response
 #' @importFrom stats summary.glm
 #' @importFrom stats contrasts
+#' @importFrom nleqslv nleqslv
 
 # Selection model object
 internal_selection <- function(X,
@@ -62,7 +63,7 @@ theta_h_estimation <- function(R,
                                method_selection,
                                maxit,
                                pop_totals = NULL,
-                               pop_means = NULL){ # TODO add prior weights
+                               pop_means = NULL){
 
   p <- ncol(X)
   start0 <- start_fit(X = X, # <--- does not work with pop_totals
@@ -90,21 +91,41 @@ theta_h_estimation <- function(R,
   #                             jacfunc = u_theta_der,
   #                             start = start0)
   #print(root$root)
-  it <- 0
-  for (i in 1:maxit) {
-    it <- it + 1
-    start <- start0 - MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
-    if (sum(abs(start - start0)) < 0.001) break;
-    if (sum(abs(start - start0)) > 1000)  {
-      warning("algorithm did not converge")
-      break
-    }
-    start0 <- start
+  root <- nleqslv::nleqslv(x = start0,
+                           fn = u_theta,
+                           method = "Newton", # TODO consider the methods
+                           global = "qline",
+                           xscalm = "fixed",
+                           jacobian = TRUE,
+                           jac = u_theta_der
+                           )
+  start <- root$x
+  if (root$termcd %in% c(2:7, -10)) {
+    switch(as.character(root$termcd),
+           "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
+           "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable new point when fitting selection model by nleqslv."),
+           "4" = warning("Iteration limit exceeded when fitting selection model by nleqslv."),
+           "5" = warning("ill-conditioned Jacobian when fitting selection model by nleqslv."),
+           "6" = warning("Jacobian is singular when fitting selection model by nleqslv."),
+           "7" = warning("Jacobian is unusable when fitting selection model by nleqslv."),
+           "-10" = warning("user specified Jacobian is incorrect when fitting selection model by nleqslv."))
   }
-  if (it == maxit) warning("algorithm did not converge.")
+  #it <- 0
+  #for (i in 1:maxit) {
+  #  it <- it + 1
+  #  start <- start0 - MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
+  #  if (sum(abs(start - start0)) < 0.001) break;
+  #  if (sum(abs(start - start0)) > 1000)  {
+  #    warning("algorithm did not converge")
+  #    break
+  #  }
+  #  start0 <- start
+  #}
+  #if (it == maxit) warning("algorithm did not converge - iteration limit exceeded.")
   theta_h <- as.vector(start)
   grad <- u_theta(theta_h)
-  hess <- u_theta_der(theta_h)
+  hess <- u_theta_der(theta_h) # TODO compare with root$jac
+  #hess <- root$jac
 
   list(theta_h = theta_h,
        hess = hess,
@@ -332,7 +353,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     #  X_rand <- model.matrix(formula, svydesign$variables[, nons_names])# matrix of probability sample with intercept
     #  }
     } else {
-    stop("variable names in data and svydesign do not match")
+    stop("Variable names in data and svydesign do not match")
   }
 
   list(X_nons = X_nons,
@@ -390,7 +411,7 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
   res <- list(
     theta = object$parameters,
     weights = object$weights,
-    df_residual = object$df_residual
+    df_residual = object$selection$df_residual
   )
 
   attr(res$theta, "glm") <- TRUE
@@ -419,7 +440,7 @@ specific_summary_info.nonprobsvy_dr <- function(object,
     theta = object$parameters,
     beta  = object$beta,
     weights = object$weights,
-    df_residual = object$df_residual
+    df_residual = object$selection$df_residual
   )
 
   attr(res$beta,  "glm") <- TRUE

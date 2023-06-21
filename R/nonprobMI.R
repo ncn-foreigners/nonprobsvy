@@ -120,6 +120,8 @@ nonprobMI <- function(outcome,
       idx <- model_nons$nn.idx[i,]
       y_nons_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
     }
+    model_out <- list(model_nons = model_nons,
+                      model_rand = model_rand)
 
   } else {
     stop("Invalid method for outcome variable.")
@@ -177,6 +179,7 @@ nonprobMI <- function(outcome,
   }
 
   X <- rbind(X_nons, X_rand) # joint model matrix
+  #if (is.null(pop_size))
   pop_size <- N_est_rand # estimated pop_size
   se <- sqrt(var)
 
@@ -250,7 +253,7 @@ nonprobMI_fit <- function(outcome,
                           verbose,
                           model,
                           x,
-                          y) {
+                          y) { # TODO problem with weights argument
 
   family <- family_outcome
 
