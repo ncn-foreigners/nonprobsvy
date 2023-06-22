@@ -100,7 +100,6 @@ bootIPW <- function(X_rand,
                     y,
                     R,
                     theta_hat,
-                    family_outcome,
                     num_boot,
                     weights_rand,
                     mu_hat,
@@ -189,6 +188,12 @@ bootIPW <- function(X_rand,
   list(boot_var = boot_var)
 }
 
+#model_out <- internal_outcome(X_nons = OutcomeModel$X_nons[strap_nons, ],
+#                                X_rand = OutcomeModel$X_rand[strap_rand, ],
+#                                y = OutcomeModel$y[strap_nons],
+#                                weights = weights[strap_nons],
+#                                family_outcome = family_outcome)
+#'
 bootDR <- function(SelectionModel,
                    OutcomeModel,
                    family_outcome,
@@ -226,12 +231,6 @@ bootDR <- function(SelectionModel,
     if (is.null(pop_totals)) {
       strap_nons <- sample.int(replace = TRUE, n = n_nons)
       strap_rand <- sample.int(replace = TRUE, n = n_rand)
-
-      #model_out <- internal_outcome(X_nons = OutcomeModel$X_nons[strap_nons, ],
-      #                                X_rand = OutcomeModel$X_rand[strap_rand, ],
-      #                                y = OutcomeModel$y[strap_nons],
-      #                                weights = weights[strap_nons],
-      #                                family_outcome = family_outcome)
 
       model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
                                   y = OutcomeModel$y[strap_nons],
@@ -276,49 +275,51 @@ bootDR <- function(SelectionModel,
       mu_hats[k] <- mu_hat_boot
     } else { # TODO
 
-      strap <- sample.int(replace = TRUE, n = n_nons)
-      X_strap <- X_nons[strap, ]
-      y_strap <- y_nons[strap]
-      R_strap <- rep(1, nrow(X_strap))
-      weights_strap <- weights[strap]
+      stop("Bootstrap with pop_totals is not yet implemented.")
 
-
-      h_object_strap <- theta_h_estimation(R = R_strap,
-                                           X = X_strap,
-                                           weights_rand = NULL,
-                                           weights = weights_strap,
-                                           h = h,
-                                           method_selection = method_selection,
-                                           maxit = maxit,
-                                           pop_totals = pop_totals)
-
-      theta_hat_strap <- h_object$theta_h
-      ethod <- get_method(method_selection)
-      inv_link <- method$make_link_inv
-      ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap))
-      N_est <- sum(weights_strap * 1/ps_nons_strap)
-      if(is.null(pop_size)) pop_size <- N_est
-
-      model_out_strap <- glm.fit(x = X_strap, # <--- pop_size is an intercept in the model
-                                  y = y_strap,
-                                  weights = weights,
-                                  family = family_outcome)
-      X_rand = c(pop_size, pop_totals)
-      model_nons_coefs <- model_out_strap$coefficients
-      y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # TODO with predict.glm
-      y_nons_pred <- model_out$fitted.values
-
-      mu_hat_boot <- mu_hatDR(y = y_strap,
-                              y_nons = y_nons_pred,
-                              y_rand = y_rand_pred,
-                              weights = weights_strap,
-                              weights_nons = weights_nons,
-                              weights_rand = weights_rand[strap_rand],
-                              N_nons = N_est,
-                              N_rand = N_est_rand)
-      mu_hats[k] <- mu_hat_boot
-
-    }
+    #   strap <- sample.int(replace = TRUE, n = n_nons)
+    #   X_strap <- X_nons[strap, ]
+    #   y_strap <- y_nons[strap]
+    #   R_strap <- rep(1, nrow(X_strap))
+    #   weights_strap <- weights[strap]
+    #
+    #
+    #   h_object_strap <- theta_h_estimation(R = R_strap,
+    #                                        X = X_strap,
+    #                                        weights_rand = NULL,
+    #                                        weights = weights_strap,
+    #                                        h = h,
+    #                                        method_selection = method_selection,
+    #                                        maxit = maxit,
+    #                                        pop_totals = pop_totals)
+    #
+    #   theta_hat_strap <- h_object$theta_h
+    #   ethod <- get_method(method_selection)
+    #   inv_link <- method$make_link_inv
+    #   ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap))
+    #   N_est <- sum(weights_strap * 1/ps_nons_strap)
+    #   if(is.null(pop_size)) pop_size <- N_est
+    #
+    #   model_out_strap <- glm.fit(x = X_strap, # <--- pop_size is an intercept in the model
+    #                               y = y_strap,
+    #                               weights = weights,
+    #                               family = family_outcome)
+    #   X_rand = c(pop_size, pop_totals)
+    #   model_nons_coefs <- model_out_strap$coefficients
+    #   y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # TODO with predict.glm
+    #   y_nons_pred <- model_out$fitted.values
+    #
+    #   mu_hat_boot <- mu_hatDR(y = y_strap,
+    #                           y_nons = y_nons_pred,
+    #                           y_rand = y_rand_pred,
+    #                           weights = weights_strap,
+    #                           weights_nons = weights_nons,
+    #                           weights_rand = weights_rand[strap_rand],
+    #                           N_nons = N_est,
+    #                           N_rand = N_est_rand)
+    #   mu_hats[k] <- mu_hat_boot
+    #
+      }
     k <- k + 1
   }
 

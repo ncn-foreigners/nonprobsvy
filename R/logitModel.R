@@ -26,10 +26,11 @@ logit <- function(...) {
 
       eta1 <- as.matrix(X_nons) %*% theta # linear predictor
       eta2 <- as.matrix(X_rand) %*% theta
-      invLink1 <- inv_link(eta1)
+
+      #invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
 
-      log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
+      log_like1 <- sum(weights * eta1)
       log_like2 <- sum(weights_rand * log(1 - invLink2))
       log_like1 + log_like2
     }
@@ -54,34 +55,54 @@ logit <- function(...) {
     }
 
     # TODO error and some other models when svydesign is provided with no weights argument (works with method == "BFGS")
-    max_lik <- function(X, log_like, gradient, hessian, start, optim_method) {
-
+    max_lik <- function(X_nons, X_rand, weights, weights_rand, ...) {
+    #
       #start <- rep(0, length(start))
-      maxLik_an <- maxLik::maxLik(logLik = log_like,
-                                  grad = gradient,
-                                  hess = hessian,
-                                  method = optim_method,
-                                  start = start)
+      # start <- rep(0, NCOL(X_nons))
+      # log_like <- log_like(X_nons, X_rand, weights, weights_rand)
+      # gradient <- gradient(X_nons, X_rand, weights, weights_rand)
+      # hessian <- hessian(X_nons, X_rand, weights, weights_rand)
+      # maxLik_an <- maxLik::maxLik(logLik = log_like,
+      #                             grad = gradient,
+      #                             hess = hessian,
+      #                             method = "NR",
+      #                             start = start,
+      #                             printLevel = 0)# Add printLevel to control
+      #
+      # if (maxLik_an$code %in% c(3:7, 100)) {
+      #   switch (as.character(maxLik_an$code),
+      #           "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+      #           "4" = warning("Max iteration limit reached in fitting selection model by maxLik."),
+      #           "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
+      #           "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
+      #           "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
+      #           "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
+      #   )
+      # }
+      start <- rep(0, NCOL(X_nons))
 
-      if (maxLik_an$code %in% c(3:7, 100)) {
-        switch (as.character(maxLik_an$code),
-                "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
-                "4" = warning("Max iteration limit reached in fitting selection model by maxLik."),
-                "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
-                "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
-                "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
-                "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
-        )
-      }
+      grad <- gradient(X_nons, X_rand, weights, weights_rand, ...)
+      fn <- log_like(X_nons, X_rand, weights, weights_rand, ...)
 
-      theta <- maxLik_an$estimate
-      grad <- maxLik_an$gradient
-      hess <- maxLik_an$hessian
+      maxLik_an <- stats::optim(fn = fn,
+                                gr = gradient(X_nons, X_rand, weights, weights_rand, ...),
+                                method = "Nelder-Mead",
+                                par = start,
+                                control = list(fnscale = -1,
+                                               trace = FALSE)) ## TODO:: add trace to control
+
+
+      theta <- maxLik_an$par
+      # theta <- maxLik_an$estimate
+      # grad <- maxLik_an$gradient
+      # hess <- maxLik_an$hessian
+      grad <- gradient(X_nons, X_rand, weights, weights_rand, ...)(theta)
+      hess <- hessian(X_nons, X_rand, weights, weights_rand, ...)(theta)
 
       list(grad = grad,
            hess = hess,
            theta_hat = theta)
-    }
+      }
 
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
 

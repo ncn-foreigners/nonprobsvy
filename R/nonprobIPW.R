@@ -1,35 +1,3 @@
-#' @import mathjaxr
-NULL
-#' @title Inference with the non-probability survey samples.
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#'
-#' @description \code{nonprobIPW} fits model for propensity score inference based on non-probability surveys using various methods.
-#'
-#' \loadmathjax
-#'
-#' @param selection `formula`, the selection (propensity) equation.
-#' @param target `formula` with target variables.
-#' @param data an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param pop_totals an optional `named vector` with population totals.
-#' @param pop_means an optional `named vector` with population means.
-#' @param pop_size an optional `double` with population size.
-#' @param method_selection a `character` with method for propensity scores estimation
-#' @param family_selection a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
-#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
-#' @param strata an optional `vector` specifying strata.
-#' @param weights an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.
-#' @param na_action a function which indicates what should happen when the data contain `NAs`.
-#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores.
-#' @param control_inference a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.
-#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation.
-#' @param verbose verbose, numeric
-#' @param contrasts a
-#' @param model a
-#' @param x a
-#' @param y a
-#' @param ... Additional, optional arguments.
-#'
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix
@@ -37,7 +5,7 @@ NULL
 #' @importFrom stats as.formula
 #' @importFrom stats terms
 #' @export
-
+#' @rdname main_doc
 
 
 nonprobIPW <- function(selection,
@@ -266,7 +234,6 @@ nonprobIPW <- function(selection,
     var_obj <- bootIPW(X_rand = X_rand,
                        X_nons = X_nons,
                        y = y_nons,
-                       family_outcome = family_outcome,
                        num_boot = 500,
                        weights = weights,
                        weights_rand = weights_rand,

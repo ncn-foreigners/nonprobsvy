@@ -1,38 +1,3 @@
-#' @import mathjaxr
-NULL
-#' @title Inference with the non-probability survey samples.
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#'
-#' @description \code{nonprobDR} fits model for doubly-robust inference based on non-probability surveys using various methods.
-#'
-#' \loadmathjax
-#'
-#' @param selection `formula`, the selection (propensity) equation.
-#' @param outcome `formula`, the outcome equation.
-#' @param data an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param pop_totals an optional `named vector` with population totals.
-#' @param pop_means an optional `named vector` with population means.
-#' @param pop_size an optional `double` with population size.
-#' @param method_selection a `character` with method for propensity scores estimation
-#' @param method_outcome a `character` with method for response variable estimation
-#' @param family_selection a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
-#' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
-#' @param strata an optional `vector` specifying strata.
-#' @param weights an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param na_action a function which indicates what should happen when the data contain `NAs`.
-#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
-#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
-#' @param control_inference a list indicating parameters to use in inference based on probablity and nonprobability samples, contains parameters such as estimation method or variance method
-#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation
-#' @param verbose verbose, numeric
-#' @param contrasts a
-#' @param model a
-#' @param x a
-#' @param y a
-#' @param ... Additional, optional argumnents.
-#'
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -42,6 +7,7 @@ NULL
 #' @importFrom stats terms
 #' @importFrom MASS ginv
 #' @export
+#' @rdname main_doc
 
 
 nonprobDR <- function(selection,
@@ -311,7 +277,7 @@ nonprobDR <- function(selection,
     SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
 
   } else {
-    stop("Please, provide svydesign object or pop_totals/pop_means.")
+    stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
   }
 
   # case when samples overlap - TODO
@@ -323,6 +289,7 @@ nonprobDR <- function(selection,
                               dependent = control_selection$dependence,
                               method_selection)
     N <- sum(weights)
+    N_est_rand <- sum(weights_rand)
 
     mu_hat_Ov <-  mu_hatDR(y = OutcomeModel$y_nons,
                            y_nons = y_nons_pred,

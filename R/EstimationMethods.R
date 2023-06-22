@@ -109,12 +109,10 @@ mle <- function(...) {
                        weights,
                        weights_rand)
 
-    maxLik_nons_obj <- max_lik(X_nons,
-                               log_like,
-                               gradient,
-                               hessian,
-                               start,
-                               optim_method)
+    maxLik_nons_obj <- max_lik(X_nons = X_nons,
+                               X_rand = X_rand,
+                               weights = weights,
+                               weights_rand = weights_rand)
 
     theta <- maxLik_nons_obj$theta_hat
     eta_nons <- theta %*% t(X_nons)

@@ -60,7 +60,7 @@ summary.nonprobsvy <- function(object,
       crr[[number]] <- temp_correlation
 
       #confidence_interval_coef <- append(confidence_interval_coef,
-      #if(isTRUE(confint)) {confint.nonprobsvy(object, ...)} else {NULL})
+      #if(isTRUE(confint)) {confint(object, ...)} else {NULL})
     } else {
       # TODO
     }
@@ -105,6 +105,22 @@ summary.nonprobsvy <- function(object,
 
 # no need for documenting simple functions
 
+#' @method print nonprobsvy
+#' @exportS3Method
+print.nonprobsvy <- function(x, digits = 8, ...) {
+  if (!is.null(x$call)) {
+    cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
+        "\n\n", sep = "")
+  }
+
+  cat(
+    "Estimated population mean: ", format(x$output$mean, digits = digits),
+    "\nWith overall std.err of: ", format(x$output$SE, digits = digits),
+    "\nConfidence interval:\n", sep = ""
+  )
+  print(print(x$confidence_interval))
+  invisible(x)
+}
 #' @method print summary_nonprobsvy
 #' @importFrom stats printCoefmat
 #' @exportS3Method
@@ -363,13 +379,14 @@ BIC.nonprobsvy <- function(object,
 #' @method confint nonprobsvy
 #' @return An object with named columns that include upper and
 #' lower limit of confidence intervals.
+#' @importFrom stats confint
 #' @exportS3Method
 confint.nonprobsvy <- function(object,
                                parm,
                                level = 0.95,
                                ...) {
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
-    std <- sqrt(diag(vcov.nonprobsvy(object)[[1]]))
+    std <- sqrt(diag(vcov(object)[[1]]))
     sc <- qnorm(p = 1 - (1 - level) / 2)
     res_sel <- data.frame(object$parameters[,1] - sc * std, object$parameters[,1] + sc * std)
     colnames(res_sel) <- c(paste0(100 * (1 - level) / 2, "%"),
@@ -379,7 +396,7 @@ confint.nonprobsvy <- function(object,
     if (object$control$control_inference$est_method == "likelihood") {
     res_out <- confint(object$outcome$glm)
     } else {
-      std <- sqrt(diag(vcov.nonprobsvy(object)[[1]]))
+      std <- sqrt(diag(vcov(object)[[1]]))
       sc <- qnorm(p = 1 - (1 - level) / 2)
       res_out <- data.frame(object$beta[,1] - sc * std, object$beta[,1] + sc * std)
       colnames(res_out) <- c(paste0(100 * (1 - level) / 2, "%"),
@@ -404,6 +421,7 @@ confint.nonprobsvy <- function(object,
 #'
 #' @method vcov nonprobsvy
 #' @return A covariance matrix for fitted coefficients
+#' @importFrom stats vcov
 #' @exportS3Method
 vcov.nonprobsvy <- function(object,
                             ...) { # TODO consider different vcov methods for selection and outcome models
