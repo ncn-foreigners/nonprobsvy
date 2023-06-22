@@ -5,3 +5,4 @@ playground
 ^NEWS$
 ^LICENSE\.md$
 ^\.github$
+^codecov\.yml$

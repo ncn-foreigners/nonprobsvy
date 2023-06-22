@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions)
+[![Codecov test
+coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 <!-- badges: end -->
 
 ## Basic information
@@ -100,7 +102,7 @@ summary(result_dr)
 #>        lower_bound upper_bound
 #> normal    2.867789     3.03224
 #> 
-#> For a population of estimate size: 1025063
+#> For a population of estimate size: 1025111
 #> Obtained on a nonprobability sample of size: 693011
 #> With an auxiliary probability sample of size: 1000
 #> -------------------------
@@ -109,8 +111,8 @@ summary(result_dr)
 #> -----------------------
 #> For glm regression on selection variable:
 #>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
-#> x2           1.885625   0.005303   355.6  <2e-16 ***
+#> (Intercept) -0.499105   0.003702  -134.8  <2e-16 ***
+#> x2           1.885532   0.005303   355.6  <2e-16 ***
 #> 
 #> -----------------------
 #> For glm regression on outcome variable:
@@ -129,7 +131,7 @@ summary(result_dr)
 #> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
+#> -0.99999  0.06604  0.23781  0.26048  0.44361  0.62225 
 #> 
 #> AIC: 1010626
 #> BIC: 1010672
@@ -203,7 +205,7 @@ summary(result_ipw)
 #>     flag_bd1 == 1), svydesign = sample_prob)
 #> 
 #> -------------------------
-#> Estimated population mean: 2.925 with overall std.err of: 0.04998
+#> Estimated population mean: 2.925 with overall std.err of: 0.04999
 #> And std.err for nonprobability and probability samples being respectively:
 #> 0.001117 and 0.04997
 #> 
@@ -211,9 +213,9 @@ summary(result_ipw)
 #> 
 #> 95% Confidence inverval for popualtion mean:
 #>        lower_bound upper_bound
-#> normal    2.826815    3.022751
+#> normal    2.826789    3.022736
 #> 
-#> For a population of estimate size: 1025063
+#> For a population of estimate size: 1025111
 #> Obtained on a nonprobability sample of size: 693011
 #> With an auxiliary probability sample of size: 1000
 #> -------------------------
@@ -222,8 +224,8 @@ summary(result_ipw)
 #> -----------------------
 #> For glm regression on selection variable:
 #>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
-#> x2           1.885625   0.005303   355.6  <2e-16 ***
+#> (Intercept) -0.499105   0.003702  -134.8  <2e-16 ***
+#> x2           1.885532   0.005303   355.6  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> -------------------------
@@ -235,7 +237,7 @@ summary(result_ipw)
 #> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
+#> -0.99999  0.06604  0.23781  0.26048  0.44361  0.62225 
 #> 
 #> AIC: 1010626
 #> BIC: 1010672
