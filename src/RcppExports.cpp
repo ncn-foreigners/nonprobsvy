@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // cv_nonprobsvy_rcpp
-Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X, const arma::vec& R, const arma::vec& weights_X, const std::string& method_selection, const std::string& h, int maxit, double eps, double lambda_min, int nlambda, int nfolds, double lambda);
-RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP lambdaSEXP) {
+Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X, const arma::vec& R, const arma::vec& weights_X, const std::string& method_selection, const std::string& h, int maxit, double eps, double lambda_min, int nlambda, int nfolds, const std::string& penalty, double a, double lambda);
+RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP penaltySEXP, SEXP aSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -27,14 +27,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type lambda_min(lambda_minSEXP);
     Rcpp::traits::input_parameter< int >::type nlambda(nlambdaSEXP);
     Rcpp::traits::input_parameter< int >::type nfolds(nfoldsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type penalty(penaltySEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(cv_nonprobsvy_rcpp(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, lambda));
+    rcpp_result_gen = Rcpp::wrap(cv_nonprobsvy_rcpp(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, lambda));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 11},
+    {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 13},
     {NULL, NULL, 0}
 };
 

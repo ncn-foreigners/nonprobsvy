@@ -9,7 +9,7 @@ nonprob <- function(selection = NULL,
                     pop_means = NULL,
                     pop_size = NULL,
                     method_selection = c("logit", "cloglog", "probit"),
-                    method_outcome = c("glm.fit", "nn"),
+                    method_outcome = c("glm", "nn"),
                     family_selection = "binomial",
                     family_outcome = c("gaussian", "binomial", "poisson"),
                     subset,
@@ -39,6 +39,8 @@ nonprob <- function(selection = NULL,
 
   if(missing(method_selection)) method_selection <- "logit"
   if(missing(family_outcome)) family_outcome <- "gaussian"
+  if(missing(method_outcome)) method_outcome <- "glm"
+  if(!(method_outcome %in% c("glm", "nn"))) stop("Invalid method for outcome variable.")
 
   if(!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for selection formula.")
   if(!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")

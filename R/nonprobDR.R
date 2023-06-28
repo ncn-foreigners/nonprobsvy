@@ -41,7 +41,7 @@ nonprobDR <- function(selection,
   optim_method <- control_selection$optim_method
   est_method <- control_selection$est_method_sel
   var_method <- control_inference$var_method
-
+  num_boot <- control_inference$num_boot
 
   if (is.null(pop_totals) && !is.null(svydesign)) {
     # model for outcome formula
@@ -75,17 +75,34 @@ nonprobDR <- function(selection,
     loc_rand <- which(R == 0)
     weights_rand <- 1/ps_rand
 
+    MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+    model_obj <- MethodOutcome(outcome = outcome,
+                               data = data,
+                               weights = weights,
+                               family_outcome = family_outcome,
+                               X_nons = OutcomeModel$X_nons,
+                               y_nons = OutcomeModel$y_nons,
+                               X_rand = OutcomeModel$X_rand,
+                               control = control_outcome,
+                               n_nons = n_nons,
+                               n_rand = n_rand)
+
+    y_rand_pred <- model_obj$y_rand_pred
+    y_nons_pred <- model_obj$y_nons_pred
+    model_out <- model_obj$model
+    beta_statistics <- model_obj$parameters
+
     # Estimation for outcome model
-    model_out <- internal_outcome(outcome = outcome,
-                                  data = data,
-                                  weights = weights,
-                                  family_outcome = family_outcome)
-
-    model_nons_coefs <- model_out$glm$coefficients
-    beta_statistics <- model_out$glm_summary$coefficients
-
-    y_rand_pred <- as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample
-    y_nons_pred <- model_out$glm$linear.predictors #as.numeric(X_nons %*% model_nons_coefs)
+    # model_out <- internal_outcome(outcome = outcome,
+    #                               data = data,
+    #                               weights = weights,
+    #                               family_outcome = family_outcome)
+    #
+    # model_nons_coefs <- model_out$glm$coefficients
+    # beta_statistics <- model_out$glm_summary$coefficients
+    #
+    # y_rand_pred <- as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample
+    # y_nons_pred <- model_out$glm$linear.predictors #as.numeric(X_nons %*% model_nons_coefs)
 
     # Estimation for selection model
     X_nons <- SelectionModel$X_nons
@@ -100,7 +117,8 @@ nonprobDR <- function(selection,
                                     optim_method = optim_method,
                                     h = h,
                                     est_method = est_method,
-                                    maxit = maxit)
+                                    maxit = maxit,
+                                    control_selection = control_selection)
 
     estimation_method <- get_method(est_method)
     selection <- estimation_method$estimation_model(model = model_sel,
@@ -135,62 +153,14 @@ nonprobDR <- function(selection,
     svydesign <- stats::update(svydesign,
                                .y_hat_MI = y_rand_pred)
 
-    if (var_method == "analytic") {
-
-      var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
-                                SelectionModel = SelectionModel,
-                                y_nons_pred = y_nons_pred,
-                                weights = weights,
-                                method_selection = method_selection,
-                                ps_nons = ps_nons,
-                                theta = theta_hat,
-                                hess = hess,
-                                ps_nons_der = ps_nons_der,
-                                est_ps_rand = est_ps_rand,
-                                y_rand_pred = y_rand_pred,
-                                N_nons = N_nons,
-                                est_ps_rand_der = est_ps_rand_der,
-                                svydesign = svydesign,
-                                est_method = est_method,
-                                h = h)
-
-      var_prob <- var_obj$var_prob
-      var_nonprob <- var_obj$var_nonprob
-
-      var <- var_prob + var_nonprob
-      se_prob <- sqrt(var_prob)
-      se_nonprob <- sqrt(var_nonprob)
-      SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-
-    } else if (var_method == "bootstrap") {
-      var_obj <- bootDR(SelectionModel = SelectionModel,
-                        OutcomeModel = OutcomeModel,
-                        family_outcome = family_outcome,
-                        num_boot = 500,
-                        weights = weights,
-                        weights_rand = weights_rand,
-                        R = R,
-                        theta_hat,
-                        mu_hat = mu_hat,
-                        method_selection = method_selection,
-                        n_nons = n_nons,
-                        n_rand = n_rand,
-                        optim_method = optim_method,
-                        est_method = est_method,
-                        h = h,
-                        maxit = maxit
-                        )
-      SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
-      var <- var_obj$boot_var
-    } else {
-      stop("Invalid method for variance estimation.")
-    }
-
   } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
-    # Consider variance for probability component
     if (!is.null(pop_means)) {
-      pop_totals <- pop_size * pop_means
+      if (!is.null(pop_size)) {
+        pop_totals <- pop_size * pop_means
+      } else {
+        stop("pop_size must be defined when estimating with pop_means.")
+      }
     }
 
     # model for outcome formula
@@ -217,15 +187,16 @@ nonprobDR <- function(selection,
     ps_nons <- inv_link(theta_hat %*% t(SelectionModel$X_nons))
     ps_nons_der <- dinv_link(theta_hat %*% t(SelectionModel$X_nons))
     weights_nons <- 1/ps_nons
-    N_est <- sum(weights * weights_nons)
+    N_nons <- sum(weights * weights_nons)
     variance_covariance <- solve(-hess)
     theta_standard_errors <- sqrt(diag(variance_covariance))
     df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
-    if(is.null(pop_size)) pop_size <- N_est
+    if(is.null(pop_size)) pop_size <- N_nons
     n_rand <- 0
     est_ps_rand <- NULL
     est_ps_rand_der <- NULL
     log_likelihood <- "NULL"
+    weights_rand <- NULL
 
     selection <- list(theta_hat = theta_hat,
                       hess = hess,
@@ -257,27 +228,80 @@ nonprobDR <- function(selection,
     y_rand_pred <- sum(OutcomeModel$pop_totals * model_nons_coefs) # consider %*% instead of sum()
     y_nons_pred <- model_out$glm$linear.predictors
 
-
-    mu_hat <- 1/N_est * sum((1/ps_nons)*(weights * (OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
-
-    # var_prob <- as.vector(attr(svydesign_mean, "var")) # to consider
-
-    var_nonprob <- switch(method_selection,
-                  "logit" = 1/N_est^2 * sum((1 - ps_nons)/ps_nons^2 * (weights*(OutcomeModel$y_nons - y_nons_pred))^2),
-                  "cloglog" = 0,
-                  "probit" = 0) # variance based on section 4.2 in the article
-
-    #svydesign <- svydesign(ids = ~1, probs = 1, data = data.frame(y = y_rand_pred))
-    #svydesign_mean <- survey::svymean(~y, svydesign)
-    #var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
-    var_prob <- 1/pop_size^2 * y_rand_pred # TODO
-    se_prob <- sqrt(var_prob)
-    se_nonprob <- sqrt(var_nonprob)
-    var <- var_nonprob + var_prob
-    SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-
+    mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights * (OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
   } else {
     stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
+  }
+
+  if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
+      var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
+                                SelectionModel = SelectionModel,
+                                y_nons_pred = y_nons_pred,
+                                weights = weights,
+                                method_selection = method_selection,
+                                ps_nons = ps_nons,
+                                theta = theta_hat,
+                                hess = hess,
+                                ps_nons_der = ps_nons_der,
+                                est_ps_rand = est_ps_rand,
+                                y_rand_pred = y_rand_pred,
+                                N_nons = N_nons,
+                                est_ps_rand_der = est_ps_rand_der,
+                                svydesign = svydesign,
+                                est_method = est_method,
+                                h = h,
+                                pop_totals = pop_totals)
+
+      var_prob <- var_obj$var_prob
+      var_nonprob <- var_obj$var_nonprob
+
+      var <- var_prob + var_nonprob
+      se_prob <- sqrt(var_prob)
+      se_nonprob <- sqrt(var_nonprob)
+      SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+
+      # POP_TOTALS - old version
+      # var_prob <- as.vector(attr(svydesign_mean, "var")) # to consider
+      #
+      # var_nonprob <- switch(method_selection,
+      #                       "logit" = 1/N_est^2 * sum((1 - ps_nons)/ps_nons^2 * (weights*(OutcomeModel$y_nons - y_nons_pred))^2),
+      #                       "cloglog" = 0,
+      #                       "probit" = 0) # variance based on section 4.2 in the article
+      #
+      # svydesign <- svydesign(ids = ~1, probs = 1, data = data.frame(y = y_rand_pred))
+      # svydesign_mean <- survey::svymean(~y, svydesign)
+      # var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
+      # var_prob <- 1/pop_size^2 * y_rand_pred # TODO
+      # se_prob <- sqrt(var_prob)
+      # se_nonprob <- sqrt(var_nonprob)
+      # var <- var_nonprob + var_prob
+      # SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+
+  } else if (var_method == "bootstrap") {
+    var_obj <- bootDR(SelectionModel = SelectionModel,
+                      OutcomeModel = OutcomeModel,
+                      family_outcome = family_outcome,
+                      num_boot = num_boot,
+                      weights = weights,
+                      weights_rand = weights_rand,
+                      R = R,
+                      theta_hat,
+                      mu_hat = mu_hat,
+                      method_selection = method_selection,
+                      n_nons = n_nons,
+                      n_rand = n_rand,
+                      optim_method = optim_method,
+                      est_method = est_method,
+                      h = h,
+                      maxit = maxit,
+                      pop_totals = pop_totals,
+                      pop_size = pop_size,
+                      pop_means = pop_means
+    )
+    SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+    var <- var_obj$boot_var
+  } else {
+    stop("Invalid method for variance estimation.")
   }
 
   # case when samples overlap - TODO
@@ -324,7 +348,8 @@ nonprobDR <- function(selection,
          weights = as.vector(weights_nons),
          control = list(control_selection = control_selection,
                         control_outcome = control_outcome,
-                        control_inference = control_inference),
+                        control_inference = control_inference,
+                        method_outcome = method_outcome),
          output = output,
          SE_values = SE_values,
          confidence_interval = confidence_interval,

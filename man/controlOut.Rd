@@ -5,19 +5,20 @@
 \title{Control parameters for outcome model}
 \usage{
 controlOut(
-  method = c("glm", "nn"),
   epsilon = 1e-06,
   maxit = 100,
   trace = FALSE,
   k = 5,
-  penalty = c("SCAD", "LASSO"),
+  penalty = c("SCAD", "lasso", "MCP"),
+  a_SCAD = 3.7,
+  a_MCP = 3,
   lambda_min = 0.001,
-  nlambda = 100
+  nlambda = 100,
+  treetype = "kd",
+  searchtype = "standard"
 )
 }
 \arguments{
-\item{method}{estimation method.}
-
 \item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-6}.}
 
 \item{maxit}{Maximum number of iterations.}
@@ -28,9 +29,17 @@ controlOut(
 
 \item{penalty}{penalty algorithm for variable selection. Default is `SCAD`}
 
+\item{a_SCAD}{-}
+
+\item{a_MCP}{-}
+
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
 \item{nlambda}{The number of lambda values. Default is 100.}
+
+\item{treetype}{-}
+
+\item{searchtype}{-}
 }
 \description{
 \code{controlOUT} constructs a list with all necessary control parameters

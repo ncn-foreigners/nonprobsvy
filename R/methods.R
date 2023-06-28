@@ -7,6 +7,7 @@
 #' and \code{"t"} is used in other cases.
 #' @param correlation correlation Logical value indicating whether correlation matrix should
 #' be computed from covariance matrix by default \code{FALSE}.
+#' @param cov Covariance matrix corresponding to regression parameters
 #' @param ... Additional optional arguments
 #'
 #'
@@ -20,7 +21,7 @@ summary.nonprobsvy <- function(object,
                                correlation = FALSE,
                                # regression_confint = FALSE, confint Logical value indicating whether confidence intervals for
                                #                             regression parameters should be constructed TODO
-                               # cov = NULL, # in case of adding sandwich methods Covariance matrix corresponding to regression parameters
+                               cov = NULL, # in case of adding sandwich methods
                                ...) {
 
   model_specific_info <- specific_summary_info(
@@ -118,7 +119,7 @@ print.nonprobsvy <- function(x, digits = 8, ...) {
     "\nWith overall std.err of: ", format(x$output$SE, digits = digits),
     "\nConfidence interval:\n", sep = ""
   )
-  print(print(x$confidence_interval))
+  print(x$confidence_interval)
   invisible(x)
 }
 #' @method print summary_nonprobsvy
@@ -159,31 +160,36 @@ print.summary_nonprobsvy <- function(x,
 
   cat("-------------------------\n\n")
 
-  cat("Regression coefficients:")
+  if (x$control$method_outcome == "glm" || is.null(x$control$method_outcome)) {
+    cat("Regression coefficients:")
 
-  for (k in 1:length(x$names)) {
-    cat("\n-----------------------\nFor ", x$names[k], ":\n", sep = "")
-    printCoefmat(
-      matrix(# TODO:: add conf intervals
-        data = c(x$coef[[k]], x$std_err[[k]], x$w_val[[k]], x$p_values[[k]]), #TODO named coefs for selection model
-        ncol = 4,
-        dimnames = list(
-          names(x$coef[[k]]),
-          switch(x$test,
-          "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
-          "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
-        )
-      ),
-      digits = digits,
-      signif.stars = signif.stars,
-      signif.legend = if (k == length(x$names)) signif.stars else FALSE,
-      P.values = TRUE, has.Pvalue = TRUE,
-      na.print = "NA",
-      ...
-    )
+    for (k in 1:length(x$names)) {
+      cat("\n-----------------------\nFor ", x$names[k], ":\n", sep = "")
+      printCoefmat(
+        matrix(# TODO:: add conf intervals
+          data = c(x$coef[[k]], x$std_err[[k]], x$w_val[[k]], x$p_values[[k]]), #TODO named coefs for selection model
+          ncol = 4,
+          dimnames = list(
+            names(x$coef[[k]]),
+            switch(x$test,
+            "t" = c("Estimate", "Std. Error", "t value", "P(>|t|)"),
+            "z" = c("Estimate", "Std. Error", "z value", "P(>|z|)"))
+          )
+        ),
+        digits = digits,
+        signif.stars = signif.stars,
+        signif.legend = if (k == length(x$names)) signif.stars else FALSE,
+        P.values = TRUE, has.Pvalue = TRUE,
+        na.print = "NA",
+        ...
+      )
+    }
+
+    cat("-------------------------\n\n")
+
+  } else if (x$control$method_outcome == "nn") {
+    # TODO
   }
-
-  cat("-------------------------\n\n")
 
   if (x$model %in% c("Doubly-Robust", "Inverse probability weighted")) {
 

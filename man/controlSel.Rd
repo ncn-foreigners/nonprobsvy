@@ -9,15 +9,20 @@ controlSel(
   epsilon = 1e-06,
   maxit = 500,
   trace = FALSE,
+  optimizer = c("maxLik", "optim"),
   optim_method = "NR",
   overlap = FALSE,
   dependence = FALSE,
   est_method_sel = c("mle", "gee"),
   h_x = c("1", "2"),
+  penalty = c("SCAD", "lasso", "MCP"),
+  a_SCAD = 3.7,
+  a_MCP = 3,
   lambda = -1,
   lambda_min = 0.001,
   nlambda = 50,
-  nfolds = 10
+  nfolds = 10,
+  print_level = 0
 )
 }
 \arguments{
@@ -29,6 +34,8 @@ controlSel(
 
 \item{trace}{logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`}
 
+\item{optimizer}{-}
+
 \item{optim_method}{maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.}
 
 \item{overlap}{logical value - `TRUE` if samples overlap.}
@@ -39,6 +46,12 @@ controlSel(
 
 \item{h_x}{Smooth function for the estimating equations.}
 
+\item{penalty}{-}
+
+\item{a_SCAD}{-}
+
+\item{a_MCP}{-}
+
 \item{lambda}{A user-specified lambda value.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
@@ -46,6 +59,8 @@ controlSel(
 \item{nlambda}{The number of lambda values. Default is 50.}
 
 \item{nfolds}{The number of folds for cross validation. Default is 10.}
+
+\item{print_level}{-}
 }
 \description{
 \code{controlSel} constructs a list with all necessary control parameters

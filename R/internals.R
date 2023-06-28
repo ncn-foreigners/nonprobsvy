@@ -7,6 +7,7 @@
 #' @importFrom stats summary.glm
 #' @importFrom stats contrasts
 #' @importFrom nleqslv nleqslv
+#' @importFrom stats get_all_vars
 
 # Selection model object
 internal_selection <- function(X,
@@ -224,7 +225,8 @@ internal_varDR <- function(OutcomeModel,
                            est_ps_rand_der,
                            svydesign,
                            est_method,
-                           h) {
+                           h,
+                           pop_totals) {
 
   eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
   h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
@@ -241,17 +243,6 @@ internal_varDR <- function(OutcomeModel,
                        h_n = h_n,
                        y_pred = y_nons_pred,
                        weights = weights)
-
-  t <- est_method$make_t(X = SelectionModel$X_rand,
-                         ps = est_ps_rand,
-                         psd = est_ps_rand_der,
-                         b = b,
-                         h = h,
-                         y_rand = y_rand_pred,
-                         y_nons = y_nons_pred,
-                         N = N_nons,
-                         method_selection = method_selection,
-                         weights = weights)
   # asymptotic variance by each propensity score method (nonprobability component)
   var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
                                              psd = ps_nons_der,
@@ -263,15 +254,29 @@ internal_varDR <- function(OutcomeModel,
                                              N = N_nons,
                                              h = h,
                                              method_selection = method_selection,
-                                             weights = weights)
+                                             weights = weights,
+                                             pop_totals = pop_totals)
 
 
-
-  # design based variance estimation based on approximations of the second-order inclusion probabilities
-  svydesign <- stats::update(svydesign,
-                             t = t)
-  svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
-  var_prob <- as.vector(attr(svydesign_mean, "var"))
+  if (is.null(pop_totals)) {
+    t <- est_method$make_t(X = SelectionModel$X_rand,
+                           ps = est_ps_rand,
+                           psd = est_ps_rand_der,
+                           b = b,
+                           h = h,
+                           y_rand = y_rand_pred,
+                           y_nons = y_nons_pred,
+                           N = N_nons,
+                           method_selection = method_selection,
+                           weights = weights)
+    # design based variance estimation based on approximations of the second-order inclusion probabilities
+    svydesign <- stats::update(svydesign,
+                               t = t)
+    svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
+    var_prob <- as.vector(attr(svydesign_mean, "var"))
+  } else {
+    var_prob <- 0
+  }
 
   list(var_prob = var_prob,
        var_nonprob = var_nonprob)
@@ -292,10 +297,9 @@ internal_varMI <- function(svydesign,
                            ) {
 
   svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
-  var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component
+  var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
 
   if (method == "nn") {
-
     if(is.character(family)) {
       family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
       family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
@@ -303,9 +307,8 @@ internal_varMI <- function(svydesign,
     }
 
     sigma_hat <- family_nonprobsvy$variance(mu = y_pred, y  = y)
-
     est_ps  <- n_nons/N
-    var_nonprob <- n_rand/N^2 * sum((1 - est_ps)/est_ps * sigma_hat)
+    var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
 
   } else if (method == "glm") { # control_outcome$method
 
@@ -329,7 +332,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
   y_nons <- model.response(model_Frame)
   outcome_name <- names(model_Frame)[1]
   mt <- attr(model_Frame, "terms")
-  nons_names <- attr(mt, "term.labels") # names of variables of nonprobability sample terms(formula, data = data)
+  nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
   if (all(nons_names %in% colnames(svydesign$variables))) {
     dot_check <- sapply(formula, FUN = function(x) {x == "."})
     if (length(formula) == 2) nons_names <- nons_names[-1]
@@ -417,7 +420,6 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
   attr(res$weights, "glm") <- FALSE
   attr(res$df_residual, "glm") <- FALSE
   attr(res, "model")     <- c("glm regression on selection variable")
-
   res
 }
 
@@ -427,14 +429,18 @@ specific_summary_info.nonprobsvy_mi <- function(object,
   res <- list(
     beta = object$parameters
   )
+  if (object$control$method_outcome == "glm") {
   attr(res$beta, "glm") <- TRUE
   attr(res, "model") <- "glm regression on outcome variable"
-
+  } else if (object$control$method_outcome == "nn") {
+    attr(res$beta, "glm") <- FALSE
+    attr(res, "model") <- "non-parametric method on outcome variable"
+  }
   res
 }
 
 specific_summary_info.nonprobsvy_dr <- function(object,
-                                                ...) {
+                                                ...) { # TODO for method_outcome equal to nn
   res <- list(
     theta = object$parameters,
     beta  = object$beta,
@@ -448,6 +454,5 @@ specific_summary_info.nonprobsvy_dr <- function(object,
   attr(res$df_residual, "glm") <- FALSE
   attr(res, "model")     <- c("glm regression on selection variable",
                              "glm regression on outcome variable")
-
   res
 }

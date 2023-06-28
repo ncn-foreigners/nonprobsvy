@@ -4,7 +4,7 @@
 \alias{summary.nonprobsvy}
 \title{Summary statistics for model of nonprobsvy class.}
 \usage{
-\method{summary}{nonprobsvy}(object, test = c("t", "z"), correlation = FALSE, ...)
+\method{summary}{nonprobsvy}(object, test = c("t", "z"), correlation = FALSE, cov = NULL, ...)
 }
 \arguments{
 \item{object}{object of nonprobsvy class}
@@ -16,6 +16,8 @@ and \code{"t"} is used in other cases.}
 
 \item{correlation}{correlation Logical value indicating whether correlation matrix should
 be computed from covariance matrix by default \code{FALSE}.}
+
+\item{cov}{Covariance matrix corresponding to regression parameters}
 
 \item{...}{Additional optional arguments}
 }

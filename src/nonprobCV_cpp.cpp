@@ -181,23 +181,50 @@ arma::mat u_theta_der(const arma::vec& par,
 
 }
 
-arma::vec q_lambda_cpp(const arma::vec& par, double lambda, double a = 3.7) {
+arma::vec q_lambda_cpp(const arma::vec& par, double lambda, const std::string& penalty, double a) { // TODO add a to control
 
   arma::vec penaltyd(par.size(), arma::fill::zeros);
 
-  double abs_par_i;
-  for (arma::vec::iterator it = penaltyd.begin() + 1; it != penaltyd.end(); ++it) {
-    abs_par_i = std::abs(*it);
-    if (abs_par_i < lambda) {
-      *it = lambda;
-    } else {
-      double tmp = ((a * lambda) - abs_par_i) / (a - 1);
-      *it = tmp * (tmp > 0);
+  if (penalty == "SCAD") {
+    double abs_par_i;
+    for (arma::vec::iterator it = penaltyd.begin() + 1; it != penaltyd.end(); ++it) {
+      abs_par_i = std::abs(*it);
+      if (abs_par_i <= lambda) {
+        *it = lambda;
+      } else {
+        double tmp = ((a * lambda) - abs_par_i) / (a - 1);
+        *it = tmp * (tmp > 0);
+      }
+    }
+  } else if (penalty == "lasso") {
+    for (int i = 0; i < par.size(); i++) {
+      if (par[i] < 0) {
+        penaltyd[i] = - lambda;
+      } else if (par[i] > 0) {
+        penaltyd[i] = lambda;
+      } else {
+        penaltyd[i] = 0;
+      }
+    }
+  } else if (penalty == "MCP") {
+    for (int i = 0; i < par.size(); i++) {
+      if (std::abs(par[i]) <= a*lambda) {
+        if (par[i] < 0) {
+          penaltyd[i] = - (lambda - std::abs(par[i]) / a);
+        }
+          else if (par[i] > 0) {
+            penaltyd[i] = (lambda - std::abs(par[i]) / a);
+          } else {
+            penaltyd[i] = 0;
+          }
+      } else {
+        penaltyd[i] = 0;
+      }
     }
   }
 
   // No penalty on the intercept
-  penaltyd(0) = 0;
+  penaltyd[0] = 0;
 
   return penaltyd;
 }
@@ -212,6 +239,8 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               double lambda,
                               int maxit,
                               double eps,
+                              const std::string& penalty,
+                              double a,
                               bool warn = false
 ) { // TODO add weights
   int p = X.n_cols;
@@ -230,11 +259,15 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
     // avoid unnecessary computations by saving results
     arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, h);
     arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, h);
-    arma::vec q_lambda_output = q_lambda_cpp(par0, lambda);
+    arma::vec q_lambda_output = q_lambda_cpp(par0, lambda, penalty, a);
 
-    LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0));
+    LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
+    //LAMBDA = arma::abs(q_lambda_output);
+    //LAMBDA = q_lambda_output;
+
     // use efficient Armadillo functions
-    par = par0 + solve(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA), u_theta0v - arma::diagmat(LAMBDA) * par0);
+    //par = par0 + solve(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA), u_theta0v - arma::diagmat(LAMBDA) * par0);
+    par = par0 + inv(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA)) * (u_theta0v - arma::diagmat(LAMBDA) * par0);
 
     if (arma::sum(arma::abs(par - par0)) < eps) break;
     if (arma::sum(arma::abs(par - par0)) > 1000) break;
@@ -258,6 +291,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               double lambda_min,
                               int nlambda,
                               int nfolds,
+                              const std::string& penalty,
+                              double a,
                               double lambda = -1) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
@@ -316,7 +351,9 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                                   h,
                                                   lambda,
                                                   maxit,
-                                                  eps);
+                                                  eps,
+                                                  penalty,
+                                                  a);
 
         if (arma::any(theta_est == 0)) {
           idxx.shed_rows(arma::find(theta_est == 0));
@@ -341,7 +378,9 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                         h,
                                         lambda,
                                         maxit,
-                                        eps);
+                                        eps,
+                                        penalty,
+                                        a);
 
   arma::uvec theta_selected = find(theta != 0);
 

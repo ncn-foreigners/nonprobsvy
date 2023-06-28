@@ -7,7 +7,7 @@ mle <- function(...) {
     method <- get_method(method_selection)
     dinv_link <- method$make_link_inv_der
     maxLik_nons_obj <- model$maxLik_nons_obj
-    log_likelihood <- model$log_likelihood # maximum of the loglikelihood function
+    log_likelihood <- maxLik_nons_obj$log_l # maximum of the loglikelihood function
     theta_hat <- model$theta
 
     ps_nons <- model$ps
@@ -48,7 +48,7 @@ mle <- function(...) {
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, pop_totals) {
     method <- get_method(method_selection)
     var_nonprob <-  method$var_nonprob(ps = ps,
                                        psd = psd,
@@ -75,6 +75,7 @@ mle <- function(...) {
                               est_method,
                               maxit,
                               varcov = FALSE,
+                              control_selection,
                               ...) {
 
     method <- get_method(method = method_selection)
@@ -94,30 +95,16 @@ mle <- function(...) {
 
     df_reduced <- nrow(X) - length(start)
 
-    log_like <- loglike(X_nons,
-                        X_rand,
-                        weights,
-                        weights_rand)
-
-    gradient <- gradient(X_nons,
-                         X_rand,
-                         weights,
-                         weights_rand)
-
-    hessian <- hessian(X_nons,
-                       X_rand,
-                       weights,
-                       weights_rand)
-
     maxLik_nons_obj <- max_lik(X_nons = X_nons,
                                X_rand = X_rand,
                                weights = weights,
-                               weights_rand = weights_rand)
+                               weights_rand = weights_rand,
+                               start = start,
+                               control = control_selection)
 
     theta <- maxLik_nons_obj$theta_hat
     eta_nons <- theta %*% t(X_nons)
     eta_rand <- theta %*% t(X_rand)
-    log_likelihood <- log_like(theta)
 
     ps_nons <- inv_link(eta_nons)
     est_ps_rand <- inv_link(eta_rand)
@@ -127,7 +114,6 @@ mle <- function(...) {
 
     list(maxLik_nons_obj = maxLik_nons_obj,
          theta = theta,
-         log_likelihood = log_likelihood,
          ps = ps_nons,
          ps_der = ps_nons_der,
          ps_rand = est_ps_rand,
@@ -185,7 +171,8 @@ gee <- function(...) {
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
+    if (!is.null(pop_totals)) h <- "1" # perhaps to remove, just check if appropriate var is calculated
     if (h == "2") {
       var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n)/ps) - b %*% t(X))^2)
     } else if (h == "1") {

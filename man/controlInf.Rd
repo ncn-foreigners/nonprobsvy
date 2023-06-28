@@ -10,6 +10,7 @@ controlInf(
   rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
     "Fay"),
   bias_inf = c("union", "div"),
+  num_boot = 500,
   alpha = 0.05
 )
 }
@@ -21,6 +22,8 @@ controlInf(
 \item{rep_type}{replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.}
 
 \item{bias_inf}{inference method in the bias minimization. Default is `union`.}
+
+\item{num_boot}{-}
 
 \item{alpha}{Significance level, Default is 0.05.}
 }

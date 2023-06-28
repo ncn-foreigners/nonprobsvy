@@ -150,6 +150,7 @@ fit_nonprobsvy <- function(X,
                            lambda,
                            maxit,
                            eps,
+                           penalty,
                            warn = FALSE,
                            pop_totals = NULL,
                            ...) {
@@ -183,7 +184,8 @@ fit_nonprobsvy <- function(X,
                                 method_selection = method_selection,
                                 pop_totals = pop_totals)
 
-    LAMBDA <- abs(q_lambda(par0, lambda))/(eps + abs(par0))
+    LAMBDA <- abs(q_lambda(par = par0, lambda = lambda, penalty = penalty))/(eps + abs(par0)) # SCAD
+    # LAMBDA <- q_lambda(par0, lambda) # LASSO
     par <- par0 + MASS::ginv(u_theta0_der(par0) + diag(LAMBDA)) %*% (u_theta0(par0) - diag(LAMBDA) %*% par0) # perhaps 'solve' function instead of 'ginv'
     # equation (13) in article
     if (sum(abs(par - par0)) < eps) break;
@@ -284,12 +286,20 @@ u_theta_der <-  function(R,
 
 q_lambda <- function(par,
                      lambda,
+                     penalty, # TODO add control$penalty
                      a = 3.7) {
-  # SCAD penalty derivative
-  penaltyd <- (abs(par)<lambda) * lambda + (abs(par)>=lambda) * ((a * lambda) > abs(par)) * ((a * lambda) - abs(par))/(a-1)
-  penaltyd[1]<-0 # no penalty on the intercept
+
+  if (penalty == "SCAD") {
+    # SCAD penalty derivative
+    penaltyd <- (abs(par)<lambda) * lambda + (abs(par)>=lambda) * ((a * lambda) > abs(par)) * ((a * lambda) - abs(par))/(a-1)
+    penaltyd[1]<-0 # no penalty on the intercept
+  } else if (penalty == "LASSO") {
+    # LASSO penalty
+    penaltyd <- lambda * abs(par)
+    penaltyd[1] <- 0 # no penalty on the intercept
+  }
   penaltyd
-}
+  }
 
 # loss function for theta using the square distance of X between probability and nonprobability sample
 # for lambda_theta selection

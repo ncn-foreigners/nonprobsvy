@@ -26,9 +26,10 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
+      weights_sum <- sum(weights, weights_rand)
 
-      log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(weights_rand * log(1 - invLink2))
+      log_like1 <- sum(weights / weights_sum * log(invLink1 / (1 - invLink1)))
+      log_like2 <- sum(weights_rand / weights_sum * log(1 - invLink2))
       log_like1 + log_like2
     }
   }
@@ -41,8 +42,9 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
+      weights_sum <- sum(weights, weights_rand)
 
-      t(t(X_nons) %*% (weights * exp(eta1)/invLink1) - t(X_rand) %*% (weights_rand * exp(eta2)))
+      t(t(X_nons) %*% (weights / weights_sum * exp(eta1)/invLink1) - t(X_rand) %*% (weights_rand / weights_sum * exp(eta2)))
     }
   }
 
@@ -55,38 +57,75 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
+      weights_sum <- sum(weights, weights_rand)
 
-      t(as.data.frame(X_nons) * (weights * exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * weights_rand * exp(eta2)) %*% as.matrix(X_rand)
+      t(as.data.frame(X_nons) * (weights / weights_sum * exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * weights_rand / weights_sum * exp(eta2)) %*% as.matrix(X_rand)
 
     }
   }
 
 
   # TODO error when svydesign is provided with no weights argument (works with method == "BFGS", NaN in Std. errors)
-   max_lik <- function(X, log_like, gradient, hessian, start, optim_method) {
+   max_lik <- function(X_nons, X_rand, weights, weights_rand, start, control, ...) {
 
-    maxLik_an <- maxLik::maxLik(logLik = log_like,
-                                grad = gradient,
-                                hess = hessian,
-                                method = "BFGS",
-                                start = start)
+     log_like <- log_like(X_nons,
+                          X_rand,
+                          weights,
+                          weights_rand)
 
-    if (maxLik_an$code %in% c(3:7, 100)) {
-      switch (as.character(maxLik_an$code),
-              "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
-              "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
-              "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
-              "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
-              "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
-              "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
-      )
-    }
+     gradient <- gradient(X_nons,
+                          X_rand,
+                          weights,
+                          weights_rand)
 
-    theta <- maxLik_an$estimate
-    grad <- maxLik_an$gradient
-    hess <- maxLik_an$hessian
+     hessian <- hessian(X_nons,
+                        X_rand,
+                        weights,
+                        weights_rand)
 
-    list(grad = grad,
+    if (control$optimizer == "maxLik") {
+      ########### maxLik ##########
+      maxLik_an <- maxLik::maxLik(logLik = log_like,
+                                  grad = gradient,
+                                  hess = hessian,
+                                  method = "BFGS",
+                                  start = start,
+                                  printLevel = control$print_level)
+
+      if (maxLik_an$code %in% c(3:7, 100)) {
+        switch (as.character(maxLik_an$code),
+                "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+                "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
+                "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
+                "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
+                "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
+                "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
+        )
+      }
+
+      theta <- maxLik_an$estimate
+      grad <- maxLik_an$gradient
+      hess <- maxLik_an$hessian
+      log_likelihood <- log_like(theta)
+   } else if (control$optimizer == "optim") {
+      ########### optim ##########
+      #start <- rep(0, NCOL(X_nons))
+      maxLik_an <- stats::optim(fn = log_like,
+                                gr = gradient,
+                                method = "Nelder-Mead",
+                                par = start,
+                                control = list(fnscale = -1,
+                                               trace = control$trace)) ## TODO:: add trace to control
+
+
+      theta <- maxLik_an$par
+      log_likelihood = log_like(theta)
+      grad <- gradient(theta)
+      hess <- hessian(theta)
+   }
+
+    list(log_l = log_likelihood,
+         grad = grad,
          hess = hess,
          theta_hat = theta)
   }

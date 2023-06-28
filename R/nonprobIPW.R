@@ -36,6 +36,7 @@ nonprobIPW <- function(selection,
   optim_method <- control_selection$optim_method
   var_method <- control_inference$var_method
   est_method <- control_selection$est_method_sel
+  num_boot <- control_inference$num_boot
 
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
@@ -89,7 +90,8 @@ nonprobIPW <- function(selection,
                                     h = h,
                                     est_method = est_method,
                                     maxit = maxit,
-                                    varcov = TRUE)
+                                    varcov = TRUE,
+                                    control_selection = control_selection)
 
     estimation_method <- get_method(est_method)
     selection <- estimation_method$estimation_model(model = model_sel,
@@ -125,11 +127,16 @@ nonprobIPW <- function(selection,
   } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
     if (!is.null(pop_means)) {
-      pop_totals <- pop_size * pop_means
+      if (!is.null(pop_size)) {
+        pop_totals <- pop_size * pop_means
+      } else {
+        stop("pop_size must be defined when estimating with pop_means.")
+      }
     }
 
+
     names_pop <- names(pop_totals)
-    pop_totals <- as.vector(pop_totals)
+    #pop_totals <- as.vector(pop_totals)
     names(pop_totals) <- names_pop
 
     # model for outcome formula
@@ -234,7 +241,7 @@ nonprobIPW <- function(selection,
     var_obj <- bootIPW(X_rand = X_rand,
                        X_nons = X_nons,
                        y = y_nons,
-                       num_boot = 500,
+                       num_boot = num_boot,
                        weights = weights,
                        weights_rand = weights_rand,
                        R = R,

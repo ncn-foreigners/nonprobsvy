@@ -34,6 +34,7 @@ nonprobMI <- function(outcome,
   X_rand <- OutcomeModel$X_rand
   nons_names <- OutcomeModel$nons_names
   y_nons <- OutcomeModel$y_nons
+  num_boot <- control_inference$num_boot
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
@@ -50,57 +51,22 @@ nonprobMI <- function(outcome,
   weights_rand <- 1/ps_rand
   N_est_rand <- sum(weights_rand)
 
-
   ## estimation
-
-  if (control_outcome$method == "glm") {
-
-    # Estimation for outcome model
-    model_out <- internal_outcome(outcome = outcome,
-                                  data = data,
-                                  weights = weights,
-                                  family_outcome = family_outcome)
-
-    model_nons_coefs <- model_out$glm$coefficients
-    parameters <- model_out$glm_summary$coefficients
-
-    y_rand_pred <- as.numeric(OutcomeModel$X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
-    y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
-
-  } else if (control_outcome$method == "nn") {
-
-    model_rand <- nonprobMI_nn(data = X_nons,
-                               query = X_rand,
-                               k = control_outcome$k,
-                               treetype = "kd",
-                               searchtype = "standard")
-    model_nons <- nonprobMI_nn(data = X_nons,
-                               query = X_nons,
-                               k = control_outcome$k,
-                               treetype = "kd",
-                               searchtype = "standard")
-    y_rand_pred <- vector(mode = "numeric", length = n_rand)
-    y_nons_pred <- vector(mode = "numeric", length = n_nons)
-    parameters <- "Non-parametric method for outcome model"
-
-    # idx <- model_rand$nn.idx
-    # y_rand_pred <- y_nons[idx] TODO without loop
-
-    for (i in 1:n_rand) {
-      idx <- model_rand$nn.idx[i,]
-      y_rand_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
-    }
-
-    for (i in 1:n_nons) {
-      idx <- model_nons$nn.idx[i,]
-      y_nons_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
-    }
-    model_out <- list(model_nons = model_nons,
-                      model_rand = model_rand)
-
-  } else {
-    stop("Invalid method for outcome variable.")
-  }
+  MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+  model_obj <- MethodOutcome(outcome = outcome,
+                             data = data,
+                             weights = weights,
+                             family_outcome = family_outcome,
+                             X_nons = X_nons,
+                             y_nons = y_nons,
+                             X_rand = X_rand,
+                             control = control_outcome,
+                             n_nons = n_nons,
+                             n_rand = n_rand)
+  y_rand_pred <- model_obj$y_rand_pred
+  y_nons_pred <- model_obj$y_nons_pred
+  model_out <- model_obj$model
+  parameters <- model_obj$parameters
 
   # updating probability sample by adding y_hat variable
   svydesign <- stats::update(svydesign,
@@ -121,7 +87,7 @@ nonprobMI <- function(outcome,
                               y = y_nons,
                               y_pred = y_nons_pred,
                               weights_rand = weights_rand,
-                              method = control_outcome$method,
+                              method = method_outcome,
                               n_rand = n_rand,
                               n_nons = n_nons,
                               N = N_est_rand,
@@ -143,13 +109,13 @@ nonprobMI <- function(outcome,
                   weights,
                   y_nons,
                   family_outcome,
-                  1000,
+                  num_boot = num_boot,
                   weights_rand,
                   mu_hat,
                   svydesign,
                   rep_type = control_inference$rep_type,
-                  method = control_outcome$method,
-                  k = control_outcome$k)
+                  method = method_outcome,
+                  control = control_outcome)
     SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
   }
 
@@ -171,7 +137,8 @@ nonprobMI <- function(outcome,
   structure(
     list(X = X,
          control = list(control_outcome = control_outcome,
-                        control_inference = control_inference),
+                        control_inference = control_inference,
+                        method_outcome = method_outcome),
          output = output,
          SE_values = SE_values,
          confidence_interval = confidence_interval,
@@ -198,93 +165,3 @@ mu_hatMI <- function(y, weights_rand, N) {
   mu_hat
 
 }
-
-
-#' nonprobMI_fit
-#
-#' nonprobMI_fit: Function for outcome variable estimation based on nonprobability sample and using model based approach
-#'
-#' @param outcome - `formula`, the outcome equation.
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param control_outcome - a
-#' @param start - a
-#' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param verbose - a
-#' @param model - a
-#' @param x - a
-#' @param y - a
-#'
-
-
-nonprobMI_fit <- function(outcome,
-                          data,
-                          weights,
-                          svydesign,
-                          family_outcome,
-                          control_outcome = controlOut(),
-                          start = NULL,
-                          verbose,
-                          model,
-                          x,
-                          y) { # TODO problem with weights argument
-
-  family <- family_outcome
-
-  if (is.character(family)) {
-    family <- get(family, mode = "function", envir = parent.frame())
-  }
-  if (is.function(family)) {
-    family <- family()
-  }
-
-  model_nons <- stats::glm(formula = outcome,
-                           family = family,
-                           data = data,
-                           #weights = weights,
-                           start = start,
-                           control = list(control_outcome$epsilon,
-                                          control_outcome$maxit,
-                                          control_outcome$trace))
-
-  model_nons
-}
-
-
-
-#' nonprobMI_nn
-#
-#' nonprobMI_nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching
-#'
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param query - a
-#' @param k - a
-#' @param treetype - a
-#' @param searchtype - a
-#' @param radius - a
-#' @param eps - a
-
-
-nonprobMI_nn <- function(data,
-                         query,
-                         k,
-                         treetype,
-                         searchtype,
-                         radius = 0,
-                         eps = 0) {
-
-
-  model_nn <- RANN::nn2(data = data,
-                        query = query,
-                        k = k,
-                        treetype = treetype,
-                        searchtype = searchtype,
-                        radius = radius,
-                        eps = eps)
-  model_nn
-
-}
-
-
-
