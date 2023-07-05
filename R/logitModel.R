@@ -29,10 +29,10 @@ logit <- function(...) {
 
       #invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      log_like1 <- sum(weights / weights_sum * eta1)
-      log_like2 <- sum(weights_rand / weights_sum * log(1 - invLink2))
+      log_like1 <- sum(weights * eta1)
+      log_like2 <- sum(weights_rand * log(1 - invLink2))
       log_like1 + log_like2
     }
   }
@@ -42,8 +42,8 @@ logit <- function(...) {
     function(theta) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
-      t(t(X_nons) %*% as.matrix(weights / weights_sum) - t(X_rand) %*% (weights_rand / weights_sum * invLink2)) # matrix(1, nrow = nrow(X_nons), ncol = 1)
+      #weights_sum <- sum(weights, weights_rand)
+      t(t(X_nons) %*% as.matrix(weights) - t(X_rand) %*% (weights_rand * invLink2)) # matrix(1, nrow = nrow(X_nons), ncol = 1)
     }
   }
 
@@ -52,8 +52,8 @@ logit <- function(...) {
       function(theta) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
-        weights_sum <- sum(weights, weights_rand)
-       - t(as.data.frame(X_rand) * (weights_rand / weights_sum * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
+        #weights_sum <- sum(weights, weights_rand)
+       - t(as.data.frame(X_rand) * (weights_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
 

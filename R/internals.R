@@ -243,6 +243,7 @@ internal_varDR <- function(OutcomeModel,
                        h_n = h_n,
                        y_pred = y_nons_pred,
                        weights = weights)
+
   # asymptotic variance by each propensity score method (nonprobability component)
   var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
                                              psd = ps_nons_der,

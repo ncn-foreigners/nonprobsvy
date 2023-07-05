@@ -48,7 +48,7 @@ mle <- function(...) {
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, pop_totals) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, pop_totals = NULL) {
     method <- get_method(method_selection)
     var_nonprob <-  method$var_nonprob(ps = ps,
                                        psd = psd,

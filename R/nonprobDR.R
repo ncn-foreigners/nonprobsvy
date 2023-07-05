@@ -232,7 +232,6 @@ nonprobDR <- function(selection,
   } else {
     stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
   }
-
   if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
       var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
                                 SelectionModel = SelectionModel,

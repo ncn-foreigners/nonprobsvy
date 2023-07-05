@@ -29,10 +29,10 @@ probit <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      log_like1 <- sum(weights / weights_sum * log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(weights_rand / weights_sum * log(1 - invLink2))
+      log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
+      log_like2 <- sum(weights_rand * log(1 - invLink2))
       log_like1 + log_like2
     }
   }
@@ -46,9 +46,9 @@ probit <- function(...) {
       invLink2 <- inv_link(eta2)
       dlink1 <- dinv_link(eta1)
       dlink2 <- dinv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      t(t(X_nons) %*% (weights / weights_sum * dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (weights_rand /  weights_sum * (dlink2 / (1 - invLink2))))
+      t(t(X_nons) %*% (weights * dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (weights_rand * (dlink2 / (1 - invLink2))))
     }
   }
 
@@ -61,10 +61,10 @@ probit <- function(...) {
     invLink2 <- inv_link(eta2)
     dlink1 <- dinv_link(eta1)
     dlink2 <- dinv_link(eta2)
-    weights_sum <- sum(weights, weights_rand)
+    #weights_sum <- sum(weights, weights_rand)
 
-    hess1 <- t(as.data.frame(X_nons) * weights / weights_sum * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + 2*dlink1/(invLink1*(1 - invLink1)^2))) %*% as.matrix(X_nons)
-    hess2 <- t(as.data.frame(X_rand) * weights_rand / weights_sum * ((eta2 * dlink2)/(1 - invLink2) + dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
+    hess1 <- t(as.data.frame(X_nons) * weights * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + 2*dlink1/(invLink1*(1 - invLink1)^2))) %*% as.matrix(X_nons)
+    hess2 <- t(as.data.frame(X_rand) * weights_rand * ((eta2 * dlink2)/(1 - invLink2) + dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
     hess1 - hess2
     }
   }

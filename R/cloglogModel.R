@@ -26,10 +26,10 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      log_like1 <- sum(weights / weights_sum * log(invLink1 / (1 - invLink1)))
-      log_like2 <- sum(weights_rand / weights_sum * log(1 - invLink2))
+      log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
+      log_like2 <- sum(weights_rand * log(1 - invLink2))
       log_like1 + log_like2
     }
   }
@@ -42,9 +42,9 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      t(t(X_nons) %*% (weights / weights_sum * exp(eta1)/invLink1) - t(X_rand) %*% (weights_rand / weights_sum * exp(eta2)))
+      t(t(X_nons) %*% (weights * exp(eta1)/invLink1) - t(X_rand) %*% (weights_rand * exp(eta2)))
     }
   }
 
@@ -57,9 +57,9 @@ cloglog <- function(...) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights, weights_rand)
 
-      t(as.data.frame(X_nons) * (weights / weights_sum * exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * weights_rand / weights_sum * exp(eta2)) %*% as.matrix(X_rand)
+      t(as.data.frame(X_nons) * (weights * exp(eta1)/(invLink1) * (1 - exp(eta1)/invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * weights_rand * exp(eta2)) %*% as.matrix(X_rand)
 
     }
   }
