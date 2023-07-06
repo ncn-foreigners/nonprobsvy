@@ -88,13 +88,13 @@ cloglog <- function(...) {
       maxLik_an <- maxLik::maxLik(logLik = log_like,
                                   grad = gradient,
                                   hess = hessian,
-                                  method = "BFGS",
+                                  method = "BFGS", # TODO control$maxLik_method
                                   start = start,
                                   printLevel = control$print_level)
 
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch (as.character(maxLik_an$code),
-                "3" = warning("Error in fitting selection model with maxLik: probably not converged."),
+                "3" = warning("Warning in fitting selection model with maxLik: probably not converged."),
                 "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
                 "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
                 "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
@@ -107,19 +107,26 @@ cloglog <- function(...) {
       grad <- maxLik_an$gradient
       hess <- maxLik_an$hessian
       log_likelihood <- log_like(theta)
-   } else if (control$optimizer == "optim") {
+   } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
       ########### optim ##########
       #start <- rep(0, NCOL(X_nons))
       maxLik_an <- stats::optim(fn = log_like,
                                 gr = gradient,
-                                method = "Nelder-Mead",
+                                method = control$optim_method,
                                 par = start,
                                 control = list(fnscale = -1,
-                                               trace = control$trace)) ## TODO:: add trace to control
-
-
+                                               trace = control$trace,
+                                               maxit = control$maxit))
+      if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
+        switch (as.character(maxLik_an$convergence),
+                "1" = warning("Warning in fitting selection model with optim: the iteration limit maxit had been reached."),
+                "10" = warning("degeneracy of the Nelder–Mead simplex in fitting selection model by optim."),
+                "51" = warning("warning from the L-BFGS-B when fitting by optim."),
+                "52" = stop("indicates an error from the L-BFGS-B method when fitting by optim.")
+        )
+      }
       theta <- maxLik_an$par
-      log_likelihood = log_like(theta)
+      log_likelihood <- log_like(theta)
       grad <- gradient(theta)
       hess <- hessian(theta)
    }
