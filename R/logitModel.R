@@ -87,7 +87,7 @@ logit <- function(...) {
                                     hess = hessian,
                                     method = control$maxLik_method,
                                     start = start,
-                                    printLevel = control$print_level) # Add printLevel to control
+                                    printLevel = control$print_level)
 
         theta <- maxLik_an$estimate
         grad <- maxLik_an$gradient
@@ -119,9 +119,9 @@ logit <- function(...) {
         if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
           switch (as.character(maxLik_an$convergence),
                   "1" = warning("Warning in fitting selection model with optim: the iteration limit maxit had been reached."),
-                  "10" = warning("degeneracy of the Nelder–Mead simplex in fitting selection model by optim."),
-                  "51" = warning("warning from the L-BFGS-B when fitting by optim."),
-                  "52" = stop("indicates an error from the L-BFGS-B method when fitting by optim.")
+                  "10" = warning("degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
+                  "51" = warning("warning from the L BFGS B when fitting by optim."), # TODO -
+                  "52" = stop("indicates an error from the L BFGS B method when fitting by optim.")
           )
         }
 

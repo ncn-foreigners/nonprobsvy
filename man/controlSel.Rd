@@ -10,7 +10,8 @@ controlSel(
   maxit = 500,
   trace = FALSE,
   optimizer = c("maxLik", "optim"),
-  optim_method = "NR",
+  maxLik_method = "NR",
+  optim_method = "BFGS",
   overlap = FALSE,
   dependence = FALSE,
   est_method_sel = c("mle", "gee"),
@@ -36,7 +37,9 @@ controlSel(
 
 \item{optimizer}{-}
 
-\item{optim_method}{maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.}
+\item{maxLik_method}{maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.}
+
+\item{optim_method}{maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.}
 
 \item{overlap}{logical value - `TRUE` if samples overlap.}
 

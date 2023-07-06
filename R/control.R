@@ -10,7 +10,8 @@
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
 #' @param optimizer -
-#' @param optim_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
+#' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
+#' @param maxLik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param overlap logical value - `TRUE` if samples overlap.
 #' @param dependence logical value - `TRUE` if samples are dependent.
 #' @param est_method_sel -
