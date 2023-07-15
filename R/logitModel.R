@@ -27,9 +27,9 @@ logit <- function(...) {
       eta1 <- as.matrix(X_nons) %*% theta # linear predictor
       eta2 <- as.matrix(X_rand) %*% theta
 
-      #invLink1 <- inv_link(eta1)
+      invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      #weights_sum <- sum(weights, weights_rand)
+      #weights_sum <- sum(weights)
 
       log_like1 <- sum(weights * eta1)
       log_like2 <- sum(weights_rand * log(1 - invLink2))
@@ -45,7 +45,7 @@ logit <- function(...) {
     function(theta) {
       eta2 <- as.matrix(X_rand) %*% theta
       invLink2 <- inv_link(eta2)
-      #weights_sum <- sum(weights, weights_rand)
+      # weights_sum <- sum(weights, weights_rand)
       t(t(X_nons) %*% as.matrix(weights) - t(X_rand) %*% (weights_rand * invLink2)) # matrix(1, nrow = nrow(X_nons), ncol = 1)
     }
   }
@@ -55,7 +55,7 @@ logit <- function(...) {
       function(theta) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
-        #weights_sum <- sum(weights, weights_rand)
+        weights_sum <- sum(weights)
        - t(as.data.frame(X_rand) * (weights_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
@@ -93,7 +93,6 @@ logit <- function(...) {
         grad <- maxLik_an$gradient
         hess <- maxLik_an$hessian
         log_likelihood <- log_like(theta)
-
          if (maxLik_an$code %in% c(3:7, 100)) {
            switch (as.character(maxLik_an$code),
                    "3" = warning("Warning in fitting selection model with maxLik: probably not converged."),
@@ -129,7 +128,8 @@ logit <- function(...) {
         log_likelihood <- log_like(theta)
         grad <- gradient(theta)
         hess <- hessian(theta)
-
+      } else {
+        stop("Provided invalid optimizer.")
       }
 
       list(log_l = log_likelihood,
@@ -138,9 +138,10 @@ logit <- function(...) {
            theta_hat = theta)
       }
 
-    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
+    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, weights_sum) {
 
       N <- pop_size
+      n <- ifelse(is.null(dim(X)), length(X), nrow(X))
       if (est_method == "mle" || (est_method == "gee" && h == "2")) {
         if (is.null(N)) {
           N <- sum(1/ps)
@@ -152,26 +153,25 @@ logit <- function(...) {
           v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
           v_1 <- t(v1_)
         }
-
         v_2 <- 0
-        for(i in 1:nrow(X)){
+        for(i in 1:n){
           v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
       } else if (est_method == "gee" && h == "1") {
         if (is.null(N)) {
           N <- sum(1/ps)
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights* (y - mu)^2)) # TODO
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
           v_1 <- t(v1_)
         } else {
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
-          v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
           v_1 <- t(v1_)
         }
 
         v_2 <- 0
-        for(i in 1:nrow(X)){
+        for(i in 1:n){
           v_2i <- (1 - ps[i]) / ps[i] * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
@@ -184,7 +184,7 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) { #TODO
+    variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, weights_sum = NULL, postStrata = NULL) {
 
       N <- sum(1/svydesign$prob)
 
@@ -203,7 +203,6 @@ logit <- function(...) {
                                    postStrata = postStrata)
         }
       }
-
       p <- ncol(cov) + 1
       V2 <- Matrix::Matrix(nrow = p, ncol = p, data = 0, sparse = TRUE)
       V2[2:p,2:p] <- cov
@@ -211,7 +210,7 @@ logit <- function(...) {
     }
 
 
-    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
+    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, weights_sum) {
 
       hess_inv <- solve(hess)
       if (is.null(pop_size)) {
@@ -223,17 +222,17 @@ logit <- function(...) {
            hess_inv = hess_inv)
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, weights_sum) {
       hess_inv <- solve(hess)
       - (((1 - ps)/ps) * weights * (y - y_pred - h_n)) %*% X %*% hess_inv
     }
 
-    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights, weights_sum) {
       as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     }
 
-    var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
-      1/N^2 * sum((1 - ps) * (weights*(y - y_pred - h_n)/ps - b %*% t(X))^2)
+    var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights, weights_sum) {
+      1/N^2 * sum((1 - ps) * (weights * (y - y_pred - h_n)/ps - b %*% t(X))^2)
     }
 
       structure(

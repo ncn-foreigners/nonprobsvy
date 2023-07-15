@@ -58,10 +58,42 @@ nonprobSel <- function(selection,
   if (control_selection$a_SCAD <= 2 || control_outcome$a_SCAD <= 2) stop("a_SCAD must be greater than 2 for SCAD penalty")
   if (control_selection$a_MCP <= 1 || control_outcome$a_MCP <= 1) stop("a_MCP must be greater than 1 for MCP penalty")
 
-  XY_nons <- model.frame(outcome, data)
-  X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
-  nons_names <- attr(terms(outcome, data = data), "term.labels")
-  if (all(nons_names %in% colnames(svydesign$variables))) {
+  # XY_nons <- model.frame(outcome, data)
+  # X_nons <- model.matrix(XY_nons, data) #matrix of nonprobability sample with intercept
+  # nons_names <- attr(terms(outcome, data = data), "term.labels")
+  # if (all(nons_names %in% colnames(svydesign$variables))) {
+  #   xx <- paste("~", paste(nons_names, collapse = "+"))
+  #   outcome_rand <- as.formula(paste(outcome[2], xx))
+  #   X_rand <- model.matrix(delete.response(terms(outcome_rand)), svydesign$variables[, nons_names]) # bug if formula is y~. #matrix of probability sample with intercept X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #
+  # } else {
+  #   stop("variable names in data and svydesign do not match")
+  # } # TODO with dot_check for factor variables
+
+  # Extract the terms from outcome and selection
+  terms_out <- attr(terms(outcome, data = data), "term.labels")
+  terms_sel <- attr(terms(selection, data = data), "term.labels")
+  #
+  # # Combine the terms
+  combined_terms <- union(terms_out, terms_sel)
+  combined_formula <- as.formula(paste(outcome[2], paste(combined_terms, collapse = " + "), sep = " ~ "))
+  #
+  # ##### non-probability sample #####
+  XY_nons <- model.frame(combined_formula, data)
+  X_nons <- model.matrix(XY_nons, data)
+  nons_names <- attr(terms(combined_formula, data = data), "term.labels")
+
+  ##### probability sample #####
+  if (names(XY_nons)[1] %in% colnames(svydesign$variables)) {
+    XY_rand <- model.frame(combined_formula, svydesign$variables)
+    X_rand <- model.matrix(XY_rand, svydesign$variables)
+    rand_names <- attr(terms(combined_formula, data = svydesign$variables), "term.labels")
+  } else {
+    XY_rand <- model.frame(combined_formula[-2], svydesign$variables)
+    X_rand <- model.matrix(XY_rand, svydesign$variables)
+    rand_names <- attr(terms(combined_formula, data = svydesign$variables), "term.labels")
+  }
+
+  if (all(nons_names %in% rand_names)) { # colnames(svydesign$variables)
     xx <- paste("~", paste(nons_names, collapse = "+"))
     outcome_rand <- as.formula(paste(outcome[2], xx))
     X_rand <- model.matrix(delete.response(terms(outcome_rand)), svydesign$variables[, nons_names]) # bug if formula is y~. #matrix of probability sample with intercept X_rand <- as.matrix(cbind(1, svydesign$variables[,nons_names])) #
@@ -129,7 +161,7 @@ nonprobSel <- function(selection,
   beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
 
   # Estimating theta, beta parameters using selected variables
-  beta_selected <- beta_selected[-1] - 1
+  # beta_selected <- beta_selected[-1] - 1
 
   idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
   psel <- length(idx)
@@ -360,7 +392,6 @@ nonprobSelM <- function(outcome,
                             family = family_outcome,
                             nlambda = nlambda)
 
-
   beta_est <- beta$fit$beta[,beta$min]
   beta_selected <- which(abs(beta_est) != 0) - 1
   beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
@@ -369,29 +400,27 @@ nonprobSelM <- function(outcome,
 
   X_rand <- Xsel[loc_rand, ]
   X_nons <- Xsel[loc_nons, ]
-  X <- rbind(X_nons, X_rand) # joint model matrix
-  X_design <- cbind(1, X)
-  par0 <- rep(0, NCOL(Xsel))
+  X <- rbind(X_rand, X_nons) # joint model matrix
 
-  multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions
-                                fn = u_beta_mi,
-                                method = "Broyden", # TODO consider the method
-                                global = "qline",
-                                xscalm = "fixed",
-                                jacobian = TRUE,
-                                R = R,
-                                X = Xsel,
-                                y = y,
-                                weights = prior_weights,
-                                family_nonprobsvy = family_nonprobsvy)
-  beta_sel <- multiroot$x
+  # multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions
+  #                               fn = u_beta_mi,
+  #                               method = "Broyden", # TODO consider the method
+  #                               global = "qline",
+  #                               xscalm = "fixed",
+  #                               jacobian = TRUE,
+  #                               R = R,
+  #                               X = Xsel,
+  #                               y = y,
+  #                               weights = prior_weights,
+  #                               family_nonprobsvy = family_nonprobsvy)
+  beta_sel <- beta_est
   names(beta_sel) <- c("(Intercept)", nons_names[beta_selected])
   N_est_rand <- sum(weights_rand)
   #y_rand_pred <- as.numeric(X_rand %*% beta_sel) # y_hat for probability sample # consider predict function
   #y_nons_pred <- as.numeric(X_nons %*% beta_sel)
   df_residual <- nrow(X) - length(beta_sel)
 
-  eta <- as.vector(X %*% as.matrix(beta_sel))
+  eta <- as.numeric(X %*% beta_sel)
   y_hat <- family_nonprobsvy$mu(eta)
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
@@ -408,10 +437,10 @@ nonprobSelM <- function(outcome,
                   #variance_covariance = vcov(model_out$glm),
                   df_residual = df_residual,
                   log_likelihood = "NULL")
-
   mu_hat <- mu_hatMI(y = y_rand_pred,
                      weights_rand = weights_rand,
                      N = N_est_rand)
+
   if (is.null(pop_size)) pop_size <- N_est_rand # estimated pop_size
 
   if (control_inference$var_method == "analytic"){
@@ -488,7 +517,7 @@ nonprobSelM <- function(outcome,
 }
 
 #' @rdname main_doc
-nonprobSelP <- function(selection, # TODO
+nonprobSelP <- function(selection,
                         target,
                         data,
                         svydesign,
@@ -519,8 +548,6 @@ nonprobSelP <- function(selection, # TODO
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
-  #if(is.function(family_outcome)) family_outcome <- family_outcome()
-
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
   h <- control_selection$h_x
@@ -528,7 +555,11 @@ nonprobSelP <- function(selection, # TODO
   lambda_min <- control_selection$lambda_min
   nlambda <- control_selection$nlambda
   nfolds <- control_selection$nfolds
-  #weights <- rep.int(1, nrow(data)) # to remove
+  optim_method <- control_selection$optim_method
+  est_method <- control_selection$est_method_sel
+  var_method <- control_inference$var_method
+  num_boot <- control_inference$num_boot
+
 
   dependents <- paste(selection, collapse = " ")
   outcome <- stats::as.formula(paste(target[2], dependents))
@@ -542,10 +573,10 @@ nonprobSelP <- function(selection, # TODO
     stop("variable names in data and svydesign do not match")
   }
 
-
   y_nons <- XY_nons[,1]
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
+  prior_weights <- c(weights_rand, weights)
 
   R_nons <- rep(1, nrow(X_nons))
   R_rand <- rep(0, nrow(X_rand))
@@ -572,7 +603,7 @@ nonprobSelP <- function(selection, # TODO
   # Cross-validation for variable selection
   cv <- cv_nonprobsvy_rcpp(X = X_stand,
                            R = R,
-                           weights_X = weights_X,
+                           weights_X = prior_weights,
                            method_selection = method_selection,
                            h = h,
                            maxit = maxit,
@@ -581,7 +612,7 @@ nonprobSelP <- function(selection, # TODO
                            nlambda = nlambda,
                            nfolds = nfolds,
                            penalty = control_selection$penalty,
-                           a = switch(control_selection$penalty, SCAD = 3.7, 3),
+                           a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
                            lambda = lambda)
   theta_est <- cv$theta_est[cv$theta_est != 0]
   min <- cv$min
@@ -589,18 +620,17 @@ nonprobSelP <- function(selection, # TODO
   theta_selected <- cv$theta_selected
   names(theta_est) <- c("(Intercept)", nons_names[theta_selected[-1]])
 
-
   idx <- theta_selected[-1] # excluding intercepts
   psel <- length(idx)
   Xsel <- as.matrix(X[, idx + 1])
   X_design <- cbind(1, Xsel)
 
-  par1 <- rep(0, length(theta_est))
-  par0 <- start_fit(Xsel,
-                    R,
-                    weights,
-                    weights_rand,
-                    method_selection)
+  # par1 <- rep(0, length(theta_est))
+  # par0 <- start_fit(Xsel,
+  #                   R,
+  #                   weights,
+  #                   weights_rand,
+  #                   method_selection)
 
   #multiroot <- rootSolve::multiroot(u_theta_beta_ipw,
   #                                  start = c(0, par0),
@@ -610,46 +640,134 @@ nonprobSelP <- function(selection, # TODO
   #                                  weights = weights_X,
   #                                  method_selection = method_selection)
 
-  multiroot <- nleqslv::nleqslv(x = c(0, par0), # TODO add user-specified parameters to control functions
-                                fn = u_theta_ipw,
-                                method = "Newton", # TODO consider the method
-                                global = "qline",
-                                xscalm = "fixed",
-                                jacobian = TRUE,
-                                R = R,
-                                X = Xsel,
-                                y = y,
-                                weights = weights_X,
-                                method_selection = method_selection)
+  # multiroot <- nleqslv::nleqslv(x = c(0, par0), # TODO add user-specified parameters to control functions
+  #                               fn = u_theta_ipw,
+  #                               method = "Newton", # TODO consider the method
+  #                               global = "qline",
+  #                               xscalm = "fixed",
+  #                               jacobian = TRUE,
+  #                               R = R,
+  #                               X = Xsel,
+  #                               y = y,
+  #                               weights = weights_X,
+  #                               method_selection = method_selection)
+  # theta_hat <- multiroot$x
+  # selection <- list(theta_hat = theta_hat,
+  #                   grad = multiroot$fvec, # TODO
+  #                   hess = NULL, # TODO
+  #                   ps_nons = ps[loc_nons],
+  #                   variance_covariance = vcov_selection,
+  #                   df_residual = df_residual,
+  #                   log_likelihood = "NULL")
 
-  theta_hat <- multiroot$x
+  # df_residual <- nrow(Xsel) - length(theta_hat)
+  #
+  # ps <- inv_link(as.vector(as.matrix(X_design) %*% as.matrix(theta_hat)))
+  # weights_nons <- 1/ps[loc_nons]
+  # N_nons <- sum(weights, weights_nons)
+  #
+  # # variance-covariance matrix for selection model
+  # V <- diag(ps * (1 - ps))
+  # vcov_selection <- solve(t(X_design) %*% V %*% X_design)
+  # theta_errors <- sqrt(diag(vcov_selection))
 
+  model_sel <- internal_selection(X = X_design,
+                                  X_nons = X_design[loc_nons,],
+                                  X_rand = X_design[loc_rand,],
+                                  weights = weights,
+                                  weights_rand = weights_rand,
+                                  R = R,
+                                  method_selection = method_selection,
+                                  optim_method = optim_method,
+                                  h = h,
+                                  est_method = est_method,
+                                  maxit = maxit,
+                                  varcov = TRUE,
+                                  control_selection = control_selection)
+  estimation_method <- get_method(est_method)
+  selection <- estimation_method$estimation_model(model = model_sel,
+                                                  method_selection = method_selection)
+  theta_hat <- selection$theta_hat
   names(theta_hat) <- c("(Intercept)", nons_names[idx])
-  df_residual <- nrow(Xsel) - length(theta_hat)
+  hess <- selection$hess
+  var_cov1 <- selection$var_cov1
+  var_cov2 <- selection$var_cov2
+  ps_nons <- selection$ps_nons
+  est_ps_rand <- selection$est_ps_rand
+  ps_nons_der <- selection$ps_nons_der
+  est_ps_rand_der <- selection$est_ps_rand_der
+  theta_errors <- sqrt(diag(selection$variance_covariance))
+  weights_nons <- 1/ps_nons
 
-  ps <- inv_link(as.vector(as.matrix(X_design) %*% as.matrix(theta_hat)))
-  weights_nons <- 1/ps[loc_nons]
-  N_nons <- sum(weights, weights_nons)
-
-  # variance-covariance matrix for selection model
-  V <- diag(ps * (1 - ps))
-  vcov_selection <- solve(t(X_design) %*% V %*% X_design)
-  theta_errors <- sqrt(diag(vcov_selection))
-
-  selection <- list(theta_hat = theta_hat,
-                    grad = multiroot$fvec, # TODO
-                    hess = NULL, # TODO
-                    ps_nons = ps[loc_nons],
-                    variance_covariance = vcov_selection,
-                    df_residual = df_residual,
-                    log_likelihood = "NULL")
+  if (!is.null(pop_size)) {
+    N <- pop_size
+  } else {
+    N <- sum(weights * weights_nons)
+  }
 
   mu_hat <- mu_hatIPW(y = y_nons,
                       weights = weights,
                       weights_nons = weights_nons,
-                      N = N_nons)
-  SE_values <- data.frame(t(data.frame("SE" = c(prob = .5, nonprob = .5))))
-  se <- 1 # TODO now just small number
+                      N = N)
+
+  if (var_method == "analytic") {
+    var_obj <- internal_varIPW(svydesign = svydesign,
+                               selection_formula = selection,
+                               X_nons = X_design[loc_nons,],
+                               X_rand = X_design[loc_rand,],
+                               y_nons = y_nons,
+                               weights = weights,
+                               ps_nons = ps_nons,
+                               mu_hat = mu_hat,
+                               hess = hess,
+                               ps_nons_der = ps_nons_der,
+                               N = N,
+                               est_ps_rand = est_ps_rand,
+                               ps_rand = ps_rand,
+                               est_ps_rand_der = est_ps_rand_der,
+                               n_rand = n_rand,
+                               pop_size = pop_size,
+                               pop_totals = pop_totals,
+                               method_selection = method_selection,
+                               est_method = est_method,
+                               theta = theta_hat,
+                               h = h,
+                               var_cov1 = var_cov1,
+                               var_cov2 = var_cov2)
+
+    var_nonprob <- var_obj$var_nonprob
+    var_prob <- var_obj$var_prob
+    var <- var_obj$var
+    se_nonprob <- sqrt(var_nonprob)
+    se_prob <- sqrt(var_prob)
+    SE_values <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+  } else if (var_method == "bootstrap") {
+    var_obj <- bootIPW(X_rand = X_design[loc_rand,],
+                       X_nons = X_design[loc_nons,],
+                       y = y_nons,
+                       num_boot = num_boot,
+                       weights = weights,
+                       weights_rand = weights_rand,
+                       R = R,
+                       theta_hat = theta_hat,
+                       mu_hat = mu_hat,
+                       method_selection = method_selection,
+                       n_nons = n_nons,
+                       n_rand = n_rand,
+                       optim_method = optim_method,
+                       est_method = est_method,
+                       h = h,
+                       maxit = maxit,
+                       pop_size = pop_size,
+                       pop_totals = pop_totals,
+                       control_selection = control_selection)
+    var <- var_obj$boot_var
+    SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+  } else {
+    stop("Invalid method for variance estimation.")
+  }
+
+  se <- sqrt(var)
   alpha <- control_inference$alpha
   z <- stats::qnorm(1-alpha/2)
     # confidence interval based on the normal approximation
@@ -662,11 +780,12 @@ nonprobSelP <- function(selection, # TODO
                                        c("Estimate", "Std. Error")))
 
   output <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+  prop_scores <- c(ps_nons, est_ps_rand)
 
   structure(
     list(X = X_design,
-         prop_scores = ps,
-         weights = weights_nons,
+         prop_scores = prop_scores,
+         weights = as.vector(weights_nons),
          control = list(control_selection = control_selection,
                         control_inference = control_inference),
          output = output,
@@ -745,7 +864,7 @@ u_theta_ipw <- function(par,
   y_mean <- mean(y[loc_nons])
 
   #UTB <- apply(X0 * (R * as.vector(inv_link(eta_pi)) - y), 2, sum)/n # TODO
-  UTB <- apply(X0 * (R / as.vector(inv_link(eta_pi)) * y - y_mean) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
+  UTB <- apply(X0 * (R / as.vector(inv_link(eta_pi)) * y - R * y) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
 
   UTB
 
@@ -776,7 +895,7 @@ u_beta_mi <- function(par,
   loc_rand <- which(R == 0)
   y_mean <- mean(y[loc_nons])
 
-  UTB <- apply(X * (R_rand * weights * as.vector(mu) - y_mean), 2, sum)
+  UTB <- apply(X * y - X * R_rand * weights * as.vector(mu), 2, sum)
   UTB
 }
 

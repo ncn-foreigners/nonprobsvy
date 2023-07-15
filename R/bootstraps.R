@@ -113,6 +113,7 @@ bootIPW <- function(X_rand,
                     maxit,
                     pop_size = NULL,
                     pop_totals = NULL,
+                    control_selection,
                     ...){
   mu_hats <- vector(mode = "numeric", length = num_boot)
   if (!is.null(weights_rand)) N <- sum(weights_rand)
@@ -140,7 +141,8 @@ bootIPW <- function(X_rand,
                                       optim_method = optim_method,
                                       h = h,
                                       est_method =  est_method,
-                                      maxit = maxit)
+                                      maxit = maxit,
+                                      control_selection = control_selection)
 
       est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                            method_selection = method_selection)
@@ -199,6 +201,7 @@ bootDR <- function(SelectionModel,
                    theta_hat,
                    mu_hat,
                    method_selection,
+                   control_selection,
                    n_nons,
                    n_rand,
                    optim_method,
@@ -250,7 +253,8 @@ bootDR <- function(SelectionModel,
                                         optim_method = optim_method,
                                         h = h,
                                         est_method = est_method,
-                                        maxit = maxit)
+                                        maxit = maxit,
+                                        control_selection = control_selection)
 
         est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                              method_selection = method_selection)

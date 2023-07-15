@@ -35,7 +35,7 @@ mle <- function(...) {
          df_residual = df_residual)
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
+  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
     method <- get_method(method_selection)
     t <- method$t_vec(X = X,
                       ps = ps,
@@ -44,11 +44,12 @@ mle <- function(...) {
                       y_rand = y_rand,
                       y_nons = y_nons,
                       N = N,
-                      weights = weights)
+                      weights = weights,
+                      weights_sum = weights_sum)
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, pop_totals = NULL) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, weights_sum, pop_totals = NULL) {
     method <- get_method(method_selection)
     var_nonprob <-  method$var_nonprob(ps = ps,
                                        psd = psd,
@@ -58,7 +59,8 @@ mle <- function(...) {
                                        X = X,
                                        b = b,
                                        N = N,
-                                       weights = weights)
+                                       weights = weights,
+                                       weights_sum = weights_sum)
     as.numeric(var_nonprob)
 
   }
@@ -162,7 +164,7 @@ gee <- function(...) {
          log_likelihood = "NULL")
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
+  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
     if (h == "1") {
       t <- X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     } else if (h == "2") {
@@ -171,7 +173,7 @@ gee <- function(...) {
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, weights_sum, pop_totals) {
     if (!is.null(pop_totals)) h <- "1" # perhaps to remove, just check if appropriate var is calculated
     if (h == "2") {
       var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n)/ps) - b %*% t(X))^2)

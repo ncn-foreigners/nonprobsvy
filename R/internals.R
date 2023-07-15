@@ -98,7 +98,7 @@ theta_h_estimation <- function(R,
                            global = "qline",
                            xscalm = "fixed",
                            jacobian = TRUE,
-                           jac = u_theta_der
+                           #jac = u_theta_der
                            )
   start <- root$x
   if (root$termcd %in% c(2:7, -10)) {
@@ -139,6 +139,7 @@ internal_varIPW <- function(svydesign,
                             X_rand,
                             y_nons,
                             weights,
+                            weights_sum,
                             ps_nons,
                             mu_hat,
                             hess,
@@ -167,7 +168,8 @@ internal_varIPW <- function(svydesign,
                             hess = hess,
                             eta = eta,
                             pop_size = pop_size,
-                            weights = weights)
+                            weights = weights,
+                            weights_sum = weights_sum)
   b <- b_obj$b
   hess_inv <- b_obj$hess_inv
 
@@ -184,14 +186,16 @@ internal_varIPW <- function(svydesign,
                  pop_size = pop_size,
                  est_method = est_method,
                  h = h,
-                 weights = weights) # fixed
+                 weights = weights,
+                 weights_sum = weights_sum) # fixed
   V2 <- var_cov2(X = X_rand,
                  svydesign = svydesign,
                  eps = est_ps_rand,
                  est_method = est_method,
                  h = h,
                  pop_totals = pop_totals,
-                 psd = est_ps_rand_der)
+                 psd = est_ps_rand_der,
+                 weights_sum = weights_sum)
 
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
@@ -214,6 +218,7 @@ internal_varDR <- function(OutcomeModel,
                            SelectionModel,
                            y_nons_pred,
                            weights,
+                           weights_sum,
                            method_selection,
                            theta,
                            ps_nons,
@@ -242,7 +247,8 @@ internal_varDR <- function(OutcomeModel,
                        eta = eta,
                        h_n = h_n,
                        y_pred = y_nons_pred,
-                       weights = weights)
+                       weights = weights,
+                       weights_sum = weights_sum)
 
   # asymptotic variance by each propensity score method (nonprobability component)
   var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
@@ -256,6 +262,7 @@ internal_varDR <- function(OutcomeModel,
                                              h = h,
                                              method_selection = method_selection,
                                              weights = weights,
+                                             weights_sum = weights_sum,
                                              pop_totals = pop_totals)
 
 
@@ -269,7 +276,8 @@ internal_varDR <- function(OutcomeModel,
                            y_nons = y_nons_pred,
                            N = N_nons,
                            method_selection = method_selection,
-                           weights = weights)
+                           weights = weights,
+                           weights_sum = weights_sum)
     # design based variance estimation based on approximations of the second-order inclusion probabilities
     svydesign <- stats::update(svydesign,
                                t = t)
@@ -294,31 +302,35 @@ internal_varMI <- function(svydesign,
                            n_rand,
                            n_nons,
                            N,
-                           family
+                           family,
+                           parameters
                            ) {
 
   svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
   var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
+  if(is.character(family)) {
+    family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
+  }
 
   if (method == "nn") {
-    if(is.character(family)) {
-      family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
-      family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-      family_nonprobsvy <- family_nonprobsvy()
-    }
 
-    sigma_hat <- family_nonprobsvy$variance(mu = y_pred, y  = y)
+    sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y) # mean((y - y_pred)^2)
     est_ps  <- n_nons/N
     var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
 
-  } else if (method == "glm") { # control_outcome$method
+  } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
-    mx <- 1/N * colSums(weights_rand * X_rand)
-    c <- solve(1/n_nons * t(X_nons) %*% X_nons) %*% mx
-    e <- y - y_pred
+    beta <- parameters[,1]
+    eta_nons <- X_nons %*% beta
+    eta_rand <- X_rand %*% beta
+    mx <- 1/N * colSums(weights_rand * family_nonprobsvy$mu_der(eta_rand) * X_rand)
+    c <- solve(1/n_nons * t(family_nonprobsvy$mu_der(eta_nons) * X_nons) %*% X_nons) %*% mx
+    residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 
     # nonprobability component
-    var_nonprob <- 1/n_nons^2 * t(as.matrix(e^2)) %*% (X_nons %*% c)^2
+    var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
     var_nonprob <- as.vector(var_nonprob)
   }
 
@@ -329,12 +341,25 @@ internal_varMI <- function(svydesign,
 model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
 
   if (!is.null(svydesign)) {
+  ##### Model frame for nonprobability sample #####
   model_Frame <- model.frame(formula, data)
   y_nons <- model.response(model_Frame)
   outcome_name <- names(model_Frame)[1]
   mt <- attr(model_Frame, "terms")
   nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
-  if (all(nons_names %in% colnames(svydesign$variables))) {
+
+  ##### Model frame for probability sample #####
+  if (outcome_name %in% colnames(svydesign$variables)) {
+    model_Frame_rand <- model.frame(formula, svydesign$variables)
+    mt_rand <- attr(model_Frame_rand, "terms")
+    nons_names_rand <- attr(mt_rand, "term.labels")
+  } else {
+    model_Frame_rand <- model.frame(formula[-2], svydesign$variables)
+    mt_rand <- attr(model_Frame_rand, "terms")
+    nons_names_rand <- attr(mt_rand, "term.labels")
+  }
+  #print(nons_names_rand)
+  if (all(nons_names %in% nons_names_rand)) { #colnames(svydesign$variables)
     dot_check <- sapply(formula, FUN = function(x) {x == "."})
     if (length(formula) == 2) nons_names <- nons_names[-1]
     if (any(dot_check)) {

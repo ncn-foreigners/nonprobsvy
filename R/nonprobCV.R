@@ -225,6 +225,7 @@ u_theta <- function(R,
     R_rand <- 1 - R
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
+    weights_sum <- sum(weights)
 
     #R <- as.vector(R) # <------ required if Rcpp
     #weights <- as.vector(weights) # <------ required if Rcpp
@@ -233,7 +234,7 @@ u_theta <- function(R,
     if (is.null(pop_totals)) {
       eq <- switch(h,
                    "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
-                   "2" = c(apply(X0 * R * weights - X0 * R_rand * weights * ps, 2, sum)))
+                   "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum)))
     } else {
       eq <- (c(apply(X0 * R/ps * weights, 2, sum)) - pop_totals)
     }
@@ -267,6 +268,7 @@ u_theta_der <-  function(R,
     ps <- inv_link(eta)
     ps <- as.vector(ps)
     R_rand <- 1 - R
+    weights_sum <- sum(weights)
 
     #R <- as.vector(R) # <------ required if Rcpp
     #weights <- as.vector(weights) # <------ required if Rcpp

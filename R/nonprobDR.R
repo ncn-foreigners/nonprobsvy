@@ -74,6 +74,7 @@ nonprobDR <- function(selection,
     loc_nons <- which(R == 1)
     loc_rand <- which(R == 0)
     weights_rand <- 1/ps_rand
+    weights_sum <- sum(weights_rand, weights)
 
     MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
     model_obj <- MethodOutcome(outcome = outcome,
@@ -237,6 +238,7 @@ nonprobDR <- function(selection,
                                 SelectionModel = SelectionModel,
                                 y_nons_pred = y_nons_pred,
                                 weights = weights,
+                                weights_sum = weights_sum,
                                 method_selection = method_selection,
                                 ps_nons = ps_nons,
                                 theta = theta_hat,
@@ -287,6 +289,7 @@ nonprobDR <- function(selection,
                       theta_hat,
                       mu_hat = mu_hat,
                       method_selection = method_selection,
+                      control_selection = control_selection,
                       n_nons = n_nons,
                       n_rand = n_rand,
                       optim_method = optim_method,

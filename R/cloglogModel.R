@@ -16,7 +16,7 @@ cloglog <- function(...) {
   inv_link <- function(eta) {1 - exp(-exp(eta))} # inverse link
   dlink <- function(mu) {1 / ((mu - 1) * log(1 - mu))} # first derivative of link
   dinv_link <- function(eta) {exp(eta - exp(eta))} # first derivative of inverse link
-  inv_link_rev <- function(eta) {-exp(eta + exp(eta))/(exp(exp(eta)) - 1)^2} # TODO first derivative of 1/inv_link
+  inv_link_rev <- function(eta) {exp(eta + exp(eta))/(exp(exp(eta)) - 1)^2} # TODO first derivative of 1/inv_link
   dinv_link_rev <- function(eta) {exp(exp(eta) + eta) * (- exp(exp(eta)) + exp(eta) + exp(eta + exp(eta)) + 1) / (exp(exp(eta)) - 1)^3} # second derivative of 1/inv_link
 
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
@@ -129,6 +129,8 @@ cloglog <- function(...) {
       log_likelihood <- log_like(theta)
       grad <- gradient(theta)
       hess <- hessian(theta)
+   } else {
+     stop("Provided invalid optimizer.")
    }
 
     list(log_l = log_likelihood,
@@ -137,8 +139,7 @@ cloglog <- function(...) {
          theta_hat = theta)
   }
 
-
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, weights_sum) {
 
     N <- pop_size
     if (est_method == "mle") {
@@ -165,7 +166,7 @@ cloglog <- function(...) {
         v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
         v_1 <- t(v1_)
       } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights  *y)^2))
         v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
         v_1 <- t(v1_)
       }
@@ -200,7 +201,7 @@ cloglog <- function(...) {
   }
 
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) { #TODO
+  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, weights_sum = NULL, postStrata = NULL) { #TODO
 
     N <- sum(1/svydesign$prob)
     if (!is.null(pop_totals)) {
@@ -225,29 +226,33 @@ cloglog <- function(...) {
     V2
   }
 
-  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) {
+  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights, weights_sum) {
 
     hess_inv <- solve(hess)
+    #print(length(((1 - ps)/ps^2 * exp(eta) * weights * (y - mu))))
+    #print(le)
     if (is.null(pop_size)) {
-      b <- ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
+      # b <- ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
+      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * (y - mu)) %*% X %*% hess_inv
     } else {
-      b <-  ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
+      # b <-  ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
+      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * y) %*% X %*% hess_inv
     }
 
     list(b = b,
          hess_inv = hess_inv)
   }
 
-  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, weights_sum) {
     hess_inv <- solve(hess)
     (((1 - ps)/ps^2) * weights * (y - y_pred - h_n) * exp(eta)) %*% X %*% hess_inv
   }
 
-  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights, weights_sum) {
     as.vector(log(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
   }
 
-  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
+  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights, weights_sum) {
     1/N^2 * sum((1 - ps) * ((weights * (y - y_pred - h_n)/ps) - b %*% t(as.matrix(log((1 - ps)/ps) * as.data.frame(X))))^2)
   }
 

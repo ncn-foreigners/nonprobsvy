@@ -78,6 +78,7 @@ nonprobIPW <- function(selection,
     #}
     ps_rand <- svydesign$prob
     weights_rand <- 1/ps_rand
+    weights_sum <- sum(weights_rand, weights)
 
     model_sel <- internal_selection(X = X,
                                     X_nons = X_nons,
@@ -212,6 +213,7 @@ nonprobIPW <- function(selection,
                                X_rand = X_rand,
                                y_nons = y_nons,
                                weights = weights,
+                               weights_sum = weights_sum,
                                ps_nons = ps_nons,
                                mu_hat = mu_hat,
                                hess = hess,
@@ -229,7 +231,6 @@ nonprobIPW <- function(selection,
                                h = h,
                                var_cov1 = var_cov1,
                                var_cov2 = var_cov2)
-
 
     var_nonprob <- var_obj$var_nonprob
     var_prob <- var_obj$var_prob
@@ -255,7 +256,8 @@ nonprobIPW <- function(selection,
                        h = h,
                        maxit = maxit,
                        pop_size = pop_size,
-                       pop_totals = pop_totals)
+                       pop_totals = pop_totals,
+                       control_selection = control_selection)
     var <- var_obj$boot_var
     SE_values <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
   } else {
