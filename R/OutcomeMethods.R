@@ -18,7 +18,11 @@ glm <- function(outcome,
   model_nons_coefs <- model_out$glm$coefficients
   parameters <- model_out$glm_summary$coefficients
 
-  y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
+  # y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
+  y_rand_pred <- predict.glm(model_out$glm, newdata = as.data.frame(X_rand), type = "response")
+  if(family_outcome == "binomial") {
+    y_rand_pred <- ifelse(y_rand_pred >= .5, 1, 0)
+  }
   y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
   list(model = model_out,
        y_rand_pred = y_rand_pred,

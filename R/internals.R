@@ -325,8 +325,9 @@ internal_varMI <- function(svydesign,
     beta <- parameters[,1]
     eta_nons <- X_nons %*% beta
     eta_rand <- X_rand %*% beta
-    mx <- 1/N * colSums(weights_rand * family_nonprobsvy$mu_der(eta_rand) * X_rand)
-    c <- solve(1/n_nons * t(family_nonprobsvy$mu_der(eta_nons) * X_nons) %*% X_nons) %*% mx
+
+    mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
+    c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
     residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 
     # nonprobability component
