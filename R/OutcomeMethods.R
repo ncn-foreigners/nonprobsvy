@@ -7,7 +7,8 @@ glm <- function(outcome,
                 X_rand,
                 control,
                 n_nons,
-                n_rand) {
+                n_rand,
+                model_frame) {
 
   # Estimation for outcome model
   model_out <- internal_outcome(outcome = outcome,
@@ -19,7 +20,11 @@ glm <- function(outcome,
   parameters <- model_out$glm_summary$coefficients
 
   # y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
-  y_rand_pred <- predict.glm(model_out$glm, newdata = as.data.frame(X_rand), type = "response")
+  # print(names(attr(X_rand, "contrasts")))
+  # print(attr(X_rand, "contrasts"))
+  # print(colnames(X_rand))
+  # print(dim(model_frame))
+  y_rand_pred <- predict.glm(model_out$glm, newdata = model_frame, type = "response")
   # if(family_outcome == "binomial") {
   #   y_rand_pred <- ifelse(y_rand_pred >= .5, 1, 0)
   # }
@@ -40,7 +45,8 @@ nn <- function(outcome,
                X_rand,
                control,
                n_nons,
-               n_rand) {
+               n_rand,
+               model_frame = NULL) {
 
   model_rand <- nonprobMI_nn(data = X_nons,
                              query = X_rand,

@@ -62,7 +62,8 @@ nonprobMI <- function(outcome,
                              X_rand = X_rand,
                              control = control_outcome,
                              n_nons = n_nons,
-                             n_rand = n_rand)
+                             n_rand = n_rand,
+                             model_frame = OutcomeModel$model_frame_rand)
   y_rand_pred <- model_obj$y_rand_pred
   y_nons_pred <- model_obj$y_nons_pred
   model_out <- model_obj$model

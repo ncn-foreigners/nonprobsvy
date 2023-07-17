@@ -389,7 +389,8 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
        X_rand = X_rand,
        nons_names = nons_names,
        y_nons = y_nons,
-       outcome_name = outcome_name)
+       outcome_name = outcome_name,
+       model_frame_rand = model_Frame_rand)
 
   } else if (!is.null(pop_totals)) { # TODO
     model_Frame <- model.frame(formula, data)

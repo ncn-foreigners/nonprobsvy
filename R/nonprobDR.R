@@ -86,7 +86,8 @@ nonprobDR <- function(selection,
                                X_rand = OutcomeModel$X_rand,
                                control = control_outcome,
                                n_nons = n_nons,
-                               n_rand = n_rand)
+                               n_rand = n_rand,
+                               model_frame = OutcomeModel$model_frame)
 
     y_rand_pred <- model_obj$y_rand_pred
     y_nons_pred <- model_obj$y_nons_pred
