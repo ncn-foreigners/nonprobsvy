@@ -1,20 +1,29 @@
 # Definition of data
 library(survey)
-library(dplyr)
+# library(dplyr)
 data <- read.csv("test_data.csv")
-data |>
-  mutate(zawod_kod2 = factor(zawod_kod2),
-         jedna_zmiana=as.numeric(jedna_zmiana))
+# data |>
+#   mutate(zawod_kod2 = factor(zawod_kod2),
+#          jedna_zmiana=as.numeric(jedna_zmiana))
+data$zawod_kod2 <- as.factor(data$zawod_kod2)
+data$jedna_zmiana <- as.numeric(data$jedna_zmiana)
 
-## probability sample
-data |>
-  filter(is.na(id_popyt)) |>
-  select(id_jednostki, klasa_pr, sek, woj, zawod_kod2, wolne_miejsca_cbop, jedna_zmiana) -> cbop_df
+# ## probability sample
+# data |>
+#   filter(is.na(id_popyt)) |>
+#   select(id_jednostki, klasa_pr, sek, woj, zawod_kod2, wolne_miejsca_cbop, jedna_zmiana) -> cbop_df
+#
+# ## nonprobability sample
+# data |>
+#   filter(!is.na(id_popyt)) |>
+#   select(id_jednostki, klasa_pr, sek, woj, zawod_kod2, waga, wolne_miejsca) -> popyt_df
 
-## nonprobability sample
-data |>
-  filter(!is.na(id_popyt)) |>
-  select(id_jednostki, klasa_pr, sek, woj, zawod_kod2, waga, wolne_miejsca) -> popyt_df
+# write.csv(cbop_df, "cbop_df.csv")
+# write.csv(popyt_df, "popyt_df.csv")
+
+popyt_df <- read.csv("popyt_df.csv")
+cbop_df <- read.csv("cbop_df.csv")
+
 
 popyt_svy <- svydesign(ids=~1, strata = ~klasa_pr+sek+woj, weights = ~waga*wolne_miejsca,
                        data = popyt_df)
