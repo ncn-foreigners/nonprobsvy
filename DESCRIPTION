@@ -12,11 +12,11 @@ Authors@R:
              role = c("aut", "ctb"),
              email = "maciej.beresewicz@ue.poznan.pl"))
 Description: An R package for statistical inference with non-probability samples when auxiliary information from external sources like probability samples or population totals/means are available.
-License: MIT
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 RdMacros: mathjaxr
 RoxygenNote: 7.2.3
-Suggests: tinytest
-Imports: survey, maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv, covr
+Suggests: tinytest, covr
+Imports: survey, maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv
 LinkingTo: RcppArmadillo, Rcpp
