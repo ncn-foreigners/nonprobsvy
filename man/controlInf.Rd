@@ -5,7 +5,7 @@
 \title{Control parameters for inference}
 \usage{
 controlInf(
-  est_method = c("likelihood", "integrative"),
+  vars_selection = FALSE,
   var_method = c("analytic", "bootstrap"),
   rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
     "Fay"),
@@ -15,7 +15,7 @@ controlInf(
 )
 }
 \arguments{
-\item{est_method}{estimation method.}
+\item{vars_selection}{- .}
 
 \item{var_method}{variance method.}
 

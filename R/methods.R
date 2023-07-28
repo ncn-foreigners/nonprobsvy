@@ -253,7 +253,7 @@ residuals.nonprobsvy <- function(object,
                                  ...) { # TODO for pop_totals and variable selection
 
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-    if (object$control$control_inference$est_method == "likelihood") {
+    if (object$control$control_inference$vars_selection == FALSE) {
       res_out <- residuals(object$outcome$glm) # TODO for variable selection
     } else { # TODO for variable selection
       r <- object$outcome$family$residuals
@@ -399,7 +399,7 @@ confint.nonprobsvy <- function(object,
                            paste0(100 * (1 - (1 - level) / 2), "%"))
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-    if (object$control$control_inference$est_method == "likelihood") {
+    if (object$control$control_inference$vars_selection == FALSE) {
     res_out <- confint(object$outcome$glm)
     } else {
       std <- sqrt(diag(vcov(object)[[1]]))
@@ -431,7 +431,7 @@ confint.nonprobsvy <- function(object,
 #' @exportS3Method
 vcov.nonprobsvy <- function(object,
                             ...) { # TODO consider different vcov methods for selection and outcome models
-  if (object$control$control_inference$est_method == "integrative") {
+  if (object$control$control_inference$vars_selection == TRUE) {
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome$variance_covariance
     if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object)))  res_sel <- object$selection$variance_covariance
     if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)

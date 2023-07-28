@@ -54,7 +54,8 @@ bootMI <- function(X_rand,
 
       ystrap_rand <- as.numeric(X_rand %*% beta) # TODO with predict.glm
 
-      mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
+      #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
+      mu_hat_boot <- weighted.mean(x = ystrap_rand, w = weights_rand_strap_svy)
       mu_hats[k] <- mu_hat_boot
       k <- k + 1
     }
@@ -84,7 +85,7 @@ bootMI <- function(X_rand,
         y_rand_strap[i] <- mean(y_strap[idx])
       }
 
-      mu_hat_boot <- mu_hatMI(y_rand_strap, weights_rand_strap, N_strap)
+      mu_hat_boot <- weighted.mean(x = ystrap_rand, w = weights_rand_strap_svy)
       mu_hats[k] <- mu_hat_boot
       k <- k + 1
     }

@@ -1,3 +1,6 @@
+#' @importFrom stats predict.glm
+#' @importFrom stats glm.fit
+#' @importFrom stats summary.glm
 glm <- function(outcome,
                 data,
                 weights,
@@ -8,27 +11,46 @@ glm <- function(outcome,
                 control,
                 n_nons,
                 n_rand,
-                model_frame) {
+                model_frame,
+                vars_selection) {
 
-  # Estimation for outcome model
-  model_out <- internal_outcome(outcome = outcome,
-                                data = data,
-                                weights = weights,
-                                family_outcome = family_outcome)
+  if (vars_selection == FALSE) {
+    # Estimation for outcome model
+    model_out <- internal_outcome(outcome = outcome,
+                                  data = data,
+                                  weights = weights,
+                                  family_outcome = family_outcome)
 
-  model_nons_coefs <- model_out$glm$coefficients
-  parameters <- model_out$glm_summary$coefficients
+    model_nons_coefs <- model_out$glm$coefficients
+    parameters <- model_out$glm_summary$coefficients
 
-  # y_rand_pred <- as.numeric(X_rand %*% model_nons_coefs) # y_hat for probability sample # consider predict function
-  # print(names(attr(X_rand, "contrasts")))
-  # print(attr(X_rand, "contrasts"))
-  # print(colnames(X_rand))
-  # print(dim(model_frame))
-  y_rand_pred <- predict.glm(model_out$glm, newdata = model_frame, type = "response")
-  # if(family_outcome == "binomial") {
-  #   y_rand_pred <- ifelse(y_rand_pred >= .5, 1, 0)
-  # }
-  y_nons_pred <- model_out$glm$fitted.values #as.numeric(X_nons %*% model_nons_coefs)
+    y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
+    y_nons_pred <- model_out$glm$fitted.values
+  } else {
+    if(is.character(family_outcome)) {
+      family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+      family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+      family_nonprobsvy <- family_nonprobsvy()
+    }
+    model <- stats::glm.fit(x = X_nons,
+                             y = y_nons,
+                             weights = weights,
+                             family = get_method(family_outcome),
+                             control = list(control$epsilon,
+                                            control$maxit,
+                                            control$trace),
+                             intercept = FALSE)
+    model_summ <- stats::summary.glm(model)
+    parameters <- model_summ$coefficients
+    model_nons_coefs <- model$coefficients
+    eta <- X_rand %*% model_nons_coefs
+
+    y_rand_pred <- family_nonprobsvy$mu(eta)
+    y_nons_pred <- model$fitted.values
+
+    model_out <- list(glm = model,
+                      glm_summary = model_summ)
+  }
   list(model = model_out,
        y_rand_pred = y_rand_pred,
        y_nons_pred = y_nons_pred,
@@ -46,6 +68,7 @@ nn <- function(outcome,
                control,
                n_nons,
                n_rand,
+               vars_selection,
                model_frame = NULL) {
 
   model_rand <- nonprobMI_nn(data = X_nons,
@@ -62,18 +85,16 @@ nn <- function(outcome,
   y_nons_pred <- vector(mode = "numeric", length = n_nons)
   parameters <- "Non-parametric method for outcome model"
 
-  # idx <- model_rand$nn.idx
-  # y_rand_pred <- y_nons[idx] TODO without loop
+  y_rand_pred <- apply(model_rand$nn.idx, 1,
+                      FUN=\(x) mean(y_nons[x])
+                      #FUN=\(x) mean(sample_nonprob$short_[x])
+  )
 
-  for (i in 1:n_rand) {
-    idx <- model_rand$nn.idx[i,]
-    y_rand_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
-  }
+  y_nons_pred <- apply(model_nons$nn.idx, 1,
+                      FUN=\(x) mean(y_nons[x])
+                      #FUN=\(x) mean(sample_nonprob$short_[x])
+  )
 
-  for (i in 1:n_nons) {
-    idx <- model_nons$nn.idx[i,]
-    y_nons_pred[i] <- weighted.mean(y_nons[idx], weights[idx])
-  }
   model_out <- list(model_nons = model_nons,
                     model_rand = model_rand)
   list(model = model_out,
@@ -124,7 +145,7 @@ nonprobMI_fit <- function(outcome,
   model_nons <- stats::glm(formula = outcome,
                            family = family,
                            data = data,
-                           #weights = weights,
+                           # weights = weights, invalid type (closure) for variable '(weights)' TOFIX
                            start = start,
                            control = list(control_outcome$epsilon,
                                           control_outcome$maxit,

@@ -29,7 +29,7 @@ logit <- function(...) {
 
       invLink1 <- inv_link(eta1)
       invLink2 <- inv_link(eta2)
-      #weights_sum <- sum(weights)
+      #weights_sum <- sum(weights, weights_rand)
 
       log_like1 <- sum(weights * eta1)
       log_like2 <- sum(weights_rand * log(1 - invLink2))
@@ -55,7 +55,7 @@ logit <- function(...) {
       function(theta) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
-        weights_sum <- sum(weights)
+        # weights_sum <- sum(weights, weights_rand)
        - t(as.data.frame(X_rand) * (weights_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
@@ -111,6 +111,7 @@ logit <- function(...) {
                                   gr = gradient,
                                   method = control$optim_method,
                                   par = start,
+                                  # hessian = TRUE,
                                   control = list(fnscale = -1,
                                                  trace = control$trace,
                                                  maxit = control$maxit
@@ -212,7 +213,7 @@ logit <- function(...) {
 
     b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, weights_sum) {
 
-      hess_inv <- solve(hess)
+      hess_inv <- MASS::ginv(hess)
       if (is.null(pop_size)) {
         b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
       } else {

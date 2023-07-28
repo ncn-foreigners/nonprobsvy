@@ -14,6 +14,7 @@ controlOut(
   a_MCP = 3,
   lambda_min = 0.001,
   nlambda = 100,
+  nfolds = 10,
   treetype = "kd",
   searchtype = "standard"
 )
@@ -36,6 +37,8 @@ controlOut(
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
 \item{nlambda}{The number of lambda values. Default is 100.}
+
+\item{nfolds}{-}
 
 \item{treetype}{-}
 

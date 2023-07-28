@@ -218,8 +218,10 @@ internal_varDR <- function(OutcomeModel,
                            SelectionModel,
                            y_nons_pred,
                            weights,
+                           weights_rand,
                            weights_sum,
                            method_selection,
+                           control_selection,
                            theta,
                            ps_nons,
                            hess,
@@ -231,60 +233,75 @@ internal_varDR <- function(OutcomeModel,
                            svydesign,
                            est_method,
                            h,
-                           pop_totals) {
+                           pop_totals,
+                           sigma) { # TODO add variance for mm
 
-  eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
-  h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
-  method <- get_method(method_selection)
-  est_method <- get_method(est_method)
-  #psd <- method$make_link_inv_der(eta)
+  ######### mm
+  if (control_selection$est_method_sel == "mm") {
+    infl1 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons^2
+    infl2 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons
 
-  b <- method$b_vec_dr(X = SelectionModel$X_nons,
-                       ps = ps_nons,
-                       psd = ps_nons_der,
-                       y = OutcomeModel$y_nons,
-                       hess = hess,
-                       eta = eta,
-                       h_n = h_n,
-                       y_pred = y_nons_pred,
-                       weights = weights,
-                       weights_sum = weights_sum)
-
-  # asymptotic variance by each propensity score method (nonprobability component)
-  var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
-                                             psd = ps_nons_der,
-                                             y = OutcomeModel$y_nons,
-                                             y_pred = y_nons_pred,
-                                             h_n = h_n,
-                                             X = SelectionModel$X_nons,
-                                             b = b,
-                                             N = N_nons,
-                                             h = h,
-                                             method_selection = method_selection,
-                                             weights = weights,
-                                             weights_sum = weights_sum,
-                                             pop_totals = pop_totals)
-
-
-  if (is.null(pop_totals)) {
-    t <- est_method$make_t(X = SelectionModel$X_rand,
-                           ps = est_ps_rand,
-                           psd = est_ps_rand_der,
-                           b = b,
-                           h = h,
-                           y_rand = y_rand_pred,
-                           y_nons = y_nons_pred,
-                           N = N_nons,
-                           method_selection = method_selection,
-                           weights = weights,
-                           weights_sum = weights_sum)
-    # design based variance estimation based on approximations of the second-order inclusion probabilities
+    # Variance estimators ####
     svydesign <- stats::update(svydesign,
-                               t = t)
-    svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
-  } else {
-    var_prob <- 0
+                               y_rand = y_rand_pred)
+    svydesign_mean <- survey::svymean(~y_rand, svydesign)
+
+    var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
+    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigma))/N_nons^2 # nonprobability component
+    } else {
+    eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
+    h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
+    method <- get_method(method_selection)
+    est_method <- get_method(est_method)
+    #psd <- method$make_link_inv_der(eta)
+
+    b <- method$b_vec_dr(X = SelectionModel$X_nons,
+                         ps = ps_nons,
+                         psd = ps_nons_der,
+                         y = OutcomeModel$y_nons,
+                         hess = hess,
+                         eta = eta,
+                         h_n = h_n,
+                         y_pred = y_nons_pred,
+                         weights = weights,
+                         weights_sum = weights_sum)
+
+    # asymptotic variance by each propensity score method (nonprobability component)
+    var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
+                                               psd = ps_nons_der,
+                                               y = OutcomeModel$y_nons,
+                                               y_pred = y_nons_pred,
+                                               h_n = h_n,
+                                               X = SelectionModel$X_nons,
+                                               b = b,
+                                               N = N_nons,
+                                               h = h,
+                                               method_selection = method_selection,
+                                               weights = weights,
+                                               weights_sum = weights_sum,
+                                               pop_totals = pop_totals)
+
+
+    if (is.null(pop_totals)) {
+      t <- est_method$make_t(X = SelectionModel$X_rand,
+                             ps = est_ps_rand,
+                             psd = est_ps_rand_der,
+                             b = b,
+                             h = h,
+                             y_rand = y_rand_pred,
+                             y_nons = y_nons_pred,
+                             N = N_nons,
+                             method_selection = method_selection,
+                             weights = weights,
+                             weights_sum = weights_sum)
+      # design based variance estimation based on approximations of the second-order inclusion probabilities
+      svydesign <- stats::update(svydesign,
+                                 t = t)
+      svydesign_mean <- survey::svymean(~t, svydesign) #perhaps using survey package to compute prob variance
+      var_prob <- as.vector(attr(svydesign_mean, "var"))
+    } else {
+      var_prob <- 0
+    }
   }
 
   list(var_prob = var_prob,
@@ -348,7 +365,6 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
   outcome_name <- names(model_Frame)[1]
   mt <- attr(model_Frame, "terms")
   nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
-
   ##### Model frame for probability sample #####
   if (outcome_name %in% colnames(svydesign$variables)) {
     model_Frame_rand <- model.frame(formula, svydesign$variables)
@@ -383,7 +399,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     #  }
     } else {
     stop("Variable names in data and svydesign do not match")
-  }
+    }
 
   list(X_nons = X_nons,
        X_rand = X_rand,
@@ -483,4 +499,18 @@ specific_summary_info.nonprobsvy_dr <- function(object,
   attr(res, "model")     <- c("glm regression on selection variable",
                              "glm regression on outcome variable")
   res
+}
+
+ff <- function(formula) {
+  fff <- as.character(formula)
+  f <- strsplit(fff[2], "\\s*\\+\\s*")[[1]]
+  l <- length(f)
+  outcome_formulas <- list()
+  for (i in 1:l) {
+    outcome_formulas[[i]] <-  as.formula(paste(f[i], fff[3], sep = " ~ "))
+  }
+
+  list(f = f,
+       outcomes = outcome_formulas,
+       l = l)
 }

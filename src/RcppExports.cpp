@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // cv_nonprobsvy_rcpp
-Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X, const arma::vec& R, const arma::vec& weights_X, const std::string& method_selection, const std::string& h, int maxit, double eps, double lambda_min, int nlambda, int nfolds, const std::string& penalty, double a, double lambda);
-RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP penaltySEXP, SEXP aSEXP, SEXP lambdaSEXP) {
+Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X, const arma::vec& R, const arma::vec& weights_X, const std::string& method_selection, const std::string& h, int maxit, double eps, double lambda_min, int nlambda, int nfolds, const std::string& penalty, double a, Nullable<arma::vec> pop_totals, double lambda);
+RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP hSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP penaltySEXP, SEXP aSEXP, SEXP pop_totalsSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -29,14 +29,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nfolds(nfoldsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type penalty(penaltySEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< Nullable<arma::vec> >::type pop_totals(pop_totalsSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(cv_nonprobsvy_rcpp(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, lambda));
+    rcpp_result_gen = Rcpp::wrap(cv_nonprobsvy_rcpp(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, pop_totals, lambda));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 13},
+    {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 14},
     {NULL, NULL, 0}
 };
 

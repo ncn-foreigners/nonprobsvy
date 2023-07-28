@@ -32,7 +32,8 @@ binomial_nonprobsvy <- function(link = "logit") {
   link <- get_method(link)
   mu <- function(eta) link$make_link_inv(eta)
   variance <- function(mu, y = NULL) mu*(1-mu)
-  mu_der <- function(mu) mu * (1 - mu) # first derivative
+  # mu_der <- function(mu) mu * (1 - mu) # first derivative
+  mu_der <- function(eta) link$make_link_inv_der(eta) # first derivative
   mu_der2 <- function(mu) 1 - 2 * mu # second derivative
   residuals <- function(mu, y) as.vector(y - mu)
 

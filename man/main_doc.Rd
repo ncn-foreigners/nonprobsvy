@@ -33,7 +33,7 @@ nonprob(
   na_action,
   control_selection = controlSel(),
   control_outcome = controlOut(),
-  control_inference = controlInf(est_method = "likelihood"),
+  control_inference = controlInf(),
   start = NULL,
   verbose = 0L,
   contrasts = NULL,

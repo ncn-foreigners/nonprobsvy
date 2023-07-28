@@ -36,7 +36,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "BFGS",
                        overlap = FALSE,
                        dependence = FALSE,
-                       est_method_sel = c("mle", "gee"),
+                       est_method_sel = c("mle", "gee", "mm"),
                        h_x = c("1", "2"),
                        penalty = c("SCAD", "lasso", "MCP"),
                        a_SCAD = 3.7,
@@ -82,6 +82,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 #' @param a_MCP -
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
+#' @param nfolds -
 #' @param treetype -
 #' @param searchtype -
 #'
@@ -96,6 +97,7 @@ controlOut <- function(epsilon = 1e-6,
                        a_MCP = 3,
                        lambda_min = .001,
                        nlambda = 100,
+                       nfolds = 10,
                        treetype = "kd",
                        searchtype = "standard"
                        ) {
@@ -109,6 +111,7 @@ controlOut <- function(epsilon = 1e-6,
        a_MCP = a_MCP,
        lambda_min = lambda_min,
        nlambda = nlambda,
+       nfolds = nfolds,
        treetype = treetype,
        searchtype = searchtype)
 
@@ -118,7 +121,7 @@ controlOut <- function(epsilon = 1e-6,
 #' @title Control parameters for inference
 #' @description \code{controlINF} constructs a list with all necessary control parameters
 #' for statistical inference.
-#' @param est_method estimation method.
+#' @param vars_selection - .
 #' @param var_method variance method.
 #' @param rep_type replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.
 #' @param bias_inf inference method in the bias minimization. Default is `union`.
@@ -127,8 +130,7 @@ controlOut <- function(epsilon = 1e-6,
 #'
 #' @export
 
-controlInf <- function(est_method = c("likelihood",
-                                      "integrative"),
+controlInf <- function(vars_selection = FALSE,
                        var_method = c("analytic",
                                       "bootstrap"),
                        rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap",
@@ -137,7 +139,7 @@ controlInf <- function(est_method = c("likelihood",
                        num_boot = 500,
                        alpha = 0.05) {
 
-  list(est_method = if(missing(est_method)) "likelihood" else est_method,
+  list(vars_selection = if(missing(vars_selection)) FALSE else vars_selection,
        var_method = if(missing(var_method)) "analytic" else var_method,
        rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,

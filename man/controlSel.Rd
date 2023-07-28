@@ -14,7 +14,7 @@ controlSel(
   optim_method = "BFGS",
   overlap = FALSE,
   dependence = FALSE,
-  est_method_sel = c("mle", "gee"),
+  est_method_sel = c("mle", "gee", "mm"),
   h_x = c("1", "2"),
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,

@@ -18,7 +18,7 @@ nonprob <- function(selection = NULL,
                     na_action,
                     control_selection = controlSel(),
                     control_outcome = controlOut(),
-                    control_inference = controlInf(est_method = "likelihood"),
+                    control_inference = controlInf(),
                     start = NULL,
                     verbose = 0L,
                     contrasts = NULL,
@@ -29,7 +29,7 @@ nonprob <- function(selection = NULL,
 
   call <- match.call()
 
-  est_method <- control_inference$est_method
+  var_selection <- control_inference$vars_selection
 
   if (!is.data.frame(data)) {
     data <- data.frame(data)
@@ -50,16 +50,16 @@ nonprob <- function(selection = NULL,
     stop("Please provide selection or outcome formula.")
   }
   if (inherits(selection, "formula") && inherits(target, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
-    ifelse(est_method == "likelihood", model_used <- "P", model_used <- "Psel")
+    ifelse(var_selection == FALSE, model_used <- "P", model_used <- "Psel")
   }
 
   if (inherits(outcome, "formula") && (is.null(selection) || inherits(selection, "formula") == FALSE)) {
-    ifelse(est_method == "likelihood", model_used <- "M", model_used <- "Msel")
+    ifelse(var_selection == FALSE, model_used <- "M", model_used <- "Msel")
   }
 
   if (inherits(selection, "formula") && inherits(outcome, "formula")) {
 
-    ifelse(est_method == "likelihood", model_used <- "DR", model_used <- "DRsel")
+    ifelse(var_selection == FALSE, model_used <- "DR", model_used <- "DRsel")
   }
 
   ## validate data

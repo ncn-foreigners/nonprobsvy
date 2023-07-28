@@ -10,7 +10,9 @@ double loss_theta(const vec& par,
                   const mat& X,
                   const vec& weights,
                   const std::string& method_selection,
-                  const std::string& h) { // TODO add weights
+                  const std::string& h,
+                  const uvec& idx,
+                  Nullable<arma::vec> pop_totals) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
@@ -34,16 +36,30 @@ double loss_theta(const vec& par,
 
   // Calculate the loss using the appropriate method
   double loss;
-  if (h == "1") {
-    temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
-    loss = accu(square(sum(temp, 0)));
-  } else if (h == "2") {
-    temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
-    loss = accu(square(sum(temp, 0)));
+  if (pop_totals.isNull()) {
+    if (h == "1") {
+      temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
+      loss = accu(square(sum(temp, 0)));
+    } else if (h == "2") {
+      temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
+      loss = accu(square(sum(temp, 0)));
+    } else {
+      loss = 0;
+    }
   } else {
-    loss = 0;
-  }
+   // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
+    temp = X.each_col() % (R % weights / ps / N_nons);
+    //vec colSums_result = sum(temp, 0);
 
+    // Calculate (colSums(weights * X/pi) - pop_totals)^2
+    vec diff_squared = square(sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_nons);
+    //loss = accu(square(sum(temp, 0)));
+
+
+
+    // Calculate the sum of squared differences
+    loss = sum(diff_squared);
+  }
   return loss;
 }
 
@@ -54,9 +70,9 @@ arma::vec u_theta(const arma::vec& par,
                   const arma::vec& weights,
                   const std::string& method_selection,
                   const std::string& h,
-                  Nullable<int> N = R_NilValue,
-                  Nullable<NumericVector> pop_totals = R_NilValue,
-                  Nullable<double> pop_size = R_NilValue) { // TODO add weights
+                  Nullable<arma::vec> pop_totals,
+                  Nullable<double> pop_size = R_NilValue,
+                  Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
@@ -85,9 +101,9 @@ arma::vec u_theta(const arma::vec& par,
       break;
     }
   } else {
-    vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
+    //vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
     temp = X.each_col() % (R/ps % weights);
-    eq = (sum(temp, 0).t() - total_pop) / N_nons;
+    eq = (sum(temp, 0).t() - as<vec>(pop_totals)) / N_nons;
   }
 
   return eq;
@@ -100,8 +116,8 @@ arma::mat u_theta_der(const arma::vec& par,
                       const arma::vec& weights,
                       const std::string& method_selection,
                       const std::string& h,
-                      Nullable<int> N = R_NilValue,
-                      Nullable<arma::vec> pop_totals = R_NilValue) { // TODO add weights
+                      Nullable<arma::vec> pop_totals,
+                      Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
@@ -137,6 +153,7 @@ arma::mat u_theta_der(const arma::vec& par,
         temp = R(i) * weights(i) * (1-ps(i))/ps(i) * X_row.t();
         mxDer += temp * X_row;
       }
+      //mxDer = X.t() * X;
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
@@ -224,7 +241,7 @@ arma::vec q_lambda_cpp(const arma::vec& par, double lambda, const std::string& p
   }
 
   // No penalty on the intercept
-  penaltyd[0] = 0;
+  //penaltyd[0] = 0;
 
   return penaltyd;
 }
@@ -241,6 +258,7 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               double eps,
                               const std::string& penalty,
                               double a,
+                              Nullable<arma::vec> pop_totals,
                               bool warn = false
 ) { // TODO add weights
   int p = X.n_cols;
@@ -257,8 +275,8 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
       break;
     }
     // avoid unnecessary computations by saving results
-    arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, h);
-    arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, h);
+    arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, h, pop_totals);
+    arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, h, pop_totals);
     arma::vec q_lambda_output = q_lambda_cpp(par0, lambda, penalty, a);
 
     LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
@@ -293,6 +311,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               int nfolds,
                               const std::string& penalty,
                               double a,
+                              Nullable<arma::vec> pop_totals,
                               double lambda = -1) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
@@ -353,7 +372,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                                   maxit,
                                                   eps,
                                                   penalty,
-                                                  a);
+                                                  a,
+                                                  pop_totals);
 
         if (arma::any(theta_est == 0)) {
           idxx.shed_rows(arma::find(theta_est == 0));
@@ -363,7 +383,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
         arma::vec weights_testloss = X_test.col(ncols - 2);
         arma::vec par = theta_est(idxx);
 
-        double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h);
+        double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h, idxx, pop_totals);
         loss_theta_vec(j) = loss;
       }
       loss_theta_av(i) = mean(loss_theta_vec);
@@ -380,7 +400,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                         maxit,
                                         eps,
                                         penalty,
-                                        a);
+                                        a,
+                                        pop_totals);
 
   arma::uvec theta_selected = find(theta != 0);
 
