@@ -14,6 +14,7 @@ NULL
 #' @param pop_totals an optional `named vector` with population totals.
 #' @param pop_means an optional `named vector` with population means.
 #' @param pop_size an optional `double` with population size.
+#' @param overlap logical value - `TRUE` if samples overlap.
 #' @param method_selection a `character` with method for propensity scores estimation
 #' @param method_outcome a `character` with method for response variable estimation
 #' @param family_selection a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.

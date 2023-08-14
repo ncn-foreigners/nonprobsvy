@@ -12,9 +12,10 @@ controlSel(
   optimizer = c("maxLik", "optim"),
   maxLik_method = "NR",
   optim_method = "BFGS",
-  overlap = FALSE,
   dependence = FALSE,
+  key = NULL,
   est_method_sel = c("mle", "gee", "mm"),
+  ov_method = c("ev", "mle", "gee"),
   h_x = c("1", "2"),
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
@@ -41,11 +42,13 @@ controlSel(
 
 \item{optim_method}{maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.}
 
-\item{overlap}{logical value - `TRUE` if samples overlap.}
-
 \item{dependence}{logical value - `TRUE` if samples are dependent.}
 
+\item{key}{binary key variable}
+
 \item{est_method_sel}{-}
+
+\item{ov_method}{-}
 
 \item{h_x}{Smooth function for the estimating equations.}
 

@@ -108,21 +108,26 @@ setup_lambda <- function(X,
                          method_selection,
                          lambda_min,
                          nlambda,
+                         pop_totals,
                          alpha = 1,
                          log_lambda = FALSE,
                          ...) { #consider penalty factor here # TO consider for pop_totals/pop_means
 
   #fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
-  fit <- stats::glm(y~1,
-                    weights = weights,
-                    family = binomial(link = method_selection))
+  if (is.null(pop_totals)) {
+    fit <- stats::glm(y~1,
+                      weights = weights,
+                      family = binomial(link = method_selection))
 
-  n <- length(y)
-  p <- ncol(X)
-  w <- fit$weights
-  r <- as.matrix(stats::residuals(fit, "working") * w)
-  zmax <- max(crossprod(X, r))/n
-  lambda_max <- zmax/alpha
+    n <- length(y)
+    p <- ncol(X)
+    w <- fit$weights
+    r <- as.matrix(stats::residuals(fit, "working") * w)
+    zmax <- max(crossprod(X, r))/n
+    lambda_max <- zmax/alpha
+  } else {
+    lambda_max <- .1
+  }
 
 
   if (log_lambda) { # lambda sequence on log-scale
@@ -227,10 +232,6 @@ u_theta <- function(R,
     N_nons <- sum(1/ps)
     weights_sum <- sum(weights)
 
-    #R <- as.vector(R) # <------ required if Rcpp
-    #weights <- as.vector(weights) # <------ required if Rcpp
-    #R_rand <- as.vector(R_rand) # <------ required if Rcpp
-
     if (is.null(pop_totals)) {
       eq <- switch(h,
                    "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
@@ -269,10 +270,6 @@ u_theta_der <-  function(R,
     ps <- as.vector(ps)
     R_rand <- 1 - R
     weights_sum <- sum(weights)
-
-    #R <- as.vector(R) # <------ required if Rcpp
-    #weights <- as.vector(weights) # <------ required if Rcpp
-    #R_rand <- as.vector(R_rand) # <------ required if Rcpp
 
     if (!is.null(pop_totals)) {
       mxDer <- t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0

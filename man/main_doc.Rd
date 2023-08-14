@@ -23,6 +23,7 @@ nonprob(
   pop_totals = NULL,
   pop_means = NULL,
   pop_size = NULL,
+  overlap = FALSE,
   method_selection = c("logit", "cloglog", "probit"),
   method_outcome = c("glm", "nn"),
   family_selection = "binomial",
@@ -72,6 +73,7 @@ nonprobDR(
   pop_totals,
   pop_means,
   pop_size,
+  overlap,
   method_selection,
   method_outcome,
   family_selection = "binomial",
@@ -100,6 +102,7 @@ nonprobIPW(
   pop_totals,
   pop_means,
   pop_size = NULL,
+  overlap,
   method_selection,
   family_selection = "binomial",
   subset,
@@ -121,6 +124,9 @@ nonprobMI(
   outcome,
   data,
   svydesign,
+  pop_totals,
+  pop_means,
+  pop_size,
   method_outcome,
   family_outcome = "gaussian",
   subset,
@@ -234,6 +240,8 @@ nonprobSelP(
 \item{pop_means}{an optional `named vector` with population means.}
 
 \item{pop_size}{an optional `double` with population size.}
+
+\item{overlap}{logical value - `TRUE` if samples overlap.}
 
 \item{method_selection}{a `character` with method for propensity scores estimation}
 

@@ -12,45 +12,56 @@ glm <- function(outcome,
                 n_nons,
                 n_rand,
                 model_frame,
-                vars_selection) {
+                vars_selection,
+                pop_totals) {
 
-  if (vars_selection == FALSE) {
-    # Estimation for outcome model
-    model_out <- internal_outcome(outcome = outcome,
-                                  data = data,
-                                  weights = weights,
-                                  family_outcome = family_outcome)
-
-    model_nons_coefs <- model_out$glm$coefficients
-    parameters <- model_out$glm_summary$coefficients
-
-    y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
-    y_nons_pred <- model_out$glm$fitted.values
-  } else {
-    if(is.character(family_outcome)) {
-      family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
-      family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-      family_nonprobsvy <- family_nonprobsvy()
-    }
-    model <- stats::glm.fit(x = X_nons,
-                             y = y_nons,
-                             weights = weights,
-                             family = get_method(family_outcome),
-                             control = list(control$epsilon,
-                                            control$maxit,
-                                            control$trace),
-                             intercept = FALSE)
-    model_summ <- stats::summary.glm(model)
-    parameters <- model_summ$coefficients
-    model_nons_coefs <- model$coefficients
-    eta <- X_rand %*% model_nons_coefs
-
-    y_rand_pred <- family_nonprobsvy$mu(eta)
-    y_nons_pred <- model$fitted.values
-
-    model_out <- list(glm = model,
-                      glm_summary = model_summ)
+  if(is.character(family_outcome)) {
+    family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
+    family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
+    family_nonprobsvy <- family_nonprobsvy()
   }
+    if (vars_selection == FALSE) {
+      # Estimation for outcome model
+      model_out <- internal_outcome(outcome = outcome,
+                                    data = data,
+                                    weights = weights,
+                                    family_outcome = family_outcome)
+
+      model_nons_coefs <- model_out$glm$coefficients
+      parameters <- model_out$glm_summary$coefficients
+
+      if (is.null(pop_totals)) {
+      y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
+      } else {
+        eta <- pop_totals %*% model_nons_coefs
+        y_rand_pred <- family_nonprobsvy$mu(eta)
+      }
+      y_nons_pred <- model_out$glm$fitted.values
+    } else {
+      model <- stats::glm.fit(x = X_nons,
+                               y = y_nons,
+                               weights = weights,
+                               family = get_method(family_outcome),
+                               control = list(control$epsilon,
+                                              control$maxit,
+                                              control$trace),
+                               intercept = FALSE)
+      model_summ <- stats::summary.glm(model)
+      parameters <- model_summ$coefficients
+      model_nons_coefs <- model$coefficients
+      if (is.null(pop_totals)) {
+        eta <- X_rand %*% model_nons_coefs
+      } else {
+        eta <- pop_totals %*% model_nons_coefs
+      }
+
+      y_rand_pred <- family_nonprobsvy$mu(eta)
+      y_nons_pred <- model$fitted.values
+
+      model_out <- list(glm = model,
+                        glm_summary = model_summ)
+    }
+
   list(model = model_out,
        y_rand_pred = y_rand_pred,
        y_nons_pred = y_nons_pred,
@@ -69,31 +80,49 @@ nn <- function(outcome,
                n_nons,
                n_rand,
                vars_selection,
+               pop_totals,
                model_frame = NULL) {
 
-  model_rand <- nonprobMI_nn(data = X_nons,
-                             query = X_rand,
-                             k = control$k,
-                             treetype = control$treetype,
-                             searchtype = control$searchtype)
   model_nons <- nonprobMI_nn(data = X_nons,
                              query = X_nons,
                              k = control$k,
                              treetype = control$treetype,
                              searchtype = control$searchtype)
-  y_rand_pred <- vector(mode = "numeric", length = n_rand)
-  y_nons_pred <- vector(mode = "numeric", length = n_nons)
-  parameters <- "Non-parametric method for outcome model"
+  if (is.null(pop_totals)) {
+    model_rand <- nonprobMI_nn(data = X_nons,
+                               query = X_rand,
+                               k = control$k,
+                               treetype = control$treetype,
+                               searchtype = control$searchtype)
+    y_rand_pred <- vector(mode = "numeric", length = n_rand)
+    y_nons_pred <- vector(mode = "numeric", length = n_nons)
+    parameters <- "Non-parametric method for outcome model"
 
-  y_rand_pred <- apply(model_rand$nn.idx, 1,
-                      FUN=\(x) mean(y_nons[x])
-                      #FUN=\(x) mean(sample_nonprob$short_[x])
-  )
+    y_rand_pred <- apply(model_rand$nn.idx, 1,
+                         FUN=\(x) mean(y_nons[x])
+                         #FUN=\(x) mean(sample_nonprob$short_[x])
+    )
 
-  y_nons_pred <- apply(model_nons$nn.idx, 1,
-                      FUN=\(x) mean(y_nons[x])
-                      #FUN=\(x) mean(sample_nonprob$short_[x])
-  )
+    y_nons_pred <- apply(model_nons$nn.idx, 1,
+                        FUN=\(x) mean(y_nons[x])
+                        #FUN=\(x) mean(sample_nonprob$short_[x])
+    )
+  } else {
+    model_rand <- nonprobMI_nn(data = X_nons,
+                               query = t(as.matrix(pop_totals / pop_totals[1])),
+                               k = control$k,
+                               treetype = control$treetype,
+                               searchtype = control$searchtype)
+    y_rand_pred <- vector(mode = "numeric", length = 1)
+    y_nons_pred <- vector(mode = "numeric", length = n_nons)
+    parameters <- "Non-parametric method for outcome model"
+
+    y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+    y_nons_pred <- apply(model_nons$nn.idx, 1,
+                         FUN=\(x) mean(y_nons[x])
+                         #FUN=\(x) mean(sample_nonprob$short_[x])
+    )
+  }
 
   model_out <- list(model_nons = model_nons,
                     model_rand = model_rand)

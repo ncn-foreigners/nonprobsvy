@@ -12,9 +12,10 @@
 #' @param optimizer -
 #' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
 #' @param maxLik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
-#' @param overlap logical value - `TRUE` if samples overlap.
 #' @param dependence logical value - `TRUE` if samples are dependent.
+#' @param key binary key variable
 #' @param est_method_sel -
+#' @param ov_method -
 #' @param h_x Smooth function for the estimating equations.
 #' @param penalty -
 #' @param a_SCAD -
@@ -34,9 +35,10 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optimizer = c("maxLik", "optim"),
                        maxLik_method = "NR",
                        optim_method = "BFGS",
-                       overlap = FALSE,
                        dependence = FALSE,
+                       key = NULL,
                        est_method_sel = c("mle", "gee", "mm"),
+                       ov_method = c("ev", "mle", "gee"),
                        h_x = c("1", "2"),
                        penalty = c("SCAD", "lasso", "MCP"),
                        a_SCAD = 3.7,
@@ -54,9 +56,10 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
        optimizer = if(missing(optimizer)) "optim" else optimizer,
        maxLik_method = maxLik_method,
        optim_method = optim_method,
-       overlap = overlap,
        dependence = dependence,
+       key = key,
        est_method_sel = if(missing(est_method_sel)) "mle" else est_method_sel,
+       ov_method = if(missing(ov_method)) "ev" else ov_method,
        h_x = if(missing(h_x)) "1" else h_x,
        penalty = if(missing(penalty)) "SCAD" else penalty,
        a_SCAD = a_SCAD,

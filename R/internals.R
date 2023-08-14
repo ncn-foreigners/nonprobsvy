@@ -64,7 +64,7 @@ theta_h_estimation <- function(R,
                                method_selection,
                                maxit,
                                pop_totals = NULL,
-                               pop_means = NULL){
+                               pop_means = NULL){ # TODO with BERENZ recommendation
 
   p <- ncol(X)
   start0 <- start_fit(X = X, # <--- does not work with pop_totals
@@ -111,18 +111,6 @@ theta_h_estimation <- function(R,
            "7" = warning("Jacobian is unusable when fitting selection model by nleqslv."),
            "-10" = warning("user specified Jacobian is incorrect when fitting selection model by nleqslv."))
   }
-  #it <- 0
-  #for (i in 1:maxit) {
-  #  it <- it + 1
-  #  start <- start0 - MASS::ginv(u_theta_der(start0)) %*% u_theta(start0) # consider solve function
-  #  if (sum(abs(start - start0)) < 0.001) break;
-  #  if (sum(abs(start - start0)) > 1000)  {
-  #    warning("algorithm did not converge")
-  #    break
-  #  }
-  #  start0 <- start
-  #}
-  #if (it == maxit) warning("algorithm did not converge - iteration limit exceeded.")
   theta_h <- as.vector(start)
   grad <- u_theta(theta_h)
   hess <- u_theta_der(theta_h) # TODO compare with root$jac
@@ -134,12 +122,10 @@ theta_h_estimation <- function(R,
 }
 # Variance for inverse probability weighted estimator
 internal_varIPW <- function(svydesign,
-                            selection_formula,
                             X_nons,
                             X_rand,
                             y_nons,
                             weights,
-                            weights_sum,
                             ps_nons,
                             mu_hat,
                             hess,
@@ -168,8 +154,7 @@ internal_varIPW <- function(svydesign,
                             hess = hess,
                             eta = eta,
                             pop_size = pop_size,
-                            weights = weights,
-                            weights_sum = weights_sum)
+                            weights = weights)
   b <- b_obj$b
   hess_inv <- b_obj$hess_inv
 
@@ -186,16 +171,14 @@ internal_varIPW <- function(svydesign,
                  pop_size = pop_size,
                  est_method = est_method,
                  h = h,
-                 weights = weights,
-                 weights_sum = weights_sum) # fixed
+                 weights = weights) # fixed
   V2 <- var_cov2(X = X_rand,
                  svydesign = svydesign,
                  eps = est_ps_rand,
                  est_method = est_method,
                  h = h,
                  pop_totals = pop_totals,
-                 psd = est_ps_rand_der,
-                 weights_sum = weights_sum)
+                 psd = est_ps_rand_der)
 
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
@@ -219,7 +202,6 @@ internal_varDR <- function(OutcomeModel,
                            y_nons_pred,
                            weights,
                            weights_rand,
-                           weights_sum,
                            method_selection,
                            control_selection,
                            theta,
@@ -234,7 +216,7 @@ internal_varDR <- function(OutcomeModel,
                            est_method,
                            h,
                            pop_totals,
-                           sigma) { # TODO add variance for mm
+                           sigma) {
 
   ######### mm
   if (control_selection$est_method_sel == "mm") {
@@ -263,8 +245,7 @@ internal_varDR <- function(OutcomeModel,
                          eta = eta,
                          h_n = h_n,
                          y_pred = y_nons_pred,
-                         weights = weights,
-                         weights_sum = weights_sum)
+                         weights = weights)
 
     # asymptotic variance by each propensity score method (nonprobability component)
     var_nonprob <- est_method$make_var_nonprob(ps = ps_nons,
@@ -278,7 +259,6 @@ internal_varDR <- function(OutcomeModel,
                                                h = h,
                                                method_selection = method_selection,
                                                weights = weights,
-                                               weights_sum = weights_sum,
                                                pop_totals = pop_totals)
 
 
@@ -292,8 +272,7 @@ internal_varDR <- function(OutcomeModel,
                              y_nons = y_nons_pred,
                              N = N_nons,
                              method_selection = method_selection,
-                             weights = weights,
-                             weights_sum = weights_sum)
+                             weights = weights)
       # design based variance estimation based on approximations of the second-order inclusion probabilities
       svydesign <- stats::update(svydesign,
                                  t = t)
@@ -320,36 +299,58 @@ internal_varMI <- function(svydesign,
                            n_nons,
                            N,
                            family,
-                           parameters
+                           parameters,
+                           pop_totals
                            ) {
 
-  svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
-  var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
   if(is.character(family)) {
     family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+  if (is.null(pop_totals)) {
+    svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
+    var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
 
-  if (method == "nn") {
+    if (method == "nn") {
 
-    sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y) # mean((y - y_pred)^2)
-    est_ps  <- n_nons/N
-    var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
+      sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
+      est_ps  <- n_nons/N
+      var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
 
-  } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
+    } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
-    beta <- parameters[,1]
-    eta_nons <- X_nons %*% beta
-    eta_rand <- X_rand %*% beta
+      beta <- parameters[,1]
+      eta_nons <- X_nons %*% beta
+      eta_rand <- X_rand %*% beta
 
-    mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
-    c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
-    residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+      mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
+      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 
-    # nonprobability component
-    var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
-    var_nonprob <- as.vector(var_nonprob)
+      # nonprobability component
+      var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
+      var_nonprob <- as.vector(var_nonprob)
+    }
+  } else {
+    if (method == "nn") {
+      sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
+      est_ps  <- n_nons/N
+      var_nonprob <- n_nons/N^2 * (1 - est_ps)/est_ps * sigma_hat # what instead of n_rand here (?) now just n_nons
+    } else {
+      beta <- parameters[,1]
+      eta_nons <- X_nons %*% beta
+      eta_rand <- pop_totals %*% beta
+
+      mx <- 1/N * pop_totals * family_nonprobsvy$mu_der(eta_rand)
+      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+
+      # nonprobability component
+      var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
+      var_nonprob <- as.vector(var_nonprob)
+    }
+    var_prob <- 0
   }
 
   list(var_prob = var_prob,

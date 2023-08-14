@@ -1,11 +1,13 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+//#include <Eigen/Dense>
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp;
 using namespace arma;
+//using namespace Eigen;
 
-double loss_theta(const vec& par,
+inline double loss_theta(const vec& par,
                   const vec& R,
                   const mat& X,
                   const vec& weights,
@@ -55,16 +57,14 @@ double loss_theta(const vec& par,
     vec diff_squared = square(sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_nons);
     //loss = accu(square(sum(temp, 0)));
 
-
-
     // Calculate the sum of squared differences
-    loss = sum(diff_squared);
+    loss = accu(diff_squared);
   }
   return loss;
 }
 
 
-arma::vec u_theta(const arma::vec& par,
+inline arma::vec u_theta(const arma::vec& par,
                   const arma::vec& R,
                   const arma::mat& X,
                   const arma::vec& weights,
@@ -105,7 +105,6 @@ arma::vec u_theta(const arma::vec& par,
     temp = X.each_col() % (R/ps % weights);
     eq = (sum(temp, 0).t() - as<vec>(pop_totals)) / N_nons;
   }
-
   return eq;
 }
 
@@ -247,6 +246,7 @@ arma::vec q_lambda_cpp(const arma::vec& par, double lambda, const std::string& p
 }
 
 
+// HybridNonLinearSolver (?)
 // pass by reference where possible to avoid unnecessary copying
 arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
@@ -292,8 +292,7 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
 
     par0 = par;
   }
-
-  par(arma::find(arma::abs(par) < 0.001)).zeros();
+  par(arma::find(arma::abs(par) < 0.001)).zeros(); //
   return par;
 }
 
@@ -323,20 +322,20 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
 
   arma::vec weights;
   arma::vec loss_theta_av(nlambda, arma::fill::zeros);
-  arma::vec R_ = R;
-  arma::mat X_ = X;
+  const arma::vec& R_ = R;
+  const arma::mat& X_ = X;
 
   if(lambda == -1) {
     arma::uvec loc_nons = find(R == 1);
     arma::uvec loc_rand = find(R == 0);
-    arma::mat X_nons = join_rows(X.rows(loc_nons), weights_X(loc_nons), R(loc_nons));
-    arma::mat X_rand = join_rows(X.rows(loc_rand), weights_X(loc_rand), R(loc_rand));
+    const arma::mat& X_nons = join_rows(X.rows(loc_nons), weights_X(loc_nons), R(loc_nons));
+    const arma::mat& X_rand = join_rows(X.rows(loc_rand), weights_X(loc_rand), R(loc_rand));
 
-    SEXP lambdas = setup_lambda_cpp(X, R, weights_X, method_selection, lambda_min, nlambda);
+    SEXP lambdas = setup_lambda_cpp(X, R, weights_X, method_selection, lambda_min, nlambda, pop_totals);
     arma::vec lambdas1(Rcpp::as<arma::vec>(lambdas));
 
-    arma::uvec shuffle_nons = arma::shuffle(arma::linspace<arma::uvec>(0, X_nons.n_rows-1, X_nons.n_rows));
-    arma::uvec shuffle_rand = arma::shuffle(arma::linspace<arma::uvec>(0, X_rand.n_rows-1, X_rand.n_rows));
+    //arma::uvec shuffle_nons = arma::shuffle(arma::linspace<arma::uvec>(0, X_nons.n_rows-1, X_nons.n_rows));
+    //arma::uvec shuffle_rand = arma::shuffle(arma::linspace<arma::uvec>(0, X_rand.n_rows-1, X_rand.n_rows));
 
     arma::uvec folds_nons = arma::randi<arma::uvec>(X_nons.n_rows, arma::distr_param(0, nfolds-1));
     arma::uvec folds_rand = arma::randi<arma::uvec>(X_rand.n_rows, arma::distr_param(0, nfolds-1));
@@ -350,15 +349,15 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
 
       for(int j = 0; j < nfolds; j++) {
         arma::uvec idx_nons = find(folds_nons != sample_nons(j));
-        arma::mat X_nons_train = X_nons.rows(idx_nons);
-        arma::mat X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));
+        const arma::mat& X_nons_train = X_nons.rows(idx_nons);
+        const arma::mat& X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));
 
         arma::uvec idx_rand = find(folds_rand != sample_rand(j));
-        arma::mat X_rand_train = X_rand.rows(idx_rand);
-        arma::mat X_rand_test = X_rand.rows(find(folds_rand == sample_rand(j)));
+        const arma::mat& X_rand_train = X_rand.rows(idx_rand);
+        const arma::mat& X_rand_test = X_rand.rows(find(folds_rand == sample_rand(j)));
 
-        arma::mat X_train = arma::join_cols(X_rand_train, X_nons_train);
-        arma::mat X_test = arma::join_cols(X_rand_test, X_nons_test);
+        const arma::mat& X_train = arma::join_cols(X_rand_train, X_nons_train);
+        const arma::mat& X_test = arma::join_cols(X_rand_test, X_nons_test);
         int ncols = X_test.n_cols;
 
         arma::uvec idxx = arma::regspace<arma::uvec>(0, ncols - 3);
@@ -378,10 +377,10 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
         if (arma::any(theta_est == 0)) {
           idxx.shed_rows(arma::find(theta_est == 0));
         }
-        arma::mat X_testloss = X_test.cols(idxx);
-        arma::vec R_testloss = X_test.col(ncols - 1);
-        arma::vec weights_testloss = X_test.col(ncols - 2);
-        arma::vec par = theta_est(idxx);
+        const arma::mat& X_testloss = X_test.cols(idxx);
+        const arma::vec& R_testloss = X_test.col(ncols - 1);
+        const arma::vec& weights_testloss = X_test.col(ncols - 2);
+        const arma::vec& par = theta_est(idxx);
 
         double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h, idxx, pop_totals);
         loss_theta_vec(j) = loss;

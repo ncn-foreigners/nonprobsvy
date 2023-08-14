@@ -8,6 +8,7 @@ nonprob <- function(selection = NULL,
                     pop_totals = NULL,
                     pop_means = NULL,
                     pop_size = NULL,
+                    overlap = FALSE,
                     method_selection = c("logit", "cloglog", "probit"),
                     method_outcome = c("glm", "nn"),
                     family_selection = "binomial",
@@ -44,6 +45,11 @@ nonprob <- function(selection = NULL,
 
   if(!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for selection formula.")
   if(!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
+  if (!is.null(control_selection$key)) {
+    if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
+      stop("key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
+    }
+  }
 
   ## basic checkers
   if (is.null(selection) & is.null(outcome)) {
@@ -73,6 +79,7 @@ nonprob <- function(selection = NULL,
                    pop_totals,
                    pop_means,
                    pop_size,
+                   overlap,
                    method_selection,
                    family_selection,
                    subset,
@@ -91,6 +98,9 @@ nonprob <- function(selection = NULL,
     M = nonprobMI(outcome,
                   data,
                   svydesign,
+                  pop_totals,
+                  pop_means,
+                  pop_size,
                   method_outcome,
                   family_outcome,
                   subset,
@@ -113,6 +123,7 @@ nonprob <- function(selection = NULL,
                    pop_totals,
                    pop_means,
                    pop_size,
+                   overlap,
                    method_selection,
                    method_outcome,
                    family_selection,

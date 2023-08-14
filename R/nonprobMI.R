@@ -12,6 +12,9 @@
 nonprobMI <- function(outcome,
                       data,
                       svydesign,
+                      pop_totals,
+                      pop_means,
+                      pop_size,
                       method_outcome,
                       family_outcome = "gaussian",
                       subset,
@@ -32,60 +35,105 @@ nonprobMI <- function(outcome,
   output <- list()
   confidence_interval <- list()
   SE_values <- list()
+  num_boot <- control_inference$num_boot
   for (k in 1:outcomes$l) {
-    outcome <- outcomes$outcome[[k]]
+    if (is.null(pop_totals) && !is.null(svydesign)) {
+      outcome <- outcomes$outcome[[k]]
 
-    # model for outcome formula
-    OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
-    X_nons <- OutcomeModel$X_nons
-    X_rand <- OutcomeModel$X_rand
-    nons_names <- OutcomeModel$nons_names
-    y_nons <- OutcomeModel$y_nons
-    num_boot <- control_inference$num_boot
+      # model for outcome formula
+      OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+      X_nons <- OutcomeModel$X_nons
+      X_rand <- OutcomeModel$X_rand
+      nons_names <- OutcomeModel$nons_names
+      y_nons <- OutcomeModel$y_nons
 
-    R_nons <- rep(1, nrow(X_nons))
-    R_rand <- rep(0, nrow(X_rand))
-    R <- c(R_nons, R_rand)
+      R_nons <- rep(1, nrow(X_nons))
+      R_rand <- rep(0, nrow(X_rand))
+      R <- c(R_nons, R_rand)
 
-    loc_nons <- which(R == 1)
-    loc_rand <- which(R == 0)
+      loc_nons <- which(R == 1)
+      loc_rand <- which(R == 0)
 
-    n_nons <- nrow(X_nons)
-    n_rand <- nrow(X_rand)
-    X <- rbind(X_nons, X_rand)
+      n_nons <- nrow(X_nons)
+      n_rand <- nrow(X_rand)
+      X <- rbind(X_nons, X_rand)
 
-    ps_rand <- svydesign$prob
-    weights_rand <- 1/ps_rand
-    N_est_rand <- sum(weights_rand)
+      ps_rand <- svydesign$prob
+      weights_rand <- 1/ps_rand
+      N_est_rand <- sum(weights_rand)
 
-    ## estimation
-    MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
-    model_obj <- MethodOutcome(outcome = outcome,
-                               data = data,
-                               weights = weights,
-                               family_outcome = family_outcome,
-                               X_nons = X_nons,
-                               y_nons = y_nons,
-                               X_rand = X_rand,
-                               control = control_outcome,
-                               n_nons = n_nons,
-                               n_rand = n_rand,
-                               model_frame = OutcomeModel$model_frame_rand,
-                               vars_selection = control_inference$vars_selection)
-    y_rand_pred <- model_obj$y_rand_pred
-    y_nons_pred <- model_obj$y_nons_pred
-    model_out <- model_obj$model
-    parameters <- model_obj$parameters
+      ## estimation
+      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      model_obj <- MethodOutcome(outcome = outcome,
+                                 data = data,
+                                 weights = weights,
+                                 family_outcome = family_outcome,
+                                 X_nons = X_nons,
+                                 y_nons = y_nons,
+                                 X_rand = X_rand,
+                                 control = control_outcome,
+                                 n_nons = n_nons,
+                                 n_rand = n_rand,
+                                 model_frame = OutcomeModel$model_frame_rand,
+                                 vars_selection = control_inference$vars_selection,
+                                 pop_totals = pop_totals)
+      y_rand_pred <- model_obj$y_rand_pred
+      y_nons_pred <- model_obj$y_nons_pred
+      model_out <- model_obj$model
+      parameters <- model_obj$parameters
 
-    # updating probability sample by adding y_hat variable
-    svydesign <- stats::update(svydesign,
-                               y_hat_MI = y_rand_pred)
-    mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
+      # updating probability sample by adding y_hat variable
+      svydesign <- stats::update(svydesign,
+                                 y_hat_MI = y_rand_pred)
+      mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
+    } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
+
+      if (!is.null(pop_means)) { # TO consider
+        if (!is.null(pop_size)) {
+          pop_totals <- c(pop_size, pop_size * pop_means)
+          names(pop_totals) <- c("(Intercept)", names(pop_means))
+        } else {
+          stop("pop_size must be defined when estimating with pop_means.")
+        }
+      }
+      Model <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
+
+      X_nons <- Model$X_nons
+      X_rand <- Model$X_rand
+      y_nons <- Model$y_nons
+      n_rand <- 0
+      weights_rand <- NULL
+      n_nons <- nrow(X_nons)
+
+      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      model_obj <- MethodOutcome(outcome = outcome,
+                                 data = data,
+                                 weights = weights,
+                                 family_outcome = family_outcome,
+                                 X_nons = X_nons,
+                                 y_nons = y_nons,
+                                 X_rand = X_rand,
+                                 control = control_outcome,
+                                 n_nons = n_nons,
+                                 n_rand = n_rand,
+                                 model_frame = OutcomeModel$model_frame_rand,
+                                 vars_selection = control_inference$vars_selection,
+                                 pop_totals = pop_totals)
+
+      y_rand_pred <- model_obj$y_rand_pred
+      y_nons_pred <- model_obj$y_nons_pred
+      model_out <- model_obj$model
+      parameters <- model_obj$parameters
+      N_est_rand <- pop_totals[1]
+
+      mu_hat <- ifelse(method_outcome == "glm", as.vector(y_rand_pred/N_est_rand), y_rand_pred)
+    } else {
+      stop("Please, provide svydesign object or pop_totals/pop_means.")
+    }
 
     # design based variance estimation based on approximations of the second-order inclusion probabilities
 
     if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
-
       var_obj <- internal_varMI(svydesign = svydesign,
                                 X_nons = X_nons,
                                 X_rand = X_rand,
@@ -97,7 +145,8 @@ nonprobMI <- function(outcome,
                                 n_nons = n_nons,
                                 N = N_est_rand,
                                 family = family_outcome,
-                                parameters = parameters)
+                                parameters = parameters,
+                                pop_totals = pop_totals)
 
       var_nonprob <- var_obj$var_nonprob
       var_prob <- var_obj$var_prob
@@ -108,7 +157,7 @@ nonprobMI <- function(outcome,
       # variance
       var <- var_nonprob + var_prob
 
-    } else if (control_inference$var_method == "bootstrap") {
+    } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
       # bootstrap variance
       var <- bootMI(X_rand,
                     X_nons,
@@ -121,7 +170,8 @@ nonprobMI <- function(outcome,
                     svydesign,
                     rep_type = control_inference$rep_type,
                     method = method_outcome,
-                    control = control_outcome)
+                    control = control_outcome,
+                    pop_totals = pop_totals)
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     }
 

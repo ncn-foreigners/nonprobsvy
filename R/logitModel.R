@@ -111,7 +111,6 @@ logit <- function(...) {
                                   gr = gradient,
                                   method = control$optim_method,
                                   par = start,
-                                  # hessian = TRUE,
                                   control = list(fnscale = -1,
                                                  trace = control$trace,
                                                  maxit = control$maxit
@@ -139,7 +138,7 @@ logit <- function(...) {
            theta_hat = theta)
       }
 
-    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, weights_sum) {
+    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
 
       N <- pop_size
       n <- ifelse(is.null(dim(X)), length(X), nrow(X))
@@ -162,7 +161,7 @@ logit <- function(...) {
       } else if (est_method == "gee" && h == "1") {
         if (is.null(N)) {
           N <- sum(1/ps)
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights* (y - mu)^2)) # TODO
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
           v_1 <- t(v1_)
         } else {
@@ -185,7 +184,7 @@ logit <- function(...) {
       V1
     }
 
-    variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, weights_sum = NULL, postStrata = NULL) {
+    variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) {
 
       N <- sum(1/svydesign$prob)
 
@@ -211,9 +210,9 @@ logit <- function(...) {
     }
 
 
-    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, weights_sum) {
+    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
 
-      hess_inv <- MASS::ginv(hess)
+      hess_inv <- solve(hess) #MASS::ginv(hess)
       if (is.null(pop_size)) {
         b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
       } else {
@@ -223,16 +222,16 @@ logit <- function(...) {
            hess_inv = hess_inv)
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, weights_sum) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
       hess_inv <- solve(hess)
       - (((1 - ps)/ps) * weights * (y - y_pred - h_n)) %*% X %*% hess_inv
     }
 
-    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights, weights_sum) {
+    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
       as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     }
 
-    var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights, weights_sum) {
+    var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
       1/N^2 * sum((1 - ps) * (weights * (y - y_pred - h_n)/ps - b %*% t(X))^2)
     }
 

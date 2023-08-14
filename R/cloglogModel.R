@@ -139,7 +139,7 @@ cloglog <- function(...) {
          theta_hat = theta)
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, weights_sum) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
 
     N <- pop_size
     if (est_method == "mle") {
@@ -201,7 +201,7 @@ cloglog <- function(...) {
   }
 
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, weights_sum = NULL, postStrata = NULL) { #TODO
+  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) { #TODO
 
     N <- sum(1/svydesign$prob)
     if (!is.null(pop_totals)) {
@@ -226,7 +226,7 @@ cloglog <- function(...) {
     V2
   }
 
-  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights, weights_sum) {
+  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) {
 
     hess_inv <- solve(hess)
     #print(length(((1 - ps)/ps^2 * exp(eta) * weights * (y - mu))))
@@ -243,16 +243,16 @@ cloglog <- function(...) {
          hess_inv = hess_inv)
   }
 
-  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, weights_sum) {
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
     hess_inv <- solve(hess)
     (((1 - ps)/ps^2) * weights * (y - y_pred - h_n) * exp(eta)) %*% X %*% hess_inv
   }
 
-  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights, weights_sum) {
+  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
     as.vector(log(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
   }
 
-  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights, weights_sum) {
+  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
     1/N^2 * sum((1 - ps) * ((weights * (y - y_pred - h_n)/ps) - b %*% t(as.matrix(log((1 - ps)/ps) * as.data.frame(X))))^2)
   }
 

@@ -64,12 +64,8 @@ probit <- function(...) {
     dlink2 <- dinv_link(eta2)
     #weights_sum <- sum(weights, weights_rand)
 
-    #hess1 <- t(as.data.frame(X_nons) * weights * ((eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1)^2)) + 2*dlink1^2/(invLink1*(1 - invLink1)^2))) %*% as.matrix(X_nons)
-    #hess2 <- t(as.data.frame(X_rand) * weights_rand * ((-eta2 * dlink2)/(1 - invLink2) + dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
-    #hess1 <- t(as.data.frame(X_nons) * weights * (dlink1^2 * (2 * invLink1 - 1)) / ((invLink1 - 1)^2 * invLink1^2)) %*% as.matrix(X_nons)
-    #hess2 <- t(as.data.frame(X_rand) * weights_rand * dlink2^2 / (invLink2 - 1)^2) %*% as.matrix(X_rand)
-    hess1 <- t(as.data.frame(X_nons) * weights * ((-eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2/((invLink1^2) * ((1 - invLink1))) - dlink1^2/(invLink1*(1 - invLink1)^2))) %*% as.matrix(X_nons)
-    hess2 <- t(as.data.frame(X_rand) * weights_rand * ((-eta2 * dlink2)/(1 - invLink2) - dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
+    hess1 <- t(as.data.frame(X_nons) * weights * ((-eta1 * dlink1)/(invLink1 * (1 - invLink1)) - dlink1^2 * (1 - 2*invLink1)/((invLink1^2) * ((1 - invLink1)^2)))) %*% as.matrix(X_nons)
+    hess2 <- t(as.data.frame(X_rand) * weights_rand * ((-eta2 * dlink2)/(1 - invLink2) + dlink2^2/((1 - invLink2)^2))) %*% as.matrix(X_rand)
     hess1 - hess2
     }
   }
@@ -95,8 +91,8 @@ probit <- function(...) {
     if (control$optimizer == "maxLik") {
       ########### maxLik ##########
       maxLik_an <- maxLik::maxLik(logLik = log_like,
-                                  #grad = gradient, # to fix
-                                  #hess = hessian, # to fix
+                                  grad = gradient, # fixed
+                                  hess = hessian, # fixed
                                   method = control$maxLik_method,
                                   start = start,
                                   printLevel = control$print_level) # NA in gradient for Newton-Raphson method
@@ -125,8 +121,7 @@ probit <- function(...) {
                                 par = start,
                                 control = list(fnscale = -1,
                                                trace = control$trace,
-                                               maxit = control$maxit),
-                                hessian = TRUE)
+                                               maxit = control$maxit))
       if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
         switch (as.character(maxLik_an$convergence),
                 "1" = warning("warning in fitting selection model with optim: the iteration limit maxit had been reached."),
@@ -139,19 +134,17 @@ probit <- function(...) {
       theta <- maxLik_an$par
       log_likelihood <- log_like(theta)
       grad <- gradient(theta)
-      hess <- maxLik_an$hessian
-      #hess <- hessian(theta)
+      hess <- hessian(theta)
     } else {
       stop("Provided invalid optimizer.")
     }
-
     list(log_l = log_likelihood,
          grad = grad,
          hess = hess,
          theta_hat = theta)
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, weights_sum) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
 
     N <- pop_size
     if (est_method == "mle"){
@@ -214,7 +207,7 @@ probit <- function(...) {
     V1
   }
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, weights_sum = NULL, postStrata = NULL) { #TODO
+  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) { #TODO
 
     N <- sum(1/svydesign$prob)
     if (!is.null(pop_totals)) {
@@ -240,7 +233,7 @@ probit <- function(...) {
   }
 
 
-  b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, weights_sum) {
+  b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
 
     hess_inv <- solve(hess)
     if (is.null(pop_size)) {
@@ -252,16 +245,16 @@ probit <- function(...) {
          hess_inv = hess_inv)
   }
 
-  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, weights_sum) {
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
     hess_inv <- solve(hess)
     - (psd/ps^2 * weights * (y - y_pred - h_n)) %*% X %*% hess_inv
   }
 
-  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights, weights_sum) {
+  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
     as.vector(psd/(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
   }
 
-  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights, weights_sum) {
+  var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
     1/N^2 * sum((1 - ps) * ((weights  * (y - y_pred - h_n)/ps) - b %*% t(as.matrix(psd/(ps*(1 - ps)) * as.data.frame(X))))^2)
   }
 

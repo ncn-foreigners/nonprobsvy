@@ -19,7 +19,7 @@ mle <- function(...) {
     var_cov1 <- model$var_cov1
     var_cov2 <- model$var_cov2
     df_residual <- model$df_residual
-    variance_covariance <- MASS::ginv(-hess) #solve(-hess) # variance-covariance matrix of estimated parameters
+    variance_covariance <- solve(-hess) # MASS::ginv # variance-covariance matrix of estimated parameters
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -44,8 +44,7 @@ mle <- function(...) {
                       y_rand = y_rand,
                       y_nons = y_nons,
                       N = N,
-                      weights = weights,
-                      weights_sum = weights_sum)
+                      weights = weights)
     t
   }
 
@@ -59,8 +58,7 @@ mle <- function(...) {
                                        X = X,
                                        b = b,
                                        N = N,
-                                       weights = weights,
-                                       weights_sum = weights_sum)
+                                       weights = weights)
     as.numeric(var_nonprob)
 
   }
@@ -164,7 +162,7 @@ gee <- function(...) {
          log_likelihood = "NULL")
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
+  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
     if (h == "1") {
       t <- X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     } else if (h == "2") {
@@ -173,7 +171,7 @@ gee <- function(...) {
     t
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, weights_sum, pop_totals) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
     if (!is.null(pop_totals)) h <- "1" # perhaps to remove, just check if appropriate var is calculated
     if (h == "2") {
       var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n)/ps) - b %*% t(X))^2)
@@ -213,13 +211,6 @@ gee <- function(...) {
     est_ps_rand <- inv_link(theta_hat %*% t(as.matrix(X_rand)))
     variance_covariance <- solve(-hess)
 
-    # just for testing
-    # ps <- c(ps_nons, est_ps_rand)
-    # V <- diag(ps * (1 - ps))
-    # vcov_selection <- solve(t(X) %*% V %*% X)
-    # print(sqrt(diag(vcov_selection)))
-
-
     df_reduced <- nrow(X) - length(theta_hat)
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
@@ -251,9 +242,9 @@ gee <- function(...) {
 
 }
 
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family) { # TODO
+mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, boot = FALSE) { # TODO
 
-  method <- get_method(method = method_selection)
+  method <- get_method(method_selection)
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der
 
@@ -266,9 +257,9 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
 
   multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions
                                 fn = u_theta_beta_dr,
-                                method = "Newton", # TODO consider the method
-                                global = "qline",
-                                xscalm = "fixed",
+                                method = "Newton", # TODO consider the method Broyden
+                                global = "qline", #c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
+                                xscalm = "fixed", # c("fixed","auto")
                                 jacobian = TRUE,
                                 control = list(scalex = rep(1, length(par0))), # TODO algorithm did not converge in maxit iterations for cloglog
                                 R = R,
@@ -300,47 +291,61 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   est_ps_rand <- ps[loc_rand]
   ps_nons_der <- ps_der[loc_nons]
   weights_nons <- 1/ps_nons
-  N_nons <- sum(weights * weights_nons)
 
-  # variance-covariance matrix for selection model toFix
-  V <- Matrix::Diagonal(n = length(ps), x = ps * (1 - ps))
-  vcov_selection <- solve(t(X) %*% V %*% X)
-  # vcov_selection <- matrix(0, nrow = nrow(X_design), ncol = ncol(X_design))
-  theta_errors <- sqrt(diag(vcov_selection))
+  if (!boot) {
+    N_nons <- sum(weights * weights_nons)
+    # variance-covariance matrix for selection model toFix
+    V <- Matrix::Diagonal(n = length(ps), x = ps * (1 - ps))
+    vcov_selection <- solve(t(X) %*% V %*% X)
+    # vcov_selection <- matrix(0, nrow = nrow(X_design), ncol = ncol(X_design))
+    theta_errors <- sqrt(diag(vcov_selection))
+  }
 
   eta <- as.vector(beta_hat %*% t(X))
   y_hat <- family$mu(eta)
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
-  sigma <- family$variance(mu = y_hat, y = y[loc_rand])
-  residuals <- family$residuals(mu = y_rand_pred, y = y[loc_rand])
 
-  # variance-covariance matrix for outcome model
-  # vcov_outcome <- solve(t(X_design) %*% diag(sigma) %*% X_design)
-  vcov_outcome <- solve(t(X) %*% (sigma * X))
-  beta_errors <- sqrt(diag(vcov_outcome))
+  if (!boot) {
+    sigma <- family$variance(mu = y_hat, y = y[loc_rand])
+    residuals <- family$residuals(mu = y_rand_pred, y = y[loc_rand])
+  }
 
-  hess <- NULL
+  if (!boot) {
+    # variance-covariance matrix for outcome model
+    # vcov_outcome <- solve(t(X_design) %*% diag(sigma) %*% X_design)
+    vcov_outcome <- solve(t(X) %*% (sigma * X))
+    beta_errors <- sqrt(diag(vcov_outcome))
+  }
 
-  selection <- list(theta_hat = theta_hat,
-                    grad = multiroot$fvec[1:(p)], # TODO
+  if (!boot) {
+    hess <- NULL
+    selection <- list(theta_hat = theta_hat,
+                      grad = multiroot$fvec[1:(p)], # TODO
+                      hess = hess, # TODO
+                      ps_nons = ps_nons,
+                      variance_covariance = vcov_selection,
+                      df_residual = df_residual,
+                      log_likelihood = "NULL")
+
+    outcome <- list(beta_hat = beta_hat,
+                    grad = multiroot$f.root[(p+1):(2*p)],
                     hess = hess, # TODO
-                    ps_nons = ps_nons,
-                    variance_covariance = vcov_selection,
+                    variance_covariance = vcov_outcome,
                     df_residual = df_residual,
+                    family = list(mu = y_hat,
+                                  var = sigma[loc_rand],
+                                  residuals = residuals),
+                    y_rand_pred = y_rand_pred,
+                    y_nons_pred = y_nons_pred,
                     log_likelihood = "NULL")
-
-  outcome <- list(beta_hat = beta_hat,
-                  grad = multiroot$f.root[(p+1):(2*p)],
-                  hess = hess, # TODO
-                  variance_covariance = vcov_outcome,
-                  df_residual = df_residual,
-                  family = list(mu = y_hat,
-                                var = sigma[loc_rand],
-                                residuals = residuals),
-                  y_rand_pred = y_rand_pred,
-                  y_nons_pred = y_nons_pred,
-                  log_likelihood = "NULL")
+  } else {
+    selection <- list(theta_hat = theta_hat,
+                      ps_nons = ps_nons)
+    outcome <- list(beta_hat = beta_hat,
+                    y_rand_pred = y_rand_pred,
+                    y_nons_pred = y_nons_pred)
+  }
 
   list(selection = selection,
        outcome = outcome)
