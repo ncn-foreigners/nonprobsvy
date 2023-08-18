@@ -499,6 +499,7 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -528,6 +529,7 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -564,6 +566,7 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -589,6 +592,7 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -642,15 +646,12 @@ bootIPW_multicore <- function(X_rand,
   estimation_method <- get_method(est_method)
   method <- get_method(method_selection)
 
-  # print(estimation_method$model_selection)
-  # stop("abc")
-
   inv_link <- method$make_link_inv
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW"))
+  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
 
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -800,67 +801,63 @@ bootDR_multicore <- function(SelectionModel,
                                     cores = cores)
     boot_var <- var_obj$boot_var
   } else {
-    if (is.character(est_method)) {
-      est_method <- get(est_method, mode = "function", envir = parent.frame())
-    }
-    if (is.function(est_method)) {
-      est_method <- est_method()
-    }
     if (is.null(pop_totals)) {
       N <- sum(weights_rand)
 
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatDR", "probit", "cloglog"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
-        strap_nons <- sample.int(replace = TRUE, n = n_nons)
-        strap_rand <- sample.int(replace = TRUE, n = n_rand)
+          estimation_method <- get_method(est_method)
+          strap_nons <- sample.int(replace = TRUE, n = n_nons)
+          strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-        model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
-                                    y = OutcomeModel$y[strap_nons],
-                                    weights = weights[strap_nons],
-                                    family = family)
+          model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
+                                      y = OutcomeModel$y[strap_nons],
+                                      weights = weights[strap_nons],
+                                      family = family)
 
 
-        model_nons_coefs <- model_out$coefficients
-        eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-        y_rand_pred <- family_nonprobsvy$mu(eta)
-        y_nons_pred <- model_out$fitted.values
+          model_nons_coefs <- model_out$coefficients
+          eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
+          y_rand_pred <- family_nonprobsvy$mu(eta)
+          y_nons_pred <- model_out$fitted.values
 
-        X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
-                       SelectionModel$X_nons[strap_nons, ])
+          X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
+                         SelectionModel$X_nons[strap_nons, ])
 
-        model_sel <- internal_selection(X = X_sel,
-                                        X_nons = SelectionModel$X_nons[strap_nons, ],
-                                        X_rand = SelectionModel$X_rand[strap_rand, ],
-                                        weights = weights[strap_nons],
-                                        weights_rand = weights_rand[strap_rand],
-                                        R = R,
-                                        method_selection = method_selection,
-                                        optim_method = optim_method,
-                                        h = h,
-                                        est_method = est_method,
-                                        maxit = maxit,
-                                        control_selection = control_selection)
+          model_sel <- internal_selection(X = X_sel,
+                                          X_nons = SelectionModel$X_nons[strap_nons, ],
+                                          X_rand = SelectionModel$X_rand[strap_rand, ],
+                                          weights = weights[strap_nons],
+                                          weights_rand = weights_rand[strap_rand],
+                                          R = R,
+                                          method_selection = method_selection,
+                                          optim_method = optim_method,
+                                          h = h,
+                                          est_method = est_method,
+                                          maxit = maxit,
+                                          control_selection = control_selection)
 
-        est_method_obj <- estimation_method$estimation_model(model = model_sel,
-                                                             method_selection = method_selection)
-        ps_nons <- est_method_obj$ps_nons
-        weights_nons <- 1/ps_nons
-        N_est_nons <- sum(weights_nons)
-        N_est_rand <- sum(weights_rand[strap_rand])
+          est_method_obj <- estimation_method$estimation_model(model = model_sel,
+                                                               method_selection = method_selection)
+          ps_nons <- est_method_obj$ps_nons
+          weights_nons <- 1/ps_nons
+          N_est_nons <- sum(weights_nons)
+          N_est_rand <- sum(weights_rand[strap_rand])
 
-        mu_hatDR(y = OutcomeModel$y_nons[strap_nons],
-                 y_nons = y_nons_pred,
-                 y_rand = y_rand_pred,
-                 weights = weights[strap_nons],
-                 weights_nons = weights_nons,
-                 weights_rand = weights_rand[strap_rand],
-                 N_nons = N_est_nons,
-                 N_rand = N_est_rand)
+          mu_hatDR(y = OutcomeModel$y_nons[strap_nons],
+                   y_nons = y_nons_pred,
+                   y_rand = y_rand_pred,
+                   weights = weights[strap_nons],
+                   weights_nons = weights_nons,
+                   weights_rand = weights_rand[strap_rand],
+                   N_nons = N_est_nons,
+                   N_rand = N_est_rand)
       })
     } else { # TODO
       cl <- parallel::makeCluster(cores)
@@ -946,6 +943,7 @@ bootDR_sel_multicore <- function(X,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
+  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
 
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:num_boot, .combine = c),
