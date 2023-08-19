@@ -11,7 +11,8 @@ controlInf(
     "Fay"),
   bias_inf = c("union", "div"),
   num_boot = 500,
-  alpha = 0.05
+  alpha = 0.05,
+  cores = 1
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ controlInf(
 \item{num_boot}{-}
 
 \item{alpha}{Significance level, Default is 0.05.}
+
+\item{cores}{Number of cores in parallel computing}
 }
 \description{
 \code{controlINF} constructs a list with all necessary control parameters

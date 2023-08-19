@@ -932,7 +932,6 @@ bootDR_sel_multicore <- function(X,
                                  psel,
                                  cores) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
-  k <- 1
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
   X_nons <- X[loc_nons,]
@@ -969,16 +968,14 @@ bootDR_sel_multicore <- function(X,
     N_nons <- sum(prior_weights[loc_nons][strap_nons] * weights_nons_strap)
     N_rand <- sum(prior_weights[loc_rand][strap_rand])
 
-    mu_hat_boot <- mu_hatDR(y = y_nons[strap_nons],
-                            y_nons = model_strap$outcome$y_nons_pred,
-                            y_rand = model_strap$outcome$y_rand_pred,
-                            weights = prior_weights[loc_nons][strap_nons],
-                            weights_nons = weights_nons_strap,
-                            weights_rand = prior_weights[loc_rand][strap_rand],
-                            N_nons = N_nons,
-                            N_rand = N_rand) #DR estimator
-    mu_hats[k] <- mu_hat_boot
-    k <- k + 1
+    mu_hatDR(y = y_nons[strap_nons],
+             y_nons = model_strap$outcome$y_nons_pred,
+             y_rand = model_strap$outcome$y_rand_pred,
+             weights = prior_weights[loc_nons][strap_nons],
+             weights_nons = weights_nons_strap,
+             weights_rand = prior_weights[loc_rand][strap_rand],
+             N_nons = N_nons,
+             N_rand = N_rand) #DR estimator
   })
   boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
   list(boot_var = boot_var)
