@@ -159,19 +159,36 @@ nonprobMI <- function(outcome,
 
     } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
       # bootstrap variance
-      var <- bootMI(X_rand,
-                    X_nons,
-                    weights,
-                    y_nons,
-                    family_outcome,
-                    num_boot = num_boot,
-                    weights_rand,
-                    mu_hat,
-                    svydesign,
-                    rep_type = control_inference$rep_type,
-                    method = method_outcome,
-                    control = control_outcome,
-                    pop_totals = pop_totals)
+      if (control_inference$cores > 1) {
+        var <- bootMI_multicore(X_rand,
+                                X_nons,
+                                weights,
+                                y_nons,
+                                family_outcome,
+                                num_boot = num_boot,
+                                weights_rand,
+                                mu_hat,
+                                svydesign,
+                                rep_type = control_inference$rep_type,
+                                method = method_outcome,
+                                control = control_outcome,
+                                pop_totals = pop_totals,
+                                cores = control_inference$cores)
+      } else {
+        var <- bootMI(X_rand,
+                      X_nons,
+                      weights,
+                      y_nons,
+                      family_outcome,
+                      num_boot = num_boot,
+                      weights_rand,
+                      mu_hat,
+                      svydesign,
+                      rep_type = control_inference$rep_type,
+                      method = method_outcome,
+                      control = control_outcome,
+                      pop_totals = pop_totals)
+      }
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     }
 

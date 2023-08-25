@@ -18,5 +18,6 @@ LazyData: true
 RdMacros: mathjaxr
 RoxygenNote: 7.2.3
 Suggests: tinytest, covr
-Imports: survey, maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv
+Depends: survey
+Imports: maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv, doParallel, foreach, parallel
 LinkingTo: RcppArmadillo, Rcpp

@@ -130,6 +130,7 @@ controlOut <- function(epsilon = 1e-6,
 #' @param bias_inf inference method in the bias minimization. Default is `union`.
 #' @param num_boot -
 #' @param alpha Significance level, Default is 0.05.
+#' @param cores Number of cores in parallel computing
 #'
 #' @export
 
@@ -140,13 +141,15 @@ controlInf <- function(vars_selection = FALSE,
                                     "subbootstrap","mrbbootstrap","Fay"),
                        bias_inf = c("union", "div"),
                        num_boot = 500,
-                       alpha = 0.05) {
+                       alpha = 0.05,
+                       cores = 1) {
 
   list(vars_selection = if(missing(vars_selection)) FALSE else vars_selection,
        var_method = if(missing(var_method)) "analytic" else var_method,
        rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,
        num_boot = num_boot,
-       alpha = alpha)
+       alpha = alpha,
+       cores = cores)
 
 }
