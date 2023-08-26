@@ -13,7 +13,7 @@ Authors@R:
              email = "maciej.beresewicz@ue.poznan.pl"),
       person(given = "Piotr",
              family = "Chlebicki",
-             role = c("aut", "ctb"),
+             role = "ctb",
              email = "piochl@st.amu.edu.pl"))
 Description: An R package for statistical inference with non-probability samples when auxiliary information from external sources like probability samples or population totals/means are available.
 License: file LICENSE

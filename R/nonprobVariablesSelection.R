@@ -132,7 +132,9 @@ nonprobSel <- function(selection,
     N_rand <- sum(weights_rand)
 
     # Cross-validation for variable selection
-    cat("Selection model\n")
+    if (verbose == TRUE & lambda == -1) {
+      cat("Selection model\n")
+    }
     cv <- cv_nonprobsvy_rcpp(X = X_stand,
                              R = R,
                              weights_X = prior_weights,
@@ -155,7 +157,9 @@ nonprobSel <- function(selection,
     #names(theta_est) <- colnames(X)[theta_selected + 1]
 
     nlambda <- control_outcome$nlambda
-    cat("Outcome model")
+    if (verbose == TRUE) {
+      cat("Outcome model\n")
+    }
     beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
                               y = y_nons,
                               penalty = control_outcome$penalty,
@@ -333,7 +337,9 @@ nonprobSel <- function(selection,
       p <- ncol(X)
 
       # Cross-validation for variable selection
-      cat("Selection model\n")
+      if (verbose == TRUE & lambda == -1) {
+        cat("Selection model\n")
+      }
       cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO TO FIX
                                R = R,
                                weights_X = weights,
@@ -356,7 +362,9 @@ nonprobSel <- function(selection,
       #names(theta_est) <- colnames(X)[theta_selected + 1]
 
       nlambda <- control_outcome$nlambda
-      cat("Outcome model\n")
+      if (verbose == TRUE) {
+        cat("Outcome model\n")
+      }
       beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
                                 y = y_nons,
                                 penalty = control_outcome$penalty,
