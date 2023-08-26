@@ -163,19 +163,19 @@ gee <- function(...) {
   }
 
   make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
-    if (h == "1") {
+    if (h == 1) {
       t <- X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
-    } else if (h == "2") {
+    } else if (h == 2) {
       t <- as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
     }
     t
   }
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
-    if (!is.null(pop_totals)) h <- "1" # perhaps to remove, just check if appropriate var is calculated
-    if (h == "2") {
+    if (!is.null(pop_totals)) h <- 1 # perhaps to remove, just check if appropriate var is calculated
+    if (h == 2) {
       var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n)/ps) - b %*% t(X))^2)
-    } else if (h == "1") {
+    } else if (h == 1) {
       var_nonprob <- 1/N^2 * sum((1 - ps) * ((weights*(y - y_pred - h_n) - b %*% t(X))/ps)^2)
     }
     as.numeric(var_nonprob)
@@ -242,7 +242,8 @@ gee <- function(...) {
 
 }
 
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, boot = FALSE) { # TODO
+# bias correction
+mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, boot = FALSE) {
 
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
@@ -324,6 +325,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                       grad = multiroot$fvec[1:(p)], # TODO
                       hess = hess, # TODO
                       ps_nons = ps_nons,
+                      est_ps_rand = est_ps_rand,
                       variance_covariance = vcov_selection,
                       df_residual = df_residual,
                       log_likelihood = "NULL")

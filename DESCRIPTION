@@ -10,7 +10,11 @@ Authors@R:
       person(given = "Maciej",
              family = "Beręsewicz",
              role = c("aut", "ctb"),
-             email = "maciej.beresewicz@ue.poznan.pl"))
+             email = "maciej.beresewicz@ue.poznan.pl"),
+      person(given = "Piotr",
+             family = "Chlebicki",
+             role = c("aut", "ctb"),
+             email = "piochl@st.amu.edu.pl"))
 Description: An R package for statistical inference with non-probability samples when auxiliary information from external sources like probability samples or population totals/means are available.
 License: file LICENSE
 Encoding: UTF-8
@@ -19,5 +23,5 @@ RdMacros: mathjaxr
 RoxygenNote: 7.2.3
 Suggests: tinytest, covr
 Depends: survey
-Imports: maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv, doParallel, foreach, parallel
+Imports: maxLik, stats, Matrix, MASS, ncvreg, betareg, RANN, sampling, Rcpp, RcppArmadillo, mathjaxr, nleqslv, doParallel, foreach, parallel, HelpersMG
 LinkingTo: RcppArmadillo, Rcpp

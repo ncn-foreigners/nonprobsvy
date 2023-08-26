@@ -14,9 +14,9 @@ controlSel(
   optim_method = "BFGS",
   dependence = FALSE,
   key = NULL,
-  est_method_sel = c("mle", "gee", "mm"),
+  est_method_sel = c("mle", "gee"),
   ov_method = c("ev", "mle", "gee"),
-  h_x = c("1", "2"),
+  h = c(1, 2),
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
@@ -50,7 +50,7 @@ controlSel(
 
 \item{ov_method}{-}
 
-\item{h_x}{Smooth function for the estimating equations.}
+\item{h}{Smooth function for the estimating equations.}
 
 \item{penalty}{-}
 

@@ -36,7 +36,7 @@ nonprob(
   control_outcome = controlOut(),
   control_inference = controlInf(),
   start = NULL,
-  verbose = 0L,
+  verbose = FALSE,
   contrasts = NULL,
   model = TRUE,
   x = TRUE,

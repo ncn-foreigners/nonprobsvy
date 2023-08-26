@@ -159,7 +159,7 @@ cloglog <- function(...) {
         v_2 <- v_2 + v_2i
       }
       v_2 <- 1/N^2 * v_2
-    } else if (est_method == "gee" && h == "1") {
+    } else if (est_method == "gee" && h == 1) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
@@ -175,7 +175,7 @@ cloglog <- function(...) {
         v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
-    } else if (est_method == "gee" && h == "2") {
+    } else if (est_method == "gee" && h == 2) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
@@ -210,7 +210,7 @@ cloglog <- function(...) {
       if (est_method == "mle") {
         svydesign$prob <- as.vector(1/log(1 - eps) * svydesign$prob)
       } else if (est_method == "gee") {
-        if (h == "2") svydesign$prob <- as.vector(1/eps * svydesign$prob)
+        if (h == 2) svydesign$prob <- as.vector(1/eps * svydesign$prob)
       }
       if (is.null(postStrata)) {
         cov <- 1/N^2 * svyrecvar(X/svydesign$prob, svydesign$cluster, stratas = svydesign$strata, fpcs = svydesign$fpc)

@@ -48,13 +48,14 @@ nonprobSel <- function(selection,
 
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
-  h <- control_selection$h_x
+  h <- control_selection$h
   lambda <- control_selection$lambda
   lambda_min <- control_selection$lambda_min
   nlambda <- control_selection$nlambda
   num_boot <- control_inference$num_boot
   est_method <- control_selection$est_method_sel
   optim_method <- control_selection$optim_method
+  bias_corr <- control_inference$bias_correction
 
   if (control_selection$a_SCAD <= 2 || control_outcome$a_SCAD <= 2) stop("a_SCAD must be greater than 2 for SCAD penalty")
   if (control_selection$a_MCP <= 1 || control_outcome$a_MCP <= 1) stop("a_MCP must be greater than 1 for MCP penalty")
@@ -131,6 +132,7 @@ nonprobSel <- function(selection,
     N_rand <- sum(weights_rand)
 
     # Cross-validation for variable selection
+    cat("Selection model\n")
     cv <- cv_nonprobsvy_rcpp(X = X_stand,
                              R = R,
                              weights_X = prior_weights,
@@ -144,7 +146,8 @@ nonprobSel <- function(selection,
                              penalty = control_selection$penalty,
                              a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
                              lambda = lambda,
-                             pop_totals = pop_totals)
+                             pop_totals = pop_totals,
+                             verbose = verbose)
     #theta_est <- cv$theta_est[cv$theta_est != 0]
     min <- cv$min
     lambda <- cv$lambda
@@ -152,11 +155,13 @@ nonprobSel <- function(selection,
     #names(theta_est) <- colnames(X)[theta_selected + 1]
 
     nlambda <- control_outcome$nlambda
+    cat("Outcome model")
     beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
                               y = y_nons,
                               penalty = control_outcome$penalty,
                               family = family_outcome,
                               nlambda = nlambda,
+                              trace = verbose,
                               nfolds = control_outcome$nfolds,
                               gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP))
 
@@ -175,9 +180,9 @@ nonprobSel <- function(selection,
     par0 <- rep(0, 2*(psel + 1))
 
     ################################## ESTIMATION on selected variables
-    if (est_method == "mm") {
+    if (bias_corr == TRUE) {
 
-      mm <- get_method(control_inference$est_method)
+      #mm <- get_method(control_inference$est_method)
       estimation_model <- mm(X = X_design,
                              y = y,
                              weights = weights,
@@ -218,7 +223,8 @@ nonprobSel <- function(selection,
 
     } else {
       # OUTCOME MODEL
-      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,
@@ -269,7 +275,7 @@ nonprobSel <- function(selection,
       #log_likelihood <- est_method_obj$log_likelihood
       #df_residual <- est_method_obj$df_residual
 
-      names(theta) <- names(beta) <- colnames(X_design)
+      names(theta) <- colnames(X_design)
       weights_nons <- 1/ps_nons
       N_nons <- sum(weights * weights_nons)
       N_rand <- sum(weights_rand)
@@ -327,6 +333,7 @@ nonprobSel <- function(selection,
       p <- ncol(X)
 
       # Cross-validation for variable selection
+      cat("Selection model\n")
       cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO TO FIX
                                R = R,
                                weights_X = weights,
@@ -340,21 +347,23 @@ nonprobSel <- function(selection,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
                                lambda = lambda,
-                               pop_totals = pop_totals[-1])
+                               pop_totals = pop_totals[-1],
+                               verbose = verbose)
       #theta_est <- cv$theta_est[cv$theta_est != 0]
       min <- cv$min
       lambda <- cv$lambda
       theta_selected <- c(0, cv$theta_selected + 1)
       #names(theta_est) <- colnames(X)[theta_selected + 1]
-      print(theta_selected)
 
       nlambda <- control_outcome$nlambda
+      cat("Outcome model\n")
       beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
                                 y = y_nons,
                                 penalty = control_outcome$penalty,
                                 family = family_outcome,
                                 nlambda = nlambda,
                                 nfolds = control_outcome$nfolds,
+                                trace = verbose,
                                 gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP))
 
       beta_est <- beta$fit$beta[,beta$min]
@@ -469,7 +478,8 @@ nonprobSel <- function(selection,
                                 est_method = est_method,
                                 h = h,
                                 pop_totals = pop_totals,
-                                sigma = sigma)
+                                sigma = sigma,
+                                bias_correction = bias_corr)
 
       var_prob <- var_obj$var_prob
       var_nonprob <- var_obj$var_nonprob
@@ -500,7 +510,8 @@ nonprobSel <- function(selection,
                                 pop_totals = pop_totals,
                                 pop_size = pop_size,
                                 pop_means = pop_means,
-                                cores = control_inference$cores)
+                                cores = control_inference$cores,
+                                verbose = verbose)
       } else {
         var <- bootDR(SelectionModel = SelectionModel,
                       OutcomeModel = OutcomeModel,
@@ -521,7 +532,8 @@ nonprobSel <- function(selection,
                       maxit = maxit,
                       pop_totals = pop_totals,
                       pop_size = pop_size,
-                      pop_means = pop_means)
+                      pop_means = pop_means,
+                      verbose = verbose)
       }
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
       var <- var$boot_var
@@ -655,6 +667,7 @@ nonprobSelM <- function(outcome, # TODO add pop_totals
                                 y = y_nons,
                                 penalty = control_outcome$penalty,
                                 family = family_outcome,
+                                trace = verbose,
                                 nlambda = nlambda)
 
       beta_est <- beta$fit$beta[,beta$min]
@@ -702,7 +715,8 @@ nonprobSelM <- function(outcome, # TODO add pop_totals
       #                 #variance_covariance = vcov(model_out$glm),
       #                 df_residual = df_residual,
       #                 log_likelihood = "NULL")
-      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,
@@ -757,6 +771,7 @@ nonprobSelM <- function(outcome, # TODO add pop_totals
                                 y = y_nons,
                                 penalty = control_outcome$penalty,
                                 family = family_outcome,
+                                trace = verbose,
                                 nlambda = nlambda)
 
       beta_est <- beta$fit$beta[,beta$min]
@@ -766,7 +781,8 @@ nonprobSelM <- function(outcome, # TODO add pop_totals
       X_nons <- Model$X_nons[, beta_selected + 1]
       X <- X_nons
 
-      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       pop_totals <- pop_totals[beta_selected+1]
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
@@ -831,7 +847,8 @@ nonprobSelM <- function(outcome, # TODO add pop_totals
                     rep_type = control_inference$rep_type,
                     method = method_outcome,
                     control = control_outcome,
-                    pop_totals = pop_totals)
+                    pop_totals = pop_totals,
+                    verbose = verbose)
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     }
 
@@ -907,7 +924,7 @@ nonprobSelP <- function(selection,
   }
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
-  h <- control_selection$h_x
+  h <- control_selection$h
   lambda <- control_selection$lambda
   lambda_min <- control_selection$lambda_min
   nlambda <- control_selection$nlambda
@@ -1003,7 +1020,8 @@ nonprobSelP <- function(selection,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
                                lambda = lambda,
-                               pop_totals = pop_totals)
+                               pop_totals = pop_totals,
+                               verbose = verbose)
       #theta_est <- cv$theta_est[cv$theta_est != 0]
       min <- cv$min
       lambda <- cv$lambda
@@ -1101,7 +1119,8 @@ nonprobSelP <- function(selection,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
                                lambda = lambda,
-                               pop_totals = pop_totals[-1])
+                               pop_totals = pop_totals[-1],
+                               verbose = verbose)
       #theta_est <- cv$theta_est[cv$theta_est != 0]
       min <- cv$min
       lambda <- cv$lambda
@@ -1217,7 +1236,8 @@ nonprobSelP <- function(selection,
                          maxit = maxit,
                          pop_size = pop_size,
                          pop_totals = pop_totals,
-                         control_selection = control_selection)
+                         control_selection = control_selection,
+                         verbose = verbose)
       var <- var_obj$boot_var
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     } else {

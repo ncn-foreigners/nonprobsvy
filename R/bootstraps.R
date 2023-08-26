@@ -15,6 +15,7 @@ bootMI <- function(X_rand,
                    method,
                    control,
                    pop_totals,
+                   verbose,
                    ...
                    ){ # TODO add methods instead of conditional loops
 
@@ -65,6 +66,10 @@ bootMI <- function(X_rand,
         #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
         mu_hat_boot <- weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
         mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
         k <- k + 1
       }
     } else if (method == "nn") {
@@ -95,6 +100,10 @@ bootMI <- function(X_rand,
 
         mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
         mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
         k <- k + 1
       }
     }
@@ -119,6 +128,10 @@ bootMI <- function(X_rand,
         #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
         mu_hat_boot <-  as.vector(y_strap_rand/N)
         mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
         k <- k + 1
       }
     } else if (method == "nn") {
@@ -135,6 +148,10 @@ bootMI <- function(X_rand,
                                    searchtype = control$searchtype)
         mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
         mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
         k <- k + 1
       }
     }
@@ -162,6 +179,7 @@ bootIPW <- function(X_rand,
                     pop_size = NULL,
                     pop_totals = NULL,
                     control_selection,
+                    verbose,
                     ...){
   mu_hats <- vector(mode = "numeric", length = num_boot)
   if (!is.null(weights_rand)) N <- sum(weights_rand)
@@ -204,6 +222,10 @@ bootIPW <- function(X_rand,
                                weights_nons = weights_nons,
                                N = N_est_nons) # IPW estimator
       mu_hats[k] <- mu_hat_boot
+      if (verbose) {
+        info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+        print(info)
+      }
 
     } else {
       strap <- sample.int(replace = TRUE, n = n_nons)
@@ -231,6 +253,10 @@ bootIPW <- function(X_rand,
                                weights_nons = weights_nons,
                                N = N_est_nons) # IPW estimator
       mu_hats[k] <- mu_hat_boot
+      if (verbose) {
+        info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+        print(info)
+      }
     }
     k <- k + 1
   }
@@ -259,6 +285,8 @@ bootDR <- function(SelectionModel,
                    pop_size,
                    pop_totals,
                    pop_means,
+                   bias_correction,
+                   verbose,
                    ...) {
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
@@ -276,7 +304,7 @@ bootDR <- function(SelectionModel,
     family <- family()
   }
 
-  if (est_method == "mm") {
+  if (bias_correction == TRUE) {
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
@@ -345,6 +373,10 @@ bootDR <- function(SelectionModel,
                                   N_nons = N_est_nons,
                                   N_rand = N_est_rand)
           mu_hats[k] <- mu_hat_boot
+          if (verbose) {
+            info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+            print(info)
+          }
           k <- k + 1
         }
       } else { # TODO
@@ -388,6 +420,10 @@ bootDR <- function(SelectionModel,
 
           mu_hat_boot <- 1/N_est * sum(weights_nons_strap * (weights_strap * (OutcomeModel$y[strap] - y_nons_pred))) + 1/pop_size * y_rand_pred
           mu_hats[k] <- mu_hat_boot
+          if (verbose) {
+            info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+            print(info)
+          }
           k <- k + 1
         }
       }
@@ -407,7 +443,8 @@ bootDR_sel <- function(X,
                        n_rand,
                        num_boot,
                        par0,
-                       psel) { # TODO function to test
+                       psel,
+                       verbose) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
   k <- 1
   loc_nons <- which(R == 1)
@@ -447,6 +484,10 @@ bootDR_sel <- function(X,
                             N_nons = N_nons,
                             N_rand = N_rand) #DR estimator
     mu_hats[k] <- mu_hat_boot
+    if (verbose) {
+      info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+      print(info)
+    }
     k <- k + 1
   }
   boot_var <- 1/num_boot * sum((mu_hats - mu_hat)^2)
@@ -473,6 +514,7 @@ bootMI_multicore <- function(X_rand,
                              control,
                              pop_totals,
                              cores,
+                             verbose,
                              ...) {
   #mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
@@ -522,7 +564,6 @@ bootMI_multicore <- function(X_rand,
           beta <- model_strap$coefficients
           eta <- X_rand %*% beta
           y_strap_rand <- family_nonprobsvy$mu(eta)
-
           weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
         })
     } else if (method == "nn") {
@@ -640,6 +681,7 @@ bootIPW_multicore <- function(X_rand,
                               pop_totals = NULL,
                               control_selection,
                               cores,
+                              verbose,
                               ...) {
 
   if (!is.null(weights_rand)) N <- sum(weights_rand)
@@ -763,7 +805,9 @@ bootDR_multicore <- function(SelectionModel,
                              pop_size,
                              pop_totals,
                              pop_means,
+                             bias_correction,
                              cores,
+                             verbose,
                              ...) {
 
   # mu_hats <- vector(mode = "numeric", length = num_boot)
@@ -781,7 +825,7 @@ bootDR_multicore <- function(SelectionModel,
     family <- family()
   }
 
-  if (est_method == "mm") {
+  if (bias_correction == TRUE) {
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
@@ -930,7 +974,8 @@ bootDR_sel_multicore <- function(X,
                                  num_boot,
                                  par0,
                                  psel,
-                                 cores) { # TODO function to test
+                                 cores,
+                                 verbose) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
@@ -953,6 +998,7 @@ bootDR_sel_multicore <- function(X,
     X_strap <- rbind(X_rand[strap_rand, ], X_nons[strap_nons, ])
     y_strap <- c(y_rand[strap_rand], y_nons[strap_nons])
 
+    source("R/EstimationMethods.R")
     model_strap <- mm(X = X_strap,
                       y = y_strap,
                       weights = prior_weights[loc_nons][strap_nons],

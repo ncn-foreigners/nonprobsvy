@@ -16,7 +16,7 @@
 #' @param key binary key variable
 #' @param est_method_sel -
 #' @param ov_method -
-#' @param h_x Smooth function for the estimating equations.
+#' @param h Smooth function for the estimating equations.
 #' @param penalty -
 #' @param a_SCAD -
 #' @param a_MCP -
@@ -37,9 +37,9 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "BFGS",
                        dependence = FALSE,
                        key = NULL,
-                       est_method_sel = c("mle", "gee", "mm"),
+                       est_method_sel = c("mle", "gee"),
                        ov_method = c("ev", "mle", "gee"),
-                       h_x = c("1", "2"),
+                       h = c(1, 2),
                        penalty = c("SCAD", "lasso", "MCP"),
                        a_SCAD = 3.7,
                        a_MCP = 3,
@@ -60,7 +60,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
        key = key,
        est_method_sel = if(missing(est_method_sel)) "mle" else est_method_sel,
        ov_method = if(missing(ov_method)) "ev" else ov_method,
-       h_x = if(missing(h_x)) "1" else h_x,
+       h = if(missing(h)) 1 else h,
        penalty = if(missing(penalty)) "SCAD" else penalty,
        a_SCAD = a_SCAD,
        a_MCP = a_MCP,
@@ -128,6 +128,7 @@ controlOut <- function(epsilon = 1e-6,
 #' @param var_method variance method.
 #' @param rep_type replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.
 #' @param bias_inf inference method in the bias minimization. Default is `union`.
+#' @param bias_correction -
 #' @param num_boot -
 #' @param alpha Significance level, Default is 0.05.
 #' @param cores Number of cores in parallel computing
@@ -141,6 +142,7 @@ controlInf <- function(vars_selection = FALSE,
                                     "subbootstrap","mrbbootstrap","Fay"),
                        bias_inf = c("union", "div"),
                        num_boot = 500,
+                       bias_correction = FALSE,
                        alpha = 0.05,
                        cores = 1) {
 
@@ -148,6 +150,7 @@ controlInf <- function(vars_selection = FALSE,
        var_method = if(missing(var_method)) "analytic" else var_method,
        rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
        bias_inf = if(missing(bias_inf)) "union" else bias_inf,
+       bias_correction = bias_correction,
        num_boot = num_boot,
        alpha = alpha,
        cores = cores)

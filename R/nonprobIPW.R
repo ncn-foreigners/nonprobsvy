@@ -32,13 +32,13 @@ nonprobIPW <- function(selection,
                        y,
                        ...){
 
-  h <- control_selection$h_x
+  h <- control_selection$h
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
   var_method <- control_inference$var_method
   est_method <- control_selection$est_method_sel
   num_boot <- control_inference$num_boot
-
+  if(!(target[3] == "NULL()")) stop("ill-defined formula for the target")
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
   outcome <- stats::as.formula(paste(target[2], dependents))
@@ -166,6 +166,7 @@ nonprobIPW <- function(selection,
        }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
+        if (!is.null(pop_totals)) pop_size <- pop_totals[1]
         if (!is.null(pop_means)) { # TO consider
           if (!is.null(pop_size)) {
             pop_totals <- c(pop_size, pop_size * pop_means)
@@ -180,7 +181,7 @@ nonprobIPW <- function(selection,
         # names(pop_totals) <- names_pop
 
         # model for outcome formula
-        model <- model_frame(formula = outcome,
+        model <- model_frame(formula = outcomes$outcome[[k]],
                              data = data,
                              pop_totals = pop_totals)
 
@@ -319,7 +320,8 @@ nonprobIPW <- function(selection,
                                         pop_size = pop_size,
                                         pop_totals = pop_totals,
                                         control_selection = control_selection,
-                                        cores = control_inference$cores)
+                                        cores = control_inference$cores,
+                                        verbose = verbose)
         } else {
           var_obj <- bootIPW(X_rand = X_rand,
                              X_nons = X_nons,
@@ -339,7 +341,8 @@ nonprobIPW <- function(selection,
                              maxit = maxit,
                              pop_size = pop_size,
                              pop_totals = pop_totals,
-                             control_selection = control_selection)
+                             control_selection = control_selection,
+                             verbose = verbose)
         }
 
         var <- var_obj$boot_var

@@ -37,12 +37,13 @@ nonprobDR <- function(selection,
                       y,
                       ...) {
 
-  h <- control_selection$h_x
+  h <- control_selection$h
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
   est_method <- control_selection$est_method_sel
   var_method <- control_inference$var_method
   num_boot <- control_inference$num_boot
+  bias_corr <- control_inference$bias_correction
   ps_rand <- svydesign$prob
   weights_rand <- 1/ps_rand
 
@@ -95,7 +96,8 @@ nonprobDR <- function(selection,
         L_hat <- overlap_model$L_hat
         weights_rnons <- overlap_model$weights_rnons
         N_nons <- sum(weights * weights_nons)
-        MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
         model_obj <- MethodOutcome(outcome = outcome,
                                    data = data,
                                    weights = weights,
@@ -131,8 +133,7 @@ nonprobDR <- function(selection,
         print(mu_hat)
         stop("model in development")
       } else {
-
-        if (est_method == "mm") {
+        if (bias_corr == TRUE) {
           # TODO
           if(is.character(family_outcome)) {
             family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
@@ -161,7 +162,7 @@ nonprobDR <- function(selection,
           X <- rbind(Model$X_rand, Model$X_nons)
 
 
-          mm <- get_method(control_inference$est_method)
+          #mm <- get_method(control_inference$est_method)
           estimation_model <- mm(X = X,
                                  y = y,
                                  weights = weights,
@@ -236,7 +237,8 @@ nonprobDR <- function(selection,
           loc_rand <- which(R == 0)
           weights_sum <- sum(weights_rand, weights)
 
-          MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+          method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+          MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
           model_obj <- MethodOutcome(outcome = outcome,
                                      data = data,
                                      weights = weights,
@@ -323,6 +325,7 @@ nonprobDR <- function(selection,
       }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
+        if (!is.null(pop_totals)) pop_size <- pop_totals[1]
         if (!is.null(pop_means)) { # TO consider
           if (!is.null(pop_size)) {
             pop_totals <- c(pop_size, pop_size * pop_means)
@@ -361,7 +364,7 @@ nonprobDR <- function(selection,
         variance_covariance <- solve(-hess)
         theta_standard_errors <- sqrt(diag(variance_covariance))
         df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
-        if(is.null(pop_size)) pop_size <- N_nons
+        #if(is.null(pop_size)) pop_size <- N_nons
         n_rand <- 0
         est_ps_rand <- NULL
         est_ps_rand_der <- NULL
@@ -412,7 +415,7 @@ nonprobDR <- function(selection,
         # y_rand_pred <- predict.glm(outcome$glm, newdata = new_data, type = "response")
         # y_rand_pred <- t(model_nons_coefs) %*% OutcomeModel$pop_totals
 
-        mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights * (OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
+        mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights*(OutcomeModel$y_nons - y_nons_pred))) + 1/pop_size*y_rand_pred
       } else {
         stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
       }
@@ -459,7 +462,8 @@ nonprobDR <- function(selection,
                                   est_method = est_method,
                                   h = h,
                                   pop_totals = pop_totals,
-                                  sigma = sigma) # TODO
+                                  sigma = sigma,
+                                  bias_correction = bias_corr)
 
         var_prob <- var_obj$var_prob
         var_nonprob <- var_obj$var_nonprob
@@ -491,7 +495,9 @@ nonprobDR <- function(selection,
                                     pop_totals = pop_totals,
                                     pop_size = pop_size,
                                     pop_means = pop_means,
-                                    cores = control_inference$cores)
+                                    bias_correction = bias_corr,
+                                    cores = control_inference$cores,
+                                    verbose = verbose)
       } else {
         var_obj <- bootDR(SelectionModel = SelectionModel,
                           OutcomeModel = OutcomeModel,
@@ -512,7 +518,9 @@ nonprobDR <- function(selection,
                           maxit = maxit,
                           pop_totals = pop_totals,
                           pop_size = pop_size,
-                          pop_means = pop_means)
+                          pop_means = pop_means,
+                          bias_correction = bias_corr,
+                          verbose = verbose)
       }
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
       var <- var_obj$boot_var

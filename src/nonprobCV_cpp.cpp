@@ -12,7 +12,7 @@ inline double loss_theta(const vec& par,
                   const mat& X,
                   const vec& weights,
                   const std::string& method_selection,
-                  const std::string& h,
+                  const int& h,
                   const uvec& idx,
                   Nullable<arma::vec> pop_totals) { // TODO add weights
 
@@ -39,10 +39,10 @@ inline double loss_theta(const vec& par,
   // Calculate the loss using the appropriate method
   double loss;
   if (pop_totals.isNull()) {
-    if (h == "1") {
+    if (h == 1) {
       temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
       loss = accu(square(sum(temp, 0)));
-    } else if (h == "2") {
+    } else if (h == 2) {
       temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
       loss = accu(square(sum(temp, 0)));
     } else {
@@ -54,7 +54,7 @@ inline double loss_theta(const vec& par,
     //vec colSums_result = sum(temp, 0);
 
     // Calculate (colSums(weights * X/pi) - pop_totals)^2
-    vec diff_squared = square(sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_nons);
+    vec diff_squared = square(sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_rand);
     //loss = accu(square(sum(temp, 0)));
 
     // Calculate the sum of squared differences
@@ -69,7 +69,7 @@ inline arma::vec u_theta(const arma::vec& par,
                   const arma::mat& X,
                   const arma::vec& weights,
                   const std::string& method_selection,
-                  const std::string& h,
+                  const int& h,
                   Nullable<arma::vec> pop_totals,
                   Nullable<double> pop_size = R_NilValue,
                   Nullable<int> N = R_NilValue) { // TODO add weights
@@ -88,9 +88,8 @@ inline arma::vec u_theta(const arma::vec& par,
 
   vec eq;
   mat temp;
-  int h_ = stoi(h);
   if (pop_totals.isNull()) {
-    switch(h_) {
+    switch(h) {
     case 1:
       temp = X.each_col() % (R/ps % weights - R_rand % weights);
       eq = sum(temp, 0).t() / N_nons;
@@ -114,7 +113,7 @@ arma::mat u_theta_der(const arma::vec& par,
                       const arma::mat& X,
                       const arma::vec& weights,
                       const std::string& method_selection,
-                      const std::string& h,
+                      const int& h,
                       Nullable<arma::vec> pop_totals,
                       Nullable<int> N = R_NilValue) { // TODO add weights
 
@@ -145,7 +144,7 @@ arma::mat u_theta_der(const arma::vec& par,
   arma::rowvec X_row;
   arma::mat temp;
 
-  if (h == "1" || !pop_totals.isNull()) {
+  if (h == 1 || !pop_totals.isNull()) {
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
@@ -166,7 +165,7 @@ arma::mat u_theta_der(const arma::vec& par,
         mxDer += temp * X_row;
       }
     }
-  } else if (h == "2") {
+  } else if (h == 2) {
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
@@ -252,7 +251,7 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
                               const arma::vec& weights,
                               const std::string& method_selection,
-                              const std::string& h,
+                              const int& h,
                               double lambda,
                               int maxit,
                               double eps,
@@ -302,7 +301,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
                               const arma::vec& weights_X,
                               const std::string& method_selection,
-                              const std::string& h,
+                              const int& h,
                               int maxit,
                               double eps,
                               double lambda_min,
@@ -311,6 +310,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               const std::string& penalty,
                               double a,
                               Nullable<arma::vec> pop_totals,
+                              bool verbose,
                               double lambda = -1) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
@@ -342,11 +342,14 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
 
     arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
-
+    // TUTAJ
     for(int i = 0; i < nlambda; i++) {
       lambda = lambdas1(i);
       arma::vec loss_theta_vec(nfolds, arma::fill::zeros);
 
+      if (verbose) {
+        cout << i+1 << "." << " For lambda = " << lambda << "\n";
+      }
       for(int j = 0; j < nfolds; j++) {
         arma::uvec idx_nons = find(folds_nons != sample_nons(j));
         const arma::mat& X_nons_train = X_nons.rows(idx_nons);
@@ -384,12 +387,17 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
 
         double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h, idxx, pop_totals);
         loss_theta_vec(j) = loss;
+        if (verbose) {
+          //std::cout << "Fold " << j+1 << "/" << nfolds << ", Loss value = " << std::fixed << std::setprecision(4) << loss << std::endl;
+          std::cout << "Starting CV fold #" << j+1 << std::endl;
+        }
       }
       loss_theta_av(i) = mean(loss_theta_vec);
     }
+
+    // TUTAJ
     lambda = lambdas1(loss_theta_av.index_min());
   }
-
   arma::vec theta = fit_nonprobsvy_rcpp(X_,
                                         R_,
                                         weights_X,

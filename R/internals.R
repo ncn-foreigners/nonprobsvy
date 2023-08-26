@@ -21,9 +21,11 @@ internal_selection <- function(X,
                                h = h,
                                est_method,
                                maxit,
+                               bias_correction = FALSE,
                                varcov = FALSE,
                                ...) {
 
+  if (bias_correction == TRUE) est_method <- "mm"
   estimation_method <- get_method(est_method)
   estimation_method$model_selection(X,
                                     X_nons,
@@ -216,10 +218,11 @@ internal_varDR <- function(OutcomeModel,
                            est_method,
                            h,
                            pop_totals,
-                           sigma) {
+                           sigma,
+                           bias_correction) {
 
   ######### mm
-  if (control_selection$est_method_sel == "mm") {
+  if (bias_correction == TRUE) {
     infl1 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons^2
     infl2 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons
 
@@ -505,8 +508,12 @@ specific_summary_info.nonprobsvy_dr <- function(object,
 ff <- function(formula) {
   fff <- as.character(formula)
   f <- strsplit(fff[2], "\\s*\\+\\s*")[[1]]
-  l <- length(f)
   outcome_formulas <- list()
+  if(any(duplicated(f))) {
+    warning("No unique names of the outcome variables in formula. The error has been corrected")
+    f <- unique(f)
+  }
+  l <- length(f)
   for (i in 1:l) {
     outcome_formulas[[i]] <-  as.formula(paste(f[i], fff[3], sep = " ~ "))
   }

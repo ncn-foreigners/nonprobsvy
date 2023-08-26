@@ -142,7 +142,7 @@ logit <- function(...) {
 
       N <- pop_size
       n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-      if (est_method == "mle" || (est_method == "gee" && h == "2")) {
+      if (est_method == "mle" || (est_method == "gee" && h == 2)) {
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2))
@@ -158,7 +158,7 @@ logit <- function(...) {
           v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
-      } else if (est_method == "gee" && h == "1") {
+      } else if (est_method == "gee" && h == 1) {
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
@@ -192,7 +192,7 @@ logit <- function(...) {
       if (!is.null(pop_totals)) {
         cov <- Matrix::Matrix(nrow = length(pop_totals), ncol = length(pop_totals), data = 0, sparse = TRUE)
       } else {
-        if (est_method == "mle" || (est_method == "gee" && h == "2")) {
+        if (est_method == "mle" || (est_method == "gee" && h == 2)) {
           svydesign$prob <- as.vector(1/eps * svydesign$prob)
           #X <- as.matrix(eps * as.data.frame(X))
         }

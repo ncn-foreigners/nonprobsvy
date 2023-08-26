@@ -1,7 +1,7 @@
 #' @importFrom stats predict.glm
 #' @importFrom stats glm.fit
 #' @importFrom stats summary.glm
-glm <- function(outcome,
+glm_nonprobsvy <- function(outcome,
                 data,
                 weights,
                 family_outcome,
@@ -39,13 +39,13 @@ glm <- function(outcome,
       y_nons_pred <- model_out$glm$fitted.values
     } else {
       model <- stats::glm.fit(x = X_nons,
-                               y = y_nons,
-                               weights = weights,
-                               family = get_method(family_outcome),
-                               control = list(control$epsilon,
+                              y = y_nons,
+                              weights = weights,
+                              family = get_method(family_outcome),
+                              control = list(control$epsilon,
                                               control$maxit,
                                               control$trace),
-                               intercept = FALSE)
+                              intercept = FALSE)
       model_summ <- stats::summary.glm(model)
       parameters <- model_summ$coefficients
       model_nons_coefs <- model$coefficients
@@ -69,7 +69,7 @@ glm <- function(outcome,
 }
 
 
-nn <- function(outcome,
+nn_nonprobsvy <- function(outcome,
                data,
                weights,
                family_outcome,
@@ -81,8 +81,7 @@ nn <- function(outcome,
                n_rand,
                vars_selection,
                pop_totals,
-               model_frame = NULL) {
-
+               model_frame = NULL) { # TODO consider add data standardization before modelling
   model_nons <- nonprobMI_nn(data = X_nons,
                              query = X_nons,
                              k = control$k,

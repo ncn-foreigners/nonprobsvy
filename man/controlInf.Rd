@@ -11,6 +11,7 @@ controlInf(
     "Fay"),
   bias_inf = c("union", "div"),
   num_boot = 500,
+  bias_correction = FALSE,
   alpha = 0.05,
   cores = 1
 )
@@ -25,6 +26,8 @@ controlInf(
 \item{bias_inf}{inference method in the bias minimization. Default is `union`.}
 
 \item{num_boot}{-}
+
+\item{bias_correction}{-}
 
 \item{alpha}{Significance level, Default is 0.05.}
 

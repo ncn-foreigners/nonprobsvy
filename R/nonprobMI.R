@@ -62,8 +62,9 @@ nonprobMI <- function(outcome,
       weights_rand <- 1/ps_rand
       N_est_rand <- sum(weights_rand)
 
+      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       ## estimation
-      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,
@@ -88,6 +89,7 @@ nonprobMI <- function(outcome,
       mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
     } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
+      if (!is.null(pop_totals)) pop_size <- N_est_rand <- pop_totals[1]
       if (!is.null(pop_means)) { # TO consider
         if (!is.null(pop_size)) {
           pop_totals <- c(pop_size, pop_size * pop_means)
@@ -105,7 +107,8 @@ nonprobMI <- function(outcome,
       weights_rand <- NULL
       n_nons <- nrow(X_nons)
 
-      MethodOutcome <- get(method_outcome, mode = "function", envir = parent.frame())
+      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,
@@ -124,7 +127,6 @@ nonprobMI <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       model_out <- model_obj$model
       parameters <- model_obj$parameters
-      N_est_rand <- pop_totals[1]
 
       mu_hat <- ifelse(method_outcome == "glm", as.vector(y_rand_pred/N_est_rand), y_rand_pred)
     } else {
@@ -132,7 +134,6 @@ nonprobMI <- function(outcome,
     }
 
     # design based variance estimation based on approximations of the second-order inclusion probabilities
-
     if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
       var_obj <- internal_varMI(svydesign = svydesign,
                                 X_nons = X_nons,
@@ -173,7 +174,8 @@ nonprobMI <- function(outcome,
                                 method = method_outcome,
                                 control = control_outcome,
                                 pop_totals = pop_totals,
-                                cores = control_inference$cores)
+                                cores = control_inference$cores,
+                                verbose = verbose)
       } else {
         var <- bootMI(X_rand,
                       X_nons,
@@ -187,7 +189,8 @@ nonprobMI <- function(outcome,
                       rep_type = control_inference$rep_type,
                       method = method_outcome,
                       control = control_outcome,
-                      pop_totals = pop_totals)
+                      pop_totals = pop_totals,
+                      verbose = verbose)
       }
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     }

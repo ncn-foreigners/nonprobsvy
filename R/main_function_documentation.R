@@ -34,8 +34,8 @@ NULL
 #' @param y a
 #' @param ... Additional, optional arguments.
 #'
-#' @references
 #'
+#' @references
 #' Kim JK, Park S, Chen Y, Wu C. Combining non-probability and
 #' probability survey samples through mass imputation. J R Stat Soc Series A. 2021;184:941–
 #' 963.
