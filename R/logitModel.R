@@ -139,7 +139,6 @@ logit <- function(...) {
       }
 
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
-
       N <- pop_size
       n <- ifelse(is.null(dim(X)), length(X), nrow(X))
       if (est_method == "mle" || (est_method == "gee" && h == 2)) {
@@ -169,14 +168,12 @@ logit <- function(...) {
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
           v_1 <- t(v1_)
         }
-
         v_2 <- 0
         for(i in 1:n){
           v_2i <- (1 - ps[i]) / ps[i] * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
       }
-
       v_2 <- 1/N^2 * v_2
       v1_vec <- cbind(v11, v1_)
       v2_mx <- cbind(v_1, v_2)

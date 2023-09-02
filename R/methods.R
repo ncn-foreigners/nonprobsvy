@@ -363,11 +363,12 @@ BIC.nonprobsvy <- function(object,
   if (!is.character(object$selection$log_likelihood)) {
     if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- length(object$parameters) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-      if (object$control$control_inference$vars_selection == TRUE)
-      options(AIC="BIC")
-      res_out <- HelpersMG::ExtractAIC.glm(object$outcome$glm)[2]
-    } else {
-      res_out <- BIC(object$outcome$glm)
+      if (object$control$control_inference$vars_selection == TRUE) {
+        options(AIC="BIC")
+        res_out <- HelpersMG::ExtractAIC.glm(object$outcome$glm)[2]
+      } else {
+        res_out <- BIC(object$outcome$glm)
+      }
     }
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
     if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)

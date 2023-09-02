@@ -274,7 +274,6 @@ u_theta_der <-  function(R,
     if (!is.null(pop_totals)) {
       mxDer <- t(R * as.data.frame(X0) * inv_link_rev(eta)) %*% X0
     } else {
-
       mxDer <-switch(h,
                     "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
                     "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)

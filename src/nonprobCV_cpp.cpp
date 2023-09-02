@@ -342,15 +342,17 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
 
     arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
-    // TUTAJ
-    for(int i = 0; i < nlambda; i++) {
-      lambda = lambdas1(i);
-      arma::vec loss_theta_vec(nfolds, arma::fill::zeros);
 
+    arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
+    // TUTAJ
+    for(int j = 0; j < nfolds; j++) {
       if (verbose) {
-        cout << i+1 << "." << " For lambda = " << lambda << "\n";
+        //std::cout << "Fold " << j+1 << "/" << nfolds << ", Loss value = " << std::fixed << std::setprecision(4) << loss << std::endl;
+        std::cout << "Starting CV fold #" << j+1 << std::endl;
       }
-      for(int j = 0; j < nfolds; j++) {
+      for(int i = 0; i < nlambda; i++) {
+        lambda = lambdas1(i);
+        //arma::vec loss_theta_vec(nfolds, arma::fill::zeros);
         arma::uvec idx_nons = find(folds_nons != sample_nons(j));
         const arma::mat& X_nons_train = X_nons.rows(idx_nons);
         const arma::mat& X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));
@@ -386,15 +388,19 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
         const arma::vec& par = theta_est(idxx);
 
         double loss = loss_theta(par, R_testloss, X_testloss, weights_testloss, method_selection, h, idxx, pop_totals);
-        loss_theta_vec(j) = loss;
-        if (verbose) {
-          //std::cout << "Fold " << j+1 << "/" << nfolds << ", Loss value = " << std::fixed << std::setprecision(4) << loss << std::endl;
-          std::cout << "Starting CV fold #" << j+1 << std::endl;
-        }
+        loss_theta_fld(j, i) = loss;
+      }
+      //loss_theta_av(i) = mean(loss_theta_vec);
+    }
+
+    arma::vec loss_theta_av(nlambda);
+    for (int i = 0; i < nlambda; i++) {
+      arma::vec loss_theta_vec(nfolds);
+      for (int j = 0; j < nfolds; j++) {
+        loss_theta_vec(j) = loss_theta_fld(j, i)(0);
       }
       loss_theta_av(i) = mean(loss_theta_vec);
     }
-
     // TUTAJ
     lambda = lambdas1(loss_theta_av.index_min());
   }

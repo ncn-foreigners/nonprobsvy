@@ -136,7 +136,7 @@ nonprobIPW <- function(selection,
 
         estimation_method <- get_method(est_method)
         selection <- estimation_method$estimation_model(model = model_sel,
-                                                             method_selection = method_selection)
+                                                        method_selection = method_selection)
         theta_hat <- selection$theta_hat
         #grad <- est_method_obj$grad
         hess <- selection$hess
@@ -350,7 +350,6 @@ nonprobIPW <- function(selection,
       } else {
         stop("Invalid method for variance estimation.")
       }
-    if (is.null(pop_size)) pop_size <- N # estimated pop_size
     se <- sqrt(var)
 
     alpha <- control_inference$alpha
@@ -375,6 +374,7 @@ nonprobIPW <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  if (is.null(pop_size)) pop_size <- N # estimated pop_size
 
 
   structure(

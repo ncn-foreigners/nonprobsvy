@@ -250,7 +250,7 @@ probit <- function(...) {
     - (psd/ps^2 * weights * (y - y_pred - h_n)) %*% X %*% hess_inv
   }
 
-  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+  t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) { # TODO
     as.vector(psd/(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1/N * sum(weights * y_nons)
   }
 

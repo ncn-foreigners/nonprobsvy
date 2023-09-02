@@ -1071,7 +1071,7 @@ nonprobSelP <- function(selection,
       if (!is.null(pop_size)) {
         N <- pop_size
       } else {
-        N <- sum(weights * weights_nons)
+        pop_size <- N <- sum(weights * weights_nons)
       }
 
       mu_hat <- mu_hatIPW(y = y_nons,

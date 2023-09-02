@@ -203,7 +203,7 @@ gee <- function(...) {
                                    weights = weights,
                                    h = h,
                                    method_selection = method_selection,
-                                   maxit = maxit) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
+                                   maxit = maxit)
     theta_hat <- h_object$theta_h
     hess <- h_object$hess
     grad <- h_object$grad
