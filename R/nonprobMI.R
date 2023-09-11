@@ -6,7 +6,6 @@
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
 #' @importFrom stats terms
-#' @export
 #' @rdname main_doc
 
 nonprobMI <- function(outcome,

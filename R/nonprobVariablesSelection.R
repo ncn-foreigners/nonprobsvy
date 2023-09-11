@@ -10,7 +10,6 @@
 #' @import RcppArmadillo
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
-#' @export
 #' @rdname main_doc
 
 
@@ -599,7 +598,7 @@ nonprobSel <- function(selection,
 }
 
 #' @rdname main_doc
-nonprobSelM <- function(outcome, # TODO add pop_totals
+nonprobSelM <- function(outcome,
                         data,
                         svydesign,
                         pop_totals,
@@ -923,7 +922,7 @@ nonprobSelP <- function(selection,
                         model,
                         x,
                         y,
-                        ...) { #TODO add pop_totals
+                        ...) {
 
   if(is.character(family_outcome)) {
     family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
@@ -1226,26 +1225,50 @@ nonprobSelP <- function(selection,
       se_prob <- sqrt(var_prob)
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
     } else if (var_method == "bootstrap") {
-      var_obj <- bootIPW(X_rand = X_design[loc_rand,],
-                         X_nons = X_design[loc_nons,],
-                         y = y_nons,
-                         num_boot = num_boot,
-                         weights = weights,
-                         weights_rand = weights_rand,
-                         R = R,
-                         theta_hat = theta,
-                         mu_hat = mu_hat,
-                         method_selection = method_selection,
-                         n_nons = n_nons,
-                         n_rand = n_rand,
-                         optim_method = optim_method,
-                         est_method = est_method,
-                         h = h,
-                         maxit = maxit,
-                         pop_size = pop_size,
-                         pop_totals = pop_totals,
-                         control_selection = control_selection,
-                         verbose = verbose)
+      if (control_inference$cores > 1) {
+        var_obj <- bootIPW_multicore(X_rand = X_design[loc_rand,],
+                           X_nons = X_design[loc_nons,],
+                           y = y_nons,
+                           num_boot = num_boot,
+                           weights = weights,
+                           weights_rand = weights_rand,
+                           R = R,
+                           theta_hat = theta,
+                           mu_hat = mu_hat,
+                           method_selection = method_selection,
+                           n_nons = n_nons,
+                           n_rand = n_rand,
+                           optim_method = optim_method,
+                           est_method = est_method,
+                           h = h,
+                           maxit = maxit,
+                           pop_size = pop_size,
+                           pop_totals = pop_totals,
+                           control_selection = control_selection,
+                           cores = control_inference$cores,
+                           verbose = verbose)
+      } else {
+        var_obj <- bootIPW(X_rand = X_design[loc_rand,],
+                           X_nons = X_design[loc_nons,],
+                           y = y_nons,
+                           num_boot = num_boot,
+                           weights = weights,
+                           weights_rand = weights_rand,
+                           R = R,
+                           theta_hat = theta,
+                           mu_hat = mu_hat,
+                           method_selection = method_selection,
+                           n_nons = n_nons,
+                           n_rand = n_rand,
+                           optim_method = optim_method,
+                           est_method = est_method,
+                           h = h,
+                           maxit = maxit,
+                           pop_size = pop_size,
+                           pop_totals = pop_totals,
+                           control_selection = control_selection,
+                           verbose = verbose)
+      }
       var <- var_obj$boot_var
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
     } else {

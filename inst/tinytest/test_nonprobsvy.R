@@ -29,13 +29,18 @@
 #                   pop2[sample(1:nrow(pop2), n_b2), ])
 # source_nonprob_p$w_b <- N/n_b
 
-library(survey)
+#library(survey)
 source_nonprob_p <- read.csv("test1_nonprob.csv")
 sample_a <- read.csv("test1_prob.csv")
 svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
 
 # IPW ####
 # logit #
+test1a <- nonprob(selection = ~ x,
+                  target = ~ y1,
+                  data = source_nonprob_p,
+                  method_selection = "logit",
+                  svydesign = svy_a)
 expect_silent(
   test1a <- nonprob(selection = ~ x,
                     target = ~ y1,

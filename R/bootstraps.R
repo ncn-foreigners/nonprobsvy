@@ -320,7 +320,8 @@ bootDR <- function(SelectionModel,
                           n_rand = n_rand,
                           num_boot = num_boot,
                           par0 = rep(0, 2*p),
-                          psel = p)
+                          psel = p,
+                          verbose = verbose)
     boot_var <- var_obj$boot_var
   } else {
     estimation_method <- get_method(est_method)

@@ -347,8 +347,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     // TUTAJ
     for(int j = 0; j < nfolds; j++) {
       if (verbose) {
-        //std::cout << "Fold " << j+1 << "/" << nfolds << ", Loss value = " << std::fixed << std::setprecision(4) << loss << std::endl;
-        std::cout << "Starting CV fold #" << j+1 << std::endl;
+        cout << "Starting CV fold #" << j+1 << std::endl;
       }
       for(int i = 0; i < nlambda; i++) {
         lambda = lambdas1(i);

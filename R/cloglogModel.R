@@ -8,7 +8,6 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
-#' @export
 
 cloglog <- function(...) {
 
@@ -139,9 +138,10 @@ cloglog <- function(...) {
          theta_hat = theta)
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
 
     N <- pop_size
+    n <- ifelse(is.null(dim(X)), length(X), nrow(X))
     if (est_method == "mle") {
       if (is.null(N)) {
         N <- sum(1/ps)
@@ -159,7 +159,7 @@ cloglog <- function(...) {
         v_2 <- v_2 + v_2i
       }
       v_2 <- 1/N^2 * v_2
-    } else if (est_method == "gee" && h == 1) {
+    } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO

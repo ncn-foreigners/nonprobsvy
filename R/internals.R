@@ -23,22 +23,24 @@ internal_selection <- function(X,
                                maxit,
                                bias_correction = FALSE,
                                varcov = FALSE,
+                               control_selection,
                                ...) {
 
   if (bias_correction == TRUE) est_method <- "mm"
   estimation_method <- get_method(est_method)
-  estimation_method$model_selection(X,
-                                    X_nons,
-                                    X_rand,
-                                    weights,
-                                    weights_rand,
-                                    R,
-                                    method_selection,
-                                    optim_method,
+  estimation_method$model_selection(X = X,
+                                    X_nons = X_nons,
+                                    X_rand = X_rand,
+                                    weights = weights,
+                                    weights_rand = weights_rand,
+                                    R = R,
+                                    method_selection = method_selection,
+                                    optim_method = optim_method,
                                     h = h,
-                                    est_method,
-                                    maxit,
-                                    varcov,
+                                    est_method = est_method,
+                                    maxit = maxit,
+                                    varcov = varcov,
+                                    control_selection = control_selection,
                                     ...)
 
 }
@@ -173,7 +175,8 @@ internal_varIPW <- function(svydesign,
                  pop_size = pop_size,
                  est_method = est_method,
                  h = h,
-                 weights = weights) # fixed
+                 weights = weights,
+                 pop_totals = pop_totals) # fixed
   V2 <- var_cov2(X = X_rand,
                  svydesign = svydesign,
                  eps = est_ps_rand,

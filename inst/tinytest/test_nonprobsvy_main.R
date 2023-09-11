@@ -1,5 +1,5 @@
 # Definition of data
-library(survey)
+#library(survey)
 # library(dplyr)
 data <- read.csv("test_data.csv")
 # data |>

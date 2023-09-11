@@ -4,7 +4,6 @@
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
 #' @importFrom stats terms
-#' @export
 #' @rdname main_doc
 
 
@@ -14,10 +13,10 @@ nonprobIPW <- function(selection,
                        svydesign,
                        pop_totals,
                        pop_means,
-                       pop_size = NULL,
+                       pop_size,
                        overlap,
                        method_selection,
-                       family_selection = "binomial",
+                       family_selection,
                        subset,
                        strata,
                        weights,
@@ -156,12 +155,11 @@ nonprobIPW <- function(selection,
         } else {
           N <- sum(weights * weights_nons)
         }
-
         mu_hat <- mu_hatIPW(y = y_nons,
                             weights = weights,
                             weights_nons = weights_nons,
                             N = N) # IPW estimator # consider using weighted.mean function
-        #mu_hat <- weighted.mean(y_nons, w = weights * weights_rand)
+        #mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
 
        }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
@@ -219,13 +217,13 @@ nonprobIPW <- function(selection,
         eta_nons <- theta_hat %*% t(X_nons)
         ps_nons <- inv_link(eta_nons)
         ps_nons_der <- dinv_link(eta_nons)
-        N <- sum(weights * 1/ps_nons)
         variance_covariance <- solve(-hess)
         theta_standard_errors <- sqrt(diag(variance_covariance))
         var_cov1 <- method$variance_covariance1
         var_cov2 <- method$variance_covariance2
         df_residual <- nrow(X_nons) - length(theta_hat)
         weights_nons <- 1/ps_nons
+        N <- sum(weights * weights_nons)
 
         selection <- list(theta_hat = theta_hat,
                           hess = hess,
@@ -403,7 +401,7 @@ mu_hatIPW <- function(y,
                       weights_nons,
                       N) {
 
-  mu_hat <- (1/N) * sum(weights * weights_nons * y)
+  mu_hat <- 1/N * sum(weights * weights_nons * y)
   mu_hat
 
 }

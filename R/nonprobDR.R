@@ -6,7 +6,6 @@
 #' @importFrom stats binomial
 #' @importFrom stats terms
 #' @importFrom MASS ginv
-#' @export
 #' @rdname main_doc
 
 

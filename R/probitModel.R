@@ -10,7 +10,6 @@
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
-#' @export
 
 probit <- function(...) {
 
@@ -144,9 +143,10 @@ probit <- function(...) {
          theta_hat = theta)
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
 
     N <- pop_size
+    n <- ifelse(is.null(dim(X)), length(X), nrow(X))
     if (est_method == "mle"){
       if (is.null(N)) {
         N <- sum(1/ps)
@@ -164,7 +164,7 @@ probit <- function(...) {
         v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
-    } else if (est_method == "gee" && h == 1) {
+    } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*(y - mu)^2)) # TODO

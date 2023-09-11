@@ -8,7 +8,6 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
-#' @export
 
 logit <- function(...) {
 
@@ -23,7 +22,7 @@ logit <- function(...) {
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
 
     function(theta) {
-
+      #weights <- weights / sum(weights)
       eta1 <- as.matrix(X_nons) %*% theta # linear predictor
       eta2 <- as.matrix(X_rand) %*% theta
 
@@ -43,6 +42,7 @@ logit <- function(...) {
   gradient <-  function(X_nons, X_rand, weights, weights_rand, ...) {
 
     function(theta) {
+      #weights <- weights / sum(weights)
       eta2 <- as.matrix(X_rand) %*% theta
       invLink2 <- inv_link(eta2)
       # weights_sum <- sum(weights, weights_rand)
@@ -53,6 +53,7 @@ logit <- function(...) {
     hessian <- function(X_nons, X_rand, weights, weights_rand, ...) {
 
       function(theta) {
+        #weights <- weights / sum(weights)
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
@@ -60,7 +61,6 @@ logit <- function(...) {
       }
     }
 
-    # TODO error and some other models when svydesign is provided with no weights argument (works with method == "BFGS")
     max_lik <- function(X_nons, X_rand, weights, weights_rand, start, control, ...) {
 
       log_like <- log_like(X_nons,
@@ -105,7 +105,6 @@ logit <- function(...) {
          }
       } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
       ########### optim ##########
-        # start <- rep(0, NCOL(X_nons))
 
         maxLik_an <- stats::optim(fn = log_like,
                                   gr = gradient,
@@ -138,7 +137,7 @@ logit <- function(...) {
            theta_hat = theta)
       }
 
-    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights) {
+    variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
       N <- pop_size
       n <- ifelse(is.null(dim(X)), length(X), nrow(X))
       if (est_method == "mle" || (est_method == "gee" && h == 2)) {
@@ -157,7 +156,7 @@ logit <- function(...) {
           v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
           v_2 <- v_2 + v_2i
         }
-      } else if (est_method == "gee" && h == 1) {
+      } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO

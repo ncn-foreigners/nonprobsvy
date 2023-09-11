@@ -2,18 +2,18 @@
 #' @importFrom stats glm.fit
 #' @importFrom stats summary.glm
 glm_nonprobsvy <- function(outcome,
-                data,
-                weights,
-                family_outcome,
-                X_nons,
-                y_nons,
-                X_rand,
-                control,
-                n_nons,
-                n_rand,
-                model_frame,
-                vars_selection,
-                pop_totals) {
+                           data,
+                           weights,
+                           family_outcome,
+                           X_nons,
+                           y_nons,
+                           X_rand,
+                           control,
+                           n_nons,
+                           n_rand,
+                           model_frame,
+                           vars_selection,
+                           pop_totals) {
 
   if(is.character(family_outcome)) {
     family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
@@ -54,7 +54,6 @@ glm_nonprobsvy <- function(outcome,
       } else {
         eta <- pop_totals %*% model_nons_coefs
       }
-
       y_rand_pred <- family_nonprobsvy$mu(eta)
       y_nons_pred <- model$fitted.values
 
@@ -70,18 +69,18 @@ glm_nonprobsvy <- function(outcome,
 
 
 nn_nonprobsvy <- function(outcome,
-               data,
-               weights,
-               family_outcome,
-               X_nons,
-               y_nons,
-               X_rand,
-               control,
-               n_nons,
-               n_rand,
-               vars_selection,
-               pop_totals,
-               model_frame = NULL) { # TODO consider add data standardization before modelling
+                          data,
+                          weights,
+                          family_outcome,
+                          X_nons,
+                          y_nons,
+                          X_rand,
+                          control,
+                          n_nons,
+                          n_rand,
+                          vars_selection,
+                          pop_totals,
+                          model_frame = NULL) { # TODO consider add data standardization before modelling
   model_nons <- nonprobMI_nn(data = X_nons,
                              query = X_nons,
                              k = control$k,
@@ -159,7 +158,7 @@ nonprobMI_fit <- function(outcome,
                           verbose,
                           model,
                           x,
-                          y) { # TODO problem with weights argument
+                          y) {
 
   family <- family_outcome
 
@@ -169,11 +168,11 @@ nonprobMI_fit <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
-
+  data$wt <- weights # TODO just for now, find more efficient way
   model_nons <- stats::glm(formula = outcome,
-                           family = family,
                            data = data,
-                           # weights = weights, invalid type (closure) for variable '(weights)' TOFIX
+                           weights = wt,
+                           family = family,
                            start = start,
                            control = list(control_outcome$epsilon,
                                           control_outcome$maxit,
