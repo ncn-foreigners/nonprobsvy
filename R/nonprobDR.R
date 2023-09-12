@@ -298,11 +298,16 @@ nonprobDR <- function(selection,
           est_ps_rand <- Selection$est_ps_rand
           ps_nons_der <- Selection$ps_nons_der
           est_ps_rand_der <- Selection$est_ps_rand_der
-          theta_standard_errors <- sqrt(diag(Selection$variance_covariance))
           #log_likelihood <- est_method_obj$log_likelihood
           #df_residual <- est_method_obj$df_residual
 
-          names(theta_hat) <- colnames(X)
+          if (est_method != "xgb") {
+            names(theta_hat) <- colnames(X)
+            theta_standard_errors <-  rep(1, ncol(X)) # TODO
+          } else {
+            theta_standard_errors <- sqrt(diag(Selection$variance_covariance))
+            var_method <- "bootstrap"
+          }
           weights_nons <- 1/ps_nons
           N_nons <- sum(weights * weights_nons)
           N_rand <- sum(weights_rand)

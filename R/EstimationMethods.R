@@ -353,6 +353,129 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
        outcome = outcome)
 }
 
+xgb <- function(...) {
+
+  estimation_model <- function(model, method_selection, ...) {
+    theta_hat <- model$theta_hat
+    hess <- model$hess
+    grad <- model$grad
+    ps_nons <- model$ps_nons
+    est_ps_rand <- model$est_ps_rand
+    ps_nons_der <- model$ps_nons_der
+    est_ps_rand_der <- model$est_ps_rand_der
+    var_cov1 <- model$var_cov1
+    var_cov2 <- model$var_cov2
+    df_residual <- model$df_residual
+    variance_covariance <- model$variance_covariance # variance-covariance matrix of estimated parameters
+
+    list(theta_hat = theta_hat,
+         grad = grad,
+         hess = hess,
+         var_cov1 = var_cov1,
+         var_cov2 = var_cov2,
+         ps_nons = ps_nons,
+         est_ps_rand = est_ps_rand,
+         ps_nons_der = ps_nons_der,
+         est_ps_rand_der = est_ps_rand_der,
+         variance_covariance = variance_covariance,
+         df_residual = df_residual,
+         log_likelihood = "NULL")
+  }
+
+  model_selection <- function(X,
+                              X_nons,
+                              X_rand,
+                              weights,
+                              weights_rand,
+                              R,
+                              method_selection,
+                              optim_method,
+                              h = h,
+                              est_method,
+                              maxit,
+                              varcov = FALSE,
+                              ...) {
+    method <- get_method(method = method_selection)
+    max_lik <- method$make_max_lik # function for propensity score estimation
+    loglike <- method$make_log_like
+    gradient <- method$make_gradient
+    hessian <- method$make_hessian
+    inv_link <- method$make_link_inv
+    dinv_link <- method$make_link_inv_der
+
+    loc_nons <- which(R == 1)
+    loc_rand <- which(R == 0)
+
+    wt <- c(weights, weights_rand)
+    dtrain <- xgb.DMatrix(data = as.matrix(X), label = R, weight = wt)
+    logregobj <- function(preds, dtrain) { # TODO DONE for logit
+      labels <- getinfo(dtrain, "label")
+      wt <- getinfo(dtrain, "weight")
+      preds <- inv_link(preds)
+      # MLE
+      grad <- wt * (preds - labels)
+      hess <- wt * preds * (1 - preds)
+      #grad <- wt * (labels / preds - (1 - labels) / (1 - preds))
+      #hess <- wt * (-labels/preds^2 - (1 - labels) / (preds - 1)^2)
+      #grad <- wt * (labels / (preds - preds^2) - 1 / (1 - preds))
+      #hess <- wt * (labels/((preds - 1)^2 * preds^2) - 1 / (preds - 1)^2)
+
+      # GEE 1
+
+      # GEE 2
+
+      return(list(grad = grad, hess = hess))
+    }
+
+    evalerror <- function(preds, dtrain) {# TODO metric is negative log-likelihood
+      labels <- getinfo(dtrain, "label")
+      wt <- getinfo(dtrain, "weight")
+      err <- sqrt(mean(wt*(preds-labels)^2))
+      #err <- - wt * (labels * log(preds) + (1 - labels) * log(1 - preds))
+      return(list(metric = "MSE", value = err))
+    }
+
+    df_reduced <- nrow(X) - ncol(X)
+
+    watchlist <- list(train = dtrain)
+    param <- list(max_depth = 10, eta = 0.01,
+                  eval_metric = evalerror,
+                  #objective = "binary:logistic",
+                  #eval_metric = "logloss",
+                  objective = logregobj)
+    bst <- xgb.train(params = param,
+                     data = dtrain,
+                     nrounds = 100,
+                     watchlist = watchlist,
+                     maximize = FALSE,
+                     verbose = FALSE)
+    pred <- predict(bst, dtrain)
+    ps <- inv_link(pred)
+    ps_der <- dinv_link(pred)
+    ps_nons <- ps[loc_nons]
+    est_ps_rand <- ps[loc_rand]
+    ps_nons_der <- ps_der[loc_nons]
+    est_ps_rand_der <- ps_der[loc_rand]
+
+    list(theta_hat = NULL,
+         hess = NULL,
+         grad = NULL,
+         ps_nons = ps_nons,
+         est_ps_rand = est_ps_rand,
+         ps_nons_der = ifelse(method_selection == "probit", ps_nons_der, NA),
+         est_ps_rand_der = ifelse(method_selection == "probit", est_ps_rand_der, NA),
+         variance_covariance = NULL,
+         var_cov1 = NULL, #ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
+         var_cov2 = NULL, #ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"),
+         df_residual = df_reduced)
+  }
+  structure(
+    list(model_selection = model_selection,
+         estimation_model = estimation_model),
+    class = "method"
+  )
+}
+
 ##### helpers ########
 
 # joint score equation for theta and beta, used in estimation when variable selections

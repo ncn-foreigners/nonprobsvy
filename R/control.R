@@ -29,7 +29,7 @@
 #' @export
 
 controlSel <- function(method = "glm.fit", #perhaps another control function for model with variables selection
-                       epsilon = 1e-6,
+                       epsilon = 1e-6, # TODO add controls for xgboost
                        maxit = 500,
                        trace = FALSE,
                        optimizer = c("maxLik", "optim"),
@@ -37,7 +37,7 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
                        optim_method = "BFGS",
                        dependence = FALSE,
                        key = NULL,
-                       est_method_sel = c("mle", "gee"),
+                       est_method_sel = c("mle", "gee", "xgb"),
                        ov_method = c("ev", "mle", "gee"),
                        h = c(1, 2),
                        penalty = c("SCAD", "lasso", "MCP"),

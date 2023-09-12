@@ -141,15 +141,21 @@ nonprobIPW <- function(selection,
         hess <- selection$hess
         var_cov1 <- selection$var_cov1
         var_cov2 <- selection$var_cov2
-        ps_nons <- selection$ps_nons
+        ps_nons <- model_sel$ps_nons
         est_ps_rand <- selection$est_ps_rand
         ps_nons_der <- selection$ps_nons_der
         est_ps_rand_der <- selection$est_ps_rand_der
-        theta_standard_errors <- sqrt(diag(selection$variance_covariance))
 
-        names(theta_hat) <- colnames(X)
         weights_nons <- 1/ps_nons
 
+
+        if (est_method != "xgb") {
+          names(theta_hat) <- colnames(X)
+          theta_standard_errors <-  rep(1, ncol(X)) # TODO
+        } else {
+          theta_standard_errors <- sqrt(diag(Selection$variance_covariance))
+          var_method <- "bootstrap"
+        }
         if (!is.null(pop_size)) {
           N <- pop_size
         } else {
@@ -160,7 +166,6 @@ nonprobIPW <- function(selection,
                             weights_nons = weights_nons,
                             N = N) # IPW estimator # consider using weighted.mean function
         #mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
-
        }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
@@ -224,6 +229,7 @@ nonprobIPW <- function(selection,
         df_residual <- nrow(X_nons) - length(theta_hat)
         weights_nons <- 1/ps_nons
         N <- sum(weights * weights_nons)
+        print(N)
 
         selection <- list(theta_hat = theta_hat,
                           hess = hess,

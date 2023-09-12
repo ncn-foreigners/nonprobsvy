@@ -78,6 +78,7 @@ theta_h_estimation <- function(R,
                       method_selection = method_selection)
   #start0 <- rep(0, p)
   # theta estimation by unbiased estimating function depending on the h_x function TODO
+  # TODO if (weights != 1) weights <- weights / sum(weights)
   u_theta <- u_theta(R = R,
                      X = X,
                      weights = c(weights_rand, weights),

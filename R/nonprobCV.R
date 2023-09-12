@@ -230,7 +230,6 @@ u_theta <- function(R,
     R_rand <- 1 - R
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
-    weights_sum <- sum(weights)
 
     if (is.null(pop_totals)) {
       eq <- switch(h,
@@ -270,7 +269,6 @@ u_theta_der <-  function(R,
     ps <- as.vector(ps)
     N_nons <- sum(1/ps)
     R_rand <- 1 - R
-    weights_sum <- sum(weights)
 
     if (!is.null(pop_totals)) {
       mxDer <- t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0
