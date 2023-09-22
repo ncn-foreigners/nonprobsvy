@@ -7,7 +7,6 @@
 #' @importFrom stats terms
 #' @importFrom MASS ginv
 
-
 nonprobDR <- function(selection,
                       outcome,
                       data,
@@ -627,19 +626,6 @@ nonprobDR <- function(selection,
          ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }
-
-#' mu_hatDR
-#
-#' mu_hatDR: Function for outcome variable estimation based on doubly robust estimation
-#'
-#' @param y - a
-#' @param y_nons - a
-#' @param y_rand - a
-#' @param weights - a
-#' @param weights_nons - a
-#' @param weights_rand - a
-#' @param N_nons - a
-#' @param N_rand - a
 
 mu_hatDR <- function(y,
                      y_nons,

@@ -1,3 +1,4 @@
+# Internal functions for mass imputation models
 #' @importFrom stats predict.glm
 #' @importFrom stats glm.fit
 #' @importFrom stats summary.glm
@@ -132,35 +133,17 @@ nn_nonprobsvy <- function(outcome,
        parameters = parameters)
 }
 
-#' nonprobMI_fit
-#
-#' nonprobMI_fit: Function for outcome variable estimation based on nonprobability sample and using model based approach
-#'
-#' @param outcome - `formula`, the outcome equation.
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param svydesign - an optional `svydesign` object (from the survey package) containing probability sample.
-#' @param family_outcome - a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param control_outcome - a
-#' @param start - a
-#' @param weights - an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
-#' @param verbose - a
-#' @param model - a
-#' @param x - a
-#' @param y - a
-#'
-
-
 nonprobMI_fit <- function(outcome,
                           data,
                           weights,
                           svydesign,
                           family_outcome,
                           control_outcome = controlOut(),
-                          start = NULL,
                           verbose,
                           model,
                           x,
-                          y) {
+                          y,
+                          start = NULL) {
 
   family <- family_outcome
 
@@ -182,20 +165,6 @@ nonprobMI_fit <- function(outcome,
 
   model_nons
 }
-
-
-
-#' nonprobMI_nn
-#
-#' nonprobMI_nn: Function for outcome variable estimation based on nonprobability sample and using predictive mean matching
-#'
-#' @param data - an optional `data.frame` with data from the nonprobability sample.
-#' @param query - a
-#' @param k - a
-#' @param treetype - a
-#' @param searchtype - a
-#' @param radius - a
-#' @param eps - a
 
 nonprobMI_nn <- function(data,
                          query,

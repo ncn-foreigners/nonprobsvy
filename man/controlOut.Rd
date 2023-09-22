@@ -40,9 +40,9 @@ controlOut(
 
 \item{nfolds}{The number of folds during cross-validation for variables selection model.}
 
-\item{treetype}{type of tree for nearest neighbour imputation passed to \link[RANN:nn2]{RANN::nn2} function.}
+\item{treetype}{type of tree for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
 
-\item{searchtype}{type of search for nearest neighbour imputation passed to \link[RANN:nn2]{RANN::nn2} function.}
+\item{searchtype}{type of search for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
 }
 \value{
 List with selected parameters.

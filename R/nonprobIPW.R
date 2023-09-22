@@ -5,7 +5,6 @@
 #' @importFrom stats as.formula
 #' @importFrom stats terms
 
-
 nonprobIPW <- function(selection,
                        target,
                        data,
@@ -415,17 +414,6 @@ mu_hatIPW <- function(y,
   mu_hat
 
 }
-
-#' start_fit
-#'
-#' start_fit: Function for obtaining initial values for propensity score estimation
-#'
-#' @param X - a
-#' @param R - a
-#' @param weights - a
-#' @param weights_rand - a
-#' @param method_selection - a
-#' @param control_selection - a
 
 start_fit <- function(X,
                       R,

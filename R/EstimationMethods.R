@@ -1,4 +1,4 @@
-# Estimation methods for integrated sources
+# Internal functions for propensity score estimation models
 
 # Object with output parameters for Maximum likelihood Estimation for propensity scores
 mle <- function(...) {

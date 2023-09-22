@@ -21,7 +21,7 @@ controlInf(
 
 \item{var_method}{variance method.}
 
-\item{rep_type}{replication type for weights in the bootstrap method for variance estimation passed to \link[survey:as.svrepdesign]{survey::as.svrepdesign}.
+\item{rep_type}{replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{subbootstrap}.}
 
 \item{bias_inf}{inference method in the bias minimization.

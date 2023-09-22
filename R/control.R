@@ -93,8 +93,8 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
 #' @param nfolds The number of folds during cross-validation for variables selection model.
-#' @param treetype type of tree for nearest neighbour imputation passed to [RANN::nn2] function.
-#' @param searchtype type of search for nearest neighbour imputation passed to [RANN::nn2] function.
+#' @param treetype type of tree for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param searchtype type of search for nearest neighbour imputation passed to [RANN::nn2()] function.
 #'
 #' @return List with selected parameters.
 #'
@@ -135,7 +135,7 @@ controlOut <- function(epsilon = 1e-6,
 #' for statistical inference.
 #' @param vars_selection If `TRUE`, then variables selection model is used.
 #' @param var_method variance method.
-#' @param rep_type replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign].
+#' @param rep_type replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `subbootstrap`.
 #' @param bias_inf inference method in the bias minimization.
 #' \itemize{
