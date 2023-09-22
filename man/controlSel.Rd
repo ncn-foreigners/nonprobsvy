@@ -54,7 +54,7 @@ controlSel(
 
 \item{h}{Smooth function for the generalized estimating equations methods taking the following values
 \itemize{
-\item if \code{1} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
+\item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
 \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
 }}

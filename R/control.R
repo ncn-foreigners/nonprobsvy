@@ -18,7 +18,7 @@
 #' @param ov_method Method of estimation in case when samples (probability and non-probability) overlap.
 #' @param h Smooth function for the generalized estimating equations methods taking the following values
 #' \itemize{
-#'   \item if \code{1} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
+#'   \item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
 #'   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
 #'   \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
 #'   }
@@ -135,7 +135,8 @@ controlOut <- function(epsilon = 1e-6,
 #' for statistical inference.
 #' @param vars_selection If `TRUE`, then variables selection model is used.
 #' @param var_method variance method.
-#' @param rep_type replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.
+#' @param rep_type replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign].
+#'  Default is `subbootstrap`.
 #' @param bias_inf inference method in the bias minimization.
 #' \itemize{
 #'   \item if \code{union} then final model is fitting on union of selected variables for selection and outcome models
