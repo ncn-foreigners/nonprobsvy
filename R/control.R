@@ -9,26 +9,33 @@
 #' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
-#' @param optimizer -
+#' @param optimizer - optimization function for maximum likelihood estimation.
 #' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
 #' @param maxLik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param dependence logical value - `TRUE` if samples are dependent.
 #' @param key binary key variable
-#' @param est_method_sel -
-#' @param ov_method -
-#' @param h Smooth function for the estimating equations.
-#' @param penalty -
-#' @param a_SCAD -
-#' @param a_MCP -
-#' @param lambda A user-specified lambda value.
-#' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
-#' @param nlambda The number of lambda values. Default is 50.
+#' @param est_method_sel Method of estimation for propensity score model.
+#' @param ov_method Method of estimation in case when samples (probability and non-probability) overlap.
+#' @param h Smooth function for the generalized estimating equations methods taking the following values
+#' \itemize{
+#'   \item if \code{1} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
+#'   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
+#'   \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
+#'   }
+#' @param penalty The penanlization function used during variables selection.
+#' @param a_SCAD The tuning parameter of the SCAD penalty for selection model. Default is 3.7.
+#' @param a_MCP The tuning parameter of the MCP penalty for selection model. Default is 3.
+#' @param lambda A user-specified \mjseqn{\lambda} value during variable selection model fitting.
+#' @param lambda_min The smallest value for lambda, as a fraction of `lambda.max`. Default is .001.
+#' @param nlambda The number of `lambda` values. Default is 50.
 #' @param nfolds The number of folds for cross validation. Default is 10.
-#' @param print_level -
+#' @param print_level this argument determines the level of printing which is done during the optimization (for propensity score model) process.
+#'
+#' @return List with selected parameters.
 #'
 #' @export
 
-controlSel <- function(method = "glm.fit", #perhaps another control function for model with variables selection
+controlSel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
                        epsilon = 1e-6,
                        maxit = 500,
                        trace = FALSE,
@@ -74,20 +81,22 @@ controlSel <- function(method = "glm.fit", #perhaps another control function for
 }
 
 #' @title Control parameters for outcome model
-#' @description \code{controlOUT} constructs a list with all necessary control parameters
+#' @description \code{controlOut} constructs a list with all necessary control parameters
 #' for outcome model.
 #' @param epsilon Tolerance for fitting algorithms. Default is \code{1e-6}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.
-#' @param k The k parameter in the [RANN2::nn()] function. Default is 5.
+#' @param k The k parameter in the [RANN::nn2()] function. Default is 5.
 #' @param penalty penalty algorithm for variable selection. Default is `SCAD`
-#' @param a_SCAD -
-#' @param a_MCP -
+#' @param a_SCAD The tuning parameter of the SCAD penalty for outcome model. Default is 3.7.
+#' @param a_MCP The tuning parameter of the MCP penalty for outcome model. Default is 3.
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
-#' @param nfolds -
-#' @param treetype -
-#' @param searchtype -
+#' @param nfolds The number of folds during cross-validation for variables selection model.
+#' @param treetype type of tree for nearest neighbour imputation passed to [RANN::nn2] function.
+#' @param searchtype type of search for nearest neighbour imputation passed to [RANN::nn2] function.
+#'
+#' @return List with selected parameters.
 #'
 #' @export
 
@@ -122,16 +131,24 @@ controlOut <- function(epsilon = 1e-6,
 
 
 #' @title Control parameters for inference
-#' @description \code{controlINF} constructs a list with all necessary control parameters
+#' @description \code{controlInf} constructs a list with all necessary control parameters
 #' for statistical inference.
-#' @param vars_selection - .
+#' @param vars_selection If `TRUE`, then variables selection model is used.
 #' @param var_method variance method.
 #' @param rep_type replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.
-#' @param bias_inf inference method in the bias minimization. Default is `union`.
-#' @param bias_correction -
-#' @param num_boot -
+#' @param bias_inf inference method in the bias minimization.
+#' \itemize{
+#'   \item if \code{union} then final model is fitting on union of selected variables for selection and outcome models
+#'   \item if \code{div} then final model is fitting separately on division of selected variables into relevant ones for
+#'   selection and outcome model.
+#'   }
+#' @param bias_correction if `TRUE`, then bias minimization estimation used during fitting the model.
+#' @param num_boot number of iteration for bootstrap algorithms.
 #' @param alpha Significance level, Default is 0.05.
-#' @param cores Number of cores in parallel computing
+#' @param cores Number of cores in parallel computing.
+#'
+#'
+#' @return List with selected parameters.
 #'
 #' @export
 

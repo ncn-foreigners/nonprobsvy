@@ -20,27 +20,49 @@ nonprobMI_fit(
 )
 }
 \arguments{
-\item{outcome}{- `formula`, the outcome equation.}
+\item{outcome}{\itemize{
+\item \code{formula}, the outcome equation.
+}}
 
-\item{data}{- an optional `data.frame` with data from the nonprobability sample.}
+\item{data}{\itemize{
+\item an optional \code{data.frame} with data from the nonprobability sample.
+}}
 
-\item{weights}{- an optional `vector` of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
+\item{weights}{\itemize{
+\item an optional \code{vector} of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
+}}
 
-\item{svydesign}{- an optional `svydesign` object (from the survey package) containing probability sample.}
+\item{svydesign}{\itemize{
+\item an optional \code{svydesign} object (from the survey package) containing probability sample.
+}}
 
-\item{family_outcome}{- a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{\itemize{
+\item a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+}}
 
-\item{control_outcome}{- a}
+\item{control_outcome}{\itemize{
+\item a
+}}
 
-\item{start}{- a}
+\item{start}{\itemize{
+\item a
+}}
 
-\item{verbose}{- a}
+\item{verbose}{\itemize{
+\item a
+}}
 
-\item{model}{- a}
+\item{model}{\itemize{
+\item a
+}}
 
-\item{x}{- a}
+\item{x}{\itemize{
+\item a
+}}
 
-\item{y}{- a}
+\item{y}{\itemize{
+\item a
+}}
 }
 \description{
 nonprobMI_fit

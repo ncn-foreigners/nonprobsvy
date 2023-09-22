@@ -461,15 +461,20 @@ specific_summary_info <- function(object, ...) {
 
 specific_summary_info.nonprobsvy_ipw <- function(object,
                                                  ...) {
+
+  theta <- matrix(c(object$selection$coefficients, object$selection$std_err),
+                  ncol = 2,
+                  dimnames = list(names(object$selection$coefficients),
+                                  c("Estimate", "Std. Error")))
   res <- list(
-    theta = object$parameters,
+    theta = theta,
     weights = object$weights,
     df_residual = object$selection$df_residual
   )
 
   attr(res$theta, "glm") <- TRUE
   attr(res$weights, "glm") <- FALSE
-  attr(res$df_residual, "glm") <- FALSE
+  attr(res$df_residual, "glm") <- FALSE # TODO
   attr(res, "model")     <- c("glm regression on selection variable")
   res
 }
@@ -477,8 +482,13 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
 
+  beta <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+                 ncol = 2,
+                 dimnames = list(names(object$outcome$coefficients),
+                                 c("Estimate", "Std. Error")))
+
   res <- list(
-    beta = object$parameters
+    beta = beta
   )
   if (object$control$method_outcome == "glm") {
   attr(res$beta, "glm") <- TRUE
@@ -492,9 +502,20 @@ specific_summary_info.nonprobsvy_mi <- function(object,
 
 specific_summary_info.nonprobsvy_dr <- function(object,
                                                 ...) { # TODO for method_outcome equal to nn
+
+  theta <- matrix(c(object$selection$coefficients, object$selection$std_err),
+                  ncol = 2,
+                  dimnames = list(names(object$selection$coefficients),
+                                  c("Estimate", "Std. Error")))
+
+  beta <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+                 ncol = 2,
+                 dimnames = list(names(object$outcome$coefficients),
+                                 c("Estimate", "Std. Error")))
+
   res <- list(
-    theta = object$parameters,
-    beta  = object$beta,
+    theta = theta,
+    beta  = beta,
     weights = object$weights,
     df_residual = object$selection$df_residual
   )

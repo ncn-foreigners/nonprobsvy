@@ -34,39 +34,49 @@ controlSel(
 
 \item{maxit}{Maximum number of iterations.}
 
-\item{trace}{logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`}
+\item{trace}{logical value. If \code{TRUE} trace steps of the fitting algorithms. Default is \code{FALSE}}
 
-\item{optimizer}{-}
+\item{optimizer}{\itemize{
+\item optimization function for maximum likelihood estimation.
+}}
 
-\item{maxLik_method}{maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.}
+\item{maxLik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
 
-\item{optim_method}{maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.}
+\item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
-\item{dependence}{logical value - `TRUE` if samples are dependent.}
+\item{dependence}{logical value - \code{TRUE} if samples are dependent.}
 
 \item{key}{binary key variable}
 
-\item{est_method_sel}{-}
+\item{est_method_sel}{Method of estimation for propensity score model.}
 
-\item{ov_method}{-}
+\item{ov_method}{Method of estimation in case when samples (probability and non-probability) overlap.}
 
-\item{h}{Smooth function for the estimating equations.}
+\item{h}{Smooth function for the generalized estimating equations methods taking the following values
+\itemize{
+\item if \code{1} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
+\item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
+}}
 
-\item{penalty}{-}
+\item{penalty}{The penanlization function used during variables selection.}
 
-\item{a_SCAD}{-}
+\item{a_SCAD}{The tuning parameter of the SCAD penalty for selection model. Default is 3.7.}
 
-\item{a_MCP}{-}
+\item{a_MCP}{The tuning parameter of the MCP penalty for selection model. Default is 3.}
 
-\item{lambda}{A user-specified lambda value.}
+\item{lambda}{A user-specified \mjseqn{\lambda} value during variable selection model fitting.}
 
-\item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
+\item{lambda_min}{The smallest value for lambda, as a fraction of \code{lambda.max}. Default is .001.}
 
-\item{nlambda}{The number of lambda values. Default is 50.}
+\item{nlambda}{The number of \code{lambda} values. Default is 50.}
 
 \item{nfolds}{The number of folds for cross validation. Default is 10.}
 
-\item{print_level}{-}
+\item{print_level}{this argument determines the level of printing which is done during the optimization (for propensity score model) process.}
+}
+\value{
+List with selected parameters.
 }
 \description{
 \code{controlSel} constructs a list with all necessary control parameters

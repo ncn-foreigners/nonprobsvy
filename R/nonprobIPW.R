@@ -4,7 +4,6 @@
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
 #' @importFrom stats terms
-#' @rdname main_doc
 
 
 nonprobIPW <- function(selection,
@@ -25,8 +24,6 @@ nonprobIPW <- function(selection,
                        control_inference = controlInf(),
                        start,
                        verbose,
-                       contrasts,
-                       model,
                        x,
                        y,
                        ...){
@@ -134,18 +131,18 @@ nonprobIPW <- function(selection,
                                         control_selection = control_selection)
 
         estimation_method <- get_method(est_method)
-        selection <- estimation_method$estimation_model(model = model_sel,
+        selection_model <- estimation_method$estimation_model(model = model_sel,
                                                         method_selection = method_selection)
-        theta_hat <- selection$theta_hat
+        theta_hat <- selection_model$theta_hat
         #grad <- est_method_obj$grad
-        hess <- selection$hess
-        var_cov1 <- selection$var_cov1
-        var_cov2 <- selection$var_cov2
-        ps_nons <- selection$ps_nons
-        est_ps_rand <- selection$est_ps_rand
-        ps_nons_der <- selection$ps_nons_der
-        est_ps_rand_der <- selection$est_ps_rand_der
-        theta_standard_errors <- sqrt(diag(selection$variance_covariance))
+        hess <- selection_model$hess
+        var_cov1 <- selection_model$var_cov1
+        var_cov2 <- selection_model$var_cov2
+        ps_nons <- selection_model$ps_nons
+        est_ps_rand <- selection_model$est_ps_rand
+        ps_nons_der <- selection_model$ps_nons_der
+        est_ps_rand_der <- selection_model$est_ps_rand_der
+        theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
 
         names(theta_hat) <- colnames(X)
         weights_nons <- 1/ps_nons
@@ -225,18 +222,18 @@ nonprobIPW <- function(selection,
         weights_nons <- 1/ps_nons
         N <- sum(weights * weights_nons)
 
-        selection <- list(theta_hat = theta_hat,
-                          hess = hess,
-                          grad = grad,
-                          ps_nons = ps_nons,
-                          est_ps_rand = est_ps_rand,
-                          ps_nons_der =  ps_nons_der,
-                          est_ps_rand_der = est_ps_rand_der,
-                          variance_covariance = variance_covariance,
-                          var_cov1 = var_cov1,
-                          var_cov2 = var_cov2,
-                          df_residual = df_residual,
-                          log_likelihood = "NULL")
+        selection_model <- list(theta_hat = theta_hat,
+                                hess = hess,
+                                grad = grad,
+                                ps_nons = ps_nons,
+                                est_ps_rand = est_ps_rand,
+                                ps_nons_der =  ps_nons_der,
+                                est_ps_rand_der = est_ps_rand_der,
+                                variance_covariance = variance_covariance,
+                                var_cov1 = var_cov1,
+                                var_cov2 = var_cov2,
+                                df_residual = df_residual,
+                                log_likelihood = "NULL")
 
         mu_hat <- mu_hatIPW(model$y_nons, weights = weights, weights_nons = weights_nons, N = N)
       }
@@ -318,6 +315,7 @@ nonprobIPW <- function(selection,
                                         pop_size = pop_size,
                                         pop_totals = pop_totals,
                                         control_selection = control_selection,
+                                        control_inference = control_inference,
                                         cores = control_inference$cores,
                                         verbose = verbose)
         } else {
@@ -340,6 +338,7 @@ nonprobIPW <- function(selection,
                              pop_size = pop_size,
                              pop_totals = pop_totals,
                              control_selection = control_selection,
+                             control_inference = control_inference,
                              verbose = verbose)
         }
 
@@ -374,23 +373,34 @@ nonprobIPW <- function(selection,
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
 
+  SelectionList <- list(coefficients = selection_model$theta_hat,
+                        std_err = theta_standard_errors,
+                        residuals = selection_model$residuals,
+                        fitted_values = prop_scores,
+                        link = selection_model$method,
+                        linear_predictors = selection_model$eta,
+                        aic = selection_model$aic,
+                        weights = as.vector(weights_nons),
+                        prior.weights = weights,
+                        formula = selection,
+                        df_residual = selection_model$df_residual,
+                        log_likelihood = selection_model$log_likelihood)
+
 
   structure(
-    list(X = X,
-         prop_scores = prop_scores,
+    list(X = if(isTRUE(x)) X else NULL,
+         y = if(isTRUE(y)) as.numeric(y) else NULL,
+         prob = prop_scores,
          weights = as.vector(weights_nons),
          control = list(control_selection = control_selection,
                         control_inference = control_inference),
          output = output,
          SE = SE_values,
          confidence_interval = confidence_interval,
-         parameters = parameters,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         #log_likelihood = log_likelihood,
-         #df_residual = df_residual,
-         selection = selection
+         selection = SelectionList
   ),
   class = c("nonprobsvy", "nonprobsvy_ipw"))
 }

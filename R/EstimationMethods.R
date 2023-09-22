@@ -4,7 +4,7 @@
 mle <- function(...) {
 
   estimation_model <- function(model, method_selection, ...) {
-    method <- get_method(method_selection)
+    method <- model$method
     dinv_link <- method$make_link_inv_der
     maxLik_nons_obj <- model$maxLik_nons_obj
     log_likelihood <- maxLik_nons_obj$log_l # maximum of the loglikelihood function
@@ -20,6 +20,9 @@ mle <- function(...) {
     var_cov2 <- model$var_cov2
     df_residual <- model$df_residual
     variance_covariance <- solve(-hess) # MASS::ginv # variance-covariance matrix of estimated parameters
+    eta <- c(model$eta_rand, model$eta_nons)
+    aic <- 2 * (length(theta_hat) - log_likelihood)
+    residuals <- model$residuals
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -32,7 +35,11 @@ mle <- function(...) {
          est_ps_rand_der = est_ps_rand_der,
          variance_covariance = variance_covariance,
          log_likelihood = log_likelihood,
-         df_residual = df_residual)
+         df_residual = df_residual,
+         eta = eta,
+         aic = aic,
+         residuals = residuals,
+         method = method)
   }
 
   make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
@@ -112,6 +119,8 @@ mle <- function(...) {
     ps_nons_der <- dinv_link(eta_nons)
     est_ps_rand_der <- dinv_link(eta_rand)
 
+    resids <- c(est_ps_rand, ps_nons) - R
+
     list(maxLik_nons_obj = maxLik_nons_obj,
          theta = theta,
          ps = ps_nons,
@@ -120,7 +129,11 @@ mle <- function(...) {
          ps_rand_der = est_ps_rand_der,
          var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
          var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"),
-         df_residual = df_reduced)
+         df_residual = df_reduced,
+         eta_nons = eta_nons,
+         eta_rand = eta_rand,
+         residuals = resids,
+         method = method)
   }
   structure(
     list(estimation_model = estimation_model,
@@ -136,6 +149,7 @@ gee <- function(...) {
 
   estimation_model <- function(model, method_selection) {
 
+    method = model$method
     theta_hat <- model$theta_hat
     hess <- model$hess
     grad <- model$grad
@@ -147,6 +161,8 @@ gee <- function(...) {
     var_cov2 <- model$var_cov2
     df_residual <- model$df_residual
     variance_covariance <- model$variance_covariance # variance-covariance matrix of estimated parameters
+    eta <- c(model$eta_rand, model$eta_nons)
+    residuals = model$residuals
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -159,7 +175,11 @@ gee <- function(...) {
          est_ps_rand_der = est_ps_rand_der,
          variance_covariance = variance_covariance,
          df_residual = df_residual,
-         log_likelihood = "NULL")
+         log_likelihood = "NULL",
+         eta = eta,
+         aic = NULL,
+         residuals = residuals,
+         method = method)
   }
 
   make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
@@ -207,9 +227,12 @@ gee <- function(...) {
     theta_hat <- h_object$theta_h
     hess <- h_object$hess
     grad <- h_object$grad
-    ps_nons <- inv_link(theta_hat %*% t(as.matrix(X_nons)))
-    est_ps_rand <- inv_link(theta_hat %*% t(as.matrix(X_rand)))
+    eta_nons <- theta_hat %*% t(as.matrix(X_nons))
+    eta_rand <- theta_hat %*% t(as.matrix(X_rand))
+    ps_nons <- inv_link(eta_nons)
+    est_ps_rand <- inv_link(eta_rand)
     variance_covariance <- solve(-hess)
+    resids <- c(est_ps_rand, ps_nons) - R
 
     df_reduced <- nrow(X) - length(theta_hat)
 
@@ -229,7 +252,11 @@ gee <- function(...) {
          variance_covariance = variance_covariance,
          var_cov1 = ifelse(varcov, method$variance_covariance1, "No variance-covariance matrix"),
          var_cov2 = ifelse(varcov, method$variance_covariance2, "No variance-covariance matrix"),
-         df_residual = df_reduced)
+         df_residual = df_reduced,
+         eta_nons = eta_nons,
+         eta_rand = eta_rand,
+         residuals = resids,
+         method = method)
   }
 
   structure(
@@ -287,11 +314,13 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   df_residual <- nrow(X) - length(theta_hat)
 
   ps <- inv_link(theta_hat %*% t(X)) # inv_link(as.vector(X_design %*% as.matrix(theta_hat)))
-  ps_der <- dinv_link(theta_hat %*% t(X))
+  eta_sel <- theta_hat %*% t(X)
+  ps_der <- dinv_link(eta_sel)
   ps_nons <- ps[loc_nons]
   est_ps_rand <- ps[loc_rand]
   ps_nons_der <- ps_der[loc_nons]
   weights_nons <- 1/ps_nons
+  resids <- c(est_ps_rand, ps_nons) - R
 
   if (!boot) {
     N_nons <- sum(weights * weights_nons)
@@ -302,8 +331,8 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
     theta_errors <- sqrt(diag(vcov_selection))
   }
 
-  eta <- as.vector(beta_hat %*% t(X))
-  y_hat <- family$mu(eta)
+  eta_out <- as.vector(beta_hat %*% t(X))
+  y_hat <- family$mu(eta_out)
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
 
@@ -321,16 +350,20 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
 
   if (!boot) {
     hess <- NULL
-    selection <- list(theta_hat = theta_hat,
-                      grad = multiroot$fvec[1:(p)], # TODO
+    selection <- list(theta_hat = theta_hat, # TODO list as close as possible to SelecttionList
+                      grad = multiroot$fvec[1:(p)],
                       hess = hess, # TODO
                       ps_nons = ps_nons,
                       est_ps_rand = est_ps_rand,
                       variance_covariance = vcov_selection,
                       df_residual = df_residual,
-                      log_likelihood = "NULL")
+                      log_likelihood = "NULL",
+                      linear.predictors = eta_sel,
+                      aic = NULL,
+                      residuals = resids,
+                      method = method)
 
-    outcome <- list(beta_hat = beta_hat,
+    outcome <- list(coefficients = beta_hat, # TODO list as close as possible to glm
                     grad = multiroot$f.root[(p+1):(2*p)],
                     hess = hess, # TODO
                     variance_covariance = vcov_outcome,
@@ -340,12 +373,13 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                                   residuals = residuals),
                     y_rand_pred = y_rand_pred,
                     y_nons_pred = y_nons_pred,
-                    log_likelihood = "NULL")
+                    log_likelihood = "NULL",
+                    linear.predictors = eta_out)
   } else {
-    selection <- list(theta_hat = theta_hat,
+    selection <- list(coefficients = theta_hat,# TODO list as close as possible to SelecttionList
                       ps_nons = ps_nons)
-    outcome <- list(beta_hat = beta_hat,
-                    y_rand_pred = y_rand_pred,
+    outcome <- list(coefficients = beta_hat,
+                    y_rand_pred = y_rand_pred,# TODO list as close as possible to SelecttionList
                     y_nons_pred = y_nons_pred)
   }
 

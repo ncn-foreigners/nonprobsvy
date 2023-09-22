@@ -8,19 +8,33 @@ nonprobMI_nn: Function for outcome variable estimation based on nonprobability s
 nonprobMI_nn(data, query, k, treetype, searchtype, radius = 0, eps = 0)
 }
 \arguments{
-\item{data}{- an optional `data.frame` with data from the nonprobability sample.}
+\item{data}{\itemize{
+\item an optional \code{data.frame} with data from the nonprobability sample.
+}}
 
-\item{query}{- a}
+\item{query}{\itemize{
+\item a
+}}
 
-\item{k}{- a}
+\item{k}{\itemize{
+\item a
+}}
 
-\item{treetype}{- a}
+\item{treetype}{\itemize{
+\item a
+}}
 
-\item{searchtype}{- a}
+\item{searchtype}{\itemize{
+\item a
+}}
 
-\item{radius}{- a}
+\item{radius}{\itemize{
+\item a
+}}
 
-\item{eps}{- a}
+\item{eps}{\itemize{
+\item a
+}}
 }
 \description{
 nonprobMI_nn

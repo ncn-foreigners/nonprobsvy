@@ -17,23 +17,31 @@ controlInf(
 )
 }
 \arguments{
-\item{vars_selection}{- .}
+\item{vars_selection}{If \code{TRUE}, then variables selection model is used.}
 
 \item{var_method}{variance method.}
 
-\item{rep_type}{replication type for weights in the bootstrap method for variance estimation. Default is `subbootstrap`.}
+\item{rep_type}{replication type for weights in the bootstrap method for variance estimation. Default is \code{subbootstrap}.}
 
-\item{bias_inf}{inference method in the bias minimization. Default is `union`.}
+\item{bias_inf}{inference method in the bias minimization.
+\itemize{
+\item if \code{union} then final model is fitting on union of selected variables for selection and outcome models
+\item if \code{div} then final model is fitting separately on division of selected variables into relevant ones for
+selection and outcome model.
+}}
 
-\item{num_boot}{-}
+\item{num_boot}{number of iteration for bootstrap algorithms.}
 
-\item{bias_correction}{-}
+\item{bias_correction}{if \code{TRUE}, then bias minimization estimation used during fitting the model.}
 
 \item{alpha}{Significance level, Default is 0.05.}
 
-\item{cores}{Number of cores in parallel computing}
+\item{cores}{Number of cores in parallel computing.}
+}
+\value{
+List with selected parameters.
 }
 \description{
-\code{controlINF} constructs a list with all necessary control parameters
+\code{controlInf} constructs a list with all necessary control parameters
 for statistical inference.
 }

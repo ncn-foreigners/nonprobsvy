@@ -14,17 +14,29 @@ start_fit(
 )
 }
 \arguments{
-\item{X}{- a}
+\item{X}{\itemize{
+\item a
+}}
 
-\item{R}{- a}
+\item{R}{\itemize{
+\item a
+}}
 
-\item{weights}{- a}
+\item{weights}{\itemize{
+\item a
+}}
 
-\item{weights_rand}{- a}
+\item{weights_rand}{\itemize{
+\item a
+}}
 
-\item{method_selection}{- a}
+\item{method_selection}{\itemize{
+\item a
+}}
 
-\item{control_selection}{- a}
+\item{control_selection}{\itemize{
+\item a
+}}
 }
 \description{
 start_fit: Function for obtaining initial values for propensity score estimation

@@ -7,12 +7,14 @@
 pop.size(object, ...)
 }
 \arguments{
-\item{object}{-}
+\item{object}{\itemize{
+\item object returned by \code{nonprobsvy}.
+}}
 
 \item{...}{additional parameters}
-
-\item{pop.size}{-}
 }
 \description{
--
+\itemize{
+\item Estimate size of population
+}
 }

@@ -17,21 +17,37 @@ mu_hatDR(
 )
 }
 \arguments{
-\item{y}{- a}
+\item{y}{\itemize{
+\item a
+}}
 
-\item{y_nons}{- a}
+\item{y_nons}{\itemize{
+\item a
+}}
 
-\item{y_rand}{- a}
+\item{y_rand}{\itemize{
+\item a
+}}
 
-\item{weights}{- a}
+\item{weights}{\itemize{
+\item a
+}}
 
-\item{weights_nons}{- a}
+\item{weights_nons}{\itemize{
+\item a
+}}
 
-\item{weights_rand}{- a}
+\item{weights_rand}{\itemize{
+\item a
+}}
 
-\item{N_nons}{- a}
+\item{N_nons}{\itemize{
+\item a
+}}
 
-\item{N_rand}{- a}
+\item{N_rand}{\itemize{
+\item a
+}}
 }
 \description{
 mu_hatDR

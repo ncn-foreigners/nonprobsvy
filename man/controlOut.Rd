@@ -24,27 +24,30 @@ controlOut(
 
 \item{maxit}{Maximum number of iterations.}
 
-\item{trace}{logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.}
+\item{trace}{logical value. If \code{TRUE} trace steps of the fitting algorithms. Default is \code{FALSE}.}
 
-\item{k}{The k parameter in the [RANN2::nn()] function. Default is 5.}
+\item{k}{The k parameter in the \code{\link[RANN:nn2]{RANN::nn2()}} function. Default is 5.}
 
-\item{penalty}{penalty algorithm for variable selection. Default is `SCAD`}
+\item{penalty}{penalty algorithm for variable selection. Default is \code{SCAD}}
 
-\item{a_SCAD}{-}
+\item{a_SCAD}{The tuning parameter of the SCAD penalty for outcome model. Default is 3.7.}
 
-\item{a_MCP}{-}
+\item{a_MCP}{The tuning parameter of the MCP penalty for outcome model. Default is 3.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
 \item{nlambda}{The number of lambda values. Default is 100.}
 
-\item{nfolds}{-}
+\item{nfolds}{The number of folds during cross-validation for variables selection model.}
 
-\item{treetype}{-}
+\item{treetype}{type of tree for nearest neighbour imputation passed to \link[RANN:nn2]{RANN::nn2} function.}
 
-\item{searchtype}{-}
+\item{searchtype}{type of search for nearest neighbour imputation passed to \link[RANN:nn2]{RANN::nn2} function.}
+}
+\value{
+List with selected parameters.
 }
 \description{
-\code{controlOUT} constructs a list with all necessary control parameters
+\code{controlOut} constructs a list with all necessary control parameters
 for outcome model.
 }

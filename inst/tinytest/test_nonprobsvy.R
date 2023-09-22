@@ -25,7 +25,7 @@
 # pop2 <- subset(pop, strata == FALSE)
 #
 # # nonprobability sample
-# ssource_nonprob_p <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+# source_nonprob_p <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
 #                   pop2[sample(1:nrow(pop2), n_b2), ])
 # source_nonprob_p$w_b <- N/n_b
 
@@ -188,12 +188,10 @@ expect_true(
 # MI - glm ####
 test3a <- nonprob(outcome = y1 ~ x,
                   data = source_nonprob_p,
-                  method_selection = "logit",
                   svydesign = svy_a)
 expect_silent(
   test3a <- nonprob(outcome = y1 ~ x,
                     data = source_nonprob_p,
-                    method_selection = "logit",
                     svydesign = svy_a)
 )
 

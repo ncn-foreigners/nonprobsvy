@@ -6,7 +6,6 @@
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
 #' @importFrom stats terms
-#' @rdname main_doc
 
 nonprobMI <- function(outcome,
                       data,
@@ -24,8 +23,6 @@ nonprobMI <- function(outcome,
                       control_inference = controlInf(var_method = "analytic"),
                       start,
                       verbose,
-                      contrasts,
-                      model,
                       x,
                       y,
                       ...) {
@@ -79,8 +76,8 @@ nonprobMI <- function(outcome,
                                  pop_totals = pop_totals)
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
-      model_out <- model_obj$model
-      parameters <- model_obj$parameters
+      # parameters <- model_obj$parameters
+      OutcomeList <- model_obj$model
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -124,8 +121,8 @@ nonprobMI <- function(outcome,
 
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
-      model_out <- model_obj$model
       parameters <- model_obj$parameters
+      OutcomeList <- model_obj$model
 
       mu_hat <- ifelse(method_outcome == "glm", as.vector(y_rand_pred/N_est_rand), y_rand_pred)
     } else {
@@ -145,7 +142,7 @@ nonprobMI <- function(outcome,
                                 n_nons = n_nons,
                                 N = N_est_rand,
                                 family = family_outcome,
-                                parameters = parameters,
+                                parameters = model_obj$parameters,
                                 pop_totals = pop_totals)
 
       var_nonprob <- var_obj$var_nonprob
@@ -171,7 +168,8 @@ nonprobMI <- function(outcome,
                                 svydesign,
                                 rep_type = control_inference$rep_type,
                                 method = method_outcome,
-                                control = control_outcome,
+                                control_outcome = control_outcome,
+                                control_inference = control_inference,
                                 pop_totals = pop_totals,
                                 cores = control_inference$cores,
                                 verbose = verbose)
@@ -187,11 +185,13 @@ nonprobMI <- function(outcome,
                       svydesign,
                       rep_type = control_inference$rep_type,
                       method = method_outcome,
-                      control = control_outcome,
+                      control_outcome = control_outcome,
+                      control_inference = control_inference,
                       pop_totals = pop_totals,
                       verbose = verbose)
       }
-      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability",
+                                                         prob = "probability sample in case of bootstrap variance"))))
     }
 
     X <- rbind(X_nons, X_rand) # joint model matrix
@@ -215,19 +215,18 @@ nonprobMI <- function(outcome,
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
 
   structure(
-    list(X = X,
+    list(X = if(isTRUE(x)) X else NULL,
+         y = if(isTRUE(y)) as.numeric(y) else NULL,
          control = list(control_outcome = control_outcome,
                         control_inference = control_inference,
                         method_outcome = method_outcome),
          output = output,
-         SE_values = SE_values,
+         SE = SE_values,
          confidence_interval = confidence_interval,
-         parameters = parameters,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         outcome = model_out
+         outcome = OutcomeList
          ),
     class = c("nonprobsvy", "nonprobsvy_mi"))
-
   }

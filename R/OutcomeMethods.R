@@ -60,8 +60,10 @@ glm_nonprobsvy <- function(outcome,
       model_out <- list(glm = model,
                         glm_summary = model_summ)
     }
+  model_out$glm$std_err <- parameters[,2]
+  names(model_out$glm$std_err) <- names(model_out$glm$coefficients)
 
-  list(model = model_out,
+  list(model = model_out$glm,
        y_rand_pred = y_rand_pred,
        y_nons_pred = y_nons_pred,
        parameters = parameters)
@@ -168,10 +170,10 @@ nonprobMI_fit <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
-  data$wt <- weights # TODO just for now, find more efficient way
+  data$weights <- weights # TODO just for now, find more efficient way
   model_nons <- stats::glm(formula = outcome,
                            data = data,
-                           weights = wt,
+                           weights = weights,
                            family = family,
                            start = start,
                            control = list(control_outcome$epsilon,
