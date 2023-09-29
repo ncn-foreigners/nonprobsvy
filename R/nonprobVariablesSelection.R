@@ -574,6 +574,7 @@ nonprobSel <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  OutcomeList$method <- method_outcome
 
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_errors,
@@ -910,6 +911,7 @@ nonprobSelM <- function(outcome,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  OutcomeList$method <- method_outcome
 
 
   structure(

@@ -213,13 +213,13 @@ nonprobMI <- function(outcome,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  OutcomeList$method <- method_outcome
 
   structure(
     list(X = if(isTRUE(x)) X else NULL,
          y = if(isTRUE(y)) as.numeric(y) else NULL,
          control = list(control_outcome = control_outcome,
-                        control_inference = control_inference,
-                        method_outcome = method_outcome),
+                        control_inference = control_inference),
          output = output,
          SE = SE_values,
          confidence_interval = confidence_interval,

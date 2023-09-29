@@ -237,12 +237,11 @@ u_theta <- function(R,
                    "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
                    "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum)))
     } else {
-      eq <- (c(apply(X0 * R/ps * weights, 2, sum)) - pop_totals)
+      eq <- c(apply(X0 * R/ps * weights, 2, sum)) - pop_totals
     }
     eq
   }
 }
-
 
 # derivative of score equation for theta, used in variable selection
 

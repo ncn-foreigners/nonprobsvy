@@ -84,11 +84,11 @@ summary.nonprobsvy <- function(object,
         "nonprobsvy_ipw" = "Inverse probability weighted",
         "nonprobsvy_mi"  = "Mass Imputation"
       ),
-      aic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), AIC(object), ""),
-      bic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), BIC(object), ""),
+      aic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), AIC(object), "no value for the selected method"),
+      bic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), BIC(object), "no value for the selected method"),
       residuals = residuals.nonprobsvy(object, type = "response"),
-      likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, ""),
-      df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, ""),
+      likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, "no value for the selected method"),
+      df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, "no value for the selected method"),
       weights = summary(object$weights),
       coef = cf,
       std_err = se,
@@ -159,10 +159,9 @@ print.summary_nonprobsvy <- function(x,
 
   cat("-------------------------\n\n")
 
-  if (x$control$method_outcome == "glm" || is.null(x$control$method_outcome)) {
-    cat("Regression coefficients:")
-
-    for (k in 1:length(x$names)) {
+    k <- length(x$names)
+    if (k > 0)  cat("Regression coefficients:")
+    while(k > 0) {
       cat("\n-----------------------\nFor ", x$names[k], ":\n", sep = "")
       printCoefmat(
         matrix(# TODO:: add conf intervals
@@ -182,13 +181,10 @@ print.summary_nonprobsvy <- function(x,
         na.print = "NA",
         ...
       )
+      k <- k - 1
     }
 
-    cat("-------------------------\n\n")
-
-  } else if (x$control$method_outcome == "nn") {
-    # TODO
-  }
+    if (length(x$names) > 0) cat("-------------------------\n\n")
 
   if (x$model %in% c("Doubly-Robust", "Inverse probability weighted")) {
 
@@ -362,11 +358,16 @@ BIC.nonprobsvy <- function(object,
   if (!is.character(object$selection$log_likelihood)) {
     if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- length(object$parameters) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-      if (object$control$control_inference$vars_selection == TRUE) {
-        options(AIC="BIC")
-        res_out <- HelpersMG::ExtractAIC.glm(object$outcome)[2]
+
+      if (!is.null(object$outcome$coefficients)) {
+        if (object$control$control_inference$vars_selection == TRUE) {
+          options(AIC="BIC")
+          res_out <- HelpersMG::ExtractAIC.glm(object$outcome)[2]
+        } else {
+          res_out <- BIC(object$outcome)
+        }
       } else {
-        res_out <- BIC(object$outcome)
+        res_out <- "not available for this methos"
       }
     }
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)

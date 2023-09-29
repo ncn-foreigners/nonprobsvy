@@ -71,13 +71,27 @@ theta_h_estimation <- function(R,
                                pop_means = NULL){ # TODO with BERENZ recommendation
 
   p <- ncol(X)
-  start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                      R = R,
-                      weights = weights,
-                      weights_rand = weights_rand,
-                      method_selection = method_selection)
-  #start0 <- rep(0, p)
-  # theta estimation by unbiased estimating function depending on the h_x function TODO
+  if (is.null(pop_totals) & is.null(pop_means)) {
+    start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                        R = R,
+                        weights = weights,
+                        weights_rand = weights_rand,
+                        method_selection = method_selection)
+  } else { # TODO customize start point for fitting with population totals
+    # start0 <- rep(.8, ncol(X))
+    # X_pop <- rbind(X, pop_totals)
+    # weights_randd <- 1
+    # start0 <- start_fit(X = X, # <--- does not work with pop_totals
+    #                     R = R,
+    #                     weights = weights,
+    #                     weights_rand = weights_rand,
+    #                     method_selection = method_selection)
+    start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                        R = R,
+                        weights = weights,
+                        weights_rand = weights_rand,
+                        method_selection = method_selection)
+  }
   u_theta <- u_theta(R = R,
                      X = X,
                      weights = c(weights_rand, weights),
@@ -92,18 +106,17 @@ theta_h_estimation <- function(R,
                              method_selection = method_selection,
                              pop_totals = pop_totals)
 
-  #root <- rootSolve::multiroot(u_theta,
-  #                             jacfunc = u_theta_der,
-  #                             start = start0)
-  #print(root$root)
   root <- nleqslv::nleqslv(x = start0,
                            fn = u_theta,
                            method = "Newton", # TODO consider the methods
-                           global = "qline",
+                           global = "cline", #qline",
                            xscalm = "fixed",
                            jacobian = TRUE,
-                           #jac = u_theta_der
+                           jac = u_theta_der
+                           #control = list(sigma = 0.1, trace = 1)
                            )
+
+
   start <- root$x
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
@@ -442,6 +455,27 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
          X_rand = NULL)
   }
 }
+
+start_fit <- function(X,
+                      R,
+                      weights,
+                      weights_rand,
+                      method_selection,
+                      control_selection = controlSel()) {
+
+  weights_to_glm <- c(weights_rand, weights)
+  start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
+                                y = R,
+                                weights = weights_to_glm, # to fix
+                                family = binomial(link = method_selection),
+                                control = list(epsilon = control_selection$epsilon,
+                                               maxit = control_selection$maxit,
+                                               trace = control_selection$trace)
+
+  )
+  start_model$coefficients
+}
+
 # Function for getting function from the selected method
 get_method <- function(method) {
   if (is.character(method)) {
@@ -462,17 +496,17 @@ specific_summary_info <- function(object, ...) {
 specific_summary_info.nonprobsvy_ipw <- function(object,
                                                  ...) {
 
-  theta <- matrix(c(object$selection$coefficients, object$selection$std_err),
+  coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
                   ncol = 2,
                   dimnames = list(names(object$selection$coefficients),
                                   c("Estimate", "Std. Error")))
   res <- list(
-    theta = theta,
+    coeffs_sel = coeffs_sel,
     weights = object$weights,
     df_residual = object$selection$df_residual
   )
 
-  attr(res$theta, "glm") <- TRUE
+  attr(res$coeffs_sel, "glm") <- TRUE
   attr(res$weights, "glm") <- FALSE
   attr(res$df_residual, "glm") <- FALSE # TODO
   attr(res, "model")     <- c("glm regression on selection variable")
@@ -482,50 +516,63 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
 
-  beta <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
-                 ncol = 2,
-                 dimnames = list(names(object$outcome$coefficients),
-                                 c("Estimate", "Std. Error")))
+  if (object$outcome$method == "glm" ) {
+    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+                   ncol = 2,
+                   dimnames = list(names(object$outcome$coefficients),
+                                   c("Estimate", "Std. Error")))
+  } else {
+    coeffs_out <- "no coefficients"
+  }
 
   res <- list(
-    beta = beta
+    coeffs_out = coeffs_out
   )
-  if (object$control$method_outcome == "glm") {
-  attr(res$beta, "glm") <- TRUE
+  if (object$outcome$method == "glm") {
+  attr(res$coeffs_out, "glm") <- TRUE
   attr(res, "model") <- "glm regression on outcome variable"
-  } else if (object$control$method_outcome == "nn") {
-    attr(res$beta, "glm") <- FALSE
-    attr(res, "model") <- "non-parametric method on outcome variable"
+  } else if (object$outcome$method == "nn") {
+    attr(res$coeffs_out, "glm") <- FALSE
   }
   res
 }
 
 specific_summary_info.nonprobsvy_dr <- function(object,
-                                                ...) { # TODO for method_outcome equal to nn
+                                                ...) {
 
-  theta <- matrix(c(object$selection$coefficients, object$selection$std_err),
+  coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
                   ncol = 2,
                   dimnames = list(names(object$selection$coefficients),
                                   c("Estimate", "Std. Error")))
 
-  beta <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
-                 ncol = 2,
-                 dimnames = list(names(object$outcome$coefficients),
-                                 c("Estimate", "Std. Error")))
+
+  if (object$outcome$method == "glm") {
+    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+                   ncol = 2,
+                   dimnames = list(names(object$outcome$coefficients),
+                                   c("Estimate", "Std. Error")))
+  } else {
+    coeffs_out <- "no coefficients"
+  }
 
   res <- list(
-    theta = theta,
-    beta  = beta,
+    coeffs_sel = coeffs_sel,
+    coeffs_out  = coeffs_out,
     weights = object$weights,
     df_residual = object$selection$df_residual
   )
-
-  attr(res$beta,  "glm") <- TRUE
-  attr(res$theta, "glm") <- TRUE
+  attr(res$coeffs_sel, "glm") <- TRUE
+  if (object$outcome$method == "glm") {
+    attr(res$coeffs_out, "glm") <- TRUE
+    attr(res, "model")     <- c("glm regression on selection variable",
+                                "glm regression on outcome variable")
+  } else if (object$outcome$method == "nn") {
+    attr(res$coeffs_out, "glm") <- FALSE
+    attr(res, "model")     <- c("glm regression on selection variable")
+  }
   attr(res$weights, "glm") <- FALSE
   attr(res$df_residual, "glm") <- FALSE
-  attr(res, "model")     <- c("glm regression on selection variable",
-                             "glm regression on outcome variable")
+
   res
 }
 

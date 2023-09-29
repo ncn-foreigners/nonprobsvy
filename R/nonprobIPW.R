@@ -415,25 +415,4 @@ mu_hatIPW <- function(y,
 
 }
 
-start_fit <- function(X,
-                      R,
-                      weights,
-                      weights_rand,
-                      method_selection,
-                      control_selection = controlSel()) {
-
-  weights_to_glm <- c(weights_rand, weights)
-
-  start_model <- stats::glm.fit(x = X, #glm model for initial values in propensity score estimation
-                                y = R,
-                                weights = weights_to_glm, # to fix
-                                #family = binomial(link = method_selection),
-                                control = list(control_selection$epsilon,
-                                               control_selection$maxit,
-                                               control_selection$trace)
-
-  )
-  start_model$coefficients
-}
-
 

@@ -589,6 +589,7 @@ nonprobDR <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  OutcomeList$method <- method_outcome
 
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,
@@ -613,8 +614,7 @@ nonprobDR <- function(selection,
          weights = as.vector(weights_nons),
          control = list(control_selection = control_selection,
                         control_outcome = control_outcome,
-                        control_inference = control_inference,
-                        method_outcome = method_outcome),
+                        control_inference = control_inference),
          output = output,
          SE = SE_values,
          confidence_interval = confidence_interval,
