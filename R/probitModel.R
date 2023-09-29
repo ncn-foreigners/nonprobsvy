@@ -3,6 +3,7 @@
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @export
 
 probit <- function(...) {
 

@@ -1,6 +1,7 @@
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @export
 
 cloglog <- function(...) {
 
