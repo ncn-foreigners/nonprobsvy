@@ -1,9 +1,17 @@
+#' @title - complementary log-log model
+#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description - Function returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
+#'
+#' @param ... - Additional, optional arguments.
+#'
+#' @return List with selected methods/objects/functions.
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
 #' @export
 
-cloglog <- function(...) {
+cloglog_model_nonprobsvy <- function(...) {
 
   link <- function(mu) {log(-log(1 - mu))} # link
   inv_link <- function(eta) {1 - exp(-exp(eta))} # inverse link
@@ -136,53 +144,71 @@ cloglog <- function(...) {
 
     N <- pop_size
     n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-    if (est_method == "mle") {
-      if (is.null(N)) {
-        N <- sum(1/ps)
-        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X # TODO opposite sign here (?) check the calculates
-        v_1 <- t(v1_)
-      } else {
-        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights*y)^2))
-        v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X # TODO opposite sign here (?) check the calculates
-        v_1 <- t(v1_)
+    if (is.null(pop_totals)) {
+      if (est_method == "mle") {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
+          v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu)) %*% X # TODO opposite sign here (?) check the calculates
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights*y)^2))
+          v1_ <- - 1/N^2 * ((1 - ps)/ps^2 * log(1 - ps) * weights * y) %*% X # TODO opposite sign here (?) check the calculates
+          v_1 <- t(v1_)
+        }
+        v_2 <- 0
+        for (i in 1:nrow(X)) {
+          v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
+        v_2 <- 1/N^2 * v_2
+      } else if (est_method == "gee" && h == 1) {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights  *y)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
+          v_1 <- t(v1_)
+        }
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
+      } else if (est_method == "gee" && h == 2) {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
+          v1_ <- 1/N^2 * ((1 - ps)/ps * weights * (y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights * y)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
+          v_1 <- t(v1_)
+        }
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
       }
-      v_2 <- 0
-      for (i in 1:nrow(X)) {
-        v_2i <- (1 - ps[i])/ps[i]^2 * log(1-ps[i])^2 * X[i,] %*% t(X[i,])
-        v_2 <- v_2 + v_2i
-      }
-      v_2 <- 1/N^2 * v_2
-    } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
+    } else { # case for population totals available, equal to h=1 when probability sample available
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
         v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
         v_1 <- t(v1_)
       } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights  *y)^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
+        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+        v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
         v_1 <- t(v1_)
       }
       v_2 <- 0
       for(i in 1:nrow(X)){
         v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
-        v_2 <- v_2 + v_2i
-      }
-    } else if (est_method == "gee" && h == 2) {
-      if (is.null(N)) {
-        N <- sum(1/ps)
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights * (y - mu)) %*% X
-        v_1 <- t(v1_)
-      } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights * y)^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
-        v_1 <- t(v1_)
-      }
-      v_2 <- 0
-      for(i in 1:nrow(X)){
-        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
     }
@@ -195,7 +221,7 @@ cloglog <- function(...) {
   }
 
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) { #TODO
+  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) {
 
     N <- sum(1/svydesign$prob)
     if (!is.null(pop_totals)) {
@@ -222,19 +248,17 @@ cloglog <- function(...) {
 
   b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) {
 
-    hess_inv <- solve(hess)
-    #print(length(((1 - ps)/ps^2 * exp(eta) * weights * (y - mu))))
-    #print(le)
+    hess_inv_neg <- solve(-hess)
+    #print(mean(-((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu))))
     if (is.null(pop_size)) {
       # b <- ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
-      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * (y - mu)) %*% X %*% hess_inv
+      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * (y - mu)) %*% X %*% hess_inv_neg
     } else {
       # b <-  ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
-      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * y) %*% X %*% hess_inv
+      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * y) %*% X %*% hess_inv_neg
     }
 
-    list(b = b,
-         hess_inv = hess_inv)
+    list(b = b)
   }
 
   b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {

@@ -34,7 +34,7 @@ glm_nonprobsvy <- function(outcome,
       if (is.null(pop_totals)) {
       y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
       } else {
-        eta <- pop_totals %*% model_nons_coefs
+        eta <- pop_totals %*% model_nons_coefs / pop_totals[1]
         y_rand_pred <- family_nonprobsvy$mu(eta)
       }
       y_nons_pred <- model_out$glm$fitted.values
@@ -53,7 +53,7 @@ glm_nonprobsvy <- function(outcome,
       if (is.null(pop_totals)) {
         eta <- X_rand %*% model_nons_coefs
       } else {
-        eta <- pop_totals %*% model_nons_coefs
+        eta <- pop_totals %*% model_nons_coefs / pop_totals[1]
       }
       y_rand_pred <- family_nonprobsvy$mu(eta)
       y_nons_pred <- model$fitted.values
@@ -69,7 +69,6 @@ glm_nonprobsvy <- function(outcome,
        y_nons_pred = y_nons_pred,
        parameters = parameters)
 }
-
 
 nn_nonprobsvy <- function(outcome,
                           data,

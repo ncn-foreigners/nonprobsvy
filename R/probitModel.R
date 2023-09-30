@@ -1,3 +1,12 @@
+#' @title - probit model
+#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description - Function returns all methods/objects/functions required for the model estimation assuming a probit link function.
+#'
+#' @param ... - Additional, optional arguments.
+#'
+#' @return List with selected methods/objects/functions.
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
@@ -5,7 +14,7 @@
 #' @importFrom survey svyrecvar
 #' @export
 
-probit <- function(...) {
+probit_model_nonprobsvy <- function(...) {
 
   link <- function(mu) {qnorm(mu)} # link
   inv_link <- function(eta) {pnorm(eta)} # inverse link
@@ -141,24 +150,60 @@ probit <- function(...) {
 
     N <- pop_size
     n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-    if (est_method == "mle"){
-      if (is.null(N)) {
-        N <- sum(1/ps)
-        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
-        v1_ <- 1/N^2 *  (psd/ps^2 * weights * (y - mu)) %*% X
-        v_1 <- t(v1_)
-      } else {
-        v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights * y)^2))
-        v1_ <- 1/N^2 *  (psd/ps^2 * weights * y) %*% X
-        v_1 <- t(v1_)
-      }
+    if (is.null(pop_totals)) {
+      if (est_method == "mle") {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * weights * (y - mu)^2))
+          v1_ <- 1/N^2 *  (psd/ps^2 * weights * (y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum((((1 - ps)/ps^2) * (weights * y)^2))
+          v1_ <- 1/N^2 *  (psd/ps^2 * weights * y) %*% X
+          v_1 <- t(v1_)
+        }
 
-      v_2 <- 0
-      for (i in 1:nrow(X)) {
-        v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
-        v_2 <- v_2 + v_2i
+        v_2 <- 0
+        for (i in 1:nrow(X)) {
+          v_2i <- psd[i]/(ps[i]^2 * (1-ps[i])) *  X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
+      } else if (est_method == "gee" && h == 1) {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*(y - mu)^2)) # TODO
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights*(y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
+          v_1 <- t(v1_)
+        }
+
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
+      } else if (est_method == "gee" && h == 2) {
+        if (is.null(N)) {
+          N <- sum(1/ps)
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*(y - mu)^2)) # TODO
+          v1_ <- 1/N^2 * ((1 - ps)/ps * weights*(y - mu)) %*% X
+          v_1 <- t(v1_)
+        } else {
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+          v1_ <- 1/N^2 * ((1 - ps)/ps * weights*y) %*% X
+          v_1 <- t(v1_)
+        }
+
+        v_2 <- 0
+        for(i in 1:nrow(X)){
+          v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+          v_2 <- v_2 + v_2i
+        }
       }
-    } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
+    } else { # case for population totals available, equal to h=1 when probability sample available
       if (is.null(N)) {
         N <- sum(1/ps)
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*(y - mu)^2)) # TODO
@@ -166,30 +211,13 @@ probit <- function(...) {
         v_1 <- t(v1_)
       } else {
         v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
+        v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
         v_1 <- t(v1_)
       }
 
       v_2 <- 0
       for(i in 1:nrow(X)){
         v_2i <- (1 - ps[i])/ps[i] * X[i,] %*% t(X[i,])
-        v_2 <- v_2 + v_2i
-      }
-    } else if (est_method == "gee" && h == 2) {
-      if (is.null(N)) {
-        N <- sum(1/ps)
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*(y - mu)^2)) # TODO
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights*(y - mu)) %*% X
-        v_1 <- t(v1_)
-      } else {
-        v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
-        v1_ <- 1/N^2 * ((1 - ps)/ps * weights*y) %*% X
-        v_1 <- t(v1_)
-      }
-
-      v_2 <- 0
-      for(i in 1:nrow(X)){
-        v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
         v_2 <- v_2 + v_2i
       }
     }
@@ -229,14 +257,13 @@ probit <- function(...) {
 
   b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
 
-    hess_inv <- solve(hess)
+    hess_inv_neg <- solve(-hess)
     if (is.null(pop_size)) {
-      b <- - (psd/ps^2 * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
+      b <- - (psd/ps^2 * weights * (y - mu)) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
     } else {
-      b <- - (psd/ps^2 * weights * (y - mu + 1)) %*% X %*% hess_inv # TODO opposite sign here (?)
+      b <- - (psd/ps^2 * weights * (y - mu + 1)) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
     }
-    list(b = b,
-         hess_inv = hess_inv)
+    list(b = b)
   }
 
   b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {

@@ -36,6 +36,7 @@ NULL
 #' @param verbose verbose, numeric
 #' @param x Logical value indicating whether to return model matrix of covariates as a part of output.
 #' @param y Logical value indicating whether to return vector of outcome variable as a part of output.
+#' @param se Logical value indicating whether to calculate and return standard error of estimated mean.
 #' @param ... Additional, optional arguments.
 #'
 #' @details Let \mjseqn{y} be the response variable for which we want to estimate population mean
@@ -186,7 +187,8 @@ NULL
 #'  \item{\code{nonprob_size} -- size of non-probability sample}
 #'  \item{\code{prob_size} -- size of probability sample}
 #'  \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
-#'  \item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function
+#'  \item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function.
+#'  Additionaly when variables selection model for outcome variable is fitting, list includes of \code{cve} -- the error for each value of `lambda`, averaged accross the cross-validation folds.
 #'  [stats::glm()], in case of nearest neigbour imputation object containing list returned by [RANN::nn2()].}
 #'  \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 #'  \itemize{
@@ -202,6 +204,8 @@ NULL
 #'  \item{\code{formula} -- the formula supplied.}
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
 #'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NULL`.}
+#'  \item{\code{cve} -- the error for each value of `lambda`, averaged accross the cross-validation folds for variables selection model
+#'  when propensity score model is fitting.}
 #'   }
 #'  }
 #' }

@@ -217,6 +217,7 @@ u_theta <- function(R,
                     ) {
 
 
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
 
@@ -255,6 +256,7 @@ u_theta_der <-  function(R,
                          )
                          {
 
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der
@@ -309,6 +311,7 @@ loss_theta <- function(par,
                        method_selection,
                        h) {
 
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv

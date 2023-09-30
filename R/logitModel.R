@@ -1,9 +1,18 @@
+#' @title - logit model
+#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description - Function returns all methods/objects/functions required for the model estimation assuming a logit link function.
+#'
+#' @param ... - Additional, optional arguments.
+#'
+#' @return List with selected methods/objects/functions.
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
 #' @export
 
-logit <- function(...) {
+logit_model_nonprobsvy <- function(...) {
 
   link <- function(mu) {log(mu / (1 - mu))} # link
   inv_link <- function(eta) {exp(eta)/(1 + exp(eta))} # inverse link
@@ -134,30 +143,48 @@ logit <- function(...) {
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
       N <- pop_size
       n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-      if (est_method == "mle" || (est_method == "gee" && h == 2)) {
+      if (is.null(pop_totals)) {
+        if (est_method == "mle" || (est_method == "gee" && h == 2)) {
+          if (is.null(N)) {
+            N <- sum(1/ps)
+            v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2))
+            v1_ <- 1/N^2 * ((1 - ps)/ps * weights * (y - mu)) %*% X
+            v_1 <- t(v1_)
+          } else {
+            v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+            v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
+            v_1 <- t(v1_)
+          }
+          v_2 <- 0
+          for(i in 1:n){
+            v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
+            v_2 <- v_2 + v_2i
+          }
+        } else if (est_method == "gee" && h == 1) {
+          if (is.null(N)) {
+            N <- sum(1/ps)
+            v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
+            v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
+            v_1 <- t(v1_)
+          } else {
+            v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights*y^2))
+            v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
+            v_1 <- t(v1_)
+          }
+          v_2 <- 0
+          for(i in 1:n){
+            v_2i <- (1 - ps[i]) / ps[i] * X[i,] %*% t(X[i,])
+            v_2 <- v_2 + v_2i
+          }
+        }
+      } else { # case for population totals available, equal to h=1 when probability sample available
         if (is.null(N)) {
           N <- sum(1/ps)
           v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2))
-          v1_ <- 1/N^2 * ((1 - ps)/ps * weights * (y - mu)) %*% X
-          v_1 <- t(v1_)
-        } else {
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
-          v1_ <- 1/N^2 * ((1 - ps)/ps * weights * y) %*% X
-          v_1 <- t(v1_)
-        }
-        v_2 <- 0
-        for(i in 1:n){
-          v_2i <- (1 - ps[i]) * X[i,] %*% t(X[i,])
-          v_2 <- v_2 + v_2i
-        }
-      } else if ((est_method == "gee" && h == 1) || !is.null(pop_totals)) {
-        if (is.null(N)) {
-          N <- sum(1/ps)
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * (y - mu)^2)) # TODO
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * (y - mu)) %*% X
           v_1 <- t(v1_)
         } else {
-          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * (weights*y)^2))
+          v11 <- 1/N^2 * sum(((1 - ps)/ps^2 * weights * y^2))
           v1_ <- 1/N^2 * ((1 - ps)/ps^2 * weights * y) %*% X
           v_1 <- t(v1_)
         }
@@ -177,12 +204,11 @@ logit <- function(...) {
     variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) {
 
       N <- sum(1/svydesign$prob)
-
       #########################
       if (!is.null(pop_totals)) {
         cov <- Matrix::Matrix(nrow = length(pop_totals), ncol = length(pop_totals), data = 0, sparse = TRUE)
       } else {
-        if (est_method == "mle" || (est_method == "gee" && h == 2)) {
+        if (est_method == "mle" || (est_method == "gee" && h == 2 && is.null(pop_totals)) ) {
           svydesign$prob <- as.vector(1/eps * svydesign$prob)
           #X <- as.matrix(eps * as.data.frame(X))
         }
@@ -202,14 +228,13 @@ logit <- function(...) {
 
     b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
 
-      hess_inv <- solve(hess) #MASS::ginv(hess)
+      hess_inv_neg <- solve(-hess) #MASS::ginv(hess)
       if (is.null(pop_size)) {
-        b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
+        b <- - ((1 - ps)/ps * weights * (y - mu)) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
       } else {
-        b <- - ((1 - ps)/ps * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
+        b <- - ((1 - ps)/ps * weights * y) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
       }
-      list(b = b,
-           hess_inv = hess_inv)
+      list(b = b)
     }
 
     b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {

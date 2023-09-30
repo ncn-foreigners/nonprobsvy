@@ -29,6 +29,7 @@ nonprob(
   verbose = FALSE,
   x = TRUE,
   y = TRUE,
+  se = TRUE,
   ...
 )
 }
@@ -81,6 +82,8 @@ nonprob(
 
 \item{y}{Logical value indicating whether to return vector of outcome variable as a part of output.}
 
+\item{se}{Logical value indicating whether to calculate and return standard error of estimated mean.}
+
 \item{...}{Additional, optional arguments.}
 }
 \value{
@@ -102,7 +105,8 @@ with type \code{list} containing:\cr
 \item{\code{nonprob_size} -- size of non-probability sample}
 \item{\code{prob_size} -- size of probability sample}
 \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
-\item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function
+\item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function.
+Additionaly when variables selection model for outcome variable is fitting, list includes of \code{cve} -- the error for each value of \code{lambda}, averaged accross the cross-validation folds.
 \code{\link[stats:glm]{stats::glm()}}, in case of nearest neigbour imputation object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}.}
 \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 \itemize{
@@ -118,6 +122,8 @@ with type \code{list} containing:\cr
 \item{\code{formula} -- the formula supplied.}
 \item{\code{df_residual} -- the residual degrees of freedom.}
 \item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NULL}.}
+\item{\code{cve} -- the error for each value of \code{lambda}, averaged accross the cross-validation folds for variables selection model
+when propensity score model is fitting.}
 }
 }
 }

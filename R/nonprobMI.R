@@ -25,12 +25,18 @@ nonprobMI <- function(outcome,
                       verbose,
                       x,
                       y,
+                      se,
                       ...) {
 
   outcomes <- ff(outcome)
   output <- list()
-  confidence_interval <- list()
-  SE_values <- list()
+  if (se) {
+    confidence_interval <- list()
+    SE_values <- list()
+  } else {
+    confidence_interval <- NULL
+    SE_values <- NULL
+  }
   num_boot <- control_inference$num_boot
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
@@ -124,11 +130,11 @@ nonprobMI <- function(outcome,
       parameters <- model_obj$parameters
       OutcomeList <- model_obj$model
 
-      mu_hat <- ifelse(method_outcome == "glm", as.vector(y_rand_pred/N_est_rand), y_rand_pred)
+      mu_hat <- y_rand_pred
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
-
+    if (se) {
     # design based variance estimation based on approximations of the second-order inclusion probabilities
     if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
       var_obj <- internal_varMI(svydesign = svydesign,
@@ -157,7 +163,7 @@ nonprobMI <- function(outcome,
     } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
       # bootstrap variance
       if (control_inference$cores > 1) {
-        var <- bootMI_multicore(X_rand,
+       boot_obj <- bootMI_multicore(X_rand,
                                 X_nons,
                                 weights,
                                 y_nons,
@@ -174,7 +180,7 @@ nonprobMI <- function(outcome,
                                 cores = control_inference$cores,
                                 verbose = verbose)
       } else {
-        var <- bootMI(X_rand,
+        boot_obj <- bootMI(X_rand,
                       X_nons,
                       weights,
                       y_nons,
@@ -190,29 +196,38 @@ nonprobMI <- function(outcome,
                       pop_totals = pop_totals,
                       verbose = verbose)
       }
+      var <- boot_obj$var
+      mu_hat <- boot_obj$mu
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability",
                                                          prob = "probability sample in case of bootstrap variance"))))
+    } else {
+      stop("Invalid method for variance estimation.")
+    }
+      se <- sqrt(var)
+      alpha <- control_inference$alpha
+      z <- stats::qnorm(1-alpha/2)
+      # confidence interval based on the normal approximation
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                                       upper_bound = mu_hat + z * se
+      ))))
+    } else {
+      se <- NULL
     }
 
     X <- rbind(X_nons, X_rand) # joint model matrix
     #if (is.null(pop_size))
     pop_size <- N_est_rand # estimated pop_size
-    se <- sqrt(var)
-
-    alpha <- control_inference$alpha
-    z <- stats::qnorm(1-alpha/2)
-
-    # confidence interval based on the normal approximation
-    confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                upper_bound = mu_hat + z * se
-    ))))
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
   }
   output <- do.call(rbind, output)
-  confidence_interval <- do.call(rbind, confidence_interval)
-  SE_values <- do.call(rbind, SE_values)
-  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  if (!is.null(se)) {
+    confidence_interval <- do.call(rbind, confidence_interval)
+    SE_values <- do.call(rbind, SE_values)
+    rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  } else {
+    rownames(output) <- outcomes$f
+  }
   OutcomeList$method <- method_outcome
 
   structure(

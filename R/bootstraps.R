@@ -157,8 +157,10 @@ bootMI <- function(X_rand,
       }
     }
   }
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  boot_var
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 bootIPW <- function(X_rand,
@@ -186,7 +188,8 @@ bootIPW <- function(X_rand,
   mu_hats <- vector(mode = "numeric", length = num_boot)
   if (!is.null(weights_rand)) N <- sum(weights_rand)
   estimation_method <- get_method(est_method)
-  method <- get_method(method_selection)
+  method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection_function)
   inv_link <- method$make_link_inv
   k <- 1
 
@@ -217,7 +220,7 @@ bootIPW <- function(X_rand,
 
       ps_nons <- est_method_obj$ps_nons
       weights_nons <- 1/ps_nons
-      N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * 1/ps_nons), pop_size)
+      N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
 
       mu_hat_boot <- mu_hatIPW(y = y[strap_nons],
                                weights = weights[strap_nons],
@@ -262,9 +265,10 @@ bootIPW <- function(X_rand,
     }
     k <- k + 1
   }
-
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  list(boot_var = boot_var)
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 bootDR <- function(outcome,
@@ -409,7 +413,8 @@ bootDR <- function(outcome,
                                                weights_rand = NULL)
 
           theta_hat_strap <- h_object_strap$theta_h
-          method <- get_method(method_selection)
+          method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+          method <- get_method(method_selection_function)
           inv_link <- method$make_link_inv
           ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap_nons))
           weights_nons_strap <- 1/ps_nons_strap
@@ -458,7 +463,10 @@ bootDR <- function(outcome,
       }
     boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
     }
-  list(boot_var = boot_var)
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 bootDR_sel <- function(X,
@@ -519,8 +527,10 @@ bootDR_sel <- function(X,
     }
     k <- k + 1
   }
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  list(boot_var = boot_var)
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 # multicore
@@ -571,7 +581,8 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+                                                   "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -600,7 +611,8 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+                                                   "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -636,7 +648,8 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+                                                   "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -662,7 +675,8 @@ bootMI_multicore <- function(X_rand,
       cl <- parallel::makeCluster(cores)
       doParallel::registerDoParallel(cl)
       on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "nonprobMI_nn", "probit", "cloglog"))
+      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method",
+                                                   "controlSel", "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -681,8 +695,10 @@ bootMI_multicore <- function(X_rand,
         })
     }
   }
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  boot_var
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 #' @importFrom foreach %dopar%
@@ -716,14 +732,15 @@ bootIPW_multicore <- function(X_rand,
 
   if (!is.null(weights_rand)) N <- sum(weights_rand)
   estimation_method <- get_method(est_method)
-  method <- get_method(method_selection)
-
+  method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection_function)
   inv_link <- method$make_link_inv
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
+  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+                                               "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -803,10 +820,10 @@ bootIPW_multicore <- function(X_rand,
       }
       mu_hat_boot
   })
-
-  # można zmienić na num_boot-1 :)
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  list(boot_var = boot_var)
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 #' @importFrom foreach %dopar%
@@ -965,7 +982,8 @@ bootDR_multicore <- function(outcome,
                                              weights_rand = NULL)
 
         theta_hat_strap <- h_object_strap$theta_h
-        method <- get_method(method_selection)
+        method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+        method <- get_method(method_selection_function)
         inv_link <- method$make_link_inv
         ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_nons_strap))
         weights_nons_strap <- 1/ps_nons_strap
@@ -1046,7 +1064,8 @@ bootDR_sel_multicore <- function(X,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit", "start_fit", "get_method", "controlSel", "mle", "mu_hatIPW", "probit", "cloglog"))
+  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "mle",
+                                               "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -1082,6 +1101,8 @@ bootDR_sel_multicore <- function(X,
              N_nons = N_nons,
              N_rand = N_rand) #DR estimator
   })
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
-  list(boot_var = boot_var)
+  mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }

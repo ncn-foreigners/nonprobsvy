@@ -19,7 +19,8 @@ inline double loss_theta(const vec& par,
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
   Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  List method = get_method(method_selection);
+  std::string method_selection_function = method_selection + "_model_nonprobsvy";
+  List method = get_method(method_selection_function);
 
   Function inv_link = method["make_link_inv"];
 
@@ -77,7 +78,8 @@ inline arma::vec u_theta(const arma::vec& par,
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
   Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  List method = get_method(method_selection);
+  std::string method_selection_function = method_selection + "_model_nonprobsvy";
+  List method = get_method(method_selection_function);
 
   Function inv_link = method["make_link_inv"];
 
@@ -120,7 +122,8 @@ arma::mat u_theta_der(const arma::vec& par,
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
 
   Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  List method = get_method(method_selection);
+  std::string method_selection_function = method_selection + "_model_nonprobsvy";
+  List method = get_method(method_selection_function);
 
   Function inv_link = method["make_link_inv"];
   Function inv_link_der = method["make_link_inv_der"];
@@ -316,9 +319,9 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
   Rcpp::Function setup_lambda_cpp = nonprobsvy_env["setup_lambda"];
 
-  Rcpp::Function logit = nonprobsvy_env["logit"];
-  Rcpp::Function cloglog = nonprobsvy_env["cloglog"];
-  Rcpp::Function probit = nonprobsvy_env["probit"];
+  Rcpp::Function logit = nonprobsvy_env["logit_model_nonprobsvy"];
+  Rcpp::Function cloglog = nonprobsvy_env["cloglog_model_nonprobsvy"];
+  Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
 
   arma::vec weights;
   arma::vec loss_theta_av(nlambda, arma::fill::zeros);
@@ -400,7 +403,6 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       }
       loss_theta_av(i) = mean(loss_theta_vec);
     }
-    // TUTAJ
     lambda = lambdas1(loss_theta_av.index_min());
   }
   arma::vec theta = fit_nonprobsvy_rcpp(X_,
@@ -420,5 +422,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
   return List::create(_["theta_est"] = theta,
                       _["theta_selected"] = theta_selected,
                       _["min"] = loss_theta_av.min(),
-                      _["lambda"] = lambda);
+                      _["lambda"] = lambda,
+                      _["cv_error"] = loss_theta_av
+                      );
 }

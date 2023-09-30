@@ -162,6 +162,7 @@ internal_varIPW <- function(svydesign,
                             var_cov2 = var_cov2) {
 
   eta <- as.vector(X_nons %*% as.matrix(theta))
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
   b_obj <- method$b_vec_ipw(X = X_nons,
                             ps = ps_nons,
@@ -173,11 +174,10 @@ internal_varIPW <- function(svydesign,
                             pop_size = pop_size,
                             weights = weights)
   b <- b_obj$b
-  hess_inv <- b_obj$hess_inv
 
   # sparse matrix
   b_vec <- cbind(-1, b)
-  H_mx <- cbind(0, N * hess_inv)
+  H_mx <- cbind(0, N * solve(hess))
   sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)
 
   V1 <- var_cov1(X = X_nons,
@@ -252,6 +252,7 @@ internal_varDR <- function(OutcomeModel,
     } else {
     eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
     h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
+    method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
     method <- get_method(method_selection)
     est_method <- get_method(est_method)
     #psd <- method$make_link_inv_der(eta)
@@ -359,9 +360,13 @@ internal_varMI <- function(svydesign,
     } else {
       beta <- parameters[,1]
       eta_nons <- X_nons %*% beta
-      eta_rand <- pop_totals %*% beta
+      if (family %in% c("binomial", "poisson")) { # TODO consider this chunk of code
+        eta_rand <- pop_totals %*% beta / pop_totals[1]
+      } else {
+        eta_rand <- pop_totals %*% beta
+      }
 
-      mx <- 1/N * pop_totals * family_nonprobsvy$mu_der(eta_rand)
+      mx <- 1/N * pop_totals * as.vector(family_nonprobsvy$mu_der(eta_rand))
       c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
       residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 

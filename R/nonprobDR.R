@@ -30,6 +30,7 @@ nonprobDR <- function(selection,
                       verbose,
                       x,
                       y,
+                      se,
                       ...) {
 
   h <- control_selection$h
@@ -44,8 +45,13 @@ nonprobDR <- function(selection,
 
   outcomes <- ff(outcome)
   output <- list()
-  confidence_interval <- list()
-  SE_values <- list()
+  if (se) {
+    confidence_interval <- list()
+    SE_values <- list()
+  } else {
+    confidence_interval <- NULL
+    SE_values <- NULL
+  }
 
   for (k in 1:outcomes$l) {
     outcome <- outcomes$outcome[[k]]
@@ -354,7 +360,8 @@ nonprobDR <- function(selection,
         hess <- h_object$hess
         grad <- h_object$grad
         names(theta_hat) <- SelectionModel$total_names
-        method <- get_method(method_selection)
+        method_selection_function  <- paste(method_selection, "_model_nonprobsvy", sep = "")
+        method <- get_method(method_selection_function)
         inv_link <- method$make_link_inv
         dinv_link <- method$make_link_inv_der
         eta_nons <- theta_hat %*% t(SelectionModel$X_nons)
@@ -441,7 +448,7 @@ nonprobDR <- function(selection,
         # y_rand_pred <- family_nonprobsvy$mu(eta)
         # y_nons_pred <- outcome_model$glm$fitted.values
 
-        mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights*(OutcomeModel$y_nons - y_nons_pred))) + ifelse(method_outcome == "glm", 1/pop_size*y_rand_pred, y_rand_pred)
+        mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights*(OutcomeModel$y_nons - y_nons_pred))) + y_rand_pred
 
         if (method_outcome == "nn") {
           var_method <- "bootstrap"
@@ -452,129 +459,134 @@ nonprobDR <- function(selection,
         stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
       }
 
-    if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
-      if (overlap) {
-        var <- boot_overlap(X_rand = SelectionModel$X_rand,
-                            X_nons = SelectionModel$X_nons,
-                            y = OutcomeModel$y_nons,
-                            weights_nons = weights_nons,
-                            weights = weights,
-                            mu_hat = mu_hat,
-                            O_hat = O_hat,
-                            L_hat = L_hat,
-                            weights_rand = weights_rand,
-                            weights_rnons = weights_rnons,
-                            method_selection = method_selection,
-                            family_outcome = family_outcome,
-                            dependency = control_selection$dependence,
-                            N = N_nons,
-                            type = "DR",
-                            idx_nonprob = overlap_idx_nons,
-                            idx_prob = overlap_idx_rand,
-                            control = control_selection)
-        var <- as.vector(var)
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
-      } else {
-        var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
-                                  SelectionModel = SelectionModel,
-                                  y_nons_pred = y_nons_pred,
-                                  weights = weights,
-                                  weights_rand = weights_rand,
-                                  method_selection = method_selection,
-                                  control_selection = control_selection,
-                                  ps_nons = ps_nons,
-                                  theta = theta_hat,
-                                  hess = hess,
-                                  ps_nons_der = ps_nons_der,
-                                  est_ps_rand = est_ps_rand,
-                                  y_rand_pred = y_rand_pred,
-                                  N_nons = N_nons,
-                                  est_ps_rand_der = est_ps_rand_der,
-                                  svydesign = svydesign,
-                                  est_method = est_method,
-                                  h = h,
-                                  pop_totals = pop_totals,
-                                  sigma = sigma,
-                                  bias_correction = bias_corr)
-
-        var_prob <- var_obj$var_prob
-        var_nonprob <- var_obj$var_nonprob
-
-        var <- var_prob + var_nonprob
-        se_prob <- sqrt(var_prob)
-        se_nonprob <- sqrt(var_nonprob)
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-      }
-    } else if (var_method == "bootstrap") {
-      if (control_inference$cores > 1) {
-        var_obj <- bootDR_multicore(outcome = outcome,
-                                    data = data,
+    if (se) {
+      if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
+        if (overlap) {
+          var <- boot_overlap(X_rand = SelectionModel$X_rand,
+                              X_nons = SelectionModel$X_nons,
+                              y = OutcomeModel$y_nons,
+                              weights_nons = weights_nons,
+                              weights = weights,
+                              mu_hat = mu_hat,
+                              O_hat = O_hat,
+                              L_hat = L_hat,
+                              weights_rand = weights_rand,
+                              weights_rnons = weights_rnons,
+                              method_selection = method_selection,
+                              family_outcome = family_outcome,
+                              dependency = control_selection$dependence,
+                              N = N_nons,
+                              type = "DR",
+                              idx_nonprob = overlap_idx_nons,
+                              idx_prob = overlap_idx_rand,
+                              control = control_selection)
+          var <- as.vector(var)
+          SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+        } else {
+          var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
                                     SelectionModel = SelectionModel,
-                                    OutcomeModel = OutcomeModel,
-                                    family_outcome = family_outcome,
-                                    method_outcome = method_outcome,
-                                    num_boot = num_boot,
+                                    y_nons_pred = y_nons_pred,
                                     weights = weights,
                                     weights_rand = weights_rand,
-                                    R = R,
-                                    theta_hat,
-                                    mu_hat = mu_hat,
                                     method_selection = method_selection,
                                     control_selection = control_selection,
-                                    control_outcome = control_outcome,
-                                    control_inference = control_inference,
-                                    n_nons = n_nons,
-                                    n_rand = n_rand,
-                                    optim_method = optim_method,
+                                    ps_nons = ps_nons,
+                                    theta = theta_hat,
+                                    hess = hess,
+                                    ps_nons_der = ps_nons_der,
+                                    est_ps_rand = est_ps_rand,
+                                    y_rand_pred = y_rand_pred,
+                                    N_nons = N_nons,
+                                    est_ps_rand_der = est_ps_rand_der,
+                                    svydesign = svydesign,
                                     est_method = est_method,
                                     h = h,
-                                    maxit = maxit,
                                     pop_totals = pop_totals,
-                                    pop_size = pop_size,
-                                    pop_means = pop_means,
-                                    bias_correction = bias_corr,
-                                    cores = control_inference$cores,
-                                    verbose = verbose)
+                                    sigma = sigma,
+                                    bias_correction = bias_corr)
+
+          var_prob <- var_obj$var_prob
+          var_nonprob <- var_obj$var_nonprob
+
+          var <- var_prob + var_nonprob
+          se_prob <- sqrt(var_prob)
+          se_nonprob <- sqrt(var_nonprob)
+          SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+        }
+      } else if (var_method == "bootstrap") {
+        if (control_inference$cores > 1) {
+          boot_obj <- bootDR_multicore(outcome = outcome,
+                                      data = data,
+                                      SelectionModel = SelectionModel,
+                                      OutcomeModel = OutcomeModel,
+                                      family_outcome = family_outcome,
+                                      method_outcome = method_outcome,
+                                      num_boot = num_boot,
+                                      weights = weights,
+                                      weights_rand = weights_rand,
+                                      R = R,
+                                      theta_hat,
+                                      mu_hat = mu_hat,
+                                      method_selection = method_selection,
+                                      control_selection = control_selection,
+                                      control_outcome = control_outcome,
+                                      control_inference = control_inference,
+                                      n_nons = n_nons,
+                                      n_rand = n_rand,
+                                      optim_method = optim_method,
+                                      est_method = est_method,
+                                      h = h,
+                                      maxit = maxit,
+                                      pop_totals = pop_totals,
+                                      pop_size = pop_size,
+                                      pop_means = pop_means,
+                                      bias_correction = bias_corr,
+                                      cores = control_inference$cores,
+                                      verbose = verbose)
+        } else {
+          boot_obj <- bootDR(outcome = outcome,
+                            data = data,
+                            SelectionModel = SelectionModel,
+                            OutcomeModel = OutcomeModel,
+                            family_outcome = family_outcome,
+                            method_outcome = method_outcome,
+                            num_boot = num_boot,
+                            weights = weights,
+                            weights_rand = weights_rand,
+                            R = R,
+                            theta_hat,
+                            mu_hat = mu_hat,
+                            method_selection = method_selection,
+                            control_selection = control_selection,
+                            control_inference = control_inference,
+                            control_outcome = control_outcome,
+                            n_nons = n_nons,
+                            n_rand = n_rand,
+                            optim_method = optim_method,
+                            est_method = est_method,
+                            h = h,
+                            maxit = maxit,
+                            pop_totals = pop_totals,
+                            pop_size = pop_size,
+                            pop_means = pop_means,
+                            bias_correction = bias_corr,
+                            verbose = verbose)
+        }
+        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+        var <- boot_obj$var
+        mu_hat <- boot_obj$mu
       } else {
-        var_obj <- bootDR(outcome = outcome,
-                          data = data,
-                          SelectionModel = SelectionModel,
-                          OutcomeModel = OutcomeModel,
-                          family_outcome = family_outcome,
-                          method_outcome = method_outcome,
-                          num_boot = num_boot,
-                          weights = weights,
-                          weights_rand = weights_rand,
-                          R = R,
-                          theta_hat,
-                          mu_hat = mu_hat,
-                          method_selection = method_selection,
-                          control_selection = control_selection,
-                          control_inference = control_inference,
-                          control_outcome = control_outcome,
-                          n_nons = n_nons,
-                          n_rand = n_rand,
-                          optim_method = optim_method,
-                          est_method = est_method,
-                          h = h,
-                          maxit = maxit,
-                          pop_totals = pop_totals,
-                          pop_size = pop_size,
-                          pop_means = pop_means,
-                          bias_correction = bias_corr,
-                          verbose = verbose)
+        stop("Invalid method for variance estimation.")
       }
-      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
-      var <- var_obj$boot_var
+        se <- sqrt(var)
+        alpha <- control_inference$alpha
+        z <- stats::qnorm(1-alpha/2)
+        # confidence interval based on the normal approximation
+        confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                                         upper_bound = mu_hat + z * se))))
     } else {
-      stop("Invalid method for variance estimation.")
+      se <- NULL
     }
-    se <- sqrt(var)
-    alpha <- control_inference$alpha
-    z <- stats::qnorm(1-alpha/2)
-    # confidence interval based on the normal approximation
-    confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                upper_bound = mu_hat + z * se))))
     output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
     # OutcomeList$std_err <- ifelse(method_outcome == "glm", beta_statistics[,2], NULL)
     # names(OutcomeList$std_err) <- names(OutcomeList$coefficients)
@@ -586,9 +598,13 @@ nonprobDR <- function(selection,
     prop_scores <- c(ps_nons, est_ps_rand)
   }
   output <- do.call(rbind, output)
-  confidence_interval <- do.call(rbind, confidence_interval)
-  SE_values <- do.call(rbind, SE_values)
-  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  if (!is.null(se)) {
+    confidence_interval <- do.call(rbind, confidence_interval)
+    SE_values <- do.call(rbind, SE_values)
+    rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  } else {
+    rownames(output) <- outcomes$f
+  }
   OutcomeList$method <- method_outcome
 
   SelectionList <- list(coefficients = selection_model$theta_hat,

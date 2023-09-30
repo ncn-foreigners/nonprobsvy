@@ -85,7 +85,8 @@ mle <- function(...) {
                               control_selection,
                               ...) {
 
-    method <- get_method(method = method_selection)
+    method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+    method <- get_method(method = method_selection_function)
     max_lik <- method$make_max_lik # function for propensity score estimation
     loglike <- method$make_log_like
     gradient <- method$make_gradient
@@ -215,7 +216,8 @@ gee <- function(...) {
                               varcov = FALSE,
                               ...){
 
-    method <- get_method(method = method_selection)
+    method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+    method <- get_method(method = method_selection_function)
     inv_link <- method$make_link_inv
     h_object <- theta_h_estimation(R = R,
                                    X = X,
@@ -272,7 +274,8 @@ gee <- function(...) {
 # bias correction
 mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, boot = FALSE) {
 
-  method <- get_method(method_selection)
+  method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection_function)
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der
 
@@ -398,6 +401,7 @@ u_theta_beta_dr <- function(par,
                             method_selection,
                             family_nonprobsvy) {
 
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv
@@ -434,6 +438,7 @@ u_theta_ipw <- function(par,
                         weights,
                         method_selection) { # TODO
 
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
   inv_link_rev <- method$make_link_inv_rev
   inv_link <- method$make_link_inv
@@ -494,6 +499,7 @@ u_theta_beta_dr_jacob <- function(par,
                                   weights,
                                   method_selection,
                                   family_nonprobsvy){
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
 
   inv_link <- method$make_link_inv

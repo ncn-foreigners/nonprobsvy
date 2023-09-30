@@ -25,6 +25,7 @@ nonprobIPW <- function(selection,
                        verbose,
                        x,
                        y,
+                       se,
                        ...){
 
   h <- control_selection$h
@@ -39,8 +40,13 @@ nonprobIPW <- function(selection,
   outcome <- stats::as.formula(paste(target[2], dependents))
   outcomes <- ff(outcome)
   output <- list()
-  confidence_interval <- list()
-  SE_values <- list()
+  if (se) {
+    confidence_interval <- list()
+    SE_values <- list()
+  } else {
+    confidence_interval <- NULL
+    SE_values <- NULL
+  }
 
   # formula for outcome variable if outcome defined
   # dependents <- paste(selection, collapse = " ")
@@ -145,16 +151,18 @@ nonprobIPW <- function(selection,
 
         names(theta_hat) <- colnames(X)
         weights_nons <- 1/ps_nons
+        N <- sum(weights * weights_nons)
 
-        if (!is.null(pop_size)) {
-          N <- pop_size
-        } else {
-          N <- sum(weights * weights_nons)
-        }
+        # if (!is.null(pop_size)) {
+        #   N <- pop_size
+        # } else {
+        #   N <- sum(weights * weights_nons)
+        # }
+
         mu_hat <- mu_hatIPW(y = y_nons,
                             weights = weights,
                             weights_nons = weights_nons,
-                            N = N) # IPW estimator # consider using weighted.mean function
+                            N = ifelse(is.null(pop_size), N, pop_size)) # IPW estimator # consider using weighted.mean function
         #mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
 
        }
@@ -207,7 +215,8 @@ nonprobIPW <- function(selection,
         hess <- h_object$hess
         grad <- h_object$grad
         names(theta_hat) <- model$total_names
-        method <- get_method(method_selection)
+        method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+        method <- get_method(method_selection_function)
         inv_link <- method$make_link_inv
         dinv_link <- method$make_link_inv_der
         eta_nons <- theta_hat %*% t(X_nons)
@@ -234,12 +243,15 @@ nonprobIPW <- function(selection,
                                 df_residual = df_residual,
                                 log_likelihood = "NULL")
 
-        mu_hat <- mu_hatIPW(model$y_nons, weights = weights, weights_nons = weights_nons, N = N)
-      }
-      else {
+        mu_hat <- mu_hatIPW(model$y_nons,
+                            weights = weights,
+                            weights_nons = weights_nons,
+                            N = ifelse(is.null(pop_size), N, pop_size))
+      } else {
         stop("Please, provide svydesign object or pop_totals/pop_means.")
       }
 
+    if (se) {
       if (var_method == "analytic") {
         if (overlap) {
           var <- boot_overlap(X_rand = X_rand,
@@ -295,7 +307,7 @@ nonprobIPW <- function(selection,
       } else if (var_method == "bootstrap") {
 
         if (control_inference$cores > 1) {
-          var_obj <- bootIPW_multicore(X_rand = X_rand,
+          boot_obj <- bootIPW_multicore(X_rand = X_rand,
                                         X_nons = X_nons,
                                         y = y_nons,
                                         num_boot = num_boot,
@@ -318,7 +330,7 @@ nonprobIPW <- function(selection,
                                         cores = control_inference$cores,
                                         verbose = verbose)
         } else {
-          var_obj <- bootIPW(X_rand = X_rand,
+          boot_obj <- bootIPW(X_rand = X_rand,
                              X_nons = X_nons,
                              y = y_nons,
                              num_boot = num_boot,
@@ -341,21 +353,22 @@ nonprobIPW <- function(selection,
                              verbose = verbose)
         }
 
-        var <- var_obj$boot_var
+        var <- boot_obj$var
+        mu_hat <- boot_obj$mu
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
       } else {
         stop("Invalid method for variance estimation.")
       }
-    se <- sqrt(var)
-
-    alpha <- control_inference$alpha
-    z <- stats::qnorm(1-alpha/2)
-
-    # confidence interval based on the normal approximation
-    confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                     upper_bound = mu_hat + z * se
-                                                     ))))
-
+      se <- sqrt(var)
+      alpha <- control_inference$alpha
+      z <- stats::qnorm(1-alpha/2)
+      # confidence interval based on the normal approximation
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
+                                                                       upper_bound = mu_hat + z * se
+      ))))
+    }  else {
+      se <- NULL
+    }
 
     X <- rbind(X_nons, X_rand) # joint model matrix
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
@@ -367,9 +380,13 @@ nonprobIPW <- function(selection,
     prop_scores <- c(ps_nons, est_ps_rand)
   }
   output <- do.call(rbind, output)
-  confidence_interval <- do.call(rbind, confidence_interval)
-  SE_values <- do.call(rbind, SE_values)
-  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  if (!is.null(se)) {
+    confidence_interval <- do.call(rbind, confidence_interval)
+    SE_values <- do.call(rbind, SE_values)
+    rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  } else {
+    rownames(output) <- outcomes$f
+  }
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
 
   SelectionList <- list(coefficients = selection_model$theta_hat,
