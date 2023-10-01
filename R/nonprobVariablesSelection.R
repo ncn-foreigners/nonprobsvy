@@ -209,7 +209,7 @@ nonprobSel <- function(selection,
 
       y_rand_pred <- outcome_model$y_rand_pred
       y_nons_pred <- outcome_model$y_nons_pred
-      beta <- outcome_model$beta_hat
+      beta <- outcome_model$coefficients
       beta_errors <- sqrt(diag(outcome_model$variance_covariance))
       beta_statistics <- data.frame(beta = beta, beta_errors = beta_errors)
       sigma <- outcome_model$family$var

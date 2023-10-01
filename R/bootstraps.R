@@ -333,7 +333,8 @@ bootDR <- function(outcome,
                           par0 = rep(0, 2*p),
                           psel = p,
                           verbose = verbose)
-    boot_var <- var_obj$boot_var
+    boot_var <- var_obj$var
+    mu_hat_boot <- var_obj$mu
   } else {
     estimation_method <- get_method(est_method)
     if (is.null(pop_totals)) {
@@ -462,9 +463,8 @@ bootDR <- function(outcome,
         }
       }
     boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
+    mu_hat_boot <- mean(mu_hats)
     }
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
   list(var = boot_var,
        mu = mu_hat_boot)
 }
