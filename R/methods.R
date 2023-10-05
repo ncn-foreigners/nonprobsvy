@@ -112,13 +112,10 @@ print.nonprobsvy <- function(x, digits = 8, ...) {
     cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
         "\n\n", sep = "")
   }
-
   cat(
-    "Estimated population mean: ", format(x$output$mean, digits = digits),
-    "\nWith overall std.err of: ", format(x$output$SE, digits = digits),
-    "\nConfidence interval:\n", sep = " "
+    "Estimated population mean with overall std.err and confidence interval:\n\n"
   )
-  print(x$confidence_interval)
+  print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)
 }
 #' @method print summary_nonprobsvy

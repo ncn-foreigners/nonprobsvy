@@ -45,7 +45,7 @@ nonprobSel <- function(selection,
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
   h <- control_selection$h
-  lambda <- control_selection$lambda
+  lambda_control <- control_selection$lambda
   lambda_min <- control_selection$lambda_min
   nlambda <- control_selection$nlambda
   num_boot <- control_inference$num_boot
@@ -88,217 +88,218 @@ nonprobSel <- function(selection,
     outcome <- outcomes$outcome[[k]]
 
     if (is.null(pop_totals) && !is.null(svydesign)) {
+      pop_totals_sel <- pop_totals
 
-    Model <- model_frame(formula = outcome,
-                         data = data,
-                         svydesign = svydesign,
-                         pop_size = pop_size,
-                         weights = weights)
-    OutcomeModel <- SelectionModel <- Model
+      Model <- model_frame(formula = outcome,
+                           data = data,
+                           svydesign = svydesign,
+                           pop_size = pop_size,
+                           weights = weights)
+      OutcomeModel <- SelectionModel <- Model
 
-    y_nons <- Model$y_nons
-    ps_rand <- svydesign$prob
-    weights_rand <- 1/ps_rand
-    weights_sum <- sum(weights_rand, weights)
+      y_nons <- Model$y_nons
+      ps_rand <- svydesign$prob
+      weights_rand <- 1/ps_rand
+      weights_sum <- sum(weights_rand, weights)
 
-    R_nons <- rep(1, nrow(Model$X_nons))
-    R_rand <- rep(0, nrow(Model$X_rand))
-    R <- c(R_rand, R_nons)  # a vector of the binary indicator of belonging to the nonprobability sample; 1 if the unit belongs, 0 otherwise
+      R_nons <- rep(1, nrow(Model$X_nons))
+      R_rand <- rep(0, nrow(Model$X_rand))
+      R <- c(R_rand, R_nons)  # a vector of the binary indicator of belonging to the nonprobability sample; 1 if the unit belongs, 0 otherwise
 
-    loc_nons <- which(R == 1)
-    loc_rand <- which(R == 0)
+      loc_nons <- which(R == 1)
+      loc_rand <- which(R == 0)
 
-    n_nons <- nrow(Model$X_nons)
-    n_rand <- nrow(Model$X_rand)
-    X <- rbind(Model$X_rand, Model$X_nons) # joint matrix
-    #X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
-    X_stand <- ncvreg::std(X) # penalizing without an intercept
-    prior_weights <- c(weights_rand, weights)
+      n_nons <- nrow(Model$X_nons)
+      n_rand <- nrow(Model$X_rand)
+      X <- rbind(Model$X_rand, Model$X_nons) # joint matrix
+      #X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
+      X_stand <- ncvreg::std(X) # penalizing without an intercept
+      prior_weights <- c(weights_rand, weights)
 
-    method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-    method <- get_method(method_selection_function)
-    inv_link <- method$make_link_inv
+      method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+      method <- get_method(method_selection_function)
+      inv_link <- method$make_link_inv
 
-    y_rand <- vector(mode = "numeric", length = n_rand)
-    y <- c(y_rand, y_nons) # outcome variable for joint model
-    n <- nrow(X)
-    p <- ncol(X)
-    N_rand <- sum(weights_rand)
-
-    # Cross-validation for variable selection
-    if (verbose == TRUE & lambda == -1) {
-      cat("Selection model\n")
-    }
-    cv <- cv_nonprobsvy_rcpp(X = X_stand,
-                             R = R,
-                             weights_X = prior_weights,
-                             method_selection = method_selection,
-                             h = h,
-                             maxit = maxit,
-                             eps = eps,
-                             lambda_min = lambda_min,
-                             nlambda = nlambda,
-                             nfolds = control_selection$nfolds,
-                             penalty = control_selection$penalty,
-                             a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
-                             lambda = lambda,
-                             pop_totals = pop_totals,
-                             verbose = verbose)
-    #theta_est <- cv$theta_est[cv$theta_est != 0]
-    min <- cv$min
-    lambda <- cv$lambda
-    theta_selected <- c(0, cv$theta_selected + 1)
-    cve_selection <- cv$cv_error
-    lambda_selection <- cv$lambdas
-    #names(theta_est) <- colnames(X)[theta_selected + 1]
-
-    nlambda <- control_outcome$nlambda
-    if (verbose == TRUE) {
-      cat("Outcome model\n")
-    }
-    beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
-                              y = y_nons,
-                              penalty = control_outcome$penalty,
-                              family = family_outcome,
-                              nlambda = nlambda,
-                              trace = verbose,
-                              nfolds = control_outcome$nfolds,
-                              gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP))
-
-    beta_est <- beta$fit$beta[,beta$min]
-    beta_selected <- which(abs(beta_est) != 0) - 1
-    beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
-    cve_outcome <- beta$cve
-    lambda_outcome <- beta$lambda
-    lambda_min_outcome <- beta$lambda.min
-
-    # Estimating theta, beta parameters using selected variables
-    # beta_selected <- beta_selected[-1] - 1
-
-    idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-    psel <- length(idx)
-    Xsel <- as.matrix(X[, idx + 1])
-    X_design <- cbind(1, Xsel)
-    colnames(X_design) <- c("(Intercept)", colnames(Xsel))
-    par0 <- rep(0, 2*(psel + 1))
-
-    ################################## ESTIMATION on selected variables
-    if (bias_corr == TRUE) {
-
-      #mm <- get_method(control_inference$est_method)
-      estimation_model <- mm(X = X_design,
-                             y = y,
-                             weights = weights,
-                             weights_rand = weights_rand,
-                             R = R,
-                             n_nons = n_nons,
-                             n_rand = n_rand,
-                             method_selection = method_selection,
-                             family = family_nonprobsvy)
-      selection_model <- estimation_model$selection
-      OutcomeList <- outcome_model <- estimation_model$outcome
-
-      theta <- selection_model$theta_hat
-      grad <- selection_model$grad
-      hess <- selection_model$hess
-      ps_nons <- selection_model$ps_nons
-      est_ps_rand <- selection_model$est_ps_rand
-      ps_nons_der <- selection_model$ps_nons_der
-      est_ps_rand_der <- selection_model$est_ps_rand_der
-      theta_errors <- sqrt(diag(selection_model$variance_covariance))
-
-      y_rand_pred <- outcome_model$y_rand_pred
-      y_nons_pred <- outcome_model$y_nons_pred
-      beta <- outcome_model$coefficients
-      beta_errors <- sqrt(diag(outcome_model$variance_covariance))
-      beta_statistics <- data.frame(beta = beta, beta_errors = beta_errors)
-      sigma <- outcome_model$family$var
-
-      weights_nons <- 1/ps_nons
-      N_nons <- sum(weights * weights_nons)
+      y_rand <- vector(mode = "numeric", length = n_rand)
+      y <- c(y_rand, y_nons) # outcome variable for joint model
+      n <- nrow(X)
+      p <- ncol(X)
       N_rand <- sum(weights_rand)
 
-      OutcomeModel$X_nons <- cbind(1, OutcomeModel$X_nons[,idx+1])
-      SelectionModel$X_nons <- cbind(1, SelectionModel$X_nons[,idx+1])
+      # Cross-validation for variable selection
+      if (verbose == TRUE & lambda_control == -1) {
+        cat("Selection model\n")
+      }
+      cv <- cv_nonprobsvy_rcpp(X = X_stand,
+                               R = R,
+                               weights_X = prior_weights,
+                               method_selection = method_selection,
+                               h = h,
+                               maxit = maxit,
+                               eps = eps,
+                               lambda_min = lambda_min,
+                               nlambda = nlambda,
+                               nfolds = control_selection$nfolds,
+                               penalty = control_selection$penalty,
+                               a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
+                               lambda = lambda_control,
+                               pop_totals = pop_totals,
+                               verbose = verbose)
+      #theta_est <- cv$theta_est[cv$theta_est != 0]
+      min <- cv$min
+      lambda <- cv$lambda
+      theta_selected <- c(0, cv$theta_selected + 1)
+      cve_selection <- cv$cv_error
+      lambda_selection <- cv$lambdas
+      #names(theta_est) <- colnames(X)[theta_selected + 1]
 
-      OutcomeModel$X_rand <- cbind(1, OutcomeModel$X_rand[,idx+1])
-      SelectionModel$X_rand <- cbind(1, SelectionModel$X_rand[,idx+1])
+      nlambda <- control_outcome$nlambda
+      if (verbose == TRUE) {
+        cat("Outcome model\n")
+      }
+      beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1],
+                                y = y_nons,
+                                penalty = control_outcome$penalty,
+                                family = family_outcome,
+                                nlambda = nlambda,
+                                trace = verbose,
+                                nfolds = control_outcome$nfolds,
+                                gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP))
 
-    } else {
-      # OUTCOME MODEL
-      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
-      model_obj <- MethodOutcome(outcome = outcome,
-                                 data = data,
-                                 weights = weights,
-                                 family_outcome = family_outcome,
-                                 X_nons = X_design[loc_nons,],
-                                 y_nons = OutcomeModel$y_nons,
-                                 X_rand = X_design[loc_rand,],
-                                 control = control_outcome,
-                                 n_nons = n_nons,
-                                 n_rand = n_rand,
-                                 model_frame = OutcomeModel$model_frame[,idx+1],
-                                 vars_selection = control_inference$vars_selection,
-                                 pop_totals = pop_totals)
+      beta_est <- beta$fit$beta[,beta$min]
+      beta_selected <- which(abs(beta_est) != 0) - 1
+      beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
+      cve_outcome <- beta$cve
+      lambda_outcome <- beta$lambda
+      lambda_min_outcome <- beta$lambda.min
 
-      y_rand_pred <- model_obj$y_rand_pred
-      y_nons_pred <- model_obj$y_nons_pred
-      # beta_statistics <- model_obj$parameters
-      OutcomeList <- model_obj$model
-      # beta_errors <- model_obj$parameters[,2]
-      # beta <- model_obj$parameters[,1]
-      sigma <- NULL
+      # Estimating theta, beta parameters using selected variables
+      # beta_selected <- beta_selected[-1] - 1
 
-      # SELECTION MODEL
-      model_sel <- internal_selection(X = X_design,
-                                      X_nons = X_design[loc_nons,],
-                                      X_rand = X_design[loc_rand,],
-                                      weights = weights,
-                                      weights_rand = weights_rand,
-                                      R = R,
-                                      method_selection = method_selection,
-                                      optim_method = optim_method,
-                                      h = h,
-                                      est_method = est_method,
-                                      maxit = maxit,
-                                      control_selection = control_selection)
+      idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
+      psel <- length(idx)
+      Xsel <- as.matrix(X[, idx + 1])
+      X_design <- cbind(1, Xsel)
+      colnames(X_design) <- c("(Intercept)", colnames(Xsel))
+      par0 <- rep(0, 2*(psel + 1))
 
-      estimation_method <- get_method(est_method)
-      selection_model <- estimation_method$estimation_model(model = model_sel,
-                                                      method_selection = method_selection)
-      theta <- selection_model$theta_hat
-      #grad <- est_method_obj$grad
-      hess <- selection_model$hess
-      ps_nons <- selection_model$ps_nons
-      est_ps_rand <- selection_model$est_ps_rand
-      ps_nons_der <- selection_model$ps_nons_der
-      est_ps_rand_der <- selection_model$est_ps_rand_der
-      theta_errors <- sqrt(diag(selection_model$variance_covariance))
-      #log_likelihood <- est_method_obj$log_likelihood
-      #df_residual <- est_method_obj$df_residual
+      ################################## ESTIMATION on selected variables
+      if (bias_corr == TRUE) {
 
-      names(theta) <- colnames(X_design)
-      weights_nons <- 1/ps_nons
-      N_nons <- sum(weights * weights_nons)
-      N_rand <- sum(weights_rand)
+        #mm <- get_method(control_inference$est_method)
+        estimation_model <- mm(X = X_design,
+                               y = y,
+                               weights = weights,
+                               weights_rand = weights_rand,
+                               R = R,
+                               n_nons = n_nons,
+                               n_rand = n_rand,
+                               method_selection = method_selection,
+                               family = family_nonprobsvy)
+        selection_model <- estimation_model$selection
+        OutcomeList <- outcome_model <- estimation_model$outcome
 
-      OutcomeModel$X_nons <- cbind(1, OutcomeModel$X_nons[,idx+1])
-      SelectionModel$X_nons <- cbind(1, SelectionModel$X_nons[,idx+1])
+        theta <- selection_model$theta_hat
+        grad <- selection_model$grad
+        hess <- selection_model$hess
+        ps_nons <- selection_model$ps_nons
+        est_ps_rand <- selection_model$est_ps_rand
+        ps_nons_der <- selection_model$ps_nons_der
+        est_ps_rand_der <- selection_model$est_ps_rand_der
+        theta_errors <- sqrt(diag(selection_model$variance_covariance))
 
-      OutcomeModel$X_rand <- cbind(1, OutcomeModel$X_rand[,idx+1])
-      SelectionModel$X_rand <- cbind(1, SelectionModel$X_rand[,idx+1])
-    }
+        y_rand_pred <- outcome_model$y_rand_pred
+        y_nons_pred <- outcome_model$y_nons_pred
+        beta <- outcome_model$coefficients
+        beta_errors <- sqrt(diag(outcome_model$variance_covariance))
+        beta_statistics <- data.frame(beta = beta, beta_errors = beta_errors)
+        sigma <- outcome_model$family$var
 
-    if(is.null(pop_size)) pop_size <- N_nons
-    mu_hat <- mu_hatDR(y = y_nons,
-                       y_nons = y_nons_pred,
-                       y_rand = y_rand_pred,
-                       weights = weights,
-                       weights_nons = weights_nons,
-                       weights_rand = weights_rand,
-                       N_nons = N_nons,
-                       N_rand = N_rand) #DR estimator
+        weights_nons <- 1/ps_nons
+        N_nons <- sum(weights * weights_nons)
+        N_rand <- sum(weights_rand)
+
+        OutcomeModel$X_nons <- cbind(1, OutcomeModel$X_nons[,idx+1])
+        SelectionModel$X_nons <- cbind(1, SelectionModel$X_nons[,idx+1])
+
+        OutcomeModel$X_rand <- cbind(1, OutcomeModel$X_rand[,idx+1])
+        SelectionModel$X_rand <- cbind(1, SelectionModel$X_rand[,idx+1])
+
+      } else {
+        # OUTCOME MODEL
+        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
+        model_obj <- MethodOutcome(outcome = outcome,
+                                   data = data,
+                                   weights = weights,
+                                   family_outcome = family_outcome,
+                                   X_nons = X_design[loc_nons,],
+                                   y_nons = OutcomeModel$y_nons,
+                                   X_rand = X_design[loc_rand,],
+                                   control = control_outcome,
+                                   n_nons = n_nons,
+                                   n_rand = n_rand,
+                                   model_frame = OutcomeModel$model_frame[,idx+1],
+                                   vars_selection = control_inference$vars_selection,
+                                   pop_totals = pop_totals)
+
+        y_rand_pred <- model_obj$y_rand_pred
+        y_nons_pred <- model_obj$y_nons_pred
+        # beta_statistics <- model_obj$parameters
+        OutcomeList <- model_obj$model
+        # beta_errors <- model_obj$parameters[,2]
+        # beta <- model_obj$parameters[,1]
+        sigma <- NULL
+
+        # SELECTION MODEL
+        model_sel <- internal_selection(X = X_design,
+                                        X_nons = X_design[loc_nons,],
+                                        X_rand = X_design[loc_rand,],
+                                        weights = weights,
+                                        weights_rand = weights_rand,
+                                        R = R,
+                                        method_selection = method_selection,
+                                        optim_method = optim_method,
+                                        h = h,
+                                        est_method = est_method,
+                                        maxit = maxit,
+                                        control_selection = control_selection)
+
+        estimation_method <- get_method(est_method)
+        selection_model <- estimation_method$estimation_model(model = model_sel,
+                                                        method_selection = method_selection)
+        theta <- selection_model$theta_hat
+        #grad <- est_method_obj$grad
+        hess <- selection_model$hess
+        ps_nons <- selection_model$ps_nons
+        est_ps_rand <- selection_model$est_ps_rand
+        ps_nons_der <- selection_model$ps_nons_der
+        est_ps_rand_der <- selection_model$est_ps_rand_der
+        theta_errors <- sqrt(diag(selection_model$variance_covariance))
+        #log_likelihood <- est_method_obj$log_likelihood
+        #df_residual <- est_method_obj$df_residual
+
+        names(theta) <- colnames(X_design)
+        weights_nons <- 1/ps_nons
+        N_nons <- sum(weights * weights_nons)
+        N_rand <- sum(weights_rand)
+
+        OutcomeModel$X_nons <- cbind(1, OutcomeModel$X_nons[,idx+1])
+        SelectionModel$X_nons <- cbind(1, SelectionModel$X_nons[,idx+1])
+
+        OutcomeModel$X_rand <- cbind(1, OutcomeModel$X_rand[,idx+1])
+        SelectionModel$X_rand <- cbind(1, SelectionModel$X_rand[,idx+1])
+      }
+
+      if(is.null(pop_size)) pop_size <- N_nons
+      mu_hat <- mu_hatDR(y = y_nons,
+                         y_nons = y_nons_pred,
+                         y_rand = y_rand_pred,
+                         weights = weights,
+                         weights_nons = weights_nons,
+                         weights_rand = weights_rand,
+                         N_nons = N_nons,
+                         N_rand = N_rand) #DR estimator
 
     } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) { # TODO
       if (!is.null(pop_means)) {
@@ -337,7 +338,7 @@ nonprobSel <- function(selection,
       p <- ncol(X)
 
       # Cross-validation for variable selection
-      if (verbose == TRUE & lambda == -1) {
+      if (verbose == TRUE & lambda_control == -1) {
         cat("Selection model\n")
       }
       cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO TO FIX
@@ -352,7 +353,7 @@ nonprobSel <- function(selection,
                                nfolds = control_selection$nfolds,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
-                               lambda = lambda,
+                               lambda = lambda_control,
                                pop_totals = pop_totals[-1],
                                verbose = verbose)
       min <- cv$min
@@ -464,7 +465,7 @@ nonprobSel <- function(selection,
 
       OutcomeModel$X_nons <- cbind(1, OutcomeModel$X_nons[,idx+1])
       SelectionModel$X_nons <- cbind(1, SelectionModel$X_nons[,idx+1])
-      pop_totals <- pop_totals_sel
+      #pop_totals <- pop_totals_sel
 
       mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights * (Model$y_nons - y_nons_pred))) + 1/pop_size * y_rand_pred
     } else {
@@ -491,7 +492,7 @@ nonprobSel <- function(selection,
                                   svydesign = svydesign,
                                   est_method = est_method,
                                   h = h,
-                                  pop_totals = pop_totals,
+                                  pop_totals = pop_totals_sel,
                                   sigma = sigma,
                                   bias_correction = bias_corr)
 
@@ -526,7 +527,7 @@ nonprobSel <- function(selection,
                                   est_method = est_method,
                                   h = h,
                                   maxit = maxit,
-                                  pop_totals = pop_totals,
+                                  pop_totals = pop_totals_sel,
                                   pop_size = pop_size,
                                   pop_means = pop_means,
                                   cores = control_inference$cores,
@@ -554,7 +555,7 @@ nonprobSel <- function(selection,
                         est_method = est_method,
                         h = h,
                         maxit = maxit,
-                        pop_totals = pop_totals,
+                        pop_totals = pop_totals_sel,
                         pop_size = pop_size,
                         pop_means = pop_means,
                         verbose = verbose)
@@ -673,6 +674,7 @@ nonprobSelM <- function(outcome,
   num_boot <- control_inference$num_boot
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
+      pop_totals_sel <- pop_totals
       outcome <- outcomes$outcome[[k]]
       Model <- model_frame(formula = outcome,
                            data = data,
@@ -826,7 +828,7 @@ nonprobSelM <- function(outcome,
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
-      pop_totals <- pop_totals[beta_selected+1]
+      pop_totals_sel <- pop_totals[beta_selected+1]
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,
@@ -839,7 +841,7 @@ nonprobSelM <- function(outcome,
                                  n_rand = NULL,
                                  model_frame = NULL,
                                  vars_selection = control_inference$vars_selection,
-                                 pop_totals = pop_totals)
+                                 pop_totals = pop_totals_sel)
 
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
@@ -868,7 +870,7 @@ nonprobSelM <- function(outcome,
                                   N = N_est_rand,
                                   family = family_outcome,
                                   parameters = model_obj$parameters,
-                                  pop_totals = pop_totals)
+                                  pop_totals = pop_totals_sel)
 
         var_nonprob <- var_obj$var_nonprob
         var_prob <- var_obj$var_prob
@@ -895,7 +897,7 @@ nonprobSelM <- function(outcome,
                                   method = method_outcome,
                                   control_outcome = control_outcome,
                                   control_inference = control_inference,
-                                  pop_totals = pop_totals,
+                                  pop_totals = pop_totals_sel,
                                   cores = control_inference$cores,
                                   verbose = verbose)
         } else {
@@ -913,7 +915,7 @@ nonprobSelM <- function(outcome,
                         method = method_outcome,
                         control_outcome = control_outcome,
                         control_inference = control_inference,
-                        pop_totals = pop_totals,
+                        pop_totals = pop_totals_sel,
                         verbose = verbose)
 
         }
@@ -1004,7 +1006,7 @@ nonprobSelP <- function(selection,
   eps <- control_selection$epsilon
   maxit <- control_selection$maxit
   h <- control_selection$h
-  lambda <- control_selection$lambda
+  lambda_control <- control_selection$lambda
   lambda_min <- control_selection$lambda_min
   nlambda <- control_selection$nlambda
   nfolds <- control_selection$nfolds
@@ -1026,7 +1028,6 @@ nonprobSelP <- function(selection,
     confidence_interval <- NULL
     SE_values <- NULL
   }
-
 
   for (k in 1:outcomes$l) {
 
@@ -1057,6 +1058,7 @@ nonprobSelP <- function(selection,
     # }
 
     if (is.null(pop_totals)) {
+      pop_totals_sel <- pop_totals
 
       Model <- model_frame(formula = outcomes$outcome[[k]],
                            data = data,
@@ -1105,7 +1107,7 @@ nonprobSelP <- function(selection,
                                nfolds = control_selection$nfolds,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
-                               lambda = lambda,
+                               lambda = lambda_control,
                                pop_totals = pop_totals,
                                verbose = verbose)
       min <- cv$min
@@ -1172,7 +1174,7 @@ nonprobSelP <- function(selection,
                            pop_size = pop_size,
                            weights = weights)
 
-      ######## VARS SELECTION ###########3
+      ######## VARS SELECTION ###########
       y_nons <- Model$y_nons
 
       R = rep(1, nrow(Model$X_nons))
@@ -1194,6 +1196,8 @@ nonprobSelP <- function(selection,
       p <- ncol(X)
 
       # Cross-validation for variable selection
+      # print(head(X_stand))
+      # print(pop_totals)
       cv <- cv_nonprobsvy_rcpp(X = X_stand, # TODO TO FIX
                                R = R,
                                weights_X = weights,
@@ -1206,7 +1210,7 @@ nonprobSelP <- function(selection,
                                nfolds = control_selection$nfolds,
                                penalty = control_selection$penalty,
                                a = switch(control_selection$penalty, SCAD = control_selection$a_SCAD, control_selection$a_MCP),
-                               lambda = lambda,
+                               lambda = lambda_control,
                                pop_totals = pop_totals[-1],
                                verbose = verbose)
       min <- cv$min
@@ -1220,7 +1224,7 @@ nonprobSelP <- function(selection,
       #colnames(X_design) <- c("(Intercept)", colnames(Xsel))
 
       ################ ESTIMATION
-      pop_totals <- Model$pop_totals[idx]
+      pop_totals_sel <- Model$pop_totals[idx]
 
       h_object <- theta_h_estimation(R = R,
                                      X = X_design,
@@ -1229,7 +1233,7 @@ nonprobSelP <- function(selection,
                                      h = h,
                                      method_selection = method_selection,
                                      maxit = maxit,
-                                     pop_totals = pop_totals)
+                                     pop_totals = pop_totals_sel)
       theta <- h_object$theta_h
       hess <- h_object$hess
       grad <- h_object$grad
@@ -1290,7 +1294,7 @@ nonprobSelP <- function(selection,
                                    est_ps_rand_der = est_ps_rand_der,
                                    n_rand = n_rand,
                                    pop_size = pop_size,
-                                   pop_totals = pop_totals,
+                                   pop_totals = pop_totals_sel,
                                    method_selection = method_selection,
                                    est_method = est_method,
                                    theta = theta,
@@ -1323,7 +1327,7 @@ nonprobSelP <- function(selection,
                              h = h,
                              maxit = maxit,
                              pop_size = pop_size,
-                             pop_totals = pop_totals,
+                             pop_totals =  pop_totals_sel,
                              control_selection = control_selection,
                              control_inference = control_inference,
                              cores = control_inference$cores,
@@ -1346,7 +1350,7 @@ nonprobSelP <- function(selection,
                              h = h,
                              maxit = maxit,
                              pop_size = pop_size,
-                             pop_totals = pop_totals,
+                             pop_totals = pop_totals_sel,
                              control_selection = control_selection,
                              control_inference = control_inference,
                              verbose = verbose)
