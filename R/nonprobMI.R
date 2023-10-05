@@ -203,25 +203,25 @@ nonprobMI <- function(outcome,
     } else {
       stop("Invalid method for variance estimation.")
     }
-      se <- sqrt(var)
+      SE <- sqrt(var)
       alpha <- control_inference$alpha
       z <- stats::qnorm(1-alpha/2)
       # confidence interval based on the normal approximation
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                       upper_bound = mu_hat + z * se
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                       upper_bound = mu_hat + z * SE
       ))))
     } else {
-      se <- NULL
+      SE <- NULL
     }
 
     X <- rbind(X_nons, X_rand) # joint model matrix
     #if (is.null(pop_size))
     pop_size <- N_est_rand # estimated pop_size
 
-    output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = se))))
+    output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
   }
   output <- do.call(rbind, output)
-  if (!is.null(se)) {
+  if (!is.null(SE)) {
     confidence_interval <- do.call(rbind, confidence_interval)
     SE_values <- do.call(rbind, SE_values)
     rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f

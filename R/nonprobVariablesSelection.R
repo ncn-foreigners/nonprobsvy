@@ -565,17 +565,17 @@ nonprobSel <- function(selection,
       } else {
         stop("Invalid method for variance estimation.")
       }
-      se <- sqrt(var) # standard error
+      SE <- sqrt(var) # standard error
       alpha <- control_inference$alpha
       z <- stats::qnorm(1-alpha/2)
       # confidence interval based on the normal approximation
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                       upper_bound = mu_hat + z * se))))
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                       upper_bound = mu_hat + z * SE))))
     } else {
-      se <- NULL
+      SE <- NULL
     }
     ps <- c(est_ps_rand, ps_nons)
-    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = SE))))
 
     parameters <- matrix(c(theta, theta_errors),
                          ncol = 2,
@@ -591,7 +591,7 @@ nonprobSel <- function(selection,
     prop_scores <- as.vector(ps)
   }
   output <- do.call(rbind, output)
-  if (!is.null(se)) {
+  if (!is.null(SE)) {
     confidence_interval <- do.call(rbind, confidence_interval)
     SE_values <- do.call(rbind, SE_values)
     rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
@@ -924,7 +924,7 @@ nonprobSelM <- function(outcome,
       } else {
         stop("Invalid method for variance estimation.")
       }
-      se <- sqrt(var)
+      SE <- sqrt(var)
       alpha <- control_inference$alpha
       z <- stats::qnorm(1-alpha/2)
 
@@ -934,17 +934,16 @@ nonprobSelM <- function(outcome,
       #                                c("Estimate", "Std. Error")))
 
       # confidence interval based on the normal approximation
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                       upper_bound = mu_hat + z * se))))
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                       upper_bound = mu_hat + z * SE))))
     } else {
-      se <- NULL
+      SE <- NULL
     }
-
-    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = SE))))
 
   }
   output <- do.call(rbind, output)
-  if (!is.null(se)) {
+  if (!is.null(SE)) {
     confidence_interval <- do.call(rbind, confidence_interval)
     SE_values <- do.call(rbind, SE_values)
     rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
@@ -1358,26 +1357,26 @@ nonprobSelP <- function(selection,
       } else {
         stop("Invalid method for variance estimation.")
       }
-      se <- sqrt(var)
+      SE <- sqrt(var)
       alpha <- control_inference$alpha
       z <- stats::qnorm(1-alpha/2)
       # confidence interval based on the normal approximation
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                       upper_bound = mu_hat + z * se
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                       upper_bound = mu_hat + z * SE
       ))))
     } else {
-      se <- NULL
+      SE <- NULL
     }
     parameters <- matrix(c(theta, theta_errors),
                          ncol = 2,
                          dimnames = list(names(theta),
                                          c("Estimate", "Std. Error")))
 
-    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = SE))))
     prop_scores <- c(ps_nons, est_ps_rand)
   }
   output <- do.call(rbind, output)
-  if (!is.null(se)) {
+  if (!is.null(SE)) {
     confidence_interval <- do.call(rbind, confidence_interval)
     SE_values <- do.call(rbind, SE_values)
     rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f

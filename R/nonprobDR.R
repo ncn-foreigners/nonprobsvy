@@ -344,8 +344,6 @@ nonprobDR <- function(selection,
         n_nons <- nrow(SelectionModel$X_nons)
         n_rand <- 0
 
-
-
         X <- rbind(SelectionModel$X_nons, SelectionModel$X_rand) # joint model matrix
 
         h_object <- theta_h_estimation(R = rep(1, nrow(SelectionModel$X_nons)),
@@ -578,16 +576,16 @@ nonprobDR <- function(selection,
       } else {
         stop("Invalid method for variance estimation.")
       }
-        se <- sqrt(var)
+        SE <- sqrt(var)
         alpha <- control_inference$alpha
         z <- stats::qnorm(1-alpha/2)
         # confidence interval based on the normal approximation
-        confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * se,
-                                                                         upper_bound = mu_hat + z * se))))
+        confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                         upper_bound = mu_hat + z * SE))))
     } else {
-      se <- NULL
+      SE <- NULL
     }
-    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = se))))
+    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = SE))))
     # OutcomeList$std_err <- ifelse(method_outcome == "glm", beta_statistics[,2], NULL)
     # names(OutcomeList$std_err) <- names(OutcomeList$coefficients)
     # parameters <- matrix(c(theta_hat, theta_standard_errors),
@@ -598,7 +596,7 @@ nonprobDR <- function(selection,
     prop_scores <- c(ps_nons, est_ps_rand)
   }
   output <- do.call(rbind, output)
-  if (!is.null(se)) {
+  if (!is.null(SE)) {
     confidence_interval <- do.call(rbind, confidence_interval)
     SE_values <- do.call(rbind, SE_values)
     rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f

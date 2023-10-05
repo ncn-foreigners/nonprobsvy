@@ -116,7 +116,7 @@ print.nonprobsvy <- function(x, digits = 8, ...) {
   cat(
     "Estimated population mean: ", format(x$output$mean, digits = digits),
     "\nWith overall std.err of: ", format(x$output$SE, digits = digits),
-    "\nConfidence interval:\n", sep = ""
+    "\nConfidence interval:\n", sep = " "
   )
   print(x$confidence_interval)
   invisible(x)
