@@ -1237,4 +1237,509 @@ expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
 # check cloglog -----------------------------------------------------
+## linear case ----------------------------------------------------------------------------
+#### correctly specified variables --------------------------------------------------------
+##### one target variable  ----------------------------------------------------------------
 
+## for y11
+# expect_silent(
+#   y11_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_11,
+#                           data = sample_B1,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y11_corr_one$output$mean, 2.015028, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_one$output$SE, 0.1713938, tolerance = 0.0001) ## true value for this sim
+# expect_true(y11_corr_one$confidence_interval$lower_bound < mean(Y_11) &
+#               y11_corr_one$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+#
+#
+# ## for y12
+# expect_silent(
+#   y12_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_12,
+#                           data = sample_B1,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+# expect_equal(y12_corr_one$output$mean, 6.617158, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_one$output$SE, 0.6183295, tolerance = 0.0001) ## true value for this sim
+# expect_true(y12_corr_one$confidence_interval$lower_bound < mean(Y_12) &
+#               y12_corr_one$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+#
+#
+# ## for y21
+# expect_silent(
+#   y21_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_21,
+#                           data = sample_B1,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y21_corr_one$output$mean, 0.6589795, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_one$output$SE, 0.05471915, tolerance = 0.0001) ## true value for this sim
+# expect_true(y21_corr_one$confidence_interval$lower_bound < mean(Y_21) &
+#               y21_corr_one$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+#
+# ## for y22
+# expect_silent(
+#   y22_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_22,
+#                           data = sample_B1,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y22_corr_one$output$mean, 0.6872036, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_one$output$SE, 0.06540456, tolerance = 0.0001) ## true value for this sim
+# expect_true(y22_corr_one$confidence_interval$lower_bound < mean(Y_22) &
+#               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+#
+# ##### all target variables  ---------------------------------------------------------------
+#
+# expect_silent(
+#   y_all_corr <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                         target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+#                         data = sample_B1,
+#                         pop_totals = X_totals[1:5],
+#                         method_selection = "cloglog")
+# )
+#
+# expect_identical(y_all_corr$output$mean,
+#                  c(y11_corr_one$output$mean, y12_corr_one$output$mean,
+#                    y21_corr_one$output$mean, y22_corr_one$output$mean))
+#
+# expect_identical(y_all_corr$output$SE,
+#                  c(y11_corr_one$output$SE, y12_corr_one$output$SE,
+#                    y21_corr_one$output$SE, y22_corr_one$output$SE))
+# #
+# expect_identical(y_all_corr$confidence_interval,
+#                  data.frame(lower_bound = c(y11_corr_one$confidence_interval$lower_bound,
+#                                             y12_corr_one$confidence_interval$lower_bound,
+#                                             y21_corr_one$confidence_interval$lower_bound,
+#                                             y22_corr_one$confidence_interval$lower_bound),
+#                             upper_bound = c(y11_corr_one$confidence_interval$upper_bound,
+#                                             y12_corr_one$confidence_interval$upper_bound,
+#                                             y21_corr_one$confidence_interval$upper_bound,
+#                                             y22_corr_one$confidence_interval$upper_bound),
+#                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
+#
+#
+#
+# #### all X variables variables ------------------------------------------------------------
+# ##### one target variable  ----------------------------------------------------------------
+#
+# ## for y11
+# expect_silent(
+#   y11_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_11,
+#                           data = sample_B1,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y11_corr_all$output$mean, 1.956418, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_all$output$SE, 0.2019104, tolerance = 0.0001) ## true value for this sim
+# expect_true(y11_corr_all$confidence_interval$lower_bound < mean(Y_11) &
+#               y11_corr_all$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+#
+#
+# ## for y12
+# expect_silent(
+#   y12_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_12,
+#                           data = sample_B1,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+# expect_equal(y12_corr_all$output$mean, 6.571494, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_all$output$SE, 0.7128783, tolerance = 0.0001) ## true value for this sim
+# expect_true(y12_corr_all$confidence_interval$lower_bound < mean(Y_12) &
+#               y12_corr_all$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+#
+#
+# ## for y21
+# expect_silent(
+#   y21_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_21,
+#                           data = sample_B1,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y21_corr_all$output$mean, 0.6496145, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_all$output$SE, 0.0575112, tolerance = 0.0001) ## true value for this sim
+# expect_true(y21_corr_all$confidence_interval$lower_bound < mean(Y_21) &
+#               y21_corr_all$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+#
+# ## for y22
+# expect_silent(
+#   y22_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_22,
+#                           data = sample_B1,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y22_corr_all$output$mean, 0.6763156, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_all$output$SE, 0.06510848, tolerance = 0.0001) ## true value for this sim
+# expect_true(y22_corr_all$confidence_interval$lower_bound < mean(Y_22) &
+#               y22_corr_all$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+#
+# ##### all target variables  ---------------------------------------------------------------
+#
+# expect_silent(
+#   y_all_corr_all <- nonprob(selection = X_formula,
+#                             target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+#                             data = sample_B1,
+#                             pop_totals = X_totals,
+#                             method_selection = "cloglog")
+# )
+#
+# expect_identical(y_all_corr_all$output$mean,
+#                  c(y11_corr_all$output$mean, y12_corr_all$output$mean, y21_corr_all$output$mean, y22_corr_all$output$mean))
+#
+# expect_identical(y_all_corr_all$output$SE,
+#                  c(y11_corr_all$output$SE, y12_corr_all$output$SE, y21_corr_all$output$SE, y22_corr_all$output$SE))
+#
+# expect_identical(y_all_corr_all$confidence_interval,
+#                  data.frame(lower_bound = c(y11_corr_all$confidence_interval$lower_bound,
+#                                             y12_corr_all$confidence_interval$lower_bound,
+#                                             y21_corr_all$confidence_interval$lower_bound,
+#                                             y22_corr_all$confidence_interval$lower_bound),
+#                             upper_bound = c(y11_corr_all$confidence_interval$upper_bound,
+#                                             y12_corr_all$confidence_interval$upper_bound,
+#                                             y21_corr_all$confidence_interval$upper_bound,
+#                                             y22_corr_all$confidence_interval$upper_bound),
+#                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
+#
+
+#### variable selection  ------------------------------------------------------------------
+##### one target variable  ----------------------------------------------------------------
+
+## y_11 to fix
+# expect_silent(
+#   y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_11,
+#                            data = sample_B1,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+
+# expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_scad$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+# expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+#                y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+# expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+
+## y_12 to fix
+# expect_silent(
+#   y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_12,
+#                            data = sample_B1,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+
+# expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_scad$output$SE, 0.15341599, tolerance = 0.0001) ## true value for this sim
+# expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+#               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+# expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+
+## y_21 to fix
+# expect_silent(
+#   y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_21,
+#                            data = sample_B1,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+
+# expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_scad$output$SE, 0.0090012565, tolerance = 0.0001) ## true value for this sim
+# expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+#                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+# expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+
+## y_22 to fix
+# expect_silent(
+#   y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_22,
+#                            data = sample_B1,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+
+# expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_scad$output$SE, 0.011240221, tolerance = 0.0001) ## true value for this sim
+# expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+#                y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+# expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
+
+
+## non-linear case ------------------------------------------------------------------------
+#### correctly specified variables --------------------------------------------------------
+##### one target variable  ----------------------------------------------------------------
+
+## for y11
+# expect_silent(
+#   y11_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_11,
+#                           data = sample_B2,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y11_corr_one$output$mean, 2.10861, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_one$output$SE, 0.1243684, tolerance = 0.0001) ## true value for this sim
+# expect_true(y11_corr_one$confidence_interval$lower_bound < mean(Y_11) &
+#               y11_corr_one$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+#
+#
+# ## for y12
+# expect_silent(
+#   y12_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_12,
+#                           data = sample_B2,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+# expect_equal(y12_corr_one$output$mean, 5.708058, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_one$output$SE, 0.2604017, tolerance = 0.0001) ## true value for this sim
+# expect_false(y12_corr_one$confidence_interval$lower_bound < mean(Y_12) &
+#                y12_corr_one$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+#
+#
+# ## for y21
+# expect_silent(
+#   y21_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_21,
+#                           data = sample_B2,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y21_corr_one$output$mean, 0.6096105, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_one$output$SE, 0.02698877, tolerance = 0.0001) ## true value for this sim
+# expect_true(y21_corr_one$confidence_interval$lower_bound < mean(Y_21) &
+#               y21_corr_one$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+#
+# ## for y22
+# expect_silent(
+#   y22_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                           target = ~ Y_22,
+#                           data = sample_B2,
+#                           pop_totals = X_totals[1:5],
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y22_corr_one$output$mean, 0.6210885, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_one$output$SE, 0.02561999, tolerance = 0.0001) ## true value for this sim
+# expect_true(y22_corr_one$confidence_interval$lower_bound < mean(Y_22) &
+#               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+#
+# ##### all target variables  ---------------------------------------------------------------
+#
+# expect_silent(
+#   y_all_corr <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+#                         target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+#                         data = sample_B2,
+#                         pop_totals = X_totals[1:5],
+#                         method_selection = "cloglog")
+# )
+#
+# expect_identical(y_all_corr$output$mean,
+#                  c(y11_corr_one$output$mean, y12_corr_one$output$mean,
+#                    y21_corr_one$output$mean, y22_corr_one$output$mean))
+#
+# expect_identical(y_all_corr$output$SE,
+#                  c(y11_corr_one$output$SE, y12_corr_one$output$SE,
+#                    y21_corr_one$output$SE, y22_corr_one$output$SE))
+#
+# expect_identical(y_all_corr$confidence_interval,
+#                  data.frame(lower_bound = c(y11_corr_one$confidence_interval$lower_bound,
+#                                             y12_corr_one$confidence_interval$lower_bound,
+#                                             y21_corr_one$confidence_interval$lower_bound,
+#                                             y22_corr_one$confidence_interval$lower_bound),
+#                             upper_bound = c(y11_corr_one$confidence_interval$upper_bound,
+#                                             y12_corr_one$confidence_interval$upper_bound,
+#                                             y21_corr_one$confidence_interval$upper_bound,
+#                                             y22_corr_one$confidence_interval$upper_bound),
+#                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
+
+
+
+
+
+#### all X variables variables ------------------------------------------------------------
+##### one target variable  ----------------------------------------------------------------
+
+# ## for y11
+# expect_silent(
+#   y11_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_11,
+#                           data = sample_B2,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y11_corr_all$output$mean, 2.045187, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_all$output$SE, 0.1403925, tolerance = 0.0001) ## true value for this sim
+# expect_true(y11_corr_all$confidence_interval$lower_bound < mean(Y_11) &
+#               y11_corr_all$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+#
+#
+# ## for y12
+# expect_silent(
+#   y12_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_12,
+#                           data = sample_B2,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+# expect_equal(y12_corr_all$output$mean, 5.570961, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_all$output$SE, 0.267995, tolerance = 0.0001) ## true value for this sim
+# expect_false(y12_corr_all$confidence_interval$lower_bound < mean(Y_12) &
+#                y12_corr_all$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+#
+#
+# ## for y21
+# expect_silent(
+#   y21_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_21,
+#                           data = sample_B2,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y21_corr_all$output$mean, 0.5999782, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_all$output$SE, 0.02837228, tolerance = 0.0001) ## true value for this sim
+# expect_true(y21_corr_all$confidence_interval$lower_bound < mean(Y_21) &
+#               y21_corr_all$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+#
+# ## for y22
+# expect_silent(
+#   y22_corr_all <- nonprob(selection = X_formula,
+#                           target = ~ Y_22,
+#                           data = sample_B2,
+#                           pop_totals = X_totals,
+#                           method_selection = "cloglog")
+# )
+#
+# expect_equal(y22_corr_all$output$mean, 0.558637, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_all$output$SE, 0.02463264, tolerance = 0.0001) ## true value for this sim
+# expect_false(y22_corr_all$confidence_interval$lower_bound < mean(Y_22) &
+#                y22_corr_all$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+#
+# ##### all target variables  ---------------------------------------------------------------
+#
+# expect_silent(
+#   y_all_corr_all <- nonprob(selection = X_formula,
+#                             target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+#                             data = sample_B2,
+#                             pop_totals = X_totals,
+#                             method_selection = "cloglog")
+# )
+#
+# expect_identical(y_all_corr_all$output$mean,
+#                  c(y11_corr_all$output$mean, y12_corr_all$output$mean, y21_corr_all$output$mean, y22_corr_all$output$mean))
+# #
+# expect_identical(y_all_corr_all$output$SE,
+#                  c(y11_corr_all$output$SE, y12_corr_all$output$SE, y21_corr_all$output$SE, y22_corr_all$output$SE))
+# #
+# expect_identical(y_all_corr_all$confidence_interval,
+#                  data.frame(lower_bound = c(y11_corr_all$confidence_interval$lower_bound,
+#                                             y12_corr_all$confidence_interval$lower_bound,
+#                                             y21_corr_all$confidence_interval$lower_bound,
+#                                             y22_corr_all$confidence_interval$lower_bound),
+#                             upper_bound = c(y11_corr_all$confidence_interval$upper_bound,
+#                                             y12_corr_all$confidence_interval$upper_bound,
+#                                             y21_corr_all$confidence_interval$upper_bound,
+#                                             y22_corr_all$confidence_interval$upper_bound),
+#                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
+
+
+
+#### variable selection  ------------------------------------------------------------------
+##### one target variable  ----------------------------------------------------------------
+
+## y_11
+# expect_silent(
+#   y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_11,
+#                            data = sample_B2,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+#
+# expect_equal(y11_corr_scad$output$mean, 1.992688, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y11_corr_scad$output$SE, 0.06352848, tolerance = 0.0001) ## true value for this sim
+# expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+#               y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+# expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+#
+# ## y_12
+# expect_silent(
+#   y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_12,
+#                            data = sample_B2,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+#
+# expect_equal(y12_corr_scad$output$mean, 5.712705, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y12_corr_scad$output$SE, 0.1460298, tolerance = 0.0001) ## true value for this sim
+# expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+#                y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+# expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+#
+# ## y_21
+# expect_silent(
+#   y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_21,
+#                            data = sample_B2,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+#
+# expect_equal(y21_corr_scad$output$mean, 0.5955036, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y21_corr_scad$output$SE, 0.01039547, tolerance = 0.0001) ## true value for this sim
+# expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+#                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+# expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+#
+# ## y_22
+# expect_silent(
+#   y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+#                            target = ~ Y_22,
+#                            data = sample_B2,
+#                            pop_totals = X_totals[1:11],
+#                            method_selection = "cloglog",
+#                            control_inference = controlInf(vars_selection = TRUE),
+#                            control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+# )
+#
+# expect_equal(y22_corr_scad$output$mean, 0.621987, tolerance = 0.0001) ## true value for this sim
+# expect_equal(y22_corr_scad$output$SE, 0.01026539, tolerance = 0.0001) ## true value for this sim
+# # to fix
+# # expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+# #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+# expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)

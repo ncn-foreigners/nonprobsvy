@@ -328,16 +328,14 @@ internal_varMI <- function(svydesign,
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+
   if (is.null(pop_totals)) {
     svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
     var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
-
     if (method == "nn") {
-
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps  <- n_nons/N
       var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
-
     } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
       beta <- parameters[,1]
@@ -351,13 +349,19 @@ internal_varMI <- function(svydesign,
       # nonprobability component
       var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
+    } else if (method == "pmm") {
+
+      # TODO
+      var_nonprob <- 0 # to implement
+
+
     }
   } else {
     if (method == "nn") {
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps  <- n_nons/N
       var_nonprob <- n_nons/N^2 * (1 - est_ps)/est_ps * sigma_hat # what instead of n_rand here (?) now just n_nons
-    } else {
+    } else if (method == "glm") {
       beta <- parameters[,1]
       eta_nons <- X_nons %*% beta
       if (family %in% c("binomial", "poisson")) { # TODO consider this chunk of code
@@ -365,7 +369,6 @@ internal_varMI <- function(svydesign,
       } else {
         eta_rand <- pop_totals %*% beta
       }
-
       mx <- 1/N * pop_totals * as.vector(family_nonprobsvy$mu_der(eta_rand))
       c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
       residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
@@ -373,6 +376,11 @@ internal_varMI <- function(svydesign,
       # nonprobability component
       var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
+    } else if (method == "pmm") {
+
+      # TODO
+      var_nonprob <- 0 # to implement
+
     }
     var_prob <- 0
   }
@@ -392,7 +400,9 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
   nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
   ##### Model frame for probability sample #####
   if (outcome_name %in% colnames(svydesign$variables)) {
-    model_Frame_rand <- model.frame(formula, svydesign$variables)
+    design_to_frame <- svydesign$variables
+    design_to_frame[,outcome_name][is.na(design_to_frame[,outcome_name])] <- 0
+    model_Frame_rand <- model.frame(formula, design_to_frame)
     mt_rand <- attr(model_Frame_rand, "terms")
     nons_names_rand <- attr(mt_rand, "term.labels")
   } else {

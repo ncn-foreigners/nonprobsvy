@@ -17,7 +17,6 @@ nonprobDR <- function(selection,
                       overlap,
                       method_selection,
                       method_outcome,
-                      family_selection = "binomial",
                       family_outcome = "gaussian",
                       subset,
                       strata,
@@ -204,7 +203,7 @@ nonprobDR <- function(selection,
                              weights_nons = weights_nons,
                              weights_rand = weights_rand,
                              N_nons = N_nons,
-                             N_rand = N_rand) # DR estimator - consider using weighted.mean function
+                             N_rand = N_rand)
 
           # updating probability sample by adding y_hat variable
           svydesign <- stats::update(svydesign,

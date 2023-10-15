@@ -29,6 +29,7 @@ gaussian_nonprobsvy <- function(link = "identity") {
 }
 
 binomial_nonprobsvy <- function(link = "logit") {
+  link <- paste(link, "_model_nonprobsvy", sep = "")
   link <- get_method(link)
   mu <- function(eta) link$make_link_inv(eta)
   variance <- function(mu, y = NULL) mu*(1-mu)

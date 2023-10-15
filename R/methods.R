@@ -66,13 +66,18 @@ summary.nonprobsvy <- function(object,
       # TODO
     }
   }
+  if (!is.null(object$SE)) {
+    se_mean <- c(object$output[, 2], object$SE$prob, object$SE$nonprob)
+  } else {
+    se_mean <- NULL
+  }
   res <- structure(
     list(
       call = object$call,
       pop_total = list(
         mean = object$output$mean,
-        se = c(object$output[, 2], object$SE$prob, object$SE$nonprob),
-        cnf_int = object$confidence_interval
+        se = se_mean,
+        cnf_int =  object$confidence_interval
       ),
       sample_size = nobs(object, ...),
       population_size = pop.size(object, ...),
@@ -135,16 +140,32 @@ print.summary_nonprobsvy <- function(x,
 
   cat("-------------------------\n")
 
+  # cat(
+  #   sep = "",
+  #   "Estimated population mean: ", format(x$pop_total$mean, digits = digits),
+  #   " with overall std.err of: ", format(x$pop_total$se[1], digits = digits),
+  #   "\nAnd std.err for nonprobability and probability samples being respectively:\n",
+  #   ifelse(!is.null(x$pop_total$cnf_int), format(x$pop_total$se[3], digits = digits), ""), " and ", ifelse(!is.null(x$pop_total$cnf_int), format(x$pop_total$se[2], digits = digits), ""), # TODO for se = FALSE
+  #   "\n\nBased on: ", x$model, " method",
+  #   "\n\n",(1 - x$control$control_inference$alpha)*100, "% Confidence inverval for popualtion mean:\n"
+  # )
+  # print(x$pop_total$cnf_int)
+
   cat(
     sep = "",
-    "Estimated population mean: ", format(x$pop_total$mean, digits = digits),
-    " with overall std.err of: ", format(x$pop_total$se[1], digits = digits),
-    "\nAnd std.err for nonprobability and probability samples being respectively:\n",
-    format(x$pop_total$se[3], digits = digits), " and ", format(x$pop_total$se[2], digits = digits),
-    "\n\nBased on: ", x$model, " method",
-    "\n\n",(1 - x$control$control_inference$alpha)*100, "% Confidence inverval for popualtion mean:\n"
-  )
-  print(x$pop_total$cnf_int)
+    "Estimated population mean: ", format(x$pop_total$mean, digits = digits))
+  if (!is.null(x$pop_total$cnf_int)) {
+    cat(sep = "",
+      " with overall std.err of: ", format(x$pop_total$se[1], digits = digits),
+      "\nAnd std.err for nonprobability and probability samples being respectively:\n",
+       format(x$pop_total$se[3], digits = digits), " and ", format(x$pop_total$se[2], digits = digits), # TODO for se = FALSE
+      "\n\n", (1 - x$control$control_inference$alpha)*100, "% Confidence inverval for popualtion mean:\n"
+    )
+    print(x$pop_total$cnf_int)
+  }
+
+  cat(sep = "", "\n\nBased on: ", x$model, " method")
+
 
   cat(
     sep = "",
