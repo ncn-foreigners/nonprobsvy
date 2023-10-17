@@ -905,6 +905,7 @@ bootIPW_multicore <- function(X_rand,
         X <- rbind(X_rand[strap_rand, ],
                    X_nons[strap_nons, ])
 
+        source("R/internals.R")
         model_sel <- internal_selection(X = X,
                                         X_nons = X_nons[strap_nons, ],
                                         X_rand = X_rand[strap_rand, ],
@@ -1086,6 +1087,7 @@ bootDR_multicore <- function(outcome,
           X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
                          SelectionModel$X_nons[strap_nons, ])
 
+          source("R/internals.R")
           model_sel <- internal_selection(X = X_sel,
                                           X_nons = SelectionModel$X_nons[strap_nons, ],
                                           X_rand = SelectionModel$X_rand[strap_rand, ],
