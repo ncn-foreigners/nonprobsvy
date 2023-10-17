@@ -423,31 +423,20 @@ bootDR <- function(outcome,
           strap_nons <- sample.int(replace = TRUE, n = n_nons)
           strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-
           model_obj <- MethodOutcome(outcome = outcome,
                                      data = data[strap_nons,],
                                      weights = weights[strap_nons],
                                      family_outcome = family_outcome,
                                      X_nons = OutcomeModel$X_nons[strap_nons, ],
-                                     y_nons = OutcomeModel$y[strap_nons],
+                                     y_nons = OutcomeModel$y_nons[strap_nons],
                                      X_rand = OutcomeModel$X_rand[strap_rand, ],
                                      control = control_outcome,
                                      n_nons = n_nons,
                                      n_rand = n_rand,
-                                     model_frame = OutcomeModel$model_frame_rand,
+                                     model_frame = OutcomeModel$model_frame_rand[strap_rand,],
                                      vars_selection = control_inference$vars_selection,
                                      pop_totals = pop_totals)
 
-          # model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
-          #                             y = OutcomeModel$y[strap_nons],
-          #                             weights = weights[strap_nons],
-          #                             family = family)
-
-
-          # model_nons_coefs <- model_out$coefficients
-          # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          # y_rand_pred <- family_nonprobsvy$mu(eta)
-          # y_nons_pred <- model_out$fitted.values
 
           y_rand_pred <- model_obj$y_rand_pred
           y_nons_pred <- model_obj$y_nons_pred
@@ -490,9 +479,8 @@ bootDR <- function(outcome,
           }
           k <- k + 1
         }
-      } else { # TODO
+      } else {
         while (k <= num_boot) {
-          #stop("Bootstrap with pop_totals is not yet implemented.")
 
           strap <- sample.int(replace = TRUE, n = n_nons)
           X_strap_nons <- SelectionModel$X_nons[strap, ]
@@ -520,17 +508,6 @@ bootDR <- function(outcome,
           N_est <- sum(weights_strap * weights_nons_strap)
           if(is.null(pop_size)) pop_size <- N_est
 
-          # model_out_strap <- stats::glm.fit(x = OutcomeModel$X_nons[strap, ],
-          #                             y = OutcomeModel$y[strap],
-          #                             weights = weights_strap,
-          #                             family = family)
-          #
-          # model_nons_coefs <- model_out_strap$coefficients
-          # y_rand_pred <- as.numeric(pop_totals %*% model_nons_coefs) # TODO with predict.glm
-          # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          # y_rand_pred <- family_nonprobsvy$mu(eta)
-          # y_nons_pred <- model_out_strap$fitted.values
-
           model_obj <- MethodOutcome(outcome = outcome,
                                      data = data[strap,],
                                      weights = weights_strap,
@@ -557,8 +534,8 @@ bootDR <- function(outcome,
           k <- k + 1
         }
       }
-    boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
     mu_hat_boot <- mean(mu_hats)
+    boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
     }
   list(var = boot_var,
        mu = mu_hat_boot)
@@ -1011,7 +988,7 @@ bootDR_multicore <- function(outcome,
                              SelectionModel,
                              OutcomeModel,
                              family_outcome,
-                             method_outcome = method_outcome,
+                             method_outcome,
                              num_boot,
                              weights,
                              weights_rand,
@@ -1050,6 +1027,8 @@ bootDR_multicore <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
+  method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+  MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
 
   if (bias_correction == TRUE) {
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
@@ -1097,20 +1076,9 @@ bootDR_multicore <- function(outcome,
                                      control = control_outcome,
                                      n_nons = n_nons,
                                      n_rand = n_rand,
-                                     model_frame = OutcomeModel$model_frame_rand,
+                                     model_frame = OutcomeModel$model_frame_rand[strap_rand,],
                                      vars_selection = control_inference$vars_selection,
                                      pop_totals = pop_totals)
-
-          # model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
-          #                             y = OutcomeModel$y[strap_nons],
-          #                             weights = weights[strap_nons],
-          #                             family = family)
-
-
-          # model_nons_coefs <- model_out$coefficients
-          # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          # y_rand_pred <- family_nonprobsvy$mu(eta)
-          # y_nons_pred <- model_out$fitted.values
 
           y_rand_pred <- model_obj$y_rand_pred
           y_nons_pred <- model_obj$y_nons_pred
@@ -1185,24 +1153,10 @@ bootDR_multicore <- function(outcome,
         N_est <- sum(weights_strap * weights_nons_strap)
         if(is.null(pop_size)) pop_size <- N_est
 
-        # model_out_strap <- stats::glm.fit(x = OutcomeModel$X_nons[strap, ],
-        #                                   y = OutcomeModel$y[strap],
-        #                                   weights = weights_strap,
-        #                                   family = family)
-        #
-        # model_nons_coefs <- model_out_strap$coefficients
-        # y#_rand_pred <- as.numeric(pop_totals %*% model_nons_coefs) # TODO with predict.glm
-        # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-        # y_rand_pred <- family_nonprobsvy$mu(eta)
-        # y_nons_pred <- model_out_strap$fitted.values
-        #
-        # 1/N_est * sum(weights_nons_strap * (weights_strap * (OutcomeModel$y[strap] - y_nons_pred))) + 1/pop_size * y_rand_pred
         source("R/internals.R")
         source("R/OutcomeMethods.R")
         source("R/family.R")
 
-        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
         model_obj <- MethodOutcome(outcome = outcome,
                                    data = data[strap,],
                                    weights = weights_strap,
