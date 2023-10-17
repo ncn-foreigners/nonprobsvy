@@ -54,6 +54,7 @@ bootMI <- function(X_rand,
         strap_rand_svy <- which(rep_weights[,k] != 0)
         weights_rand_strap_svy <- rep_weights[,k] * weights_rand
         N_strap <- sum(weights_rand_strap_svy)
+        # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
@@ -125,8 +126,8 @@ bootMI <- function(X_rand,
                                       family = family)
 
         beta <- model_strap$coefficients
-        eta_rand <- X_rand %*% beta
-        eta_nons <- X_nons %*% beta
+        eta_rand <- X_rand_strap %*% beta
+        eta_nons <- X_nons_strap %*% beta
         y_rand_strap <- family_nonprobsvy$mu(eta_rand)
         y_nons_strap <- family_nonprobsvy$mu(eta_nons)
 
@@ -668,6 +669,7 @@ bootMI_multicore <- function(X_rand,
           strap_rand_svy <- which(rep_weights[,k] != 0)
           weights_rand_strap_svy <- rep_weights[,k] * weights_rand
           N_strap <- sum(weights_rand_strap_svy)
+          # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
@@ -741,8 +743,8 @@ bootMI_multicore <- function(X_rand,
                                         family = family)
 
           beta <- model_strap$coefficients
-          eta_rand <- X_rand %*% beta
-          eta_nons <- X_nons %*% beta
+          eta_rand <- X_rand_strap %*% beta
+          eta_nons <- X_nons_strap %*% beta
           y_rand_strap <- family_nonprobsvy$mu(eta_rand)
           y_nons_strap <- family_nonprobsvy$mu(eta_nons)
 
