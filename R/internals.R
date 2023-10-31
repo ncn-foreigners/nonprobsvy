@@ -18,12 +18,13 @@ internal_selection <- function(X,
                                R,
                                method_selection,
                                optim_method,
-                               h = h,
+                               h,
                                est_method,
                                maxit,
+                               control_selection,
+                               start,
                                bias_correction = FALSE,
                                varcov = FALSE,
-                               control_selection,
                                ...) {
 
   if (bias_correction == TRUE) est_method <- "mm"
@@ -41,6 +42,7 @@ internal_selection <- function(X,
                                     maxit = maxit,
                                     varcov = varcov,
                                     control_selection = control_selection,
+                                    start = start,
                                     ...)
 
 }
@@ -67,30 +69,34 @@ theta_h_estimation <- function(R,
                                h,
                                method_selection,
                                maxit,
+                               start = NULL,
                                pop_totals = NULL,
                                pop_means = NULL){ # TODO with BERENZ recommendation
 
   p <- ncol(X)
   if (is.null(pop_totals) & is.null(pop_means)) {
-    start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                        R = R,
-                        weights = weights,
-                        weights_rand = weights_rand,
-                        method_selection = method_selection)
+    if (is.null(start)) {
+      start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                          R = R,
+                          weights = weights,
+                          weights_rand = weights_rand,
+                          method_selection = method_selection)
+    } else {
+      start0 <- start
+    }
   } else { # TODO customize start point for fitting with population totals
     # start0 <- rep(.8, ncol(X))
     # X_pop <- rbind(X, pop_totals)
     # weights_randd <- 1
-    # start0 <- start_fit(X = X, # <--- does not work with pop_totals
-    #                     R = R,
-    #                     weights = weights,
-    #                     weights_rand = weights_rand,
-    #                     method_selection = method_selection)
-    start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                        R = R,
-                        weights = weights,
-                        weights_rand = weights_rand,
-                        method_selection = method_selection)
+    if (is.null(start)) {
+      start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                          R = R,
+                          weights = weights,
+                          weights_rand = weights_rand,
+                          method_selection = method_selection)
+    } else {
+      start0 <- start
+    }
   }
   u_theta <- u_theta(R = R,
                      X = X,
@@ -389,7 +395,7 @@ internal_varMI <- function(svydesign,
        var_nonprob = var_nonprob)
 }
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL, flag = TRUE) {
 
   if (!is.null(svydesign)) {
   ##### Model frame for nonprobability sample #####
@@ -443,7 +449,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
        outcome_name = outcome_name,
        model_frame_rand = model_Frame_rand)
 
-  } else if (!is.null(pop_totals)) { # TODO
+  } else if (!is.null(pop_totals)) {
     model_Frame <- model.frame(formula, data)
     X_nons <- model.matrix(model_Frame, data)
     #matrix for nonprobability sample with intercept
@@ -454,10 +460,12 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     mt <- attr(model_Frame, "terms")
     #nons_names <- attr(mt, "term.labels")
     total_names <- colnames(X_nons)
-    if(all(total_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
-      pop_totals <- pop_totals[total_names]
-    } else {
-      warning("Selection and population totals have different names.")
+    if (flag) {
+      if(all(total_names %in% names(pop_totals))) { # TODO verify whether this warming works well.. pop_totals, pop_means defined such as in `calibrate` function
+        pop_totals <- pop_totals[total_names]
+      } else {
+        warning("Selection and population totals have different names.")
+      }
     }
     y_nons <- model.response(model_Frame)
     outcome_name <- names(model_Frame)[1]
@@ -531,7 +539,7 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
 
-  if (object$outcome$method == "glm" ) {
+  if (object$outcome$method == "glm") { # TODO for pmm
     coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
                    ncol = 2,
                    dimnames = list(names(object$outcome$coefficients),
@@ -548,6 +556,9 @@ specific_summary_info.nonprobsvy_mi <- function(object,
   attr(res, "model") <- "glm regression on outcome variable"
   } else if (object$outcome$method == "nn") {
     attr(res$coeffs_out, "glm") <- FALSE
+  } else if (object$outcome$method == "pmm") { # TODO
+    attr(res$coeffs_out, "glm") <- FALSE
+    # attr(res, "model") <- "glm regression on outcome variable"
   }
   res
 }

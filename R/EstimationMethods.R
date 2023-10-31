@@ -81,8 +81,9 @@ mle <- function(...) {
                               h = h,
                               est_method,
                               maxit,
-                              varcov = FALSE,
                               control_selection,
+                              start,
+                              varcov = FALSE,
                               ...) {
 
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -95,11 +96,13 @@ mle <- function(...) {
     dinv_link <- method$make_link_inv_der
 
     # initial values for propensity score estimation
-    start <- start_fit(X = X,
-                       R = R,
-                       weights = weights,
-                       weights_rand = weights_rand,
-                       method_selection = method_selection)
+    if (is.null(start)) {
+      start <- start_fit(X = X,
+                         R = R,
+                         weights = weights,
+                         weights_rand = weights_rand,
+                         method_selection = method_selection)
+    }
 
     df_reduced <- nrow(X) - length(start)
 
@@ -213,6 +216,7 @@ gee <- function(...) {
                               h = h,
                               est_method,
                               maxit,
+                              start,
                               varcov = FALSE,
                               ...){
 
@@ -225,7 +229,8 @@ gee <- function(...) {
                                    weights = weights,
                                    h = h,
                                    method_selection = method_selection,
-                                   maxit = maxit)
+                                   maxit = maxit,
+                                   start = start)
     theta_hat <- h_object$theta_h
     hess <- h_object$hess
     grad <- h_object$grad
@@ -272,7 +277,7 @@ gee <- function(...) {
 }
 
 # bias correction
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, boot = FALSE) {
+mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start, boot = FALSE) {
 
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection_function)
@@ -283,7 +288,11 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   loc_rand <- which(R == 0)
 
   p <- ncol(X)
-  par0 <- rep(0, 2*p)
+  if (is.null(start)) {
+    par0 <- rep(0, 2*p)
+  } else {
+    par0 <- start
+  }
   prior_weights <- c(weights_rand, weights)
 
   multiroot <- nleqslv::nleqslv(x = par0, # TODO add user-specified parameters to control functions

@@ -28,8 +28,6 @@ nonprob <- function(data,
 
   call <- match.call()
 
-  var_selection <- control_inference$vars_selection
-
   if (!is.data.frame(data)) {
     data <- data.frame(data)
   }
@@ -54,16 +52,15 @@ nonprob <- function(data,
     stop("Please provide selection or outcome formula.")
   }
   if (inherits(selection, "formula") && inherits(target, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
-    ifelse(var_selection == FALSE, model_used <- "P", model_used <- "Psel")
+   model_used <- "P"
   }
 
   if (inherits(outcome, "formula") && (is.null(selection) || inherits(selection, "formula") == FALSE)) {
-    ifelse(var_selection == FALSE, model_used <- "M", model_used <- "Msel")
+    model_used <- "M"
   }
 
   if (inherits(selection, "formula") && inherits(outcome, "formula")) {
-
-    ifelse(var_selection == FALSE, model_used <- "DR", model_used <- "DRsel")
+    model_used <- "DR"
   }
 
   ## validate data
@@ -134,75 +131,8 @@ nonprob <- function(data,
                    x,
                    y,
                    se,
-                   ...),
-    Psel = nonprobSelP(selection,
-                      target,
-                      data,
-                      svydesign,
-                      pop_totals,
-                      pop_means,
-                      pop_size,
-                      method_selection,
-                      method_outcome,
-                      family_outcome,
-                      subset,
-                      strata,
-                      weights,
-                      na_action,
-                      control_selection,
-                      control_outcome,
-                      control_inference,
-                      start,
-                      verbose,
-                      x,
-                      y,
-                      se,
-                     ...),
-    Msel = nonprobSelM(outcome,
-                      data,
-                      svydesign,
-                      pop_totals,
-                      pop_means,
-                      pop_size,
-                      method_outcome,
-                      family_outcome,
-                      subset,
-                      strata,
-                      weights,
-                      na_action,
-                      control_outcome,
-                      control_inference,
-                      start,
-                      verbose,
-                      x,
-                      y,
-                      se,
-                      ...),
-    DRsel = nonprobSel(selection,
-                       outcome,
-                       data,
-                       svydesign,
-                       pop_totals,
-                       pop_means,
-                       pop_size,
-                       method_selection,
-                       method_outcome,
-                       family_outcome,
-                       subset,
-                       strata,
-                       weights,
-                       na_action,
-                       control_selection,
-                       control_outcome,
-                       control_inference,
-                       start,
-                       verbose,
-                       x,
-                       y,
-                       se,
-                       ...)
+                   ...)
   )
-
   names <- names(model_estimates)
   res <- append(model_estimates, call, after = 0)
   names(res) <- c("call", names)
