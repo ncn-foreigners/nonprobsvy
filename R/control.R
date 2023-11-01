@@ -15,7 +15,6 @@
 #' @param dependence logical value - `TRUE` if samples are dependent.
 #' @param key binary key variable
 #' @param est_method_sel Method of estimation for propensity score model.
-#' @param ov_method Method of estimation in case when samples (probability and non-probability) overlap.
 #' @param h Smooth function for the generalized estimating equations methods taking the following values
 #' \itemize{
 #'   \item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
@@ -45,7 +44,6 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        dependence = FALSE,
                        key = NULL,
                        est_method_sel = c("mle", "gee"),
-                       ov_method = c("ev", "mle", "gee"),
                        h = c(1, 2),
                        penalty = c("SCAD", "lasso", "MCP"),
                        a_SCAD = 3.7,
@@ -66,7 +64,6 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
        dependence = dependence,
        key = key,
        est_method_sel = if(missing(est_method_sel)) "mle" else est_method_sel,
-       ov_method = if(missing(ov_method)) "ev" else ov_method,
        h = if(missing(h)) 1 else h,
        penalty = if(missing(penalty)) "SCAD" else penalty,
        a_SCAD = a_SCAD,

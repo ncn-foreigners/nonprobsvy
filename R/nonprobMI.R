@@ -1,3 +1,4 @@
+#' @useDynLib nonprobsvy
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -5,6 +6,7 @@
 #' @importFrom stats qnorm
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
+#' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms
 #' @import RcppArmadillo
 #' @import Rcpp

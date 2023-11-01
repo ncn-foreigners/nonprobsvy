@@ -1,3 +1,4 @@
+#' @useDynLib nonprobsvy
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -5,6 +6,7 @@
 #' @importFrom stats qnorm
 #' @importFrom stats binomial
 #' @importFrom stats terms
+#' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
 #' @import RcppArmadillo
 #' @import Rcpp
@@ -17,7 +19,6 @@ nonprobDR <- function(selection,
                       pop_totals,
                       pop_means,
                       pop_size,
-                      overlap,
                       method_selection,
                       method_outcome,
                       family_outcome = "gaussian",
@@ -63,83 +64,6 @@ nonprobDR <- function(selection,
 
   # Selection models
   if (is.null(pop_totals) && !is.null(svydesign)) {
-    if (overlap) { # TODO
-      overlap_idx_nons <- which(data[,control_selection$key] == 1)
-      overlap_idx_rand <- which(svydesign$variables[,control_selection$key] == 1)
-      # model for outcome formula
-      OutcomeModel <- model_frame(formula = outcome,
-                                  data = data,
-                                  svydesign = svydesign)
-      # model for selection formula
-      SelectionModel <- model_frame(formula = selection,
-                                    data = data,
-                                    svydesign = svydesign)
-      X <- rbind(SelectionModel$X_nons, SelectionModel$X_rand) # joint model matrix
-      N_rand <- sum(weights_rand)
-
-      n_nons <- nrow(OutcomeModel$X_nons)
-      n_rand <- nrow(OutcomeModel$X_rand)
-      R_nons <- rep(1, n_nons)
-      R_rand <- rep(0, n_rand)
-      R <- c(R_rand, R_nons)
-      loc_nons <- which(R == 1)
-      loc_rand <- which(R == 0)
-      weights_sum <- sum(weights_rand, weights)
-      overlap_model <- nonprobOv(SelectionModel$X_nons,
-                                 SelectionModel$X_rand,
-                                 weights = weights,
-                                 weights_rand,
-                                 dependent = control_selection$dependence,
-                                 method_selection,
-                                 key_var_prob = svydesign$variables[,control_selection$key],
-                                 idx_nonprob = overlap_idx_nons,
-                                 idx_prob = overlap_idx_rand,
-                                 control = control_selection)
-
-      O_hat <- overlap_model$O_hat
-      ps_nons <- overlap_model$ps_nons
-      est_ps_rand <- overlap_model$est_ps_rand
-      weights_nons <- 1/ps_nons
-      L_hat <- overlap_model$L_hat
-      weights_rnons <- overlap_model$weights_rnons
-      N_nons <- sum(weights * weights_nons)
-      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
-      model_obj <- MethodOutcome(outcome = outcome,
-                                 data = data,
-                                 weights = weights,
-                                 family_outcome = family_outcome,
-                                 X_nons = OutcomeModel$X_nons,
-                                 y_nons = OutcomeModel$y_nons,
-                                 X_rand = OutcomeModel$X_rand,
-                                 control = control_outcome,
-                                 n_nons = n_nons,
-                                 n_rand = n_rand,
-                                 model_frame = OutcomeModel$model_frame,
-                                 vars_selection = control_inference$vars_selection)
-      # TODO objects
-      Selection <- NULL
-      outcome <- NULL
-      theta_hat <- overlap_model$parameters[,1]
-      theta_standard_errors <- overlap_model$parameters[,2]
-
-      y_rand_pred <- model_obj$y_rand_pred
-      y_nons_pred <- model_obj$y_nons_pred
-      outcome <- model_obj$model
-      beta_statistics <- model_obj$parameters
-      if(is.null(pop_size)) pop_size <- N_nons
-
-      mu_hat <- mu_hatDR(y = OutcomeModel$y_nons,
-                         y_nons = y_nons_pred,
-                         y_rand = y_rand_pred,
-                         weights = weights,
-                         weights_nons = weights_nons,
-                         weights_rand = weights_rand,
-                         N_nons = N_nons,
-                         N_rand = N_rand)
-      print(mu_hat)
-      stop("model in development")
-    } else {
       #model for selection formula
       SelectionModel <- model_frame(formula = selection,
                                     data = data,
@@ -222,9 +146,6 @@ nonprobDR <- function(selection,
         #names(theta_est) <- colnames(X)[theta_selected + 1]
         nlambda <- control_outcome$nlambda
       }
-      ##############
-
-    }
   } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
     if (!is.null(pop_totals)) pop_size <- pop_totals[1]
@@ -631,28 +552,6 @@ nonprobDR <- function(selection,
 
     if (se) {
       if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
-        if (overlap) {
-          var <- boot_overlap(X_rand = SelectionModel$X_rand,
-                              X_nons = SelectionModel$X_nons,
-                              y = OutcomeModel$y_nons,
-                              weights_nons = weights_nons,
-                              weights = weights,
-                              mu_hat = mu_hat,
-                              O_hat = O_hat,
-                              L_hat = L_hat,
-                              weights_rand = weights_rand,
-                              weights_rnons = weights_rnons,
-                              method_selection = method_selection,
-                              family_outcome = family_outcome,
-                              dependency = control_selection$dependence,
-                              N = N_nons,
-                              type = "DR",
-                              idx_nonprob = overlap_idx_nons,
-                              idx_prob = overlap_idx_rand,
-                              control = control_selection)
-          var <- as.vector(var)
-          SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
-        } else {
           var_obj <- internal_varDR(OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
                                     SelectionModel = SelectionModel,
                                     y_nons_pred = y_nons_pred,
@@ -682,7 +581,6 @@ nonprobDR <- function(selection,
           se_prob <- sqrt(var_prob)
           se_nonprob <- sqrt(var_nonprob)
           SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-        }
       } else if (var_method == "bootstrap") {
         if (control_inference$cores > 1) {
           boot_obj <- bootDR_multicore(outcome = outcome,

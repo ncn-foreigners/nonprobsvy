@@ -13,7 +13,6 @@ nonprob(
   pop_totals = NULL,
   pop_means = NULL,
   pop_size = NULL,
-  overlap = FALSE,
   method_selection = c("logit", "cloglog", "probit"),
   method_outcome = c("glm", "nn", "pmm"),
   family_outcome = c("gaussian", "binomial", "poisson"),
@@ -48,8 +47,6 @@ nonprob(
 \item{pop_means}{an optional \verb{named vector} with population means of the covariates.}
 
 \item{pop_size}{an optional \code{double} with population size.}
-
-\item{overlap}{logical value - \code{TRUE} if samples overlap.}
 
 \item{method_selection}{a \code{character} with method for propensity scores estimation}
 

@@ -1,3 +1,4 @@
+#' @useDynLib nonprobsvy
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix
@@ -15,7 +16,6 @@ nonprobIPW <- function(selection,
                        pop_totals,
                        pop_means,
                        pop_size,
-                       overlap,
                        method_selection,
                        subset,
                        strata,
@@ -133,42 +133,6 @@ nonprobIPW <- function(selection,
         X_nons <- X[loc_nons, ,drop = FALSE]
         X_rand <- X[loc_rand, ,drop = FALSE]
       }
-
-      # case when samples overlap - to finish
-      if (overlap) { # TODO
-        overlap_idx_nons <- which(data[,control_selection$key] == 1)
-        overlap_idx_rand <- which(svydesign$variables[,control_selection$key] == 1)
-        overlap_model <- nonprobOv(X_nons,
-                                   X_rand,
-                                   weights = weights,
-                                   weights_rand,
-                                   dependent = control_selection$dependence,
-                                   method_selection,
-                                   key_var_prob = svydesign$variables[,control_selection$key],
-                                   idx_nonprob = overlap_idx_nons,
-                                   idx_prob = overlap_idx_rand,
-                                   control = control_selection)
-
-        O_hat <- overlap_model$O_hat
-        ps_nons <- overlap_model$ps_nons
-        est_ps_rand <- overlap_model$est_ps_rand
-        weights_nons <- 1/ps_nons
-        L_hat <- overlap_model$L_hat
-        weights_rnons <- overlap_model$weights_rnons
-        N <- sum(weights_nons)
-        mu_hat <-  mu_hatIPW(y = y_nons,
-                             weights = weights,
-                             weights_nons = weights_nons,
-                             N = N)
-        print(N)
-        print(mu_hat)
-        stop("model in development")
-        # TODO objects
-        selection <- NULL
-        theta_hat <- overlap_model$parameters[,1]
-        theta_standard_errors <- overlap_model$parameters[,2]
-      } else {
-
         model_sel <- internal_selection(X = X,
                                         X_nons = X_nons,
                                         X_rand = X_rand,
@@ -207,8 +171,6 @@ nonprobIPW <- function(selection,
         # } else {
         #   N <- sum(weights * weights_nons)
         # }
-
-       }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
         if (var_selection == FALSE) {
@@ -358,27 +320,6 @@ nonprobIPW <- function(selection,
     #mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
     if (se) {
       if (var_method == "analytic") {
-        if (overlap) {
-          var <- boot_overlap(X_rand = X_rand,
-                              X_nons = X_nons,
-                              y = y_nons,
-                              weights_nons = weights_nons,
-                              weights = weights,
-                              mu_hat = mu_hat,
-                              O_hat = O_hat,
-                              L_hat = L_hat,
-                              weights_rand = weights_rand,
-                              weights_rnons = weights_rnons,
-                              method_selection = method_selection,
-                              dependency = control_selection$dependence,
-                              N = N,
-                              type = "IPW",
-                              idx_nonprob = overlap_idx_nons,
-                              idx_prob = overlap_idx_rand,
-                              control = control_selection)
-          var <- as.vector(var)
-          SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
-        } else {
           var_obj <- internal_varIPW(svydesign = svydesign,
                                      X_nons = X_nons,
                                      X_rand = X_rand,
@@ -408,7 +349,6 @@ nonprobIPW <- function(selection,
           se_nonprob <- sqrt(var_nonprob)
           se_prob <- sqrt(var_prob)
           SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-        }
       } else if (var_method == "bootstrap") {
 
         if (control_inference$cores > 1) {

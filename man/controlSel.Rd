@@ -15,7 +15,6 @@ controlSel(
   dependence = FALSE,
   key = NULL,
   est_method_sel = c("mle", "gee"),
-  ov_method = c("ev", "mle", "gee"),
   h = c(1, 2),
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
@@ -49,8 +48,6 @@ controlSel(
 \item{key}{binary key variable}
 
 \item{est_method_sel}{Method of estimation for propensity score model.}
-
-\item{ov_method}{Method of estimation in case when samples (probability and non-probability) overlap.}
 
 \item{h}{Smooth function for the generalized estimating equations methods taking the following values
 \itemize{

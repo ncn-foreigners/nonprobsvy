@@ -143,6 +143,123 @@ theta_h_estimation <- function(R,
        hess = hess,
        grad = grad)
 }
+# code for the function comes from the ncvreg package
+setup_lambda <- function(X,
+                         y,
+                         weights,
+                         method_selection,
+                         lambda_min,
+                         nlambda,
+                         pop_totals,
+                         alpha = 1,
+                         log_lambda = FALSE,
+                         ...) { #consider penalty factor here # TO consider for pop_totals/pop_means
+
+  #fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
+  if (is.null(pop_totals)) {
+    fit <- stats::glm(y~1,
+                      weights = weights,
+                      family = binomial(link = method_selection))
+
+    n <- length(y)
+    p <- ncol(X)
+    w <- fit$weights
+    r <- as.matrix(stats::residuals(fit, "working") * w)
+    zmax <- max(crossprod(X, r))/n
+    lambda_max <- zmax/alpha
+  } else {
+    lambda_max <- .1
+  }
+  if (log_lambda) { # lambda sequence on log-scale
+    if (lambda_min==0) {
+      lambda <- c(exp(seq(log(lambda_max), log(.001*lambda_max), length=nlambda-1)), 0)
+    } else {
+      lambda <- exp(seq(log(lambda_max), log(lambda_min*lambda_max), length=nlambda))
+    }
+  } else { # lambda sequence on linear-scale
+    if (lambda_min==0) {
+      lambda <- c(seq(lambda_max, 0.001*lambda_max, length = nlambda-1), 0)
+    } else {
+      lambda <- seq(lambda_max, lambda_min*lambda_max, length = nlambda)
+    }
+  }
+  lambda
+}
+
+# score equation for theta, used in variable selection
+u_theta <- function(R,
+                    X,
+                    weights,
+                    method_selection,
+                    h,
+                    N = NULL,
+                    pop_totals = NULL,
+                    pop_size = NULL
+) {
+
+
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection)
+  inv_link <- method$make_link_inv
+  function(par) {
+    theta <- as.matrix(par)
+    n <- length(R)
+    X0 <- as.matrix(X)
+    eta_pi <- X0 %*% theta
+    ps <- inv_link(eta_pi)
+    R_rand <- 1 - R
+    ps <- as.vector(ps)
+    N_nons <- sum(1/ps)
+    weights_sum <- sum(weights)
+
+    if (is.null(pop_totals)) {
+      eq <- switch(h,
+                   "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+                   "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum)))
+    } else {
+      eq <- c(apply(X0 * R/ps * weights, 2, sum)) - pop_totals
+    }
+    eq
+  }
+}
+
+# derivative of score equation for theta, used in variable selection
+u_theta_der <-  function(R,
+                         X,
+                         weights,
+                         method_selection,
+                         h,
+                         N = NULL,
+                         pop_totals = NULL
+)
+{
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection)
+  inv_link <- method$make_link_inv
+  dinv_link <- method$make_link_inv_der
+  inv_link_rev <- method$make_link_inv_rev
+
+  function(par) {
+    theta <- as.matrix(par)
+    X0 <- as.matrix(X)
+    p <- ncol(X0)
+    eta <- X0 %*% theta
+    ps <- inv_link(eta)
+    ps <- as.vector(ps)
+    N_nons <- sum(1/ps)
+    R_rand <- 1 - R
+    weights_sum <- sum(weights)
+
+    if (!is.null(pop_totals)) {
+      mxDer <- t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0
+    } else {
+      mxDer <-switch(h,
+                     "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
+                     "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
+    }
+    as.matrix(mxDer, nrow = p) # consider division by N_nons
+  }
+}
 # Variance for inverse probability weighted estimator
 internal_varIPW <- function(svydesign,
                             X_nons,
