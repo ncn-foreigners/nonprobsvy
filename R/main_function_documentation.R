@@ -20,10 +20,8 @@ NULL
 #' @param pop_totals an optional `named vector` with population totals of the covariates.
 #' @param pop_means an optional `named vector` with population means of the covariates.
 #' @param pop_size an optional `double` with population size.
-#' @param overlap logical value - `TRUE` if samples overlap.
 #' @param method_selection a `character` with method for propensity scores estimation
 #' @param method_outcome a `character` with method for response variable estimation
-#' @param family_selection a `character` string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.
 #' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
 #' @param strata an optional `vector` specifying strata.
@@ -114,7 +112,7 @@ NULL
 #'    for probability sample and design (known) weights, we can build population mean estimator of form:
 #'    \mjsdeqn{\mu_{MI} = \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
 #'    It opens the the door to very flexible method for imputation model. In the package used generalized linear models from [stats::glm()]
-#'    and nearest neighbour algorithm using [RANN::nn2()].
+#'    nearest neighbour algorithm using [RANN::nn2()] and predictive mean matching.
 #'
 #' 3. Doubly robust estimation -- The IPW and MI estimators are sensible on misspecified models for propensity score and outcome variable respectively.
 #'    For this purpose so called doubly-robust methods, which take into account these problems, are presented.
@@ -175,7 +173,7 @@ NULL
 #' with type \code{list} containing:\cr
 #' \itemize{
 #'  \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
-#'  \item{\code{y}} -- Vector of outcome variable if specified at a function call.
+#'  \item{\code{y}} -- list of vector of outcome variables if specified at a function call.
 #'  \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 #'  \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 #'  \item{\code{control} -- list of control functions.}

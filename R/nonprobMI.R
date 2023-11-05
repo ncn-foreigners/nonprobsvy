@@ -1,3 +1,4 @@
+#' @useDynLib nonprobsvy
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -5,7 +6,11 @@
 #' @importFrom stats qnorm
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
+#' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms
+#' @import RcppArmadillo
+#' @import Rcpp
+#' @importFrom Rcpp evalCpp
 
 nonprobMI <- function(outcome,
                       data,
@@ -28,8 +33,11 @@ nonprobMI <- function(outcome,
                       se,
                       ...) {
 
+  var_selection <- control_inference$vars_selection
   outcomes <- ff(outcome)
   output <- list()
+  ys <- list()
+  OutcomeList <- list()
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -40,6 +48,7 @@ nonprobMI <- function(outcome,
   num_boot <- control_inference$num_boot
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
+      pop_totals_sel <- pop_totals
       outcome <- outcomes$outcome[[k]]
 
       # model for outcome formula
@@ -64,6 +73,31 @@ nonprobMI <- function(outcome,
       weights_rand <- 1/ps_rand
       N_est_rand <- sum(weights_rand)
 
+      ########### WORKING VERSION
+
+      if (var_selection == TRUE) {
+        nlambda <- control_outcome$nlambda
+        beta <- ncvreg::cv.ncvreg(X = X[loc_nons, -1, drop = FALSE],
+                                  y = y_nons,
+                                  penalty = control_outcome$penalty,
+                                  family = family_outcome,
+                                  trace = verbose,
+                                  nlambda = nlambda)
+
+        beta_est <- beta$fit$beta[,beta$min]
+        beta_selected <- which(abs(beta_est) != 0) - 1
+        beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
+        cve_outcome <- beta$cve
+        lambda_outcome <- beta$lambda
+        lambda_min_outcome <- beta$lambda.min
+
+        X_design <- as.matrix(X[, beta_selected + 1, drop = FALSE])
+        # colnames(X_design) <- c("(Intercept)", colnames(Xsel))
+        X_rand <- X_design[loc_rand, ]
+        X_nons <- X_design[loc_nons, ]
+      }
+      ################
+
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       ## estimation
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
@@ -83,7 +117,7 @@ nonprobMI <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
-      OutcomeList <- model_obj$model
+      OutcomeList[[k]] <- model_obj$model
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -109,6 +143,29 @@ nonprobMI <- function(outcome,
       weights_rand <- NULL
       n_nons <- nrow(X_nons)
 
+      ############## WORKING VERSION
+      if (var_selection == TRUE) {
+        nlambda <- control_outcome$nlambda
+        beta <- ncvreg::cv.ncvreg(X = Model$X_nons[,-1, drop = FALSE],
+                                  y = y_nons,
+                                  penalty = control_outcome$penalty,
+                                  family = family_outcome,
+                                  trace = verbose,
+                                  nlambda = nlambda)
+
+        beta_est <- beta$fit$beta[,beta$min]
+        beta_selected <- which(abs(beta_est) != 0) - 1
+        beta_est <- beta_est[beta$fit$beta[,beta$min] != 0]
+        cve_outcome <- beta$cve
+        lambda_outcome <- beta$lambda
+        lambda_min_outcome <- beta$lambda.min
+
+        X_nons <- Model$X_nons[, beta_selected + 1, drop = FALSE]
+        X <- X_nons
+        pop_totals <- pop_totals[beta_selected+1]
+      }
+      #######################
+
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(outcome = outcome,
@@ -128,12 +185,12 @@ nonprobMI <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
-      OutcomeList <- model_obj$model
-
+      OutcomeList[[k]] <- model_obj$model
       mu_hat <- y_rand_pred
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
+    ys$k <- as.numeric(y_nons) # TODO name to change
     if (se) {
     # design based variance estimation based on approximations of the second-order inclusion probabilities
     if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
@@ -211,7 +268,11 @@ nonprobMI <- function(outcome,
                                                                        upper_bound = mu_hat + z * SE
       ))))
     } else {
-      SE <- NULL
+      SE <- NA
+      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(lower_bound = NA,
+                                                                       upper_bound = NA
+      ))))
+      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
     }
 
     X <- rbind(X_nons, X_rand) # joint model matrix
@@ -219,16 +280,13 @@ nonprobMI <- function(outcome,
     pop_size <- N_est_rand # estimated pop_size
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
+    OutcomeList[[k]]$method <- method_outcome
   }
   output <- do.call(rbind, output)
-  if (!is.null(SE)) {
-    confidence_interval <- do.call(rbind, confidence_interval)
-    SE_values <- do.call(rbind, SE_values)
-    rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  } else {
-    rownames(output) <- outcomes$f
-  }
-  OutcomeList$method <- method_outcome
+  confidence_interval <- do.call(rbind, confidence_interval)
+  SE_values <- do.call(rbind, SE_values)
+  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
+  names(OutcomeList) <- outcomes$f
 
   structure(
     list(X = if(isTRUE(x)) X else NULL,

@@ -349,9 +349,9 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
     // TUTAJ
     for(int j = 0; j < nfolds; j++) {
-      if (verbose) {
-        cout << "Starting CV fold #" << j+1 << std::endl;
-      }
+      // if (verbose) {
+      //   cout << "Starting CV fold #" << j+1 << std::endl;
+      // }
       for(int i = 0; i < nlambda; i++) {
         lambda = lambdas1(i);
         //arma::vec loss_theta_vec(nfolds, arma::fill::zeros);

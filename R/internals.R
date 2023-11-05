@@ -18,12 +18,13 @@ internal_selection <- function(X,
                                R,
                                method_selection,
                                optim_method,
-                               h = h,
+                               h,
                                est_method,
                                maxit,
+                               control_selection,
+                               start,
                                bias_correction = FALSE,
                                varcov = FALSE,
-                               control_selection,
                                ...) {
 
   if (bias_correction == TRUE) est_method <- "mm"
@@ -41,6 +42,7 @@ internal_selection <- function(X,
                                     maxit = maxit,
                                     varcov = varcov,
                                     control_selection = control_selection,
+                                    start = start,
                                     ...)
 
 }
@@ -67,30 +69,34 @@ theta_h_estimation <- function(R,
                                h,
                                method_selection,
                                maxit,
+                               start = NULL,
                                pop_totals = NULL,
                                pop_means = NULL){ # TODO with BERENZ recommendation
 
   p <- ncol(X)
   if (is.null(pop_totals) & is.null(pop_means)) {
-    start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                        R = R,
-                        weights = weights,
-                        weights_rand = weights_rand,
-                        method_selection = method_selection)
+    if (is.null(start)) {
+      start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                          R = R,
+                          weights = weights,
+                          weights_rand = weights_rand,
+                          method_selection = method_selection)
+    } else {
+      start0 <- start
+    }
   } else { # TODO customize start point for fitting with population totals
     # start0 <- rep(.8, ncol(X))
     # X_pop <- rbind(X, pop_totals)
     # weights_randd <- 1
-    # start0 <- start_fit(X = X, # <--- does not work with pop_totals
-    #                     R = R,
-    #                     weights = weights,
-    #                     weights_rand = weights_rand,
-    #                     method_selection = method_selection)
-    start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                        R = R,
-                        weights = weights,
-                        weights_rand = weights_rand,
-                        method_selection = method_selection)
+    if (is.null(start)) {
+      start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                          R = R,
+                          weights = weights,
+                          weights_rand = weights_rand,
+                          method_selection = method_selection)
+    } else {
+      start0 <- start
+    }
   }
   u_theta <- u_theta(R = R,
                      X = X,
@@ -136,6 +142,123 @@ theta_h_estimation <- function(R,
   list(theta_h = theta_h,
        hess = hess,
        grad = grad)
+}
+# code for the function comes from the ncvreg package
+setup_lambda <- function(X,
+                         y,
+                         weights,
+                         method_selection,
+                         lambda_min,
+                         nlambda,
+                         pop_totals,
+                         alpha = 1,
+                         log_lambda = FALSE,
+                         ...) { #consider penalty factor here # TO consider for pop_totals/pop_means
+
+  #fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
+  if (is.null(pop_totals)) {
+    fit <- stats::glm(y~1,
+                      weights = weights,
+                      family = binomial(link = method_selection))
+
+    n <- length(y)
+    p <- ncol(X)
+    w <- fit$weights
+    r <- as.matrix(stats::residuals(fit, "working") * w)
+    zmax <- max(crossprod(X, r))/n
+    lambda_max <- zmax/alpha
+  } else {
+    lambda_max <- .1
+  }
+  if (log_lambda) { # lambda sequence on log-scale
+    if (lambda_min==0) {
+      lambda <- c(exp(seq(log(lambda_max), log(.001*lambda_max), length=nlambda-1)), 0)
+    } else {
+      lambda <- exp(seq(log(lambda_max), log(lambda_min*lambda_max), length=nlambda))
+    }
+  } else { # lambda sequence on linear-scale
+    if (lambda_min==0) {
+      lambda <- c(seq(lambda_max, 0.001*lambda_max, length = nlambda-1), 0)
+    } else {
+      lambda <- seq(lambda_max, lambda_min*lambda_max, length = nlambda)
+    }
+  }
+  lambda
+}
+
+# score equation for theta, used in variable selection
+u_theta <- function(R,
+                    X,
+                    weights,
+                    method_selection,
+                    h,
+                    N = NULL,
+                    pop_totals = NULL,
+                    pop_size = NULL
+) {
+
+
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection)
+  inv_link <- method$make_link_inv
+  function(par) {
+    theta <- as.matrix(par)
+    n <- length(R)
+    X0 <- as.matrix(X)
+    eta_pi <- X0 %*% theta
+    ps <- inv_link(eta_pi)
+    R_rand <- 1 - R
+    ps <- as.vector(ps)
+    N_nons <- sum(1/ps)
+    weights_sum <- sum(weights)
+
+    if (is.null(pop_totals)) {
+      eq <- switch(h,
+                   "1" = c(apply(X0 * R/ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+                   "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum)))
+    } else {
+      eq <- c(apply(X0 * R/ps * weights, 2, sum)) - pop_totals
+    }
+    eq
+  }
+}
+
+# derivative of score equation for theta, used in variable selection
+u_theta_der <-  function(R,
+                         X,
+                         weights,
+                         method_selection,
+                         h,
+                         N = NULL,
+                         pop_totals = NULL
+)
+{
+  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
+  method <- get_method(method_selection)
+  inv_link <- method$make_link_inv
+  dinv_link <- method$make_link_inv_der
+  inv_link_rev <- method$make_link_inv_rev
+
+  function(par) {
+    theta <- as.matrix(par)
+    X0 <- as.matrix(X)
+    p <- ncol(X0)
+    eta <- X0 %*% theta
+    ps <- inv_link(eta)
+    ps <- as.vector(ps)
+    N_nons <- sum(1/ps)
+    R_rand <- 1 - R
+    weights_sum <- sum(weights)
+
+    if (!is.null(pop_totals)) {
+      mxDer <- t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0
+    } else {
+      mxDer <-switch(h,
+                     "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
+                     "2" = - t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0)
+    }
+    as.matrix(mxDer, nrow = p) # consider division by N_nons
+  }
 }
 # Variance for inverse probability weighted estimator
 internal_varIPW <- function(svydesign,
@@ -215,6 +338,7 @@ internal_varIPW <- function(svydesign,
        var = var)
 }
 # Variance for doubly robust estimator
+# TODO add nn and pmm
 internal_varDR <- function(OutcomeModel,
                            SelectionModel,
                            y_nons_pred,
@@ -328,16 +452,14 @@ internal_varMI <- function(svydesign,
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+
   if (is.null(pop_totals)) {
     svydesign_mean <- survey::svymean(~y_hat_MI, svydesign)
     var_prob <- as.vector(attr(svydesign_mean, "var")) # probability component, should be bigger for nn
-
     if (method == "nn") {
-
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps  <- n_nons/N
       var_nonprob <- n_rand/N^2 * (1 - est_ps)/est_ps * sigma_hat
-
     } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
       beta <- parameters[,1]
@@ -351,13 +473,32 @@ internal_varMI <- function(svydesign,
       # nonprobability component
       var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
+    } else if (method == "pmm") {
+
+      # beta <- parameters[,1]
+      # eta_nons <- X_nons %*% beta
+      # eta_rand <- X_rand %*% beta
+      #
+      # mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
+      # c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+      #
+      # # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
+      # var_nonprob <- as.vector(var_nonprob)
+
+      # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
+      var_nonprob <- 0
+      # var_nonprob <- as.vector(var_nonprob)
+      # TODO to consider
     }
   } else {
     if (method == "nn") {
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps  <- n_nons/N
       var_nonprob <- n_nons/N^2 * (1 - est_ps)/est_ps * sigma_hat # what instead of n_rand here (?) now just n_nons
-    } else {
+    } else if (method == "glm") {
       beta <- parameters[,1]
       eta_nons <- X_nons %*% beta
       if (family %in% c("binomial", "poisson")) { # TODO consider this chunk of code
@@ -365,7 +506,6 @@ internal_varMI <- function(svydesign,
       } else {
         eta_rand <- pop_totals %*% beta
       }
-
       mx <- 1/N * pop_totals * as.vector(family_nonprobsvy$mu_der(eta_rand))
       c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
       residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
@@ -373,6 +513,24 @@ internal_varMI <- function(svydesign,
       # nonprobability component
       var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
+    } else if (method == "pmm") {
+
+      # beta <- parameters[,1]
+      # eta_nons <- X_nons %*% beta
+      #
+      # if (family %in% c("binomial", "poisson")) { # TODO consider this chunk of code
+      #   eta_rand <- pop_totals %*% beta / pop_totals[1]
+      # } else {
+      #   eta_rand <- pop_totals %*% beta
+      # }
+      #
+      # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+
+      # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (family_nonprobsvy$mu_der(eta_nons) %*% t(X_nons))^2
+      var_nonprob <- 0
+      var_nonprob <- as.vector(var_nonprob)
+
     }
     var_prob <- 0
   }
@@ -381,7 +539,7 @@ internal_varMI <- function(svydesign,
        var_nonprob = var_nonprob)
 }
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL) {
+model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL, flag = TRUE) {
 
   if (!is.null(svydesign)) {
   ##### Model frame for nonprobability sample #####
@@ -392,7 +550,9 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
   nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
   ##### Model frame for probability sample #####
   if (outcome_name %in% colnames(svydesign$variables)) {
-    model_Frame_rand <- model.frame(formula, svydesign$variables)
+    design_to_frame <- svydesign$variables
+    design_to_frame[,outcome_name][is.na(design_to_frame[,outcome_name])] <- 0
+    model_Frame_rand <- model.frame(formula, design_to_frame)
     mt_rand <- attr(model_Frame_rand, "terms")
     nons_names_rand <- attr(mt_rand, "term.labels")
   } else {
@@ -433,7 +593,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
        outcome_name = outcome_name,
        model_frame_rand = model_Frame_rand)
 
-  } else if (!is.null(pop_totals)) { # TODO
+  } else if (!is.null(pop_totals)) {
     model_Frame <- model.frame(formula, data)
     X_nons <- model.matrix(model_Frame, data)
     #matrix for nonprobability sample with intercept
@@ -444,10 +604,12 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     mt <- attr(model_Frame, "terms")
     #nons_names <- attr(mt, "term.labels")
     total_names <- colnames(X_nons)
-    if(all(total_names %in% names(pop_totals))) { # pop_totals, pop_means defined such as in `calibrate` function
-      pop_totals <- pop_totals[total_names]
-    } else {
-      warning("Selection and population totals have different names.")
+    if (flag) {
+      if(all(total_names %in% names(pop_totals))) { # TODO verify whether this warming works well.. pop_totals, pop_means defined such as in `calibrate` function
+        pop_totals <- pop_totals[total_names]
+      } else {
+        warning("Selection and population totals have different names.")
+      }
     }
     y_nons <- model.response(model_Frame)
     outcome_name <- names(model_Frame)[1]
@@ -521,10 +683,10 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
 
-  if (object$outcome$method == "glm" ) {
-    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+  if (object$outcome[[1]]$method == "glm") { # TODO for pmm
+    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
                    ncol = 2,
-                   dimnames = list(names(object$outcome$coefficients),
+                   dimnames = list(names(object$outcome[[1]]$coefficients),
                                    c("Estimate", "Std. Error")))
   } else {
     coeffs_out <- "no coefficients"
@@ -533,11 +695,14 @@ specific_summary_info.nonprobsvy_mi <- function(object,
   res <- list(
     coeffs_out = coeffs_out
   )
-  if (object$outcome$method == "glm") {
+  if (object$outcome[[1]]$method == "glm") {
   attr(res$coeffs_out, "glm") <- TRUE
   attr(res, "model") <- "glm regression on outcome variable"
-  } else if (object$outcome$method == "nn") {
+  } else if (object$outcome[[1]]$method == "nn") {
     attr(res$coeffs_out, "glm") <- FALSE
+  } else if (object$outcome[[1]]$method == "pmm") { # TODO
+    attr(res$coeffs_out, "glm") <- FALSE
+    # attr(res, "model") <- "glm regression on outcome variable"
   }
   res
 }
@@ -551,10 +716,10 @@ specific_summary_info.nonprobsvy_dr <- function(object,
                                   c("Estimate", "Std. Error")))
 
 
-  if (object$outcome$method == "glm") {
-    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+  if (object$outcome[[1]]$method == "glm") {
+    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
                    ncol = 2,
-                   dimnames = list(names(object$outcome$coefficients),
+                   dimnames = list(names(object$outcome[[1]]$coefficients),
                                    c("Estimate", "Std. Error")))
   } else {
     coeffs_out <- "no coefficients"
@@ -567,11 +732,11 @@ specific_summary_info.nonprobsvy_dr <- function(object,
     df_residual = object$selection$df_residual
   )
   attr(res$coeffs_sel, "glm") <- TRUE
-  if (object$outcome$method == "glm") {
+  if (object$outcome[[1]]$method == "glm") {
     attr(res$coeffs_out, "glm") <- TRUE
     attr(res, "model")     <- c("glm regression on selection variable",
                                 "glm regression on outcome variable")
-  } else if (object$outcome$method == "nn") {
+  } else if (object$outcome[[1]]$method == "nn") {
     attr(res$coeffs_out, "glm") <- FALSE
     attr(res, "model")     <- c("glm regression on selection variable")
   }

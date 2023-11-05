@@ -18,7 +18,7 @@ bootMI <- function(X_rand,
                    pop_totals,
                    verbose,
                    ...
-                   ){ # TODO add methods instead of conditional loops
+                   ){ # TODO add methods instead of conditions
 
   mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
@@ -47,13 +47,14 @@ bootMI <- function(X_rand,
 
         strap <- sample.int(replace = TRUE, n = n_nons)
         weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap,]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
         y_strap <- y[strap]
 
         #using svy package
         strap_rand_svy <- which(rep_weights[,k] != 0)
         weights_rand_strap_svy <- rep_weights[,k] * weights_rand
         N_strap <- sum(weights_rand_strap_svy)
+        # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
@@ -79,12 +80,12 @@ bootMI <- function(X_rand,
 
         strap <- sample.int(replace = TRUE, n = n_nons)
         weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap,]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
         y_strap <- y[strap]
 
         strap_rand <- sample.int(replace = TRUE, n = n_rand)
         weights_rand_strap <- weights_rand[strap_rand]
-        X_rand_strap <- X_rand[strap_rand,]
+        X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
         N_strap <- sum(weights_rand_strap)
 
         model_rand <- nonprobMI_nn(data = X_nons_strap,
@@ -92,7 +93,6 @@ bootMI <- function(X_rand,
                                    k = control_outcome$k,
                                    treetype = control_outcome$treetype,
                                    searchtype = control_outcome$searchtype)
-        y_rand_strap <- vector(mode = "numeric", length = n_rand)
 
         y_rand_strap <- apply(model_rand$nn.idx, 1,
                              FUN=\(x) mean(y_strap[x])
@@ -107,6 +107,51 @@ bootMI <- function(X_rand,
         }
         k <- k + 1
       }
+    } else if (method == "pmm") {
+
+      while (k <= num_boot) {
+        strap <- sample.int(replace = TRUE, n = n_nons)
+        weights_strap <- weights[strap]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
+        y_strap <- y[strap]
+
+        strap_rand <- sample.int(replace = TRUE, n = n_rand)
+        weights_rand_strap <- weights_rand[strap_rand]
+        X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+        N_strap <- sum(weights_rand_strap)
+
+        model_strap <- stats::glm.fit(x = X_nons_strap,
+                                      y = y_strap,
+                                      weights = weights_strap,
+                                      family = family)
+
+        beta <- model_strap$coefficients
+        eta_rand <- X_rand_strap %*% beta
+        eta_nons <- X_nons_strap %*% beta
+        y_rand_strap <- family_nonprobsvy$mu(eta_rand)
+        y_nons_strap <- family_nonprobsvy$mu(eta_nons)
+
+
+        model_rand <- nonprobMI_nn(data = y_nons_strap,
+                                   query = y_rand_strap,
+                                   k = control_outcome$k,
+                                   treetype = control_outcome$treetype,
+                                   searchtype = control_outcome$searchtype)
+
+        y_rand_strap <- apply(model_rand$nn.idx, 1,
+                              FUN=\(x) mean(y_strap[x])
+                              #FUN=\(x) mean(sample_nonprob$short_[x])
+        )
+
+        mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
+        mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
+        k <- k + 1
+      }
+
     }
   } else {
     N <- pop_totals[1]
@@ -114,7 +159,7 @@ bootMI <- function(X_rand,
       while (k <= num_boot) {
         strap <- sample.int(replace = TRUE, n = n_nons)
         weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap,]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
         y_strap <- y[strap]
 
         model_strap <- stats::glm.fit(x = X_nons_strap,
@@ -123,11 +168,11 @@ bootMI <- function(X_rand,
                                       family = family)
 
         beta <- model_strap$coefficients
-        eta <- pop_totals %*% beta
+        eta <- pop_totals %*% beta / N
         y_strap_rand <- family_nonprobsvy$mu(eta)
 
         #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
-        mu_hat_boot <-  as.vector(y_strap_rand/N)
+        mu_hat_boot <-  as.vector(y_strap_rand)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
           info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
@@ -139,7 +184,7 @@ bootMI <- function(X_rand,
       while (k <= num_boot) {
         strap <- sample.int(replace = TRUE, n = n_nons)
         weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap,]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
         y_strap <- y[strap]
 
         model_rand <- nonprobMI_nn(data = X_nons_strap,
@@ -155,6 +200,40 @@ bootMI <- function(X_rand,
         }
         k <- k + 1
       }
+    } else if (method == "pmm") {
+
+      while (k <= num_boot) {
+        strap <- sample.int(replace = TRUE, n = n_nons)
+        weights_strap <- weights[strap]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
+        y_strap <- y[strap]
+
+        model_strap <- stats::glm.fit(x = X_nons_strap,
+                                      y = y_strap,
+                                      weights = weights_strap,
+                                      family = family)
+
+        beta <- model_strap$coefficients
+        eta_rand <- pop_totals %*% beta
+        eta_nons <- X_nons_strap %*% beta
+        y_strap_rand <- family_nonprobsvy$mu(eta_rand)
+        y_strap_nons <- family_nonprobsvy$mu(eta_nons)
+
+
+        model_rand <- nonprobMI_nn(data = y_strap_nons,
+                                   query = y_strap_rand,
+                                   k = control_outcome$k,
+                                   treetype = control_outcome$treetype,
+                                   searchtype = control_outcome$searchtype)
+        mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
+        mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          print(info)
+        }
+        k <- k + 1
+      }
+
     }
   }
   mu_hat_boot <- mean(mu_hats)
@@ -179,11 +258,11 @@ bootIPW <- function(X_rand,
                     est_method,
                     h,
                     maxit,
-                    pop_size = NULL,
-                    pop_totals = NULL,
                     control_inference,
                     control_selection,
                     verbose,
+                    pop_size,
+                    pop_totals,
                     ...){
   mu_hats <- vector(mode = "numeric", length = num_boot)
   if (!is.null(weights_rand)) N <- sum(weights_rand)
@@ -199,12 +278,13 @@ bootIPW <- function(X_rand,
       strap_nons <- sample.int(replace = TRUE, n = n_nons)
       strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-      X <- rbind(X_rand[strap_rand, ],
-                 X_nons[strap_nons, ])
+      X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+      X_nons_strap <- X_nons[strap_nons, , drop = FALSE]
+      X <- rbind(X_rand_strap, X_nons_strap)
 
       model_sel <- internal_selection(X = X,
-                                      X_nons = X_nons[strap_nons, ],
-                                      X_rand = X_rand[strap_rand, ],
+                                      X_nons = X_nons_strap,
+                                      X_rand = X_rand_strap,
                                       weights = weights[strap_nons],
                                       weights_rand = weights_rand[strap_rand],
                                       R = R,
@@ -235,7 +315,7 @@ bootIPW <- function(X_rand,
     } else {
       strap <- sample.int(replace = TRUE, n = n_nons)
 
-      X_strap <- X_nons[strap, ]
+      X_strap <- X_nons[strap, , drop = FALSE]
       R_strap <- R[strap]
       weights_strap <- weights[strap]
 
@@ -314,6 +394,8 @@ bootDR <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
+  method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+  MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
 
   if (bias_correction == TRUE) {
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
@@ -343,23 +425,30 @@ bootDR <- function(outcome,
           strap_nons <- sample.int(replace = TRUE, n = n_nons)
           strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-          model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
-                                      y = OutcomeModel$y[strap_nons],
-                                      weights = weights[strap_nons],
-                                      family = family)
+          model_obj <- MethodOutcome(outcome = outcome,
+                                     data = data[strap_nons,],
+                                     weights = weights[strap_nons],
+                                     family_outcome = family_outcome,
+                                     X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
+                                     y_nons = OutcomeModel$y_nons[strap_nons],
+                                     X_rand = OutcomeModel$X_rand[strap_rand, , drop = FALSE],
+                                     control = control_outcome,
+                                     n_nons = n_nons,
+                                     n_rand = n_rand,
+                                     model_frame = OutcomeModel$model_frame_rand[strap_rand,],
+                                     vars_selection = control_inference$vars_selection,
+                                     pop_totals = pop_totals)
 
 
-          model_nons_coefs <- model_out$coefficients
-          eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          y_rand_pred <- family_nonprobsvy$mu(eta)
-          y_nons_pred <- model_out$fitted.values
+          y_rand_pred <- model_obj$y_rand_pred
+          y_nons_pred <- model_obj$y_nons_pred
 
-          X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
-                         SelectionModel$X_nons[strap_nons, ])
+          X_sel <- rbind(SelectionModel$X_rand[strap_rand, , drop = FALSE],
+                         SelectionModel$X_nons[strap_nons, , drop = FALSE])
 
           model_sel <- internal_selection(X = X_sel,
-                                          X_nons = SelectionModel$X_nons[strap_nons, ],
-                                          X_rand = SelectionModel$X_rand[strap_rand, ],
+                                          X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
+                                          X_rand = SelectionModel$X_rand[strap_rand, , drop = FALSE],
                                           weights = weights[strap_nons],
                                           weights_rand = weights_rand[strap_rand],
                                           R = R,
@@ -392,12 +481,11 @@ bootDR <- function(outcome,
           }
           k <- k + 1
         }
-      } else { # TODO
+      } else {
         while (k <= num_boot) {
-          #stop("Bootstrap with pop_totals is not yet implemented.")
 
           strap <- sample.int(replace = TRUE, n = n_nons)
-          X_strap_nons <- SelectionModel$X_nons[strap, ]
+          X_strap_nons <- SelectionModel$X_nons[strap, , drop = FALSE]
           y_strap <- OutcomeModel$y_nons[strap]
           R_strap <- rep(1, n_nons)
           weights_strap <- weights[strap]
@@ -422,22 +510,8 @@ bootDR <- function(outcome,
           N_est <- sum(weights_strap * weights_nons_strap)
           if(is.null(pop_size)) pop_size <- N_est
 
-          # model_out_strap <- stats::glm.fit(x = OutcomeModel$X_nons[strap, ],
-          #                             y = OutcomeModel$y[strap],
-          #                             weights = weights_strap,
-          #                             family = family)
-          #
-          # model_nons_coefs <- model_out_strap$coefficients
-          # y_rand_pred <- as.numeric(pop_totals %*% model_nons_coefs) # TODO with predict.glm
-          # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          # y_rand_pred <- family_nonprobsvy$mu(eta)
-          # y_nons_pred <- model_out_strap$fitted.values
-
-
-          method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-          MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
           model_obj <- MethodOutcome(outcome = outcome,
-                                     data = data[strap,],
+                                     data = data[strap, , drop = FALSE],
                                      weights = weights_strap,
                                      family_outcome = family_outcome,
                                      X_nons = X_strap_nons,
@@ -462,8 +536,8 @@ bootDR <- function(outcome,
           k <- k + 1
         }
       }
-    boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
     mu_hat_boot <- mean(mu_hats)
+    boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat_boot)^2)
     }
   list(var = boot_var,
        mu = mu_hat_boot)
@@ -486,15 +560,15 @@ bootDR_sel <- function(X,
   k <- 1
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
-  X_nons <- X[loc_nons,]
-  X_rand <- X[loc_rand,]
+  X_nons <- X[loc_nons, , drop = FALSE]
+  X_rand <- X[loc_rand, , drop = FALSE]
   y_nons <- y[loc_nons]
   y_rand <- y[loc_rand]
   while (k <= num_boot) {
     strap_nons <- sample.int(replace = TRUE, n = n_nons)
     strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-    X_strap <- rbind(X_rand[strap_rand, ], X_nons[strap_nons, ])
+    X_strap <- rbind(X_rand[strap_rand, , drop = FALSE], X_nons[strap_nons, , drop = FALSE])
     y_strap <- c(y_rand[strap_rand], y_nons[strap_nons])
 
     model_strap <- mm(X = X_strap,
@@ -571,6 +645,11 @@ bootMI_multicore <- function(X_rand,
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+  cl <- parallel::makeCluster(cores)
+  doParallel::registerDoParallel(cl)
+  on.exit(parallel::stopCluster(cl))
+  parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+                                               "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
@@ -578,24 +657,20 @@ bootMI_multicore <- function(X_rand,
     if (method == "glm") {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
-                                                   "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
-
+      k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons)
           weights_strap <- weights[strap]
-          X_nons_strap <- X_nons[strap,]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
           #using svy package
           strap_rand_svy <- which(rep_weights[,k] != 0)
           weights_rand_strap_svy <- rep_weights[,k] * weights_rand
           N_strap <- sum(weights_rand_strap_svy)
+          # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
@@ -608,11 +683,6 @@ bootMI_multicore <- function(X_rand,
           weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
         })
     } else if (method == "nn") {
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
-                                                   "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -620,12 +690,12 @@ bootMI_multicore <- function(X_rand,
 
           strap <- sample.int(replace = TRUE, n = n_nons)
           weights_strap <- weights[strap]
-          X_nons_strap <- X_nons[strap,]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
           strap_rand <- sample.int(replace = TRUE, n = n_rand)
           weights_rand_strap <- weights_rand[strap_rand]
-          X_rand_strap <- X_rand[strap_rand,]
+          X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
           N_strap <- sum(weights_rand_strap)
 
           model_rand <- nonprobMI_nn(data = X_nons_strap,
@@ -641,22 +711,56 @@ bootMI_multicore <- function(X_rand,
           )
           weighted.mean(x = y_rand_strap, w = weights_rand_strap)
         })
+    } else if (method == "pmm") {
+
+      mu_hats <- foreach::`%dopar%`(
+        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        ex = {
+
+          strap <- sample.int(replace = TRUE, n = n_nons)
+          weights_strap <- weights[strap]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
+          y_strap <- y[strap]
+
+          strap_rand <- sample.int(replace = TRUE, n = n_rand)
+          weights_rand_strap <- weights_rand[strap_rand]
+          X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+          N_strap <- sum(weights_rand_strap)
+
+          model_strap <- stats::glm.fit(x = X_nons_strap,
+                                        y = y_strap,
+                                        weights = weights_strap,
+                                        family = family)
+
+          beta <- model_strap$coefficients
+          eta_rand <- X_rand_strap %*% beta
+          eta_nons <- X_nons_strap %*% beta
+          y_rand_strap <- family_nonprobsvy$mu(eta_rand)
+          y_nons_strap <- family_nonprobsvy$mu(eta_nons)
+
+
+          model_rand <- nonprobMI_nn(data = y_nons_strap,
+                                     query = y_rand_strap,
+                                     k = control_outcome$k,
+                                     treetype = control_outcome$treetype,
+                                     searchtype = control_outcome$searchtype)
+
+          y_rand_strap <- apply(model_rand$nn.idx, 1,
+                                FUN=\(x) mean(y_strap[x])
+                                #FUN=\(x) mean(sample_nonprob$short_[x])
+          )
+          weighted.mean(x = y_rand_strap, w = weights_rand_strap)
+        })
     }
   } else {
     N <- pop_totals[1]
     if (method == "glm") {
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
-                                                   "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
-
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons)
           weights_strap <- weights[strap]
-          X_nons_strap <- X_nons[strap,]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
           model_strap <- stats::glm.fit(x = X_nons_strap,
@@ -665,29 +769,53 @@ bootMI_multicore <- function(X_rand,
                                         family = family)
 
           beta <- model_strap$coefficients
-          eta <- pop_totals %*% beta
+          eta <- pop_totals %*% beta / N
           y_strap_rand <- family_nonprobsvy$mu(eta)
 
           #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
-          as.vector(y_strap_rand/N)
+          as.vector(y_strap_rand)
         })
     } else if (method == "nn") {
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method",
-                                                   "controlSel", "mle", "nonprobMI_nn", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons)
           weights_strap <- weights[strap]
-          X_nons_strap <- X_nons[strap,]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
           model_rand <- nonprobMI_nn(data = X_nons_strap,
                                      query = t(pop_totals / N),
+                                     k = control_outcome$k,
+                                     treetype = control_outcome$treetype,
+                                     searchtype = control_outcome$searchtype)
+          mean(y_strap[model_rand$nn.idx])
+        })
+    } else if (method == "pmm") {
+
+      mu_hats <- foreach::`%dopar%`(
+        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        ex = {
+          strap <- sample.int(replace = TRUE, n = n_nons)
+          weights_strap <- weights[strap]
+          X_nons_strap <- X_nons[strap, , drop = FALSE]
+          y_strap <- y[strap]
+
+          model_strap <- stats::glm.fit(x = X_nons_strap,
+                                        y = y_strap,
+                                        weights = weights_strap,
+                                        family = family)
+
+          beta <- model_strap$coefficients
+          eta_rand <- pop_totals %*% beta
+          eta_nons <- X_nons_strap %*% beta
+          y_strap_rand <- family_nonprobsvy$mu(eta_rand)
+          y_strap_nons <- family_nonprobsvy$mu(eta_nons)
+
+
+          model_rand <- nonprobMI_nn(data = y_strap_nons,
+                                     query = y_strap_rand,
                                      k = control_outcome$k,
                                      treetype = control_outcome$treetype,
                                      searchtype = control_outcome$searchtype)
@@ -722,12 +850,12 @@ bootIPW_multicore <- function(X_rand,
                               est_method,
                               h,
                               maxit,
-                              pop_size = NULL,
-                              pop_totals = NULL,
                               control_selection,
                               control_inference,
                               cores,
                               verbose,
+                              pop_size,
+                              pop_totals,
                               ...) {
 
   if (!is.null(weights_rand)) N <- sum(weights_rand)
@@ -740,7 +868,7 @@ bootIPW_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c("internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
-                                               "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy"))
+                                               "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "theta_h_estimation"))
 
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -750,12 +878,13 @@ bootIPW_multicore <- function(X_rand,
         strap_nons <- sample.int(replace = TRUE, n = n_nons)
         strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-        X <- rbind(X_rand[strap_rand, ],
-                   X_nons[strap_nons, ])
+        X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+        X_nons_strap <- X_nons[strap_nons, , drop = FALSE]
+        X <- rbind(X_rand_strap, X_nons_strap)
 
         model_sel <- internal_selection(X = X,
-                                        X_nons = X_nons[strap_nons, ],
-                                        X_rand = X_rand[strap_rand, ],
+                                        X_nons = X_nons_strap,
+                                        X_rand = X_rand_strap,
                                         weights = weights[strap_nons],
                                         weights_rand = weights_rand[strap_rand],
                                         R = R,
@@ -768,8 +897,8 @@ bootIPW_multicore <- function(X_rand,
 
 
         model_sel <- estimation_method$model_selection(X,
-                                                       X_nons[strap_nons, ],
-                                                       X_rand[strap_rand, ],
+                                                       X_nons_strap,
+                                                       X_rand_strap,
                                                        weights = weights[strap_nons],
                                                        weights_rand = weights_rand[strap_rand],
                                                        R,
@@ -795,7 +924,7 @@ bootIPW_multicore <- function(X_rand,
       } else {
         strap <- sample.int(replace = TRUE, n = n_nons)
 
-        X_strap <- X_nons[strap, ]
+        X_strap <- X_nons[strap, , drop = FALSE]
         R_strap <- R[strap]
         weights_strap <- weights[strap]
 
@@ -836,7 +965,7 @@ bootDR_multicore <- function(outcome,
                              SelectionModel,
                              OutcomeModel,
                              family_outcome,
-                             method_outcome = method_outcome,
+                             method_outcome,
                              num_boot,
                              weights,
                              weights_rand,
@@ -875,6 +1004,10 @@ bootDR_multicore <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
+  method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+  MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
+
+
 
   if (bias_correction == TRUE) {
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
@@ -896,14 +1029,13 @@ bootDR_multicore <- function(outcome,
                                     cores = cores)
     boot_var <- var_obj$boot_var
   } else {
+    cl <- parallel::makeCluster(cores)
+    doParallel::registerDoParallel(cl)
+    on.exit(parallel::stopCluster(cl))
+    parallel::clusterExport(cl = cl, varlist = c("internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "theta_h_estimation",
+                                                 "mle", "mu_hatDR", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy"))
     if (is.null(pop_totals)) {
       N <- sum(weights_rand)
-
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
-      parallel::clusterExport(cl = cl, varlist = c("internal_selection", "internal_outcome", "logit", "start_fit", "get_method", "controlSel",
-                                                   "mle", "mu_hatDR", "probit", "cloglog", "glm_nonprobsvy", "nn_nonprobsvy"))
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
@@ -912,23 +1044,29 @@ bootDR_multicore <- function(outcome,
           strap_nons <- sample.int(replace = TRUE, n = n_nons)
           strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-          model_out <- stats::glm.fit(x = OutcomeModel$X_nons[strap_nons, ],
-                                      y = OutcomeModel$y[strap_nons],
-                                      weights = weights[strap_nons],
-                                      family = family)
+          model_obj <- MethodOutcome(outcome = outcome,
+                                     data = data[strap_nons, , drop = FALSE],
+                                     weights = weights[strap_nons],
+                                     family_outcome = family_outcome,
+                                     X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
+                                     y_nons = OutcomeModel$y[strap_nons],
+                                     X_rand = OutcomeModel$X_rand[strap_rand, , drop = FALSE],
+                                     control = control_outcome,
+                                     n_nons = n_nons,
+                                     n_rand = n_rand,
+                                     model_frame = OutcomeModel$model_frame_rand[strap_rand, , drop = FALSE],
+                                     vars_selection = control_inference$vars_selection,
+                                     pop_totals = pop_totals)
 
+          y_rand_pred <- model_obj$y_rand_pred
+          y_nons_pred <- model_obj$y_nons_pred
 
-          model_nons_coefs <- model_out$coefficients
-          eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-          y_rand_pred <- family_nonprobsvy$mu(eta)
-          y_nons_pred <- model_out$fitted.values
-
-          X_sel <- rbind(SelectionModel$X_rand[strap_rand, ],
-                         SelectionModel$X_nons[strap_nons, ])
+          X_sel <- rbind(SelectionModel$X_rand[strap_rand, , drop = FALSE],
+                         SelectionModel$X_nons[strap_nons, , drop = FALSE])
 
           model_sel <- internal_selection(X = X_sel,
-                                          X_nons = SelectionModel$X_nons[strap_nons, ],
-                                          X_rand = SelectionModel$X_rand[strap_rand, ],
+                                          X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
+                                          X_rand = SelectionModel$X_rand[strap_rand, , drop = FALSE],
                                           weights = weights[strap_nons],
                                           weights_rand = weights_rand[strap_rand],
                                           R = R,
@@ -956,16 +1094,14 @@ bootDR_multicore <- function(outcome,
                    N_rand = N_est_rand)
       })
     } else {
-      cl <- parallel::makeCluster(cores)
-      doParallel::registerDoParallel(cl)
-      on.exit(parallel::stopCluster(cl))
+
 
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
 
         strap <- sample.int(replace = TRUE, n = n_nons)
-        X_nons_strap <- SelectionModel$X_nons[strap, ]
+        X_nons_strap <- SelectionModel$X_nons[strap, , drop = FALSE]
         y_strap <- OutcomeModel$y_nons[strap]
         R_strap <- rep(1, n_nons)
         weights_strap <- weights[strap]
@@ -990,25 +1126,8 @@ bootDR_multicore <- function(outcome,
         N_est <- sum(weights_strap * weights_nons_strap)
         if(is.null(pop_size)) pop_size <- N_est
 
-        # model_out_strap <- stats::glm.fit(x = OutcomeModel$X_nons[strap, ],
-        #                                   y = OutcomeModel$y[strap],
-        #                                   weights = weights_strap,
-        #                                   family = family)
-        #
-        # model_nons_coefs <- model_out_strap$coefficients
-        # y#_rand_pred <- as.numeric(pop_totals %*% model_nons_coefs) # TODO with predict.glm
-        # eta <- OutcomeModel$X_rand[strap_rand, ] %*% model_nons_coefs
-        # y_rand_pred <- family_nonprobsvy$mu(eta)
-        # y_nons_pred <- model_out_strap$fitted.values
-        #
-        # 1/N_est * sum(weights_nons_strap * (weights_strap * (OutcomeModel$y[strap] - y_nons_pred))) + 1/pop_size * y_rand_pred
-        source("R/internals.R")
-        source("R/OutcomeMethods.R")
-
-        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
         model_obj <- MethodOutcome(outcome = outcome,
-                                   data = data[strap,],
+                                   data = data[strap, , drop = FALSE],
                                    weights = weights_strap,
                                    family_outcome = family_outcome,
                                    X_nons = X_nons_strap,
@@ -1028,9 +1147,11 @@ bootDR_multicore <- function(outcome,
         mu_hat_boot
       })
     }
+    mu_hat_boot <- mean(mu_hats)
     boot_var <- 1/(num_boot-1) * sum((mu_hats - mu_hat)^2)
   }
-  list(boot_var = boot_var)
+  list(var = boot_var,
+       mu = mu_hat_boot)
 }
 
 # multicore
@@ -1056,8 +1177,8 @@ bootDR_sel_multicore <- function(X,
   mu_hats <- vector(mode = "numeric", length = num_boot)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
-  X_nons <- X[loc_nons,]
-  X_rand <- X[loc_rand,]
+  X_nons <- X[loc_nons, , drop = FALSE]
+  X_rand <- X[loc_rand, , drop = FALSE]
   y_nons <- y[loc_nons]
   y_rand <- y[loc_rand]
 
@@ -1073,10 +1194,9 @@ bootDR_sel_multicore <- function(X,
     strap_nons <- sample.int(replace = TRUE, n = n_nons)
     strap_rand <- sample.int(replace = TRUE, n = n_rand)
 
-    X_strap <- rbind(X_rand[strap_rand, ], X_nons[strap_nons, ])
+    X_strap <- rbind(X_rand[strap_rand, , drop = FALSE], X_nons[strap_nons, , drop = FALSE])
     y_strap <- c(y_rand[strap_rand], y_nons[strap_nons])
 
-    source("R/EstimationMethods.R")
     model_strap <- mm(X = X_strap,
                       y = y_strap,
                       weights = prior_weights[loc_nons][strap_nons],

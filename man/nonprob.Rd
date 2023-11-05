@@ -13,10 +13,8 @@ nonprob(
   pop_totals = NULL,
   pop_means = NULL,
   pop_size = NULL,
-  overlap = FALSE,
   method_selection = c("logit", "cloglog", "probit"),
-  method_outcome = c("glm", "nn"),
-  family_selection = "binomial",
+  method_outcome = c("glm", "nn", "pmm"),
   family_outcome = c("gaussian", "binomial", "poisson"),
   subset = NULL,
   strata = NULL,
@@ -50,13 +48,9 @@ nonprob(
 
 \item{pop_size}{an optional \code{double} with population size.}
 
-\item{overlap}{logical value - \code{TRUE} if samples overlap.}
-
 \item{method_selection}{a \code{character} with method for propensity scores estimation}
 
 \item{method_outcome}{a \code{character} with method for response variable estimation}
-
-\item{family_selection}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "binomial". Currently only binomial with logit link is supported.}
 
 \item{family_outcome}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
@@ -93,7 +87,7 @@ Returns an object of class \code{c("nonprobsvy", "nonprobsvy_dr")} in case of do
 with type \code{list} containing:\cr
 \itemize{
 \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
-\item{\code{y}} -- Vector of outcome variable if specified at a function call.
+\item{\code{y}} -- list of vector of outcome variables if specified at a function call.
 \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{control} -- list of control functions.}
@@ -213,7 +207,7 @@ In this case we treat big-data sample as a training dataset, which is used to bu
 for probability sample and design (known) weights, we can build population mean estimator of form:
 \mjsdeqn{\mu_{MI} = \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
 It opens the the door to very flexible method for imputation model. In the package used generalized linear models from \code{\link[stats:glm]{stats::glm()}}
-and nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}}.
+nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensible on misspecified models for propensity score and outcome variable respectively.
 For this purpose so called doubly-robust methods, which take into account these problems, are presented.
 It is quite simple idea of combination propensity score and imputation models during inference which lead to the following estimator

@@ -17,7 +17,7 @@ cloglog_model_nonprobsvy <- function(...) {
   inv_link <- function(eta) {1 - exp(-exp(eta))} # inverse link
   dlink <- function(mu) {1 / ((mu - 1) * log(1 - mu))} # first derivative of link
   dinv_link <- function(eta) {exp(eta - exp(eta))} # first derivative of inverse link
-  inv_link_rev <- function(eta) {- exp(eta + exp(eta))/(exp(exp(eta)) - 1)^2} # TODO first derivative of 1/inv_link
+  inv_link_rev <- function(eta) {-exp(eta + exp(eta))/(exp(exp(eta)) - 1)^2} # TODO first derivative of 1/inv_link
   dinv_link_rev <- function(eta) {- exp(exp(eta) + eta) * (- exp(exp(eta)) + exp(eta) + exp(eta + exp(eta)) + 1) / (exp(exp(eta)) - 1)^3} # second derivative of 1/inv_link
 
   log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
