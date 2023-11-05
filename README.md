@@ -36,7 +36,7 @@ You can install the development version of `nonprobsvy` package from
 remotes::install_github("ncn-foreigners/nonprobsvy")
 ```
 
-## Example
+## Examples
 
 Simulate example data from the following paper: Kim, Jae Kwang, and
 Zhonglei Wang. “Sampling techniques for big data analysis.”
@@ -88,32 +88,26 @@ Results
 summary(result_dr)
 #> 
 #> Call:
-#> nonprob(selection = ~x2, outcome = y1 ~ x1 + x2, data = subset(population, 
-#>     flag_bd1 == 1), svydesign = sample_prob)
+#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
+#>     outcome = y1 ~ x1 + x2, svydesign = sample_prob)
 #> 
 #> -------------------------
 #> Estimated population mean: 2.95 with overall std.err of: 0.04195
 #> And std.err for nonprobability and probability samples being respectively:
 #> 0.000783 and 0.04195
 #> 
-#> Based on: Doubly-Robust method
-#> 
 #> 95% Confidence inverval for popualtion mean:
-#>        lower_bound upper_bound
-#> normal    2.867789     3.03224
+#>    lower_bound upper_bound
+#> y1    2.867789     3.03224
 #> 
-#> For a population of estimate size: 1025111
+#> 
+#> Based on: Doubly-Robust method
+#> For a population of estimate size: 
 #> Obtained on a nonprobability sample of size: 693011
 #> With an auxiliary probability sample of size: 1000
 #> -------------------------
 #> 
 #> Regression coefficients:
-#> -----------------------
-#> For glm regression on selection variable:
-#>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.499105   0.003702  -134.8  <2e-16 ***
-#> x2           1.885532   0.005303   355.6  <2e-16 ***
-#> 
 #> -----------------------
 #> For glm regression on outcome variable:
 #>             Estimate Std. Error z value P(>|z|)    
@@ -122,6 +116,12 @@ summary(result_dr)
 #> x2          0.999125   0.001098   910.2  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> -----------------------
+#> For glm regression on selection variable:
+#>              Estimate Std. Error z value P(>|z|)    
+#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
+#> x2           1.885629   0.005303   355.6  <2e-16 ***
 #> -------------------------
 #> 
 #> Weights:
@@ -131,10 +131,10 @@ summary(result_dr)
 #> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06604  0.23781  0.26048  0.44361  0.62225 
+#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
 #> 
-#> AIC: 1010626
-#> BIC: 1010672
+#> AIC: 1010622
+#> BIC: 1010645
 #> Log-Likelihood: -505309 on 694009 Degrees of freedom
 ```
 
@@ -154,20 +154,20 @@ Results
 summary(result_mi)
 #> 
 #> Call:
-#> nonprob(outcome = y1 ~ x1 + x2, data = subset(population, flag_bd1 == 
-#>     1), svydesign = sample_prob)
+#> nonprob(data = subset(population, flag_bd1 == 1), outcome = y1 ~ 
+#>     x1 + x2, svydesign = sample_prob)
 #> 
 #> -------------------------
 #> Estimated population mean: 2.95 with overall std.err of: 0.04203
 #> And std.err for nonprobability and probability samples being respectively:
 #> 0.001227 and 0.04201
 #> 
-#> Based on: Mass Imputation method
-#> 
 #> 95% Confidence inverval for popualtion mean:
-#>        lower_bound upper_bound
-#> normal    2.867433    3.032186
+#>    lower_bound upper_bound
+#> y1    2.867433    3.032186
 #> 
+#> 
+#> Based on: Mass Imputation method
 #> For a population of estimate size: 1e+06
 #> Obtained on a nonprobability sample of size: 693011
 #> With an auxiliary probability sample of size: 1000
@@ -201,21 +201,21 @@ Results
 summary(result_ipw)
 #> 
 #> Call:
-#> nonprob(selection = ~x2, target = ~y1, data = subset(population, 
-#>     flag_bd1 == 1), svydesign = sample_prob)
+#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
+#>     target = ~y1, svydesign = sample_prob)
 #> 
 #> -------------------------
-#> Estimated population mean: 2.925 with overall std.err of: 0.04999
+#> Estimated population mean: 2.925 with overall std.err of: 0.05
 #> And std.err for nonprobability and probability samples being respectively:
-#> 0.001117 and 0.04997
-#> 
-#> Based on: Inverse probability weighted method
+#> 0.001586 and 0.04997
 #> 
 #> 95% Confidence inverval for popualtion mean:
-#>        lower_bound upper_bound
-#> normal    2.826789    3.022736
+#>    lower_bound upper_bound
+#> y1     2.82679    3.022776
 #> 
-#> For a population of estimate size: 1025111
+#> 
+#> Based on: Inverse probability weighted method
+#> For a population of estimate size: 1025063
 #> Obtained on a nonprobability sample of size: 693011
 #> With an auxiliary probability sample of size: 1000
 #> -------------------------
@@ -224,8 +224,8 @@ summary(result_ipw)
 #> -----------------------
 #> For glm regression on selection variable:
 #>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.499105   0.003702  -134.8  <2e-16 ***
-#> x2           1.885532   0.005303   355.6  <2e-16 ***
+#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
+#> x2           1.885629   0.005303   355.6  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> -------------------------
@@ -237,10 +237,10 @@ summary(result_ipw)
 #> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06604  0.23781  0.26048  0.44361  0.62225 
+#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
 #> 
-#> AIC: 1010626
-#> BIC: 1010672
+#> AIC: 1010622
+#> BIC: 1010645
 #> Log-Likelihood: -505309 on 694009 Degrees of freedom
 ```
 

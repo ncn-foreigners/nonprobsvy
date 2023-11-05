@@ -36,7 +36,7 @@ You can install the development version of `nonprobsvy` package from [Github](ht
 remotes::install_github("ncn-foreigners/nonprobsvy")
 ```
 
-## Example
+## Examples
 
 Simulate example data from the following paper: Kim, Jae Kwang, and Zhonglei Wang. "Sampling techniques for big data analysis." International Statistical Review 87 (2019): S177-S191 [section 5.2]
 

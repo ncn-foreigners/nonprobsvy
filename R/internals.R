@@ -74,30 +74,30 @@ theta_h_estimation <- function(R,
                                pop_means = NULL){ # TODO with BERENZ recommendation
 
   p <- ncol(X)
-  if (is.null(pop_totals) & is.null(pop_means)) {
-    if (is.null(start)) {
-      start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                          R = R,
-                          weights = weights,
-                          weights_rand = weights_rand,
-                          method_selection = method_selection)
-    } else {
-      start0 <- start
-    }
-  } else { # TODO customize start point for fitting with population totals
-    # start0 <- rep(.8, ncol(X))
-    # X_pop <- rbind(X, pop_totals)
-    # weights_randd <- 1
-    if (is.null(start)) {
-      start0 <- start_fit(X = X, # <--- does not work with pop_totals
-                          R = R,
-                          weights = weights,
-                          weights_rand = weights_rand,
-                          method_selection = method_selection)
-    } else {
-      start0 <- start
-    }
-  }
+  # if (is.null(pop_totals) & is.null(pop_means)) {
+  #   if (is.null(start)) {
+  #     start0 <- start_fit(X = X, # <--- does not work with pop_totals
+  #                         R = R,
+  #                         weights = weights,
+  #                         weights_rand = weights_rand,
+  #                         method_selection = method_selection)
+  #   } else {
+  #     start0 <- start
+  #   }
+  # } else { # TODO customize start point for fitting with population totals
+  #   # start0 <- rep(.8, ncol(X))
+  #   # X_pop <- rbind(X, pop_totals)
+  #   # weights_randd <- 1
+  #   if (is.null(start)) {
+  #     start0 <- start_fit(X = X, # <--- does not work with pop_totals
+  #                         R = R,
+  #                         weights = weights,
+  #                         weights_rand = weights_rand,
+  #                         method_selection = method_selection)
+  #   } else {
+  #     start0 <- start
+  #   }
+  # }
   u_theta <- u_theta(R = R,
                      X = X,
                      weights = c(weights_rand, weights),
@@ -112,7 +112,7 @@ theta_h_estimation <- function(R,
                              method_selection = method_selection,
                              pop_totals = pop_totals)
 
-  root <- nleqslv::nleqslv(x = start0,
+  root <- nleqslv::nleqslv(x = start,
                            fn = u_theta,
                            method = "Newton", # TODO consider the methods
                            global = "cline", #qline",
@@ -123,7 +123,7 @@ theta_h_estimation <- function(R,
                            )
 
 
-  start <- root$x
+  theta_root <- root$x
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
            "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
@@ -134,7 +134,7 @@ theta_h_estimation <- function(R,
            "7" = warning("Jacobian is unusable when fitting selection model by nleqslv."),
            "-10" = warning("user specified Jacobian is incorrect when fitting selection model by nleqslv."))
   }
-  theta_h <- as.vector(start)
+  theta_h <- as.vector(theta_root)
   grad <- u_theta(theta_h)
   hess <- u_theta_der(theta_h) # TODO compare with root$jac
   #hess <- root$jac
