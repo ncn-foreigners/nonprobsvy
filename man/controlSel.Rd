@@ -23,7 +23,8 @@ controlSel(
   lambda_min = 0.001,
   nlambda = 50,
   nfolds = 10,
-  print_level = 0
+  print_level = 0,
+  start_type = c("glm", "naive")
 )
 }
 \arguments{
@@ -71,6 +72,14 @@ controlSel(
 \item{nfolds}{The number of folds for cross validation. Default is 10.}
 
 \item{print_level}{this argument determines the level of printing which is done during the optimization (for propensity score model) process.}
+
+\item{start_type}{\itemize{
+\item Type of method for start points for model fitting taking the following values
+\itemize{
+\item if \code{glm} then start taken from the glm function called on samples.
+\item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
+}
+}}
 }
 \value{
 List with selected parameters.

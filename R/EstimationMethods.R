@@ -97,11 +97,21 @@ mle <- function(...) {
 
     # initial values for propensity score estimation
     if (is.null(start)) {
-      start <- start_fit(X = X,
-                         R = R,
-                         weights = weights,
-                         weights_rand = weights_rand,
-                         method_selection = method_selection)
+      if (control_selection$start_type == "glm") {
+        start <- start_fit(X = X,
+                           R = R,
+                           weights = weights,
+                           weights_rand = weights_rand,
+                           method_selection = method_selection)
+      } else if (control_selection$start_type == "naive") {
+        intercept_start <- max_lik(X_nons = X_nons[, 1, drop = FALSE],
+                                   X_rand = X_rand[, 1, drop = FALSE],
+                                   weights = weights,
+                                   weights_rand = weights_rand,
+                                   start = 0,
+                                   control = control_selection)$theta_hat
+        start <- c(intercept_start, rep(0, ncol(X_nons) - 1))
+      }
     }
 
     df_reduced <- nrow(X) - length(start)
@@ -216,6 +226,7 @@ gee <- function(...) {
                               h = h,
                               est_method,
                               maxit,
+                              control_selection,
                               start,
                               varcov = FALSE,
                               ...){
@@ -223,6 +234,28 @@ gee <- function(...) {
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
     method <- get_method(method = method_selection_function)
     inv_link <- method$make_link_inv
+
+    if (is.null(start)) {
+      if (control_selection$start_type == "glm") {
+        start0 <- start_fit(X = X, # <--- does not work with pop_totals
+                            R = R,
+                            weights = weights,
+                            weights_rand = weights_rand,
+                            method_selection = method_selection)
+      } else if (control_selection$start_type == "naive") {
+        start_h <- theta_h_estimation(R = R,
+                                      X = X[, 1, drop = FALSE],
+                                      weights_rand = weights_rand,
+                                      weights = weights,
+                                      h = h,
+                                      method_selection = method_selection,
+                                      maxit = maxit,
+                                      start = 0)
+        start <- c(start_h, rep(0, ncol(X) - 1))
+      }
+  }
+
+
     h_object <- theta_h_estimation(R = R,
                                    X = X,
                                    weights_rand = weights_rand,

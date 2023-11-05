@@ -290,6 +290,7 @@ nonprobDR <- function(selection,
         ps_nons_der <- selection_model$ps_nons_der
         est_ps_rand_der <- selection_model$est_ps_rand_der
         theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
+        names(theta_hat) <- names(selection_model$coefficients) <- colnames(X)
 
         y_rand_pred <- outcome_model$y_rand_pred
         y_nons_pred <- outcome_model$y_nons_pred
@@ -389,7 +390,7 @@ nonprobDR <- function(selection,
         #log_likelihood <- est_method_obj$log_likelihood
         #df_residual <- est_method_obj$df_residual
 
-        names(theta_hat) <- colnames(X)
+        names(selection_model$theta_hat) <- names(theta_hat) <- colnames(X)
         weights_nons <- 1/ps_nons
         N_nons <- sum(weights * weights_nons)
         N_rand <- sum(weights_rand)
@@ -475,6 +476,28 @@ nonprobDR <- function(selection,
         X_nons <- OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons,]
         SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx+1])
       }
+
+      if (is.null(start)) {
+        if (control_selection$start_type == "glm") {
+          start <- start_fit(X = SelectionModel$X_nons, # <--- does not work with pop_totals
+                             R = R,
+                             weights = weights,
+                             weights_rand = weights_rand,
+                             method_selection = method_selection)
+        } else if (control_selection$start_type == "naive") {
+          start_h <- theta_h_estimation(R = R,
+                                        X = SelectionModel$X_nons[,1,drop=FALSE],
+                                        weights_rand = weights_rand,
+                                        weights = weights,
+                                        h = h,
+                                        method_selection = method_selection,
+                                        start = 0,
+                                        maxit = maxit,
+                                        pop_totals = SelectionModel$pop_totals[1])$theta_h
+          start <- c(start_h, rep(0, ncol(X) - 1))
+        }
+      }
+
       h_object <- theta_h_estimation(R = R,
                                      X = SelectionModel$X_nons,
                                      weights_rand = NULL,

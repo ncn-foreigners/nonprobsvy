@@ -163,7 +163,7 @@ nonprobIPW <- function(selection,
         est_ps_rand_der <- selection_model$est_ps_rand_der
         theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
 
-        names(selection_model$theta_hat) <- colnames(X)
+        names(theta_hat) <- names(selection_model$theta_hat) <- colnames(X)
         weights_nons <- 1/ps_nons
         N <- sum(weights * weights_nons)
 
@@ -252,6 +252,28 @@ nonprobIPW <- function(selection,
           ################ ESTIMATION
           pop_totals <- model$pop_totals[idx]
         }
+
+        if (is.null(start)) {
+          if (control_selection$start_type == "glm") {
+            start <- start_fit(X = X, # <--- does not work with pop_totals
+                               R = R,
+                               weights = weights,
+                               weights_rand = weights_rand,
+                               method_selection = method_selection)
+          } else if (control_selection$start_type == "naive") {
+            start_h <- theta_h_estimation(R = R,
+                                          X = X[,1,drop=FALSE],
+                                          weights_rand = weights_rand,
+                                          weights = weights,
+                                          h = h,
+                                          method_selection = method_selection,
+                                          start = 0,
+                                          maxit = maxit,
+                                          pop_totals = pop_totals[1])$theta_h
+            start <- c(start_h, rep(0, ncol(X) - 1))
+          }
+        }
+
         h_object <- theta_h_estimation(R = R,
                                        X = X,
                                        weights_rand = weights_rand,

@@ -29,6 +29,11 @@
 #' @param nlambda The number of `lambda` values. Default is 50.
 #' @param nfolds The number of folds for cross validation. Default is 10.
 #' @param print_level this argument determines the level of printing which is done during the optimization (for propensity score model) process.
+#' @param start_type - Type of method for start points for model fitting taking the following values
+#' \itemize{
+#' \item if \code{glm} then start taken from the glm function called on samples.
+#' \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
+#' }
 #'
 #' @return List with selected parameters.
 #'
@@ -52,7 +57,8 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        lambda_min = .001,
                        nlambda = 50,
                        nfolds = 10,
-                       print_level = 0
+                       print_level = 0,
+                       start_type = c("glm", "naive")
                        ) {
 
   list(epsilon = epsilon,
@@ -72,7 +78,8 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
        nlambda = nlambda,
        nfolds = nfolds,
        lambda = lambda,
-       print_level = print_level
+       print_level = print_level,
+       start_type = if(missing(start_type)) "naive" else start_type
       )
 
 }
