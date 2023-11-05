@@ -134,6 +134,12 @@ print.summary_nonprobsvy <- function(x,
     cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
         "\n\n", sep = "")
   }
+  # TODO add printing the Info only for DR and MI models
+  if(length(x$pop_total$mean) > 1) {
+    cat("Info:\n", "The summary contains information mainly on the first outcome variable.\n",
+        "More details on the estimation of this variable and others can be found in the outcome list of nonprob object.",
+        "\n\n", sep = "")
+  }
 
   #cat("Residuals:\n")
   #print(summary(c(x$residuals[, 1])))
@@ -153,7 +159,7 @@ print.summary_nonprobsvy <- function(x,
 
   cat(
     sep = "",
-    "Estimated population mean: ", format(x$pop_total$mean, digits = digits))
+    "Estimated population mean: ", format(x$pop_total$mean[1], digits = digits))
   if (!is.null(x$pop_total$cnf_int)) {
     cat(sep = "",
       " with overall std.err of: ", format(x$pop_total$se[1], digits = digits),

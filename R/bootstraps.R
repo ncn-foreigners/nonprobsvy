@@ -47,7 +47,7 @@ bootMI <- function(X_rand,
 
         strap <- sample.int(replace = TRUE, n = n_nons)
         weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap_nons, , drop = FALSE]
+        X_nons_strap <- X_nons[strap, , drop = FALSE]
         y_strap <- y[strap]
 
         #using svy package
@@ -657,8 +657,9 @@ bootMI_multicore <- function(X_rand,
     if (method == "glm") {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
+      k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons)
           weights_strap <- weights[strap]

@@ -338,6 +338,7 @@ internal_varIPW <- function(svydesign,
        var = var)
 }
 # Variance for doubly robust estimator
+# TODO add nn and pmm
 internal_varDR <- function(OutcomeModel,
                            SelectionModel,
                            y_nons_pred,
@@ -474,10 +475,23 @@ internal_varMI <- function(svydesign,
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
 
-      # TODO
-      var_nonprob <- 0 # to implement
+      # beta <- parameters[,1]
+      # eta_nons <- X_nons %*% beta
+      # eta_rand <- X_rand %*% beta
+      #
+      # mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
+      # c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+      #
+      # # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
+      # var_nonprob <- as.vector(var_nonprob)
 
-
+      # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
+      var_nonprob <- 0
+      # var_nonprob <- as.vector(var_nonprob)
+      # TODO to consider
     }
   } else {
     if (method == "nn") {
@@ -501,8 +515,21 @@ internal_varMI <- function(svydesign,
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
 
-      # TODO
-      var_nonprob <- 0 # to implement
+      # beta <- parameters[,1]
+      # eta_nons <- X_nons %*% beta
+      #
+      # if (family %in% c("binomial", "poisson")) { # TODO consider this chunk of code
+      #   eta_rand <- pop_totals %*% beta / pop_totals[1]
+      # } else {
+      #   eta_rand <- pop_totals %*% beta
+      # }
+      #
+      # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+
+      # nonprobability component
+      # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (family_nonprobsvy$mu_der(eta_nons) %*% t(X_nons))^2
+      var_nonprob <- 0
+      var_nonprob <- as.vector(var_nonprob)
 
     }
     var_prob <- 0
@@ -656,10 +683,10 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
 
-  if (object$outcome$method == "glm") { # TODO for pmm
-    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+  if (object$outcome[[1]]$method == "glm") { # TODO for pmm
+    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
                    ncol = 2,
-                   dimnames = list(names(object$outcome$coefficients),
+                   dimnames = list(names(object$outcome[[1]]$coefficients),
                                    c("Estimate", "Std. Error")))
   } else {
     coeffs_out <- "no coefficients"
@@ -668,12 +695,12 @@ specific_summary_info.nonprobsvy_mi <- function(object,
   res <- list(
     coeffs_out = coeffs_out
   )
-  if (object$outcome$method == "glm") {
+  if (object$outcome[[1]]$method == "glm") {
   attr(res$coeffs_out, "glm") <- TRUE
   attr(res, "model") <- "glm regression on outcome variable"
-  } else if (object$outcome$method == "nn") {
+  } else if (object$outcome[[1]]$method == "nn") {
     attr(res$coeffs_out, "glm") <- FALSE
-  } else if (object$outcome$method == "pmm") { # TODO
+  } else if (object$outcome[[1]]$method == "pmm") { # TODO
     attr(res$coeffs_out, "glm") <- FALSE
     # attr(res, "model") <- "glm regression on outcome variable"
   }
@@ -689,10 +716,10 @@ specific_summary_info.nonprobsvy_dr <- function(object,
                                   c("Estimate", "Std. Error")))
 
 
-  if (object$outcome$method == "glm") {
-    coeffs_out <- matrix(c(object$outcome$coefficients, object$outcome$std_err),
+  if (object$outcome[[1]]$method == "glm") {
+    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
                    ncol = 2,
-                   dimnames = list(names(object$outcome$coefficients),
+                   dimnames = list(names(object$outcome[[1]]$coefficients),
                                    c("Estimate", "Std. Error")))
   } else {
     coeffs_out <- "no coefficients"
@@ -705,11 +732,11 @@ specific_summary_info.nonprobsvy_dr <- function(object,
     df_residual = object$selection$df_residual
   )
   attr(res$coeffs_sel, "glm") <- TRUE
-  if (object$outcome$method == "glm") {
+  if (object$outcome[[1]]$method == "glm") {
     attr(res$coeffs_out, "glm") <- TRUE
     attr(res, "model")     <- c("glm regression on selection variable",
                                 "glm regression on outcome variable")
-  } else if (object$outcome$method == "nn") {
+  } else if (object$outcome[[1]]$method == "nn") {
     attr(res$coeffs_out, "glm") <- FALSE
     attr(res, "model")     <- c("glm regression on selection variable")
   }

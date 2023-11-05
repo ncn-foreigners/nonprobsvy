@@ -48,6 +48,7 @@ nonprobIPW <- function(selection,
   outcome <- stats::as.formula(paste(target[2], dependents))
   outcomes <- ff(outcome)
   output <- list()
+  ys <- list()
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -313,6 +314,7 @@ nonprobIPW <- function(selection,
                             weights = weights,
                             flag = FALSE)$y_nons
     }
+    ys$k <- as.numeric(y_nons) # TODO name to change
     mu_hat <- mu_hatIPW(y = y_nons,
                         weights = weights,
                         weights_nons = weights_nons,
@@ -450,7 +452,7 @@ nonprobIPW <- function(selection,
 
   structure(
     list(X = if(isTRUE(x)) X else NULL,
-         y = if(isTRUE(y)) as.numeric(y) else NULL,
+         y = if(isTRUE(y)) ys else NULL,
          prob = prop_scores,
          weights = as.vector(weights_nons),
          control = list(control_selection = control_selection,

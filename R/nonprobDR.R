@@ -54,6 +54,8 @@ nonprobDR <- function(selection,
 
   outcomes <- ff(outcome)
   output <- list()
+  OutcomeList <- list()
+  ys <- list()
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -299,6 +301,7 @@ nonprobDR <- function(selection,
         weights_nons <- 1/ps_nons
         N_nons <- sum(weights * weights_nons)
         N_rand <- sum(weights_rand)
+        y_nons <- Model$y_nons
 
         if(is.null(pop_size)) pop_size <- N_nons
         mu_hat <- mu_hatDR(y = Model$y_nons,
@@ -414,7 +417,8 @@ nonprobDR <- function(selection,
         outcome_model <- model_obj$model
         # beta_statistics <- model_obj$parameters
         sigma <- NULL
-        OutcomeList <- model_obj$model
+        OutcomeList[[k]] <- model_obj$model
+        y_nons <- OutcomeModel$y_nons
 
         mu_hat <- mu_hatDR(y = OutcomeModel$y_nons,
                            y_nons = y_nons_pred,
@@ -539,7 +543,7 @@ nonprobDR <- function(selection,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
-      OutcomeList <- model_obj$model
+      OutcomeList[[k]] <- model_obj$model
 
       mu_hat <- 1/N_nons * sum((1/ps_nons)*(weights*(OutcomeModel$y_nons - y_nons_pred))) + y_rand_pred
     } else {
@@ -549,6 +553,7 @@ nonprobDR <- function(selection,
       var_method <- "bootstrap"
       warning("bootstrap variance only, analytical version during implementation")
     }
+    ys$k <- as.numeric(y_nons) # TODO name to change
 
     if (se) {
       if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
@@ -666,6 +671,7 @@ nonprobDR <- function(selection,
     #                      ncol = 2,
     #                      dimnames = list(names(theta_hat),
     #                                      c("Estimate", "Std. Error")))
+    OutcomeList[[k]]$method <- method_outcome
   }
   weights_summary <- summary(as.vector(weights_nons))
   prop_scores <- c(ps_nons, est_ps_rand)
@@ -673,7 +679,7 @@ nonprobDR <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  OutcomeList$method <- method_outcome
+  names(OutcomeList) <- outcomes$f
 
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,

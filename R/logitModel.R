@@ -60,7 +60,7 @@ logit_model_nonprobsvy <- function(...) {
         eta2 <- as.matrix(X_rand) %*% theta
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
-       - t(as.data.frame(X_rand) * (weights_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
+        - t(as.data.frame(X_rand) * (weights_rand * invLink2 * (1 - invLink2))) %*% as.matrix(X_rand)
       }
     }
 

@@ -36,6 +36,8 @@ nonprobMI <- function(outcome,
   var_selection <- control_inference$vars_selection
   outcomes <- ff(outcome)
   output <- list()
+  ys <- list()
+  OutcomeList <- list()
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -115,7 +117,7 @@ nonprobMI <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
-      OutcomeList <- model_obj$model
+      OutcomeList[[k]] <- model_obj$model
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -183,11 +185,12 @@ nonprobMI <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
-      OutcomeList <- model_obj$model
+      OutcomeList[[k]] <- model_obj$model
       mu_hat <- y_rand_pred
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
+    ys$k <- as.numeric(y_nons) # TODO name to change
     if (se) {
     # design based variance estimation based on approximations of the second-order inclusion probabilities
     if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
@@ -277,12 +280,13 @@ nonprobMI <- function(outcome,
     pop_size <- N_est_rand # estimated pop_size
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
+    OutcomeList[[k]]$method <- method_outcome
   }
   output <- do.call(rbind, output)
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  OutcomeList$method <- method_outcome
+  names(OutcomeList) <- outcomes$f
 
   structure(
     list(X = if(isTRUE(x)) X else NULL,

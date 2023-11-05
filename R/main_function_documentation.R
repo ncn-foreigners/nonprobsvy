@@ -173,7 +173,7 @@ NULL
 #' with type \code{list} containing:\cr
 #' \itemize{
 #'  \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
-#'  \item{\code{y}} -- Vector of outcome variable if specified at a function call.
+#'  \item{\code{y}} -- list of vector of outcome variables if specified at a function call.
 #'  \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 #'  \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 #'  \item{\code{control} -- list of control functions.}
