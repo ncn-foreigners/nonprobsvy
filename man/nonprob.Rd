@@ -132,10 +132,9 @@ The package uses \code{survey} package functionalities when a probability sample
 }
 \details{
 Let \mjseqn{y} be the response variable for which we want to estimate population mean
-given by \mjsdeqn{\mu_{y} = \frac{1}{N}\sum_{i=1}^N y_i.} For this purposes we consider data integration
+given by \mjsdeqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purposes we consider data integration
 with the following structure. Let \mjseqn{S_A} be the non-probability sample with design matrix of covariates as
 \mjsdeqn{
-\begin{equation}
 \boldsymbol{X}_A =
   \begin{bmatrix}
 x_{11} & x_{12} & \cdots & x_{1p} \cr
@@ -143,11 +142,9 @@ x_{21} & x_{22} & \cdots & x_{2p} \cr
 \vdots & \vdots & \ddots & \vdots \cr
 x_{n_{A}1} & x_{n_{A}2} & \cdots & x_{n_{A}p} \cr
 \end{bmatrix}
-\end{equation}
 }
 and vector of outcome variable
 \mjsdeqn{
-\begin{equation}
 \boldsymbol{y} =
   \begin{bmatrix}
 y_{1} \cr
@@ -155,11 +152,9 @@ y_{2} \cr
 \vdots \cr
 y_{n_{A}}.
 \end{bmatrix}
-\end{equation}
 }
 On the other hand let \mjseqn{S_B} be the probability sample with design matrix of covariates as
 \mjsdeqn{
-\begin{equation}
 \boldsymbol{X}_B =
   \begin{bmatrix}
 x_{11} & x_{12} & \cdots & x_{1p} \cr
@@ -167,15 +162,14 @@ x_{21} & x_{22} & \cdots & x_{2p} \cr
 \vdots & \vdots & \ddots & \vdots \cr
 x_{n_{B}1} & x_{n_{B}2} & \cdots & x_{n_{B}p}. \cr
 \end{bmatrix}
-\end{equation}
 }
 Instead of sample of units we can consider vector of population totals in the form of \mjseqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
 \mjseqn{\frac{\tau_x}{N}}, where \mjseqn{\mathcal{U}} regards to some finite population. Notice that we do not assume access to the response variable for \mjseqn{S_B}.
 Generally we provide following assumptions:
 \enumerate{
-\item The selection indicator of belonging to non-probability sample \mjseqn{R_i} and the response variable \mjseqn{y_i} are independent given the set of covariates \mjseqn{\boldsymbol{x}_i}.
-\item All units have a non-zero propensity score, that is, \mjseqn{\pi_i^A > 0} for all i.
-\item The indicator variables \mjseqn{R_i^A} and \mjseqn{R_j^A} are independent for given \mjseqn{\boldsymbol{x}_i} and \mjseqn{\boldsymbol{x}_j} for \mjseqn{i \neq j}.
+\item The selection indicator of belonging to non-probability sample \mjseqn{R_{i}} and the response variable \mjseqn{y_i} are independent given the set of covariates \mjseqn{\boldsymbol{x}_i}.
+\item All units have a non-zero propensity score, that is, \mjseqn{\pi_{i}^{A} > 0} for all i.
+\item The indicator variables \mjseqn{R_{i}^{A}} and \mjseqn{R_{j}^{A}} are independent for given \mjseqn{\boldsymbol{x}_i} and \mjseqn{\boldsymbol{x}_j} for \mjseqn{i \neq j}.
 }
 
 There are three possible approaches to problem of population mean estimation using non-probability samples:
@@ -185,33 +179,29 @@ This is why we talk about so called “biased sample” problem.
 Inverse probability approach is based on assumption that reference probability sample
 is available and therefore we can estimate propensity score of selection mechanism.
 Estimator has following form:
-\mjsdeqn{\mu_{IPW} = \frac{1}{N^A}\sum_{i \in S_A}\frac{y_i}{\hat{\pi}_{i}^A}.}
+\mjsdeqn{\mu_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
 For this purpose with consider multiple ways of estimation. The first approach is Maximum Likelihood Estimation with corrected
 log-likelihood function which is given by the following formula
 \mjsdeqn{
- \begin{equation}
- \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{A}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{B}}d_{i}^{B}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.
- \end{equation}}
+ \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{A}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{B}}d_{i}^{B}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.}
 In the literature main approach is based on \code{logit} link function when it comes to modelling propensity scores \mjseqn{\pi_i^A},
 however we expand propensity score model with the additional link functions, such as \code{cloglog} and \code{probit}.
 The pseudo score equations derived from ML methods can be replaced by idea of generalized estimating equations with calibration constraints defined by equations
 \mjsdeqn{
- \begin{equation}
- \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_A} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_B} d_i^B \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).
- \end{equation}}
+ \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_A} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_B} d_i^B \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
 Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} we do not require probability
 sample and can use vector of population totals/means.
 \item Mass imputation -- This method relies on framework,
 where imputed values of the outcome variables are created for whole probability sample.
 In this case we treat big-data sample as a training dataset, which is used to build an imputation model. Using imputed values
 for probability sample and design (known) weights, we can build population mean estimator of form:
-\mjsdeqn{\mu_{MI} = \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
+\mjsdeqn{\mu_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
 It opens the the door to very flexible method for imputation model. In the package used generalized linear models from \code{\link[stats:glm]{stats::glm()}}
 nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensible on misspecified models for propensity score and outcome variable respectively.
 For this purpose so called doubly-robust methods, which take into account these problems, are presented.
 It is quite simple idea of combination propensity score and imputation models during inference which lead to the following estimator
-\mjsdeqn{\mu_{DR} = \frac{1}{N^A} \sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
+\mjsdeqn{\mu_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
 In addition, an approach based directly on bias minimisation has been implemented. Following formula
 \mjsdeqn{
    \begin{aligned}
@@ -221,7 +211,6 @@ In addition, an approach based directly on bias minimisation has been implemente
    }
 lead us to system of equations
 \mjsdeqn{
-   \begin{equation}
    \begin{aligned}
    J(\theta, \beta) =
    \left\lbrace
@@ -234,9 +223,8 @@ lead us to system of equations
                                                - \sum_{i \in \mathcal{S}_{\mathrm{B}}} d_i^{\mathrm{B}} \frac{\partial m(\boldsymbol{x}_i, \boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
   \end{array} \right\rbrace,
   \end{aligned}
-  \end{equation}
   }
-where \mjseqn{m\left(\boldsymbol{x}_i, \boldsymbol{\beta}\right)} is mass imputation (regression) model for outcome variable and
+where \mjseqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is mass imputation (regression) model for outcome variable and
 propensity scores \mjseqn{\pi_i^A} are estimated using \code{logit} function for the model. As in the \code{MLE} and \code{GEE} approaches we have expanded
 this method on \code{cloglog} and \code{probit} links.
 }

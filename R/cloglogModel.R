@@ -246,16 +246,16 @@ cloglog_model_nonprobsvy <- function(...) {
     V2
   }
 
-  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) {
+  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) { # TODO to fix
 
     hess_inv_neg <- solve(-hess)
     #print(mean(-((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu))))
     if (is.null(pop_size)) {
-      # b <- ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv # TODO opposite sign here (?)
-      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * (y - mu)) %*% X %*% hess_inv_neg
+      b <- - ((1 - ps)/ps^2 * exp(eta) * weights * (y - mu)) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
+      # b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * (y - mu)) %*% X %*% hess_inv_neg
     } else {
-      # b <-  ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv # TODO opposite sign here (?)
-      b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * y) %*% X %*% hess_inv_neg
+      b <- - ((1 - ps)/ps^2 * exp(eta) * weights * y) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
+      #b <- - (exp(eta + exp(eta)) / (exp(exp(eta)) - 1)^2 * weights * y) %*% X %*% hess_inv_neg
     }
 
     list(b = b)

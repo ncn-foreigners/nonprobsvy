@@ -36,11 +36,11 @@ svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
 
 # IPW ####
 # logit #
-test1a <- nonprob(selection = ~ x,
-                  target = ~ y1,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
+# test1a <- nonprob(selection = ~ x,
+#                   target = ~ y1,
+#                   data = source_nonprob_p,
+#                   method_selection = "logit",
+#                   svydesign = svy_a)
 expect_silent(
   test1a <- nonprob(selection = ~ x,
                     target = ~ y1,
@@ -60,38 +60,37 @@ expect_true(
   (4.986351 < test1a$confidence_interval[2])
 )
 
-# TODO cloglog
 # test1aclog <- nonprob(selection = ~ x,
 #                       target = ~ y1,
 #                       data = source_nonprob_p,
 #                       method_selection = "cloglog",
 #                       svydesign = svy_a)
+
+expect_silent(
+  test1aclog <- nonprob(selection = ~ x,
+                    target = ~ y1,
+                    data = source_nonprob_p,
+                    method_selection = "cloglog",
+                    svydesign = svy_a)
+)
 #
-# expect_silent(
-#   test1aclog <- nonprob(selection = ~ x,
-#                     target = ~ y1,
-#                     data = source_nonprob_p,
-#                     method_selection = "cloglog",
-#                     svydesign = svy_a)
-# )
+expect_equivalent(
+  test1aclog$output$mean,
+  4.98848,
+  tolerance = .01
+)
 #
-# expect_equivalent(
-#   test1aclog$output$mean,
-#   4.98848,
-#   tolerance = .01
-# )
-#
-# expect_true(
-#   (test1aclog$confidence_interval[1] < 4.98848) &
-#     (4.98848 < test1aclog$confidence_interval[2])
-# )
+expect_true(
+  (test1aclog$confidence_interval[1] < 4.98848) &
+    (4.98848 < test1aclog$confidence_interval[2])
+)
 
 # probit #
-test1aprob <- nonprob(selection = ~ x,
-                      target = ~ y1,
-                      data = source_nonprob_p,
-                      method_selection = "probit",
-                      svydesign = svy_a)
+# test1aprob <- nonprob(selection = ~ x,
+#                       target = ~ y1,
+#                       data = source_nonprob_p,
+#                       method_selection = "probit",
+#                       svydesign = svy_a)
 
 expect_silent(
   test1aprob <- nonprob(selection = ~ x,
@@ -113,11 +112,11 @@ expect_true(
 )
 # DR  ####
 # logit #
-test2a <- nonprob(selection = ~ x,
-                  outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
+# test2a <- nonprob(selection = ~ x,
+#                   outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   method_selection = "logit",
+#                   svydesign = svy_a)
 expect_silent(
   test2a <- nonprob(selection = ~ x,
                     outcome = y1 ~ x,
@@ -138,11 +137,11 @@ expect_true(
 )
 
 # cloglog #
-test2aclog <- nonprob(selection = ~ x,
-                  outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "cloglog",
-                  svydesign = svy_a)
+# test2aclog <- nonprob(selection = ~ x,
+#                   outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   method_selection = "cloglog",
+#                   svydesign = svy_a)
 expect_silent(
   test2aclog <- nonprob(selection = ~ x,
                     outcome = y1 ~ x,
@@ -163,11 +162,11 @@ expect_true(
 )
 
 # probit #
-test2aprob <- nonprob(selection = ~ x,
-                  outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "probit",
-                  svydesign = svy_a)
+# test2aprob <- nonprob(selection = ~ x,
+#                   outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   method_selection = "probit",
+#                   svydesign = svy_a)
 expect_silent(
   test2aprob <- nonprob(selection = ~ x,
                     outcome = y1 ~ x,
@@ -186,9 +185,9 @@ expect_true(
     (5.091384< test2aprob$confidence_interval[2])
 )
 # MI - glm ####
-test3a <- nonprob(outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  svydesign = svy_a)
+# test3a <- nonprob(outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   svydesign = svy_a)
 expect_silent(
   test3a <- nonprob(outcome = y1 ~ x,
                     data = source_nonprob_p,
@@ -207,10 +206,10 @@ expect_true(
 )
 
 # MI - nn ####
-test3ann <- nonprob(outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  svydesign = svy_a,
-                  method_outcome = "nn")
+# test3ann <- nonprob(outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   svydesign = svy_a,
+#                   method_outcome = "nn")
 expect_silent(
   test3ann <- nonprob(outcome = y1 ~ x,
                     data = source_nonprob_p,

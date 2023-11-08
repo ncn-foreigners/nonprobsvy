@@ -112,15 +112,25 @@ theta_h_estimation <- function(R,
                              method_selection = method_selection,
                              pop_totals = pop_totals)
 
-  root <- nleqslv::nleqslv(x = start,
-                           fn = u_theta,
-                           method = "Newton", # TODO consider the methods
-                           global = "cline", #qline",
-                           xscalm = "fixed",
-                           jacobian = TRUE,
-                           jac = u_theta_der
-                           #control = list(sigma = 0.1, trace = 1)
-                           )
+  if (method_selection == "cloglog") {
+    root <- nleqslv::nleqslv(x = start,
+                             fn = u_theta,
+                             method = "Newton", # TODO consider the methods
+                             global = "cline", #qline",
+                             xscalm = "fixed",
+                             jacobian = TRUE
+                             )
+  } else {
+    root <- nleqslv::nleqslv(x = start,
+                             fn = u_theta,
+                             method = "Newton", # TODO consider the methods
+                             global = "cline", #qline",
+                             xscalm = "fixed",
+                             jacobian = TRUE,
+                             jac = u_theta_der
+                             #control = list(sigma = 0.1, trace = 1)
+    )
+  }
 
 
   theta_root <- root$x
@@ -136,8 +146,11 @@ theta_h_estimation <- function(R,
   }
   theta_h <- as.vector(theta_root)
   grad <- u_theta(theta_h)
-  hess <- u_theta_der(theta_h) # TODO compare with root$jac
-  #hess <- root$jac
+  if (method_selection == "cloglog") {
+    hess <- root$jac
+  } else {
+    hess <- u_theta_der(theta_h) # TODO compare with root$jac
+  }
 
   list(theta_h = theta_h,
        hess = hess,

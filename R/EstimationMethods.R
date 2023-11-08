@@ -104,12 +104,12 @@ mle <- function(...) {
                            weights_rand = weights_rand,
                            method_selection = method_selection)
       } else if (control_selection$start_type == "naive") {
-        intercept_start <- max_lik(X_nons = X_nons[, 1, drop = FALSE],
+        intercept_start <- suppressWarnings(max_lik(X_nons = X_nons[, 1, drop = FALSE],
                                    X_rand = X_rand[, 1, drop = FALSE],
                                    weights = weights,
                                    weights_rand = weights_rand,
                                    start = 0,
-                                   control = control_selection)$theta_hat
+                                   control = control_selection)$theta_hat)
         start <- c(intercept_start, rep(0, ncol(X_nons) - 1))
       }
     }
@@ -237,20 +237,20 @@ gee <- function(...) {
 
     if (is.null(start)) {
       if (control_selection$start_type == "glm") {
-        start0 <- start_fit(X = X, # <--- does not work with pop_totals
+        start <- start_fit(X = X, # <--- does not work with pop_totals
                             R = R,
                             weights = weights,
                             weights_rand = weights_rand,
                             method_selection = method_selection)
       } else if (control_selection$start_type == "naive") {
-        start_h <- theta_h_estimation(R = R,
+        start_h <- suppressWarnings(theta_h_estimation(R = R,
                                       X = X[, 1, drop = FALSE],
                                       weights_rand = weights_rand,
                                       weights = weights,
                                       h = h,
                                       method_selection = method_selection,
                                       maxit = maxit,
-                                      start = 0)
+                                      start = 0)$theta_h)
         start <- c(start_h, rep(0, ncol(X) - 1))
       }
   }

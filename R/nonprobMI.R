@@ -287,6 +287,7 @@ nonprobMI <- function(outcome,
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   names(OutcomeList) <- outcomes$f
+  names(pop_size) <- "pop_size"
 
   structure(
     list(X = if(isTRUE(x)) X else NULL,
