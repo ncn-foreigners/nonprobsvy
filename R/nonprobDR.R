@@ -485,15 +485,15 @@ nonprobDR <- function(selection,
                              weights_rand = weights_rand,
                              method_selection = method_selection)
         } else if (control_selection$start_type == "naive") {
-          start_h <- theta_h_estimation(R = R,
-                                        X = SelectionModel$X_nons[,1,drop=FALSE],
-                                        weights_rand = weights_rand,
-                                        weights = weights,
-                                        h = h,
-                                        method_selection = method_selection,
-                                        start = 0,
-                                        maxit = maxit,
-                                        pop_totals = SelectionModel$pop_totals[1])$theta_h
+          start_h <- suppressWarnings(theta_h_estimation(R = R,
+                                      X = SelectionModel$X_nons[,1,drop=FALSE],
+                                      weights_rand = weights_rand,
+                                      weights = weights,
+                                      h = h,
+                                      method_selection = method_selection,
+                                      start = 0,
+                                      maxit = maxit,
+                                      pop_totals = SelectionModel$pop_totals[1])$theta_h)
           start <- c(start_h, rep(0, ncol(X) - 1))
         }
       }
@@ -703,6 +703,8 @@ nonprobDR <- function(selection,
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   names(OutcomeList) <- outcomes$f
+  if (is.null(pop_size)) pop_size <- N_nons
+  names(pop_size) <- "pop_size"
 
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,
