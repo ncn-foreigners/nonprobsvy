@@ -237,11 +237,25 @@ gee <- function(...) {
 
     if (is.null(start)) {
       if (control_selection$start_type == "glm") {
-        start <- start_fit(X = X, # <--- does not work with pop_totals
-                            R = R,
+        # start <- start_fit(X = X, # <--- does not work with pop_totals
+        #                     R = R,
+        #                     weights = weights,
+        #                     weights_rand = weights_rand,
+        #                     method_selection = method_selection)
+
+        # TODO to test
+        start_to_gee <- start_fit(X = X, # <--- does not work with pop_totals
+                                  R = R,
+                                  weights = weights,
+                                  weights_rand = weights_rand,
+                                  method_selection = method_selection)
+        start <- method$make_max_lik(X_nons = X_nons,
+                            X_rand = X_rand,
                             weights = weights,
                             weights_rand = weights_rand,
-                            method_selection = method_selection)
+                            start = start_to_gee,
+                            control = control_selection)$theta_hat
+        ####
       } else if (control_selection$start_type == "naive") {
         start_h <- suppressWarnings(theta_h_estimation(R = R,
                                       X = X[, 1, drop = FALSE],
@@ -310,7 +324,7 @@ gee <- function(...) {
 }
 
 # bias correction
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start, boot = FALSE) {
+mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start_selection, start_outcome, boot = FALSE) {
 
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection_function)
@@ -320,8 +334,10 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
 
+  start <- c(start_outcome, start_selection) # TODO consider add info/error for end-user if one of starts provided only
+
   p <- ncol(X)
-  if (is.null(start)) {
+  if (is.null(start)) { # TODO add default start
     par0 <- rep(0, 2*p)
   } else {
     par0 <- start

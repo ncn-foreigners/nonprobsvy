@@ -1,9 +1,9 @@
-#' @title - logit model
-#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#' @title Logit model for weights adjustment
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
-#' @description - Function returns all methods/objects/functions required for the model estimation assuming a logit link function.
+#' @description \code{logit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a logit link function.
 #'
-#' @param ... - Additional, optional arguments.
+#' @param ... Additional, optional arguments.
 #'
 #' @return List with selected methods/objects/functions.
 #'

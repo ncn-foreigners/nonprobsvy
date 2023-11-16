@@ -50,12 +50,14 @@ internal_selection <- function(X,
 internal_outcome <- function(outcome,
                              data,
                              weights,
-                             family_outcome) {
+                             family_outcome,
+                             start_outcome) {
   # estimation
   model_nons <- nonprobMI_fit(outcome = outcome,
                               data = data,
                               weights = weights,
-                              family_outcome = family_outcome)
+                              family_outcome = family_outcome,
+                              start = start_outcome)
   model_nons_summary <- summary(model_nons)
 
   list(glm = model_nons,

@@ -1,14 +1,14 @@
 Package: nonprobsvy
 Type: Package
-Title: Package for inference based on nonprobability samples
+Title: Package for Inference Based on Nonprobability Samples
 Version: 0.1.0
 Authors@R:
-    c(person(given = "Łukasz",
+    c(person(given = "Lukasz",
              family = "Chrostowski",
              role = c("aut", "cre"),
              email = "lukchr@st.amu.edu.pl"),
       person(given = "Maciej",
-             family = "Beręsewicz",
+             family = "Beresewicz",
              role = c("aut", "ctb"),
              email = "maciej.beresewicz@ue.poznan.pl"),
       person(given = "Piotr",

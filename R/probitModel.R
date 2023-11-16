@@ -1,9 +1,9 @@
-#' @title - probit model
-#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#' @title Probit model for weights adjustment
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
-#' @description - Function returns all methods/objects/functions required for the model estimation assuming a probit link function.
+#' @description \code{probit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a probit link function.
 #'
-#' @param ... - Additional, optional arguments.
+#' @param ... Additional, optional arguments.
 #'
 #' @return List with selected methods/objects/functions.
 #'

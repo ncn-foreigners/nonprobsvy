@@ -7,6 +7,7 @@ bootMI <- function(X_rand,
                    weights,
                    y,
                    family_outcome,
+                   start_outcome,
                    num_boot,
                    weights_rand,
                    mu_hat,
@@ -59,7 +60,8 @@ bootMI <- function(X_rand,
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
                                       weights = weights_strap,
-                                      family = family)
+                                      family = family,
+                                      start = start_outcome)
 
         beta <- model_strap$coefficients
         eta <- X_rand %*% beta
@@ -123,7 +125,8 @@ bootMI <- function(X_rand,
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
                                       weights = weights_strap,
-                                      family = family)
+                                      family = family,
+                                      start = start_outcome)
 
         beta <- model_strap$coefficients
         eta_rand <- X_rand_strap %*% beta
@@ -165,7 +168,8 @@ bootMI <- function(X_rand,
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
                                       weights = weights_strap,
-                                      family = family)
+                                      family = family,
+                                      start = start_outcome)
 
         beta <- model_strap$coefficients
         eta <- pop_totals %*% beta / N
@@ -211,7 +215,8 @@ bootMI <- function(X_rand,
         model_strap <- stats::glm.fit(x = X_nons_strap,
                                       y = y_strap,
                                       weights = weights_strap,
-                                      family = family)
+                                      family = family,
+                                      start = start_outcome)
 
         beta <- model_strap$coefficients
         eta_rand <- pop_totals %*% beta
@@ -252,6 +257,7 @@ bootIPW <- function(X_rand,
                     weights_rand,
                     mu_hat,
                     method_selection,
+                    start_selection,
                     n_nons,
                     n_rand,
                     optim_method,
@@ -293,7 +299,8 @@ bootIPW <- function(X_rand,
                                       h = h,
                                       est_method =  est_method,
                                       maxit = maxit,
-                                      control_selection = control_selection)
+                                      control_selection = control_selection,
+                                      start_selection = start_selection)
 
       est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                            method_selection = method_selection)
@@ -326,7 +333,8 @@ bootIPW <- function(X_rand,
                                            h = h,
                                            method_selection = method_selection,
                                            maxit = maxit,
-                                           pop_totals = pop_totals)
+                                           pop_totals = pop_totals,
+                                           start = start_selection)
       theta_hat_strap <- h_object_strap$theta_h
       ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
 
@@ -357,6 +365,7 @@ bootDR <- function(outcome,
                    OutcomeModel,
                    family_outcome,
                    method_outcome,
+                   start_outcome,
                    num_boot,
                    weights,
                    weights_rand,
@@ -364,6 +373,7 @@ bootDR <- function(outcome,
                    theta_hat,
                    mu_hat,
                    method_selection,
+                   start_selection,
                    control_selection,
                    control_outcome,
                    control_inference,
@@ -412,8 +422,8 @@ bootDR <- function(outcome,
                           n_nons = n_nons,
                           n_rand = n_rand,
                           num_boot = num_boot,
-                          par0 = rep(0, 2*p),
-                          psel = p,
+                          start_selection = start_selection,
+                          start_outcome = start_outcome,
                           verbose = verbose)
     boot_var <- var_obj$var
     mu_hat_boot <- var_obj$mu
@@ -429,6 +439,7 @@ bootDR <- function(outcome,
                                      data = data[strap_nons,],
                                      weights = weights[strap_nons],
                                      family_outcome = family_outcome,
+                                     start_outcome = start_outcome,
                                      X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
                                      y_nons = OutcomeModel$y_nons[strap_nons],
                                      X_rand = OutcomeModel$X_rand[strap_rand, , drop = FALSE],
@@ -457,7 +468,8 @@ bootDR <- function(outcome,
                                           h = h,
                                           est_method = est_method,
                                           maxit = maxit,
-                                          control_selection = control_selection)
+                                          control_selection = control_selection,
+                                          start = start_selection)
 
           est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                                method_selection = method_selection)
@@ -499,7 +511,8 @@ bootDR <- function(outcome,
                                                method_selection = method_selection,
                                                maxit = maxit,
                                                pop_totals = pop_totals,
-                                               weights_rand = NULL)
+                                               weights_rand = NULL,
+                                               start = start_selection)
 
           theta_hat_strap <- h_object_strap$theta_h
           method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -514,6 +527,7 @@ bootDR <- function(outcome,
                                      data = data[strap, , drop = FALSE],
                                      weights = weights_strap,
                                      family_outcome = family_outcome,
+                                     start_outcome = start_outcome,
                                      X_nons = X_strap_nons,
                                      y_nons = y_strap,
                                      X_rand = X_strap_rand,
@@ -553,8 +567,8 @@ bootDR_sel <- function(X,
                        n_nons,
                        n_rand,
                        num_boot,
-                       par0,
-                       psel,
+                       start_selection,
+                       start_outcome,
                        verbose) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
   k <- 1
@@ -580,6 +594,8 @@ bootDR_sel <- function(X,
                       n_rand = n_rand,
                       method_selection = method_selection,
                       family = family_nonprobsvy,
+                      start_outcome = start_outcome,
+                      start_selection = start_selection,
                       boot = TRUE)
 
     weights_nons_strap <- 1/model_strap$selection$ps_nons
@@ -618,6 +634,7 @@ bootMI_multicore <- function(X_rand,
                              weights,
                              y,
                              family_outcome,
+                             start_outcome,
                              num_boot,
                              weights_rand,
                              mu_hat,
@@ -675,7 +692,8 @@ bootMI_multicore <- function(X_rand,
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
                                         weights = weights_strap,
-                                        family = family)
+                                        family = family,
+                                        start = start_outcome)
 
           beta <- model_strap$coefficients
           eta <- X_rand %*% beta
@@ -730,7 +748,8 @@ bootMI_multicore <- function(X_rand,
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
                                         weights = weights_strap,
-                                        family = family)
+                                        family = family,
+                                        start = start_outcome)
 
           beta <- model_strap$coefficients
           eta_rand <- X_rand_strap %*% beta
@@ -766,7 +785,8 @@ bootMI_multicore <- function(X_rand,
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
                                         weights = weights_strap,
-                                        family = family)
+                                        family = family,
+                                        start = start_outcome)
 
           beta <- model_strap$coefficients
           eta <- pop_totals %*% beta / N
@@ -805,7 +825,8 @@ bootMI_multicore <- function(X_rand,
           model_strap <- stats::glm.fit(x = X_nons_strap,
                                         y = y_strap,
                                         weights = weights_strap,
-                                        family = family)
+                                        family = family,
+                                        start = start_outcome)
 
           beta <- model_strap$coefficients
           eta_rand <- pop_totals %*% beta
@@ -844,6 +865,7 @@ bootIPW_multicore <- function(X_rand,
                               weights_rand,
                               mu_hat,
                               method_selection,
+                              start_selection,
                               n_nons,
                               n_rand,
                               optim_method,
@@ -893,7 +915,8 @@ bootIPW_multicore <- function(X_rand,
                                         h = h,
                                         est_method =  est_method,
                                         maxit = maxit,
-                                        control_selection = control_selection)
+                                        control_selection = control_selection,
+                                        start_selection = start_selection)
 
 
         model_sel <- estimation_method$model_selection(X,
@@ -935,7 +958,8 @@ bootIPW_multicore <- function(X_rand,
                                              h = h,
                                              method_selection = method_selection,
                                              maxit = maxit,
-                                             pop_totals = pop_totals)
+                                             pop_totals = pop_totals,
+                                             start = start_selection)
         theta_hat_strap <- h_object_strap$theta_h
         ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
 
@@ -966,6 +990,7 @@ bootDR_multicore <- function(outcome,
                              OutcomeModel,
                              family_outcome,
                              method_outcome,
+                             start_outcome,
                              num_boot,
                              weights,
                              weights_rand,
@@ -974,6 +999,7 @@ bootDR_multicore <- function(outcome,
                              mu_hat,
                              method_selection,
                              control_selection,
+                             start_selection,
                              control_outcome,
                              control_inference,
                              n_nons,
@@ -1024,8 +1050,8 @@ bootDR_multicore <- function(outcome,
                                     n_nons = n_nons,
                                     n_rand = n_rand,
                                     num_boot = num_boot,
-                                    par0 = rep(0, 2*p),
-                                    psel = p,
+                                    start_selection = start_selection,
+                                    start_outcome = start_outcome,
                                     cores = cores)
     boot_var <- var_obj$boot_var
   } else {
@@ -1056,7 +1082,8 @@ bootDR_multicore <- function(outcome,
                                      n_rand = n_rand,
                                      model_frame = OutcomeModel$model_frame_rand[strap_rand, , drop = FALSE],
                                      vars_selection = control_inference$vars_selection,
-                                     pop_totals = pop_totals)
+                                     pop_totals = pop_totals,
+                                     start_outcome = start_outcome)
 
           y_rand_pred <- model_obj$y_rand_pred
           y_nons_pred <- model_obj$y_nons_pred
@@ -1075,7 +1102,8 @@ bootDR_multicore <- function(outcome,
                                           h = h,
                                           est_method = est_method,
                                           maxit = maxit,
-                                          control_selection = control_selection)
+                                          control_selection = control_selection,
+                                          start_selection = start_selection)
 
           est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                                method_selection = method_selection)
@@ -1094,8 +1122,6 @@ bootDR_multicore <- function(outcome,
                    N_rand = N_est_rand)
       })
     } else {
-
-
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
@@ -1107,7 +1133,6 @@ bootDR_multicore <- function(outcome,
         weights_strap <- weights[strap]
         X_rand_strap <- NULL
 
-
         h_object_strap <- theta_h_estimation(R = R_strap,
                                              X = X_nons_strap,
                                              weights = weights_strap,
@@ -1115,6 +1140,7 @@ bootDR_multicore <- function(outcome,
                                              method_selection = method_selection,
                                              maxit = maxit,
                                              pop_totals = pop_totals,
+                                             start = start_selection,
                                              weights_rand = NULL)
 
         theta_hat_strap <- h_object_strap$theta_h
@@ -1130,6 +1156,7 @@ bootDR_multicore <- function(outcome,
                                    data = data[strap, , drop = FALSE],
                                    weights = weights_strap,
                                    family_outcome = family_outcome,
+                                   start_outcome = start_outcome,
                                    X_nons = X_nons_strap,
                                    y_nons = y_strap,
                                    X_rand = X_rand_strap,
@@ -1170,8 +1197,8 @@ bootDR_sel_multicore <- function(X,
                                  n_nons,
                                  n_rand,
                                  num_boot,
-                                 par0,
-                                 psel,
+                                 start_selection,
+                                 start_outcome,
                                  cores,
                                  verbose) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
@@ -1206,6 +1233,8 @@ bootDR_sel_multicore <- function(X,
                       n_rand = n_rand,
                       method_selection = method_selection,
                       family = family_nonprobsvy,
+                      start_selection = start_selection,
+                      start_outcome = start_outcome,
                       boot = TRUE)
 
     weights_nons_strap <- 1/model_strap$selection$ps_nons

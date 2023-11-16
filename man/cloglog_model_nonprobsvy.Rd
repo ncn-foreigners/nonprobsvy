@@ -2,27 +2,19 @@
 % Please edit documentation in R/cloglogModel.R
 \name{cloglog_model_nonprobsvy}
 \alias{cloglog_model_nonprobsvy}
-\title{\itemize{
-\item complementary log-log model
-}}
+\title{Complementary log-log model for weights adjustment}
 \usage{
 cloglog_model_nonprobsvy(...)
 }
 \arguments{
-\item{...}{\itemize{
-\item Additional, optional arguments.
-}}
+\item{...}{Additional, optional arguments.}
 }
 \value{
 List with selected methods/objects/functions.
 }
 \description{
-\itemize{
-\item Function returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
-}
+\code{cloglog_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
 }
 \author{
-\itemize{
-\item Łukasz Chrostowski, Maciej Beręsewicz
-}
+Łukasz Chrostowski, Maciej Beręsewicz
 }

@@ -254,8 +254,8 @@ pop.size.nonprobsvy <- function(object,
   object$pop_size
 }
 #' @title Estimate size of population
-#' @description - Estimate size of population
-#' @param object - object returned by `nonprobsvy`.
+#' @description Estimate size of population
+#' @param object object returned by `nonprobsvy`.
 #' @param ... additional parameters
 #' @export
 pop.size <- function(object, ...) {
@@ -266,10 +266,14 @@ pop.size <- function(object, ...) {
 #' @exportS3Method
 residuals.nonprobsvy <- function(object,
                                  type = c("pearson",
+                                          "working",
                                           "deviance",
                                           "response"),
                                  ...) { # TODO for pop_totals and variable selection
 
+  if (length(type) > 1) {
+    type <- "response"
+  }
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
     if (object$control$control_inference$vars_selection == FALSE) {
       res_out <- residuals(object$outcome[[1]]) # TODO for variable selection
@@ -308,6 +312,7 @@ residuals.nonprobsvy <- function(object,
 #' @exportS3Method
 cooks.distance.nonprobsvy <- function(model, # TODO for variable selection
                                       ...) { # TODO basing on Hat_matrix,
+  stop("S3 method in development")
   resids <- residuals(model, type = "pearsonSTD")^2
   hats <- hatvalues(model)
   res_sel <- (resids * (hats / (length(coef(model))))) # TODO
@@ -423,7 +428,7 @@ confint.nonprobsvy <- function(object,
                                level = 0.95,
                                ...) {
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
-    std <- sqrt(diag(vcov(object)[[1]]))
+    std <- object$selection$std_err
     sc <- qnorm(p = 1 - (1 - level) / 2)
     res_sel <- data.frame(object$selection$coefficients - sc * std, object$selection$coefficients + sc * std)
     colnames(res_sel) <- c(paste0(100 * (1 - level) / 2, "%"),
@@ -485,4 +490,5 @@ deviance.nonprobsvy <- function(object,
                                 ...) {
   res_out <- object$outcome[[1]]$deviance
   # TODO for selection model - use selection object
+  res_out
 }
