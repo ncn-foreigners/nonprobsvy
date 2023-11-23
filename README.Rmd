@@ -103,12 +103,11 @@ the of the target variable given the observed data set
 $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
--   unit-level data is available for the non-probability sample $A$,
-    i.e. 
-    $(y_k, \boldsymbol{x}_k)$ is available for all units
-    $k \in S_A$, and population-level data is available for
-    $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as
-    $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is
+-   unit-level data is available for the non-probability sample $S_{A}$,
+    i.e. $(y_{k}, \boldsymbol{x}_{k})$ is available for all units
+    $k \in S_{A}$, and population-level data is available for
+    $\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}$, denoted as
+    $\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}$ and population size $N$ is
     known. We can also consider situations where population data are
     estimated (e.g. on the basis of a survey to which we do not have
     access),
@@ -122,7 +121,7 @@ possible scenarios:
 ### When unit-level data is available for non-probability survey only
 
 | Estimator                                                 | Example code                                                                                                                                                                                                                                     |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | Mass imputation based on regression imputation            | `` nonprob(outcome = y ~ x1 + x2 + ... + xk, data = nonprob, pop_totals = c(`(Intercept)`=N, x1=tau_x1, x2=tau_x2, ..., xk=tau_xk), method_outcome = "glm", family_outcome = "gaussian") ``                                                      |
 | Inverse probability weighting                             | `` nonprob(selection =  ~ x1 + x2 + ... + xk, target = ~ y, data = nonprob, pop_totals = c(`(Intercept)`=N, x1=tau_x1, x2=tau_x2, ..., xk=tau_xk), method_selection = "logit") ``                                                                |
 | Inverse probability weighting with calibration constraint | `` nonprob(selection =  ~ x1 + x2 + ... + xk, target = ~ y, data = nonprob, pop_totals = c(`(Intercept)`=N, x1=tau_x1, x2=tau_x2, ..., xk=tau_xk), method_selection = "logit", control_selection = controlSel(est_method_sel = "gee", h = 1)) `` |
@@ -131,7 +130,7 @@ possible scenarios:
 ### When unit-level data are available for both surveys
 
 | Estimator                                                                                | Example code                                                                                                                                                                                                                                         |
-|----------------------|-------------------------------------------------|
+|-----------------------|-------------------------------------------------|
 | Mass imputation based on regression imputation                                           | `nonprob(outcome = y ~ x1 + x2 + ... + xk, data = nonprob, svydesign = prob, method_outcome = "glm", family_outcome = "gaussian")`                                                                                                                   |
 | Mass imputation based on nearest neighbour imputation                                    | `nonprob(outcome = y ~ x1 + x2 + ... + xk, data = nonprob, svydesign = prob, method_outcome = "nn", family_outcome = "gaussian", control_outcome=controlOutcome(k = 2))`                                                                             |
 | Mass imputation based on predictive mean matching                                        | `nonprob(outcome = y ~ x1 + x2 + ... + xk, data = nonprob, svydesign = prob, method_outcome = "pmm", family_outcome = "gaussian")`                                                                                                                   |
