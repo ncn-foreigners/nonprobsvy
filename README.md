@@ -1,55 +1,36 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # `nonprobsvy`: an R package for modern statistical inference methods based on non-probability samples
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions)
-[![Codecov test
-coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
+[![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions) [![Codecov test coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 
 <!-- badges: end -->
 
 ## Basic information
 
-The goal of this package is to provide R users access to modern methods
-for non-probability samples when auxiliary information from the
-population or probability sample is available:
+The goal of this package is to provide R users access to modern methods for non-probability samples when auxiliary information from the population or probability sample is available:
 
-- inverse probability weighting estimators with possible calibration
-  constraints ([Chen, Li, and Wu 2020](#ref-chen2020)),
-- mass imputation estimators based in nearest neighbours ([Yang, Kim,
-  and Hwang 2021](#ref-yang2021)), predictive mean matching and
-  regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators with bias minimization Yang, Kim, and Song
-  ([2020](#ref-yang2020)).
+-   inverse probability weighting estimators with possible calibration constraints ([Chen, Li, and Wu 2020](#ref-chen2020)),
+-   mass imputation estimators based in nearest neighbours ([Yang, Kim, and Hwang 2021](#ref-yang2021)), predictive mean matching and regression imputation ([Kim et al. 2021](#ref-kim2021)),
+-   doubly robust estimators with bias minimization Yang, Kim, and Song ([2020](#ref-yang2020)).
 
 The package allows for:
 
-- variable section in high-dimensional space using SCAD ([Yang, Kim, and
-  Song 2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`,
-  `Rcpp`, `RcppArmadillo` packages),
-- estimation of variance using analytical and bootstrap approach (see Wu
-  ([2023](#ref-wu2023))),
-- integration with the `survey` package when probability sample is
-  available Lumley ([2023](#ref-Lumley2023)),
-- different links for selection (`logit`, `probit` and `cloglog`) and
-  outcome (`gaussian`, `binomial` and `poisson`) variables.
+-   variable section in high-dimensional space using SCAD ([Yang, Kim, and Song 2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`, `Rcpp`, `RcppArmadillo` packages),
+-   estimation of variance using analytical and bootstrap approach (see Wu ([2023](#ref-wu2023))),
+-   integration with the `survey` package when probability sample is available Lumley ([2023](#ref-Lumley2023)),
+-   different links for selection (`logit`, `probit` and `cloglog`) and outcome (`gaussian`, `binomial` and `poisson`) variables.
 
 Details on use of the package be found:
 
-- on the draft (and not proofread) version the book [Modern inference
-  methods for non-probability samples with
-  R](https://ncn-foreigners.github.io/nonprobsvy-book/),
-- example codes that reproduce papers are available at github in the
-  repository [software
-  tutorials](https://github.com/ncn-foreigners/software-tutorials).
+-   on the draft (and not proofread) version the book [Modern inference methods for non-probability samples with R](https://ncn-foreigners.github.io/nonprobsvy-book/),
+-   example codes that reproduce papers are available at github in the repository [software tutorials](https://github.com/ncn-foreigners/software-tutorials).
 
 ## Installation
 
-You can install the recent version of `nonprobsvy` package from
-[Github](https://github.com/ncn-foreigners/nonprobsvy) with:
+You can install the recent version of `nonprobsvy` package from [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
 remotes::install_github("ncn-foreigners/nonprobsvy")
@@ -63,43 +44,23 @@ remotes::install_github("ncn-foreigners/nonprobsvy@dev")
 
 ## Basic idea
 
-Consider the following setting where two samples are available:
-non-probability (denoted as $S_A$ ) and probability (denoted as $S_B$)
-where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
-available for both sources while $Y$ and $\boldsymbol{d}$ (or
-$\boldsymbol{w}$) is present only in probability sample.
+Consider the following setting where two samples are available: non-probability (denoted as $S_A$ ) and probability (denoted as $S_B$) where set of auxiliary variables (denoted as $\boldsymbol{X}$) is available for both sources while $Y$ and $\boldsymbol{d}$ (or $\boldsymbol{w}$) is present only in probability sample.
 
 | Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
 |-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
 | $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |       ... |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
 |                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
 | $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         |       ... |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 |                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 
 ## Basic functionalities
 
-Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of
-auxiliary variables, $R$ is the inclusion indicator. Then, if we are
-interested in estimating the mean $\bar{\tau}_Y$ or the sum $\tau_Y$ of
-the of the target variable given the observed data set
-$(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
-possible scenarios:
+Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of auxiliary variables, $R$ is the inclusion indicator. Then, if we are interested in estimating the mean $\bar{\tau}_Y$ or the sum $\tau_Y$ of the of the target variable given the observed data set $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the possible scenarios:
 
-- unit-level data is available for the non-probability sample $A$,
-  i.e. $(y_k, \boldsymbol{x}_k)$ is available for all units $k \in S_A$,
-  and population-level data is available for
-  $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as
-  $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is
-  known. We can also consider situations where population data are
-  estimated (e.g. on the basis of a survey to which we do not have
-  access),
-- unit-level data is available for the non-probability sample $S_A$ and
-  the probability sample $S_B$, i.e. $(y_k, \boldsymbol{x}_k, R_k)$ is
-  determined by the data. is determined by the data: $R_k=1$ if
-  $k \in S_A$ otherwise $R_k=0$, $y_k$ is observed only for sample $S_A$
-  and $\boldsymbol{x}_k$ is observed in both in both $S_A$ and $S_B$,
+-   unit-level data is available for the non-probability sample $A$, i.e. $(y_k, \boldsymbol{x}_k)$ is available for all units $k \in S_A$, and population-level data is available for $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),
+-   unit-level data is available for the non-probability sample $S_A$ and the probability sample $S_B$, i.e. $(y_k, \boldsymbol{x}_k, R_k)$ is determined by the data. is determined by the data: $R_k=1$ if $k \in S_A$ otherwise $R_k=0$, $y_k$ is observed only for sample $S_A$ and $\boldsymbol{x}_k$ is observed in both in both $S_A$ and $S_B$,
 
 ### When unit-level data is available for non-probability survey only
 
@@ -126,9 +87,7 @@ possible scenarios:
 
 ## Examples
 
-Simulate example data from the following paper: Kim, Jae Kwang, and
-Zhonglei Wang. “Sampling techniques for big data analysis.”
-International Statistical Review 87 (2019): S177-S191 \[section 5.2\]
+Simulate example data from the following paper: Kim, Jae Kwang, and Zhonglei Wang. "Sampling techniques for big data analysis." International Statistical Review 87 (2019): S177-S191 $$section 5.2$$
 
 ``` r
 library(survey)
@@ -158,8 +117,7 @@ sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs,
                          data = subset(population, flag_srs == 1))
 ```
 
-Estimate population mean of `y1` based on doubly robust estimator using
-IPW with calibration constraints.
+Estimate population mean of `y1` based on doubly robust estimator using IPW with calibration constraints.
 
 ``` r
 result_dr <- nonprob(
@@ -334,69 +292,36 @@ summary(result_ipw)
 
 ## Funding
 
-Work on this package is supported by the National Science Centre, OPUS
-22 grant no. 2020/39/B/HS4/00941.
+Work on this package is supported by the National Science Centre, OPUS 22 grant no. 2020/39/B/HS4/00941.
 
 ## References (selected)
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#ref-chen2020 .csl-entry}
+Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. "Doubly Robust Inference With Nonprobability Survey Samples." *Journal of the American Statistical Association* 115 (532): 2011--21. <https://doi.org/10.1080/01621459.2019.1677241>.
+:::
 
-<div id="ref-chen2020" class="csl-entry">
+::: {#ref-kim2021 .csl-entry}
+Kim, Jae Kwang, Seho Park, Yilin Chen, and Changbao Wu. 2021. "Combining Non-Probability and Probability Survey Samples Through Mass Imputation." *Journal of the Royal Statistical Society Series A: Statistics in Society* 184 (3): 941--63. <https://doi.org/10.1111/rssa.12696>.
+:::
 
-Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference
-With Nonprobability Survey Samples.” *Journal of the American
-Statistical Association* 115 (532): 2011–21.
-<https://doi.org/10.1080/01621459.2019.1677241>.
+::: {#ref-Lumley2004 .csl-entry}
+Lumley, Thomas. 2004. "Analysis of Complex Survey Samples." *Journal of Statistical Software* 9 (1): 1--19.
+:::
 
-</div>
+::: {#ref-Lumley2023 .csl-entry}
+---------. 2023. "Survey: Analysis of Complex Survey Samples."
+:::
 
-<div id="ref-kim2021" class="csl-entry">
+::: {#ref-wu2023 .csl-entry}
+Wu, Changbao. 2023. "Statistical Inference with Non-Probability Survey Samples." *Survey Methodology* 48 (2): 283--311. <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>.
+:::
 
-Kim, Jae Kwang, Seho Park, Yilin Chen, and Changbao Wu. 2021. “Combining
-Non-Probability and Probability Survey Samples Through Mass Imputation.”
-*Journal of the Royal Statistical Society Series A: Statistics in
-Society* 184 (3): 941–63. <https://doi.org/10.1111/rssa.12696>.
+::: {#ref-yang2021 .csl-entry}
+Yang, Shu, Jae Kwang Kim, and Youngdeok Hwang. 2021. "Integration of Data from Probability Surveys and Big Found Data for Finite Population Inference Using Mass Imputation." *Survey Methodology* 47 (1): 29--58. <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>.
+:::
 
-</div>
-
-<div id="ref-Lumley2004" class="csl-entry">
-
-Lumley, Thomas. 2004. “Analysis of Complex Survey Samples.” *Journal of
-Statistical Software* 9 (1): 1–19.
-
-</div>
-
-<div id="ref-Lumley2023" class="csl-entry">
-
-———. 2023. “Survey: Analysis of Complex Survey Samples.”
-
-</div>
-
-<div id="ref-wu2023" class="csl-entry">
-
-Wu, Changbao. 2023. “Statistical Inference with Non-Probability Survey
-Samples.” *Survey Methodology* 48 (2): 283–311.
-<https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>.
-
-</div>
-
-<div id="ref-yang2021" class="csl-entry">
-
-Yang, Shu, Jae Kwang Kim, and Youngdeok Hwang. 2021. “Integration of
-Data from Probability Surveys and Big Found Data for Finite Population
-Inference Using Mass Imputation.” *Survey Methodology* 47 (1): 29–58.
-<https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>.
-
-</div>
-
-<div id="ref-yang2020" class="csl-entry">
-
-Yang, Shu, Jae Kwang Kim, and Rui Song. 2020. “Doubly Robust Inference
-When Combining Probability and Non-Probability Samples with High
-Dimensional Data.” *Journal of the Royal Statistical Society Series B:
-Statistical Methodology* 82 (2): 445–65.
-<https://doi.org/10.1111/rssb.12354>.
-
-</div>
-
-</div>
+::: {#ref-yang2020 .csl-entry}
+Yang, Shu, Jae Kwang Kim, and Rui Song. 2020. "Doubly Robust Inference When Combining Probability and Non-Probability Samples with High Dimensional Data." *Journal of the Royal Statistical Society Series B: Statistical Methodology* 82 (2): 445--65. <https://doi.org/10.1111/rssb.12354>.
+:::
+:::
