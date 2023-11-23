@@ -40,7 +40,7 @@
 #' @export
 
 controlSel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
-                       epsilon = 1e-6,
+                       epsilon = 1e-4,
                        maxit = 500,
                        trace = FALSE,
                        optimizer = c("maxLik", "optim"),

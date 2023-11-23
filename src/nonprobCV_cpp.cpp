@@ -8,6 +8,7 @@
 
 using namespace Rcpp;
 using namespace arma;
+using namespace std;
 //using namespace Eigen;
 
 // inline double loss_theta(const vec& par,
@@ -350,6 +351,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
         penaltyd[i] = 0;
       }
     }
+    // penaltyd = lambda * arma::sign(par);
   } else if (penalty == "MCP") {
     for (int i = 0; i < par.size(); i++) {
       if (std::abs(par[i]) <= a*lambda) {
@@ -366,10 +368,6 @@ arma::vec q_lambda_cpp(const arma::vec& par,
       }
     }
   }
-
-  // No penalty on the intercept
-  penaltyd[0] = 0;
-
   return penaltyd;
 }
 
@@ -501,12 +499,11 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
 
     arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
-    // TUTAJ
     #pragma omp parallel for
     for(int j = 0; j < nfolds; j++) {
-      // if (verbose) {
-      //   cout << "Starting CV fold #" << j+1 << std::endl;
-      // }
+      if (verbose) {
+        wcout << "Starting CV fold #" << j+1 << endl;
+      }
       arma::uvec idx_nons = find(folds_nons != sample_nons(j));
       const arma::mat& X_nons_train = X_nons.rows(idx_nons);
       const arma::mat& X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));

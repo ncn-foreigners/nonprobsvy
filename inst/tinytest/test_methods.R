@@ -27,7 +27,7 @@ expect_silent(
   residuals(test1a)
 )
 
-expect_error(
+expect_silent(
   cooks.distance(test1a)
 )
 
