@@ -104,7 +104,8 @@ $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
 -   unit-level data is available for the non-probability sample $A$,
-    i.e. $(y_k, \boldsymbol{x}_k)$ is available for all units
+    i.e. 
+    $(y_k, \boldsymbol{x}_k)$ is available for all units
     $k \in S_A$, and population-level data is available for
     $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as
     $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is
