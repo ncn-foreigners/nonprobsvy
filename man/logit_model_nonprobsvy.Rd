@@ -2,27 +2,19 @@
 % Please edit documentation in R/logitModel.R
 \name{logit_model_nonprobsvy}
 \alias{logit_model_nonprobsvy}
-\title{\itemize{
-\item logit model
-}}
+\title{Logit model for weights adjustment}
 \usage{
 logit_model_nonprobsvy(...)
 }
 \arguments{
-\item{...}{\itemize{
-\item Additional, optional arguments.
-}}
+\item{...}{Additional, optional arguments.}
 }
 \value{
 List with selected methods/objects/functions.
 }
 \description{
-\itemize{
-\item Function returns all methods/objects/functions required for the model estimation assuming a logit link function.
-}
+\code{logit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a logit link function.
 }
 \author{
-\itemize{
-\item Łukasz Chrostowski, Maciej Beręsewicz
-}
+Łukasz Chrostowski, Maciej Beręsewicz
 }

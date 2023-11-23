@@ -6,7 +6,7 @@ NULL
 #' \loadmathjax
 #' @description \code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
 #' The function allows you to estimate the population mean having access to a reference probability sample as well as total/mean values of covariates.
-#' In the package implemented state-of-the-art approaches recently proposed in the literature: Chen et al. (2020), Yang et al. (2020), Wu (2022) and use `survey` package [Lumley 2004](https://cran.r-project.org/web/packages/survey/index.html) for inference.
+#' In the package implemented state-of-the-art approaches recently proposed in the literature: Chen et al. (2020), Yang et al. (2020), Wu (2022) and use `survey` package [Lumley 2004](https://CRAN.R-project.org/package=survey) for inference.
 #' Provided propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and doubly robust estimators that take into account minimization of the asymptotic bias of the population mean estimators,
 #' variable selection or overlap between random and non-random sample.
 #' The package uses `survey` package functionalities when a probability sample is available.
@@ -27,10 +27,11 @@ NULL
 #' @param strata an optional `vector` specifying strata.
 #' @param weights an optional `vector` of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights
 #' @param na_action a function which indicates what should happen when the data contain `NAs`.
-#' @param control_selection a list indicating parameters to use in fitting selection model for propensity scores
-#' @param control_outcome a list indicating parameters to use in fitting model for outcome variable
-#' @param control_inference a list indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method
-#' @param start an optional `list` with starting values for the parameters of the selection and outcome equation
+#' @param control_selection a `list` indicating parameters to use in fitting selection model for propensity scores
+#' @param control_outcome a `list` indicating parameters to use in fitting model for outcome variable
+#' @param control_inference a `list` indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method
+#' @param start_selection an optional `vector` with starting values for the parameters of the selection equation
+#' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation
 #' @param verbose verbose, numeric
 #' @param x Logical value indicating whether to return model matrix of covariates as a part of output.
 #' @param y Logical value indicating whether to return vector of outcome variable as a part of output.
@@ -137,6 +138,23 @@ NULL
 #'   Since it is not straightforward thing to calculate variances of these estimators, in the literature proposed are asymptotic equivalents
 #'   of variances that are derives using Taylor approximation. Details cen be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/intro.html).
 #'   Moreover one can use bootstrap approach for variance estimation.
+#'
+#'   The function also allows the selection of variables with known methods that have been implemented to handle the integration of probability and non-probability sampling.
+#'   In the presence of high-dimensional data, variable selection is important, because it can reduce variability in estimation resulting from using irrelevant variables for model building.
+#'   Let \mjseqn{\operatorname{U}\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)} be the joint estimating function for \mjseqn{\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)}. We define the
+#'   penalized estimating functions as
+#'   \mjsdeqn{
+#'   \operatorname{U}^p \left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) = \operatorname{U}\left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) - \left\lbrace \begin{array}{c}
+#'   q_{\lambda_\theta}(|\boldsymbol{\theta}|) \operatorname{sgn}(\boldsymbol{\theta}) \\
+#'   q_{\lambda_\beta}(|\\boldsymbol{\beta}|) \operatorname{sgn}(\boldsymbol{\beta})
+#'   \end{array} \right\rbrace,
+#'   }
+#'   where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
+#'   Details of penalization functions and techniques for solving these types of equations can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html).
+#'   In order to use variables selection model, set the `vars_selection` parameter in the [controlInf()] function to `TRUE`. In addition, in the other control functions such as [controlSel()] and [controlOut()]
+#'   you can adjust parameters for the selection of the relevant variables, such as number of folds during cross-validation algorithm or lambda value for penalizations. Details can be found
+#'   in the documentation of control functions for `nonprob`.
+#'
 #'
 #'
 #' @references

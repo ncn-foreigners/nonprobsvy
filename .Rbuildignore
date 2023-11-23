@@ -6,3 +6,4 @@ playground
 ^LICENSE\.md$
 ^\.github$
 ^codecov\.yml$
+^.*bib$

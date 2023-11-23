@@ -23,6 +23,7 @@ mle <- function(...) {
     eta <- c(model$eta_rand, model$eta_nons)
     aic <- 2 * (length(theta_hat) - log_likelihood)
     residuals <- model$residuals
+    variance <- as.vector(model$variance)
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -38,6 +39,7 @@ mle <- function(...) {
          df_residual = df_residual,
          eta = eta,
          aic = aic,
+         variance = variance,
          residuals = residuals,
          method = method)
   }
@@ -135,6 +137,8 @@ mle <- function(...) {
 
     resids <- c(est_ps_rand, ps_nons) - R
 
+    variance <- (t(resids) %*% resids) / df_reduced
+
     list(maxLik_nons_obj = maxLik_nons_obj,
          theta = theta,
          ps = ps_nons,
@@ -147,6 +151,7 @@ mle <- function(...) {
          eta_nons = eta_nons,
          eta_rand = eta_rand,
          residuals = resids,
+         variance = variance,
          method = method)
   }
   structure(
@@ -177,6 +182,7 @@ gee <- function(...) {
     variance_covariance <- model$variance_covariance # variance-covariance matrix of estimated parameters
     eta <- c(model$eta_rand, model$eta_nons)
     residuals = model$residuals
+    variance <- as.vector(model$variance)
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -192,6 +198,7 @@ gee <- function(...) {
          log_likelihood = "NULL",
          eta = eta,
          aic = NULL,
+         variance = variance,
          residuals = residuals,
          method = method)
   }
@@ -237,11 +244,25 @@ gee <- function(...) {
 
     if (is.null(start)) {
       if (control_selection$start_type == "glm") {
-        start <- start_fit(X = X, # <--- does not work with pop_totals
-                            R = R,
+        # start <- start_fit(X = X, # <--- does not work with pop_totals
+        #                     R = R,
+        #                     weights = weights,
+        #                     weights_rand = weights_rand,
+        #                     method_selection = method_selection)
+
+        # TODO to test
+        start_to_gee <- start_fit(X = X, # <--- does not work with pop_totals
+                                  R = R,
+                                  weights = weights,
+                                  weights_rand = weights_rand,
+                                  method_selection = method_selection)
+        start <- method$make_max_lik(X_nons = X_nons,
+                            X_rand = X_rand,
                             weights = weights,
                             weights_rand = weights_rand,
-                            method_selection = method_selection)
+                            start = start_to_gee,
+                            control = control_selection)$theta_hat
+        ####
       } else if (control_selection$start_type == "naive") {
         start_h <- suppressWarnings(theta_h_estimation(R = R,
                                       X = X[, 1, drop = FALSE],
@@ -275,6 +296,7 @@ gee <- function(...) {
     resids <- c(est_ps_rand, ps_nons) - R
 
     df_reduced <- nrow(X) - length(theta_hat)
+    variance <- as.vector((t(resids) %*% resids) / df_reduced)
 
     if (method_selection == "probit") { # for probit model, propensity score derivative is required
       dinv_link <- method$make_link_inv_der
@@ -310,7 +332,7 @@ gee <- function(...) {
 }
 
 # bias correction
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start, boot = FALSE) {
+mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start_selection, start_outcome, boot = FALSE) {
 
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection_function)
@@ -320,8 +342,10 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
 
+  start <- c(start_outcome, start_selection) # TODO consider add info/error for end-user if one of starts provided only
+
   p <- ncol(X)
-  if (is.null(start)) {
+  if (is.null(start)) { # TODO add default start
     par0 <- rep(0, 2*p)
   } else {
     par0 <- start
@@ -366,6 +390,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   ps_nons_der <- ps_der[loc_nons]
   weights_nons <- 1/ps_nons
   resids <- c(est_ps_rand, ps_nons) - R
+  variance <- (t(resids) %*% resids) / df_residual
 
   if (!boot) {
     N_nons <- sum(weights * weights_nons)
@@ -406,6 +431,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                       linear.predictors = eta_sel,
                       aic = NULL,
                       residuals = resids,
+                      variance = variance,
                       method = method)
 
     outcome <- list(coefficients = beta_hat, # TODO list as close as possible to glm
@@ -414,7 +440,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                     variance_covariance = vcov_outcome,
                     df_residual = df_residual,
                     family = list(mu = y_hat,
-                                  var = sigma[loc_rand],
+                                  variance = sigma[loc_rand],
                                   residuals = residuals),
                     y_rand_pred = y_rand_pred,
                     y_nons_pred = y_nons_pred,

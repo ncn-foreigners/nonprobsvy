@@ -23,7 +23,7 @@ nonprobIPW <- function(selection,
                        na_action,
                        control_selection = controlSel(),
                        control_inference = controlInf(),
-                       start,
+                       start_selection,
                        verbose,
                        x,
                        y,
@@ -145,7 +145,7 @@ nonprobIPW <- function(selection,
                                         h = h,
                                         est_method = est_method,
                                         maxit = maxit,
-                                        start = start,
+                                        start = start_selection,
                                         varcov = TRUE,
                                         control_selection = control_selection)
 
@@ -174,7 +174,7 @@ nonprobIPW <- function(selection,
         # }
       } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
 
-        if (var_selection == FALSE) {
+        if (var_selection == FALSE) { # TODO how to handle that
           if (!is.null(pop_totals)) pop_size <- pop_totals[1]
         }
         if (!is.null(pop_means)) { # TO consider
@@ -253,24 +253,24 @@ nonprobIPW <- function(selection,
           pop_totals <- model$pop_totals[idx]
         }
 
-        if (is.null(start)) {
+        if (is.null(start_selection)) {
           if (control_selection$start_type == "glm") {
-            start <- start_fit(X = X, # <--- does not work with pop_totals
-                               R = R,
-                               weights = weights,
-                               weights_rand = weights_rand,
-                               method_selection = method_selection)
+            start_selection <- start_fit(X = X, # <--- does not work with pop_totals
+                                         R = R,
+                                         weights = weights,
+                                         weights_rand = weights_rand,
+                                         method_selection = method_selection)
           } else if (control_selection$start_type == "naive") {
             start_h <- suppressWarnings(theta_h_estimation(R = R,
-                                          X = X[,1,drop=FALSE],
-                                          weights_rand = weights_rand,
-                                          weights = weights,
-                                          h = h,
-                                          method_selection = method_selection,
-                                          start = 0,
-                                          maxit = maxit,
-                                          pop_totals = pop_totals[1])$theta_h)
-            start <- c(start_h, rep(0, ncol(X) - 1))
+                                                           X = X[,1,drop=FALSE],
+                                                           weights_rand = weights_rand,
+                                                           weights = weights,
+                                                           h = h,
+                                                           method_selection = method_selection,
+                                                           start = 0,
+                                                           maxit = maxit,
+                                                           pop_totals = pop_totals[1])$theta_h)
+            start_selection <- c(start_h, rep(0, ncol(X) - 1))
           }
         }
 
@@ -280,7 +280,7 @@ nonprobIPW <- function(selection,
                                        weights = weights,
                                        h = h,
                                        method_selection = method_selection,
-                                       start = start,
+                                       start = start_selection,
                                        maxit = maxit,
                                        pop_totals = pop_totals) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
 
@@ -386,6 +386,7 @@ nonprobIPW <- function(selection,
                                         theta_hat = theta_hat,
                                         mu_hat = mu_hat,
                                         method_selection = method_selection,
+                                        start_selection = start_selection,
                                         n_nons = n_nons,
                                         n_rand = n_rand,
                                         optim_method = optim_method,
@@ -409,6 +410,7 @@ nonprobIPW <- function(selection,
                              theta_hat = theta_hat,
                              mu_hat = mu_hat,
                              method_selection = method_selection,
+                             start_selection = start_selection,
                              n_nons = n_nons,
                              n_rand = n_rand,
                              optim_method = optim_method,
@@ -462,6 +464,7 @@ nonprobIPW <- function(selection,
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,
                         residuals = selection_model$residuals,
+                        variance = selection_model$variance,
                         fitted_values = prop_scores,
                         link = selection_model$method,
                         linear_predictors = selection_model$eta,

@@ -254,8 +254,8 @@ pop.size.nonprobsvy <- function(object,
   object$pop_size
 }
 #' @title Estimate size of population
-#' @description - Estimate size of population
-#' @param object - object returned by `nonprobsvy`.
+#' @description Estimate size of population
+#' @param object object returned by `nonprobsvy`.
 #' @param ... additional parameters
 #' @export
 pop.size <- function(object, ...) {
@@ -266,20 +266,26 @@ pop.size <- function(object, ...) {
 #' @exportS3Method
 residuals.nonprobsvy <- function(object,
                                  type = c("pearson",
+                                          "working",
                                           "deviance",
-                                          "response"),
+                                          "response",
+                                          "pearsonSTD"),
                                  ...) { # TODO for pop_totals and variable selection
 
-  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
+  if (length(type) > 1) {
+    type <- "response"
+  }
+  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) { # TODO for mm model
     if (object$control$control_inference$vars_selection == FALSE) {
-      res_out <- residuals(object$outcome[[1]]) # TODO for variable selection
-    } else { # TODO for variable selection
+      res_out <- residuals(object$outcome[[1]])
+    } else {
       r <- object$outcome$family$residuals
       res_out <- switch(type,
                         "response" = r,
                         "working" = r/object$outcome[[1]]$family$mu,
                         # TODO "deviance" =
-                        "pearson" = r/sqrt(object$outcome[[1]]$family$variance)
+                        "pearson" = r/sqrt(object$outcome[[1]]$family$variance),
+                        "pearsonSTD" = r/sqrt( (1 - hatvalues(object$outcome)$outcome) * object$outcome[[1]]$family$variance)
                         )
     }
   }
@@ -292,11 +298,13 @@ residuals.nonprobsvy <- function(object,
       R <- rep(1, object$nonprob_size)
       s <- rep(1, object$nonprob_size)
     }
-
+    r <- object$selection$residuals
     res_sel <- switch(type,
                       "pearson" = (R - propensity_scores)/sqrt(propensity_scores * (1 - propensity_scores)),
                       "deviance" = s * sqrt(-2 * (R * log(propensity_scores) + (1 - R) * log(1 - propensity_scores))),
-                      "response" = R - propensity_scores) # TODO studentized_pearson, studentized_deviance
+                      "response" = R - propensity_scores,
+                      "pearsonSTD" = r/sqrt( (1 - hatvalues(object)$selection) * object$selection$variance)
+                      ) # TODO studentized_pearson, studentized_deviance
   }
   if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
   if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
@@ -306,13 +314,30 @@ residuals.nonprobsvy <- function(object,
 #' @method cooks.distance nonprobsvy
 #' @importFrom stats cooks.distance
 #' @exportS3Method
-cooks.distance.nonprobsvy <- function(model, # TODO for variable selection
-                                      ...) { # TODO basing on Hat_matrix,
-  resids <- residuals(model, type = "pearsonSTD")^2
+cooks.distance.nonprobsvy <- function(model,
+                                      ...) { # TODO for mm model
+  #stop("S3 method in development")
+  resids <- residuals(model, type = "pearsonSTD")
   hats <- hatvalues(model)
-  res_sel <- (resids * (hats / (length(coef(model))))) # TODO
-  res_out <- cooks.distance(model$outcome[[1]])
-
+  if (class(model)[2] == "nonprobsvy_mi") {
+    residuals_out <- resids$outcome^2
+    res_out <- cooks.distance(model$outcome[[1]])
+    res <- list(outcome = res_out)
+  } else if (class(model)[2] == "nonprobsvy_ipw")
+  {
+    residuals_sel <- resids$selection^2
+    hats <- hats$selection
+    res_sel <- (residuals_sel * (hats / (length( model$selection$coefficients ))))
+    res <- list(selection = res_sel)
+  } else if (class(model)[2] == "nonprobsvy_dr") {
+    residuals_sel <- resids$selection^2
+    residuals_out <- resids$outcome^2
+    hats <- hats$selection
+    res_sel <- (residuals_sel * (hats / (length( model$selection$coefficients ))))
+    res_out <- cooks.distance(model$outcome[[1]])
+    res <- list(selection = res_sel, outcome = res_out)
+  }
+  res
 }
 #' @method hatvalues nonprobsvy
 #' @importFrom stats hatvalues
@@ -325,6 +350,7 @@ hatvalues.nonprobsvy <- function(model,
     W <- Matrix::Diagonal(x = propensity_scores * (1 - propensity_scores))
     XWX_inv <-  solve(t(model$X) %*% W %*% model$X)
     hat_values_sel <- vector(mode = "numeric", length = length(propensity_scores))
+
     for (i in 1:length(hat_values_sel)) {
       hat_values_sel[i] <- W[i,i] * model$X[i,] %*% XWX_inv %*% model$X[i,]
     }
@@ -423,7 +449,7 @@ confint.nonprobsvy <- function(object,
                                level = 0.95,
                                ...) {
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
-    std <- sqrt(diag(vcov(object)[[1]]))
+    std <- object$selection$std_err
     sc <- qnorm(p = 1 - (1 - level) / 2)
     res_sel <- data.frame(object$selection$coefficients - sc * std, object$selection$coefficients + sc * std)
     colnames(res_sel) <- c(paste0(100 * (1 - level) / 2, "%"),
@@ -485,4 +511,5 @@ deviance.nonprobsvy <- function(object,
                                 ...) {
   res_out <- object$outcome[[1]]$deviance
   # TODO for selection model - use selection object
+  res_out
 }

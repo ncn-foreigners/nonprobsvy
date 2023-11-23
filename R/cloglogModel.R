@@ -1,9 +1,9 @@
-#' @title - complementary log-log model
-#' @author - Łukasz Chrostowski, Maciej Beręsewicz
+#' @title Complementary log-log model for weights adjustment
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
-#' @description - Function returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
+#' @description \code{cloglog_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
 #'
-#' @param ... - Additional, optional arguments.
+#' @param ... Additional, optional arguments.
 #'
 #' @return List with selected methods/objects/functions.
 #' @importFrom maxLik maxLik

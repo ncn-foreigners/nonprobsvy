@@ -2,27 +2,19 @@
 % Please edit documentation in R/probitModel.R
 \name{probit_model_nonprobsvy}
 \alias{probit_model_nonprobsvy}
-\title{\itemize{
-\item probit model
-}}
+\title{Probit model for weights adjustment}
 \usage{
 probit_model_nonprobsvy(...)
 }
 \arguments{
-\item{...}{\itemize{
-\item Additional, optional arguments.
-}}
+\item{...}{Additional, optional arguments.}
 }
 \value{
 List with selected methods/objects/functions.
 }
 \description{
-\itemize{
-\item Function returns all methods/objects/functions required for the model estimation assuming a probit link function.
-}
+\code{probit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a probit link function.
 }
 \author{
-\itemize{
-\item Łukasz Chrostowski, Maciej Beręsewicz
-}
+Łukasz Chrostowski, Maciej Beręsewicz
 }

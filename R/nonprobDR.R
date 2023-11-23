@@ -29,7 +29,8 @@ nonprobDR <- function(selection,
                       control_selection = controlSel(),
                       control_outcome = controlOut(),
                       control_inference = controlInf(),
-                      start,
+                      start_outcome,
+                      start_selection,
                       verbose,
                       x,
                       y,
@@ -267,7 +268,6 @@ nonprobDR <- function(selection,
           Model$X_rand <- X[loc_rand,]
           Model$X_nons <- X[loc_nons,]
         }
-
         estimation_model <- mm(X = X,
                                y = y,
                                weights = weights,
@@ -277,7 +277,8 @@ nonprobDR <- function(selection,
                                n_rand = n_rand,
                                method_selection = method_selection,
                                family = family_nonprobsvy,
-                               start = start)
+                               start_selection = start_selection,
+                               start_outcome = start_outcome)
 
         selection_model <- estimation_model$selection
         OutcomeList <- outcome_model <- estimation_model$outcome
@@ -374,7 +375,7 @@ nonprobDR <- function(selection,
                                         est_method = est_method,
                                         maxit = maxit,
                                         control_selection = control_selection,
-                                        start = start)
+                                        start = start_selection)
 
         estimation_method <- get_method(est_method)
         selection_model <- estimation_method$estimation_model(model = model_sel,
@@ -403,6 +404,7 @@ nonprobDR <- function(selection,
                                    data = data,
                                    weights = weights,
                                    family_outcome = family_outcome,
+                                   start_outcome = start_outcome,
                                    X_nons = OutcomeModel$X_nons,
                                    y_nons = OutcomeModel$y_nons,
                                    X_rand = OutcomeModel$X_rand,
@@ -477,24 +479,24 @@ nonprobDR <- function(selection,
         SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx+1])
       }
 
-      if (is.null(start)) {
+      if (is.null(start_selection)) {
         if (control_selection$start_type == "glm") {
-          start <- start_fit(X = SelectionModel$X_nons, # <--- does not work with pop_totals
-                             R = R,
-                             weights = weights,
-                             weights_rand = weights_rand,
-                             method_selection = method_selection)
+          start_selection <- start_fit(X = SelectionModel$X_nons, # <--- does not work with pop_totals
+                                       R = R,
+                                       weights = weights,
+                                       weights_rand = weights_rand,
+                                       method_selection = method_selection)
         } else if (control_selection$start_type == "naive") {
           start_h <- suppressWarnings(theta_h_estimation(R = R,
-                                      X = SelectionModel$X_nons[,1,drop=FALSE],
-                                      weights_rand = weights_rand,
-                                      weights = weights,
-                                      h = h,
-                                      method_selection = method_selection,
-                                      start = 0,
-                                      maxit = maxit,
-                                      pop_totals = SelectionModel$pop_totals[1])$theta_h)
-          start <- c(start_h, rep(0, ncol(X) - 1))
+                                                         X = SelectionModel$X_nons[,1,drop=FALSE],
+                                                         weights_rand = weights_rand,
+                                                         weights = weights,
+                                                         h = h,
+                                                         method_selection = method_selection,
+                                                         start = 0,
+                                                         maxit = maxit,
+                                                         pop_totals = SelectionModel$pop_totals[1])$theta_h)
+          start_selection <- c(start_h, rep(0, ncol(X) - 1))
         }
       }
 
@@ -504,7 +506,7 @@ nonprobDR <- function(selection,
                                      weights = weights,
                                      h = h,
                                      method_selection = method_selection,
-                                     start = start,
+                                     start = start_selection,
                                      maxit = maxit,
                                      pop_totals = SelectionModel$pop_totals)
       theta_hat <- h_object$theta_h
@@ -553,6 +555,7 @@ nonprobDR <- function(selection,
                                  data = data,
                                  weights = weights,
                                  family_outcome = family_outcome,
+                                 start_outcome = start_outcome,
                                  X_nons = X_nons,
                                  y_nons = y_nons,
                                  X_rand = X_rand,
@@ -617,6 +620,7 @@ nonprobDR <- function(selection,
                                        OutcomeModel = OutcomeModel,
                                        family_outcome = family_outcome,
                                        method_outcome = method_outcome,
+                                       start_outcome = start_outcome,
                                        num_boot = num_boot,
                                        weights = weights,
                                        weights_rand = weights_rand,
@@ -625,6 +629,7 @@ nonprobDR <- function(selection,
                                        mu_hat = mu_hat,
                                        method_selection = method_selection,
                                        control_selection = control_selection,
+                                       start_selection = start_selection,
                                        control_outcome = control_outcome,
                                        control_inference = control_inference,
                                        n_nons = n_nons,
@@ -646,6 +651,7 @@ nonprobDR <- function(selection,
                              OutcomeModel = OutcomeModel,
                              family_outcome = family_outcome,
                              method_outcome = method_outcome,
+                             start_outcome = start_outcome,
                              num_boot = num_boot,
                              weights = weights,
                              weights_rand = weights_rand,
@@ -654,6 +660,7 @@ nonprobDR <- function(selection,
                              mu_hat = mu_hat,
                              method_selection = method_selection,
                              control_selection = control_selection,
+                             start_selection = start_selection,
                              control_inference = control_inference,
                              control_outcome = control_outcome,
                              n_nons = n_nons,
@@ -709,6 +716,7 @@ nonprobDR <- function(selection,
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,
                         residuals = selection_model$residuals,
+                        variance = selection_model$variance,
                         fitted_values = prop_scores,
                         family = selection_model$method,
                         linear_predictors = selection_model$eta,

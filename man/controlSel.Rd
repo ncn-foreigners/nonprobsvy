@@ -6,7 +6,7 @@
 \usage{
 controlSel(
   method = "glm.fit",
-  epsilon = 1e-06,
+  epsilon = 1e-04,
   maxit = 500,
   trace = FALSE,
   optimizer = c("maxLik", "optim"),
