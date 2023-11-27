@@ -87,13 +87,13 @@ the of the target variable given the observed data set
 $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
-- unit-level data is available for the non-probability sample $A$,
-  i.e. $(y_k, \boldsymbol{x}_k)$ is available for all units $k \in S_A$,
-  and population-level data is available for
-  $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as
-  $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is
-  known. We can also consider situations where population data are
-  estimated (e.g. on the basis of a survey to which we do not have
+- unit-level data is available for the non-probability sample $S_{A}$,
+  i.e. $(y_{k}, \boldsymbol{x}_{k})$ is available for all units
+  $k \in S_{A}$, and population-level data is available for
+  $\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}$, denoted as
+  $\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}$ and population size
+  $N$ is known. We can also consider situations where population data
+  are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample $S_A$ and
   the probability sample $S_B$, i.e. $(y_k, \boldsymbol{x}_k, R_k)$ is

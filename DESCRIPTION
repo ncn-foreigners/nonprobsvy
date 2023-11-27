@@ -3,12 +3,12 @@ Type: Package
 Title: Package for Inference Based on Nonprobability Samples
 Version: 0.1.0
 Authors@R:
-    c(person(given = "Lukasz",
+    c(person(given = "Łukasz",
              family = "Chrostowski",
              role = c("aut", "cre"),
              email = "lukchr@st.amu.edu.pl"),
       person(given = "Maciej",
-             family = "Beresewicz",
+             family = "Beręsewicz",
              role = c("aut", "ctb"),
              email = "maciej.beresewicz@ue.poznan.pl"),
       person(given = "Piotr",

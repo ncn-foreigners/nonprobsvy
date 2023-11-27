@@ -67,6 +67,8 @@ nonprobDR <- function(selection,
 
   # Selection models
   if (is.null(pop_totals) && !is.null(svydesign)) {
+
+    # TODO if (bias_corr == FALSE)
       #model for selection formula
       SelectionModel <- model_frame(formula = selection,
                                     data = data,
@@ -281,9 +283,9 @@ nonprobDR <- function(selection,
                                start_outcome = start_outcome)
 
         selection_model <- estimation_model$selection
-        OutcomeList <- outcome_model <- estimation_model$outcome
+        OutcomeList[[k]] <- outcome_model <- estimation_model$outcome
 
-        theta_hat <- selection_model$coefficients
+        theta_hat <- selection_model$theta_hat
         grad <- selection_model$grad
         hess <- selection_model$hess
         ps_nons <- selection_model$ps_nons
@@ -291,14 +293,16 @@ nonprobDR <- function(selection,
         ps_nons_der <- selection_model$ps_nons_der
         est_ps_rand_der <- selection_model$est_ps_rand_der
         theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
-        names(theta_hat) <- names(selection_model$coefficients) <- colnames(X)
+        names(theta_hat) <- names(selection_model$theta_hat) <- colnames(X)
 
         y_rand_pred <- outcome_model$y_rand_pred
         y_nons_pred <- outcome_model$y_nons_pred
         beta <- outcome_model$coefficients
         beta_errors <- sqrt(diag(outcome_model$variance_covariance))
         beta_statistics <- data.frame(beta = beta, beta_errors = beta_errors)
-        sigma <- outcome_model$family$var
+        sigma <- outcome_model$sigma_rand
+
+        OutcomeList[[k]][c("sigma_rand", "y_rand_pred", "y_nons_pred")] <- NULL
 
         weights_nons <- 1/ps_nons
         N_nons <- sum(weights * weights_nons)
@@ -716,7 +720,7 @@ nonprobDR <- function(selection,
   SelectionList <- list(coefficients = selection_model$theta_hat,
                         std_err = theta_standard_errors,
                         residuals = selection_model$residuals,
-                        variance = selection_model$variance,
+                        variance = as.vector(selection_model$variance),
                         fitted_values = prop_scores,
                         family = selection_model$method,
                         linear_predictors = selection_model$eta,
@@ -744,8 +748,8 @@ nonprobDR <- function(selection,
          nonprob_size = n_nons,
          prob_size = n_rand,
          pop_size = pop_size,
-         outcome = OutcomeList, # TODO consider what this list should include of
-         selection = SelectionList # TODO consider what this list should include of
+         outcome = OutcomeList,
+         selection = SelectionList
     ),
     class = c("nonprobsvy", "nonprobsvy_dr"))
 }

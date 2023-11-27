@@ -46,3 +46,6 @@ List with selected parameters.
 \code{controlInf} constructs a list with all necessary control parameters
 for statistical inference.
 }
+\seealso{
+\code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.
+}

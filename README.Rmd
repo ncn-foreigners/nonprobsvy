@@ -2,6 +2,9 @@
 output: github_document
 bibliography: references.bib
 link-citations: true
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -82,14 +85,14 @@ where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
 
-| Sample                  |            | Auxiliary variables $\boldsymbol{X}$  | Target variable $Y$  |  Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights   |
-|-------------------|--------:|:-------------:|:-------------:|:-------------:|
-| $S_A$ (non-probability) |          1 |             $\checkmark$              |     $\checkmark$     |                                   ?                                   |
-|                         |        ... |             $\checkmark$              |     $\checkmark$     |                                   ?                                   |
-|                         |      $n_A$ |             $\checkmark$              |     $\checkmark$     |                                   ?                                   |
-| $S_B$ (probability)     |    $n_A+1$ |             $\checkmark$              |          ?           |                             $\checkmark$                              |
-|                         |        ... |             $\checkmark$              |          ?           |                             $\checkmark$                              |
-|                         |  $n_A+n_B$ |             $\checkmark$              |          ?           |                             $\checkmark$                              |
+| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|---------------|--------------:|:-------------:|:-------------:|:-------------:|
+| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |       ... |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         |       ... |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 
 ## Basic functionalities
 
@@ -100,11 +103,11 @@ the of the target variable given the observed data set
 $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
--   unit-level data is available for the non-probability sample $A$,
-    i.e. $(y_k, \boldsymbol{x}_k)$ is available for all units
-    $k \in S_A$, and population-level data is available for
-    $\boldsymbol{x}_1, ..., \boldsymbol{x}_p$, denoted as
-    $\tau_{x_1}, \tau_{x_2}, ..., \tau_{x_p}$ and population size $N$ is
+-   unit-level data is available for the non-probability sample $S_{A}$,
+    i.e. $(y_{k}, \boldsymbol{x}_{k})$ is available for all units
+    $k \in S_{A}$, and population-level data is available for
+    $\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}$, denoted as
+    $\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}$ and population size $N$ is
     known. We can also consider situations where population data are
     estimated (e.g. on the basis of a survey to which we do not have
     access),

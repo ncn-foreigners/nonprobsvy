@@ -7,9 +7,15 @@
 #'
 #' @return List with selected methods/objects/functions.
 #'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#'
+#'
 #' @export
 
 logit_model_nonprobsvy <- function(...) {
