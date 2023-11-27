@@ -19,9 +19,9 @@ genSimData(N = 10000, n = 1000)
 \item{x2 -- the second variable based on z2 and x1}
 \item{x3 -- the third variable based on z3 and x1 and x2}
 \item{x4 -- the third variable based on z4 and x1, x2 and x3}
-\item{\mjseqn{y30} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma*\epsilon}, so the cor(y,y_hat) = 0.30}
-\item{\mjseqn{y60} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma*\\epsilon}, so the cor(y,y_hat) = 0.60}
-\item{\mjseqn{y80} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma*\epsilon}, so the cor(y,y_hat) = 0.80}
+\item{\mjseqn{y30} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma \cdot \varepsilon}, so the cor(y,y_hat) = 0.30}
+\item{\mjseqn{y60} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma \cdot \varepsilon}, so the cor(y,y_hat) = 0.60}
+\item{\mjseqn{y80} -- \mjseqn{y} generated from the model \mjseqn{y=2+x1+x2+x3+x4+\sigma \cdot \varepsilon}, so the cor(y,y_hat) = 0.80}
 \item{rho -- true propensity scores for big data such that sum(rho)=n}
 \item{srs -- probabilities of inclusion to random sample such that max(srs)/min(srs)=50}
 }

@@ -5,6 +5,10 @@
 #'
 #' @param ... Additional, optional arguments.
 #'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
 #' @return List with selected methods/objects/functions.
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix

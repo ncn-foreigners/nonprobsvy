@@ -10,13 +10,14 @@ poisson_nonprobsvy <- function(link = "log") {
   structure(list(mu = mu,
                  variance = variance,
                  mu_der = mu_der,
-                 residuals = residuals),
+                 residuals = residuals,
+                 family = "poisson"),
             class = "family")
 }
 
 gaussian_nonprobsvy <- function(link = "identity") {
   mu <- function(eta) eta
-  variance <- function(mu, y = NULL) rep.int(1, length(mu)) #mean((y - mu)^2) rep.int(1, length(mu))
+  variance <- function(mu, y = NULL) mean((y - mu)^2) #rep.int(1, length(mu)) rep.int(1, length(mu))
   mu_der <- function(mu) 1 # first derivative
   mu_der2 <- function(mu) 0 # second derivative
   residuals <- function(mu, y) as.vector(y - mu)
@@ -24,7 +25,8 @@ gaussian_nonprobsvy <- function(link = "identity") {
   structure(list(mu = mu,
                  variance = variance,
                  mu_der = mu_der,
-                 residuals = residuals),
+                 residuals = residuals,
+                 family = "gaussian"),
              class = "family")
 }
 
@@ -41,6 +43,7 @@ binomial_nonprobsvy <- function(link = "logit") {
   structure(list(mu = mu,
                  variance = variance,
                  mu_der = mu_der,
-                 residuals = residuals),
+                 residuals = residuals,
+                 family = "binomial"),
             class = "family")
 }

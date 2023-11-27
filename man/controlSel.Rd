@@ -90,6 +90,9 @@ for selection model.
 
 \loadmathjax
 }
+\seealso{
+\code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.
+}
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
 }

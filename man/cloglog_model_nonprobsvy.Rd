@@ -15,6 +15,9 @@ List with selected methods/objects/functions.
 \description{
 \code{cloglog_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
 }
+\seealso{
+\code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.
+}
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
 }

@@ -238,8 +238,6 @@ print.summary_nonprobsvy <- function(x,
   invisible(x)
 }
 
-# Internal functions, no need for documenting them
-
 #' @method nobs nonprobsvy
 #' @importFrom stats nobs
 #' @exportS3Method
@@ -270,23 +268,31 @@ residuals.nonprobsvy <- function(object,
                                           "deviance",
                                           "response",
                                           "pearsonSTD"),
-                                 ...) { # TODO for pop_totals and variable selection
+                                 ...) { # TODO for pop_totals
 
   if (length(type) > 1) {
     type <- "response"
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) { # TODO for mm model
-    if (object$control$control_inference$vars_selection == FALSE) {
-      res_out <- residuals(object$outcome[[1]])
-    } else {
-      r <- object$outcome$family$residuals
-      res_out <- switch(type,
-                        "response" = r,
-                        "working" = r/object$outcome[[1]]$family$mu,
-                        # TODO "deviance" =
-                        "pearson" = r/sqrt(object$outcome[[1]]$family$variance),
-                        "pearsonSTD" = r/sqrt( (1 - hatvalues(object$outcome)$outcome) * object$outcome[[1]]$family$variance)
-                        )
+  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
+    if (type %in% c("deviance", "pearson", "working",
+                    "response", "partial")) {
+      if (object$control$control_inference$bias_correction == TRUE) {
+        r <- object$outcome[[1]]$residuals
+        res_out <- switch(type,
+                          pearson = r,
+                          working = r * sqrt(object$selection$prior.weights),
+                          deviance = r * sqrt(abs(object$selection$prior.weights * object$outcome[[1]]$family$variance)),
+                          response = r / object$outcome[[1]]$family$mu,
+                          pearsonSTD = r/sqrt( (1 - hatvalues(object)$outcome) * object$outcome[[1]]$family$variance),
+                          stop("Invalid type of residual. Choose from 'pearson', 'working', 'deviance', 'response', 'pearsonSTD'.")
+        )
+      } else {
+        res_out <- residuals(object$outcome[[1]], type = type)
+      }
+    } else if (type == "pearsonSTD") {
+        r <- object$outcome[[1]]$residuals
+        variance <- as.vector( (t(r) %*% r) / length(object$outcome[[1]]$coefficients) )
+        res_out <- r/sqrt( (1 - hatvalues(object)$outcome) * variance)
     }
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
@@ -300,11 +306,13 @@ residuals.nonprobsvy <- function(object,
     }
     r <- object$selection$residuals
     res_sel <- switch(type,
-                      "pearson" = (R - propensity_scores)/sqrt(propensity_scores * (1 - propensity_scores)),
+                      "response" = r,
+                      "working" = r / propensity_scores * (1 - propensity_scores),
+                      "pearson" = r / sqrt(propensity_scores * (1 - propensity_scores)),
                       "deviance" = s * sqrt(-2 * (R * log(propensity_scores) + (1 - R) * log(1 - propensity_scores))),
-                      "response" = R - propensity_scores,
-                      "pearsonSTD" = r/sqrt( (1 - hatvalues(object)$selection) * object$selection$variance)
-                      ) # TODO studentized_pearson, studentized_deviance
+                      "pearsonSTD" = r/sqrt( (1 - hatvalues(object)$selection) * object$selection$variance),
+                       stop("Invalid type of residual. Choose from 'pearson', 'working', 'deviance', 'response', 'pearsonSTD'.")
+                      ) # TODO add partial
   }
   if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
   if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
@@ -323,18 +331,21 @@ cooks.distance.nonprobsvy <- function(model,
     residuals_out <- resids$outcome^2
     res_out <- cooks.distance(model$outcome[[1]])
     res <- list(outcome = res_out)
-  } else if (class(model)[2] == "nonprobsvy_ipw")
-  {
+  } else if (class(model)[2] == "nonprobsvy_ipw") {
     residuals_sel <- resids$selection^2
     hats <- hats$selection
     res_sel <- (residuals_sel * (hats / (length( model$selection$coefficients ))))
     res <- list(selection = res_sel)
   } else if (class(model)[2] == "nonprobsvy_dr") {
-    residuals_sel <- resids$selection^2
     residuals_out <- resids$outcome^2
+    if (model$control$control_inference$bias_correction == TRUE) {
+      res_out <- (residuals_out * (hats$outcome / (length( model$outcome[[1]]$coefficients ))))
+    } else {
+      res_out <- cooks.distance(model$outcome[[1]])
+    }
+    residuals_sel <- resids$selection^2
     hats <- hats$selection
     res_sel <- (residuals_sel * (hats / (length( model$selection$coefficients ))))
-    res_out <- cooks.distance(model$outcome[[1]])
     res <- list(selection = res_sel, outcome = res_out)
   }
   res
@@ -346,19 +357,32 @@ cooks.distance.nonprobsvy <- function(model,
 hatvalues.nonprobsvy <- function(model,
                                  ...) { # TODO reduce execution time and glm.fit object and customise to variable selection
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(model))) {
+    X <- model$X
     propensity_scores <- model$prob
     W <- Matrix::Diagonal(x = propensity_scores * (1 - propensity_scores))
-    XWX_inv <-  solve(t(model$X) %*% W %*% model$X)
-    hat_values_sel <- vector(mode = "numeric", length = length(propensity_scores))
-
-    for (i in 1:length(hat_values_sel)) {
-      hat_values_sel[i] <- W[i,i] * model$X[i,] %*% XWX_inv %*% model$X[i,]
-    }
-    #hats <- Matrix::Diagonal(x = W %*% object$X %*% XWX_inv %*% t(object$X))
-    #names(hat_values) <- row.names(model$parameters)
+    H <- as.matrix(sqrt(W) %*% X %*% solve(t(X) %*% W %*% X) %*% t(X) %*% sqrt(W))
+    hat_values_sel <- diag(H)
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(model))) {
-  hat_values_out <- hatvalues(model$outcome$glm) # TODO
+  if (model$control$control_inference$bias_correction == TRUE) {
+      # TODO for mm consider switch
+    X_out <- model$outcome[[1]]$X
+    if (model$outcome[[1]]$family$family == "gaussian") {
+      hat_matrix <- X_out %*% solve(t(X_out) %*% X_out) %*% t(X_out)
+    } else if (model$outcome[[1]]$family$family == "poisson") {
+      W <- diag(1 / model$outcome[[1]]$fitted_values)
+
+      hat_matrix <- X_out %*% solve(t(X_out) %*% W %*% X_out) %*% t(X_out)
+
+    } else if (model$outcome[[1]]$family$family == "binomial") {
+      W <- Matrix::Diagonal(model$outcome[[1]]$family$mu * (1 - model$outcome[[1]]$family$mu))
+
+      hat_matrix <- as.matrix(sqrt(W) %*% X_out %*% solve(t(X_out) %*% W %*% X_out) %*% t(X_out) %*% sqrt(W))
+    }
+    hat_values_out <- diag(hat_matrix)
+    } else {
+      hat_values_out <- hatvalues(model$outcome[[1]])
+    }
   }
 
   if (class(model)[2] == "nonprobsvy_mi") res <- list(outcome = hat_values_out)
@@ -412,7 +436,7 @@ BIC.nonprobsvy <- function(object,
       if (!is.null(object$outcome[[1]]$coefficients)) {
         if (object$control$control_inference$vars_selection == TRUE) {
           options(AIC="BIC")
-          res_out <- HelpersMG::ExtractAIC.glm(object$outcome)[2]
+          res_out <- HelpersMG::ExtractAIC.glm(object$outcome[[1]])[2]
         } else {
           res_out <- BIC(object$outcome[[1]])
         }
@@ -508,8 +532,12 @@ vcov.nonprobsvy <- function(object,
 #' @importFrom stats deviance
 #' @exportS3Method
 deviance.nonprobsvy <- function(object,
-                                ...) {
-  res_out <- object$outcome[[1]]$deviance
+                                ...) { # TODO if conditions like method = "glm"
+  if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome[[1]]$deviance
+  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- -2 * logLik(object)
   # TODO for selection model - use selection object
-  res_out
+  if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
+  if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
+  if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome"= res_out)
+  res
 }

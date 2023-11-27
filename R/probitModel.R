@@ -7,6 +7,10 @@
 #'
 #' @return List with selected methods/objects/functions.
 #'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm

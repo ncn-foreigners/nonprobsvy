@@ -51,3 +51,6 @@ List with selected parameters.
 \code{controlOut} constructs a list with all necessary control parameters
 for outcome model.
 }
+\seealso{
+\code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.
+}

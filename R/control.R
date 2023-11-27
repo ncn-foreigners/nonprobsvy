@@ -37,6 +37,10 @@
 #'
 #' @return List with selected parameters.
 #'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
 #' @export
 
 controlSel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
@@ -102,6 +106,11 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #'
 #' @return List with selected parameters.
 #'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
+#'
 #' @export
 
 controlOut <- function(epsilon = 1e-6,
@@ -154,6 +163,10 @@ controlOut <- function(epsilon = 1e-6,
 #'
 #'
 #' @return List with selected parameters.
+#'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
 #'
 #' @export
 

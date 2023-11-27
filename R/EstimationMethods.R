@@ -135,7 +135,7 @@ mle <- function(...) {
     ps_nons_der <- dinv_link(eta_nons)
     est_ps_rand_der <- dinv_link(eta_rand)
 
-    resids <- c(est_ps_rand, ps_nons) - R
+    resids <- R - c(est_ps_rand, ps_nons)
 
     variance <- (t(resids) %*% resids) / df_reduced
 
@@ -293,7 +293,7 @@ gee <- function(...) {
     ps_nons <- inv_link(eta_nons)
     est_ps_rand <- inv_link(eta_rand)
     variance_covariance <- solve(-hess)
-    resids <- c(est_ps_rand, ps_nons) - R
+    resids <-  R - c(est_ps_rand, ps_nons)
 
     df_reduced <- nrow(X) - length(theta_hat)
     variance <- as.vector((t(resids) %*% resids) / df_reduced)
@@ -382,6 +382,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   names(theta_hat) <- names(beta_hat) <- colnames(X)
   df_residual <- nrow(X) - length(theta_hat)
 
+  # selection parameters
   ps <- inv_link(theta_hat %*% t(X)) # inv_link(as.vector(X_design %*% as.matrix(theta_hat)))
   eta_sel <- theta_hat %*% t(X)
   ps_der <- dinv_link(eta_sel)
@@ -389,8 +390,8 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   est_ps_rand <- ps[loc_rand]
   ps_nons_der <- ps_der[loc_nons]
   weights_nons <- 1/ps_nons
-  resids <- c(est_ps_rand, ps_nons) - R
-  variance <- (t(resids) %*% resids) / df_residual
+  resids <-  R - c(est_ps_rand, ps_nons)
+  variance <- as.vector( (t(resids) %*% resids) / df_residual)
 
   if (!boot) {
     N_nons <- sum(weights * weights_nons)
@@ -407,17 +408,19 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   y_nons_pred <- y_hat[loc_nons]
 
   if (!boot) {
-    sigma <- family$variance(mu = y_hat, y = y[loc_rand])
-    residuals <- family$residuals(mu = y_rand_pred, y = y[loc_rand])
+    sigma_nons <- family$variance(mu = y_nons_pred, y = y[loc_nons])
+    sigma_rand <- family$variance(mu = y_rand_pred, y = y[loc_rand])
+    residuals <- family$residuals(mu = y_nons_pred, y = y[loc_nons])
   }
 
   if (!boot) {
     # variance-covariance matrix for outcome model
     # vcov_outcome <- solve(t(X_design) %*% diag(sigma) %*% X_design)
-    vcov_outcome <- solve(t(X) %*% (sigma * X))
+    vcov_outcome <- solve(t(X[loc_nons,]) %*% (sigma_nons * X[loc_nons,]))
     beta_errors <- sqrt(diag(vcov_outcome))
   }
 
+  # grad = multiroot$f.root[(p+1):(2*p)]
   if (!boot) {
     hess <- NULL
     selection <- list(theta_hat = theta_hat, # TODO list as close as possible to SelecttionList
@@ -428,24 +431,26 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                       variance_covariance = vcov_selection,
                       df_residual = df_residual,
                       log_likelihood = "NULL",
-                      linear.predictors = eta_sel,
+                      eta = eta_sel,
                       aic = NULL,
                       residuals = resids,
                       variance = variance,
                       method = method)
 
     outcome <- list(coefficients = beta_hat, # TODO list as close as possible to glm
-                    grad = multiroot$f.root[(p+1):(2*p)],
-                    hess = hess, # TODO
+                    std_err = beta_errors,
                     variance_covariance = vcov_outcome,
                     df_residual = df_residual,
-                    family = list(mu = y_hat,
-                                  variance = sigma[loc_rand],
-                                  residuals = residuals),
+                    family = list(mu = y_nons_pred,
+                                  variance = sigma_nons,
+                                  family = family$family),
+                    residuals = residuals,
+                    fitted.values = y_nons_pred,
+                    sigma_rand = sigma_rand,
                     y_rand_pred = y_rand_pred,
                     y_nons_pred = y_nons_pred,
-                    log_likelihood = "NULL",
-                    linear.predictors = eta_out)
+                    linear.predictors = eta_out[loc_nons],
+                    X = X[loc_nons,])
   } else {
     selection <- list(coefficients = theta_hat,# TODO list as close as possible to SelecttionList
                       ps_nons = ps_nons)

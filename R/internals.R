@@ -387,7 +387,7 @@ internal_varDR <- function(OutcomeModel,
     svydesign_mean <- survey::svymean(~y_rand, svydesign)
 
     var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
-    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigma))/N_nons^2 # nonprobability component
+    var_nonprob <- (sum((infl1) - 2*infl2) + sum(weights_rand * sigma))/N_nons^2 # TODO potential bug here nonprobability component
     } else {
     eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
     h_n <- 1/N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean

@@ -6,8 +6,12 @@ NULL
 #' \loadmathjax
 #' @description \code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
 #' The function allows you to estimate the population mean having access to a reference probability sample as well as total/mean values of covariates.
-#' In the package implemented state-of-the-art approaches recently proposed in the literature: Chen et al. (2020), Yang et al. (2020), Wu (2022) and use `survey` package [Lumley 2004](https://CRAN.R-project.org/package=survey) for inference.
-#' Provided propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and doubly robust estimators that take into account minimization of the asymptotic bias of the population mean estimators,
+#'
+#' In the package implemented state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
+#' Yang et al. (2020), Wu (2022) and use `survey` package [Lumley 2004](https://CRAN.R-project.org/package=survey) for inference.
+#'
+#' Provided propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
+#' doubly robust estimators that take into account minimization of the asymptotic bias of the population mean estimators,
 #' variable selection or overlap between random and non-random sample.
 #' The package uses `survey` package functionalities when a probability sample is available.
 #'
@@ -84,7 +88,7 @@ NULL
 #'  Inverse probability approach is based on assumption that reference probability sample
 #'  is available and therefore we can estimate propensity score of selection mechanism.
 #'  Estimator has following form:
-#'  \mjsdeqn{\mu_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
+#'  \mjsdeqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
 #'  For this purpose with consider multiple ways of estimation. The first approach is Maximum Likelihood Estimation with corrected
 #'  log-likelihood function which is given by the following formula
 #'  \mjsdeqn{
@@ -101,14 +105,14 @@ NULL
 #'    where imputed values of the outcome variables are created for whole probability sample.
 #'    In this case we treat big-data sample as a training dataset, which is used to build an imputation model. Using imputed values
 #'    for probability sample and design (known) weights, we can build population mean estimator of form:
-#'    \mjsdeqn{\mu_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
+#'    \mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
 #'    It opens the the door to very flexible method for imputation model. In the package used generalized linear models from [stats::glm()]
 #'    nearest neighbour algorithm using [RANN::nn2()] and predictive mean matching.
 #'
 #' 3. Doubly robust estimation -- The IPW and MI estimators are sensible on misspecified models for propensity score and outcome variable respectively.
 #'    For this purpose so called doubly-robust methods, which take into account these problems, are presented.
 #'    It is quite simple idea of combination propensity score and imputation models during inference which lead to the following estimator
-#'    \mjsdeqn{\mu_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
+#'    \mjsdeqn{\hat{\mu}_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
 #'    In addition, an approach based directly on bias minimisation has been implemented. Following formula
 #'    \mjsdeqn{
 #'    \begin{aligned}
@@ -191,14 +195,29 @@ NULL
 #'  \item{\code{nonprob_size} -- size of non-probability sample}
 #'  \item{\code{prob_size} -- size of probability sample}
 #'  \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
-#'  \item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function.
-#'  Additionaly when variables selection model for outcome variable is fitting, list includes of \code{cve} -- the error for each value of `lambda`, averaged accross the cross-validation folds.
-#'  [stats::glm()], in case of nearest neigbour imputation object containing list returned by [RANN::nn2()].}
+#'  \item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function
+#'  [stats::glm()], in case of nearest neighbour imputation object containing list returned by [RANN::nn2()]. If `bias_correction` in [controlInf()] is set on `TRUE`, then estimation is based on
+#'  the joint estimating equations for `selection` and `outcome` model and therefore, the list differs from the one returned by the [stats::glm()] function and contains elements such as
+#'  \itemize{
+#'  \item{\code{coefficients} -- estimated coefficients of the regression model}
+#'  \item{\code{std_err} -- standard errors of the estimated coefficients}
+#'  \item{\code{residuals} -- The response residuals}
+#'  \item{\code{variance_covariance} -- The variance-covariance matrix of the coefficient estimates}
+#'  \item{\code{df_residual} -- The degrees of freedom for residuals}
+#'  \item{\code{family} -- specifies the error distribution and link function to be used in the model}
+#'  \item{\code{fitted.values} -- The predicted values of the response variable based on the fitted model}
+#'  \item{\code{linear.predictors} -- The linear fit on link scale}
+#'  \item{\code{X} -- The design matrix}
+#'  \item{\code{method} -- set on `glm`, since the regression method}
+#'  }
+#'  }
+#'  Additionally when variables selection model for outcome variable is fitting, list includes of \code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds.
 #'  \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 #'  \itemize{
 #'  \item{\code{coefficients} -- a named vector of coefficients}
 #'  \item{\code{std_err} -- standard errors of the estimated model coefficients}
-#'  \item{\code{residuals} -- the working residuals}
+#'  \item{\code{residuals} -- the response residuals}
+#'  \item{\code{variance} -- the root mean square error}
 #'  \item{\code{fitted_values} -- the fitted mean values, obtained by transforming the linear predictors by the inverse of the link function.}
 #'  \item{\code{link} -- the `link` object used.}
 #'  \item{\code{linear_predictors} -- the linear fit on link scale.}
@@ -208,7 +227,7 @@ NULL
 #'  \item{\code{formula} -- the formula supplied.}
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
 #'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NULL`.}
-#'  \item{\code{cve} -- the error for each value of `lambda`, averaged accross the cross-validation folds for variables selection model
+#'  \item{\code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds for variables selection model
 #'  when propensity score model is fitting.}
 #'   }
 #'  }
