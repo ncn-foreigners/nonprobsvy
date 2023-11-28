@@ -7,3 +7,6 @@ playground
 ^\.github$
 ^codecov\.yml$
 ^.*bib$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

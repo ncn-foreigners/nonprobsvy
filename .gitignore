@@ -9,3 +9,4 @@ playground
 .DS_Store
 src/*.o
 src/*.so
+docs
