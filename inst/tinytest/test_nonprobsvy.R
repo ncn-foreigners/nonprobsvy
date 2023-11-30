@@ -226,3 +226,45 @@ expect_true(
   (test3ann$confidence_interval[1] < 5.072862) &
     (5.072862 < test3ann$confidence_interval[2])
 )
+
+## bootstrap
+
+# These tests are only supposed to be run on developer's machine and
+# package GitHub page not on CRAN (they take too long)
+
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+
+  expect_silent(
+    test1a_bootstrap <- nonprob(selection = ~ x,
+                                target = ~ y1,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap"))
+  )
+
+  expect_silent(
+    test2a_bootstrap <- nonprob(selection = ~ x,
+                                outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap"))
+  )
+
+  expect_silent(
+    test3a_bootstrap <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap"))
+  )
+
+  expect_equivalent(test1a$output$mean, test1a_bootstrap$output$mean, tolerance = 0.1)
+  # expect_equivalent(test1a$output$SE, test1a_bootstrap$output$SE, tolerance = 0.1) to check
+
+  expect_equivalent(test2a$output$mean, test2a_bootstrap$output$mean, tolerance = 0.1)
+  expect_equivalent(test2a$output$SE, test2a_bootstrap$output$SE, tolerance = 0.1)
+
+  expect_equivalent(test3a$output$mean, test3a_bootstrap$output$mean, tolerance = 0.1)
+  expect_equivalent(test3a$output$SE, test3a_bootstrap$output$SE, tolerance = 0.1)
+}

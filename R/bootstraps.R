@@ -65,7 +65,7 @@ bootMI <- function(X_rand,
 
         beta <- model_strap$coefficients
         eta <- X_rand %*% beta
-        y_strap_rand <- family_nonprobsvy$mu(eta)
+        y_strap_rand <- family_nonprobsvy$linkinv(eta)
 
         #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
         mu_hat_boot <- weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
@@ -131,8 +131,8 @@ bootMI <- function(X_rand,
         beta <- model_strap$coefficients
         eta_rand <- X_rand_strap %*% beta
         eta_nons <- X_nons_strap %*% beta
-        y_rand_strap <- family_nonprobsvy$mu(eta_rand)
-        y_nons_strap <- family_nonprobsvy$mu(eta_nons)
+        y_rand_strap <- family_nonprobsvy$linkinv(eta_rand)
+        y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
         model_rand <- nonprobMI_nn(data = y_nons_strap,
@@ -173,7 +173,7 @@ bootMI <- function(X_rand,
 
         beta <- model_strap$coefficients
         eta <- pop_totals %*% beta / N
-        y_strap_rand <- family_nonprobsvy$mu(eta)
+        y_strap_rand <- family_nonprobsvy$linkinv(eta)
 
         #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
         mu_hat_boot <-  as.vector(y_strap_rand)
@@ -221,8 +221,8 @@ bootMI <- function(X_rand,
         beta <- model_strap$coefficients
         eta_rand <- pop_totals %*% beta
         eta_nons <- X_nons_strap %*% beta
-        y_strap_rand <- family_nonprobsvy$mu(eta_rand)
-        y_strap_nons <- family_nonprobsvy$mu(eta_nons)
+        y_strap_rand <- family_nonprobsvy$linkinv(eta_rand)
+        y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
 
 
         model_rand <- nonprobMI_nn(data = y_strap_nons,
@@ -300,7 +300,7 @@ bootIPW <- function(X_rand,
                                       est_method =  est_method,
                                       maxit = maxit,
                                       control_selection = control_selection,
-                                      start_selection = start_selection)
+                                      start = start_selection)
 
       est_method_obj <- estimation_method$estimation_model(model = model_sel,
                                                            method_selection = method_selection)
@@ -697,7 +697,7 @@ bootMI_multicore <- function(X_rand,
 
           beta <- model_strap$coefficients
           eta <- X_rand %*% beta
-          y_strap_rand <- family_nonprobsvy$mu(eta)
+          y_strap_rand <- family_nonprobsvy$linkinv(eta)
           weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
         })
     } else if (method == "nn") {
@@ -754,8 +754,8 @@ bootMI_multicore <- function(X_rand,
           beta <- model_strap$coefficients
           eta_rand <- X_rand_strap %*% beta
           eta_nons <- X_nons_strap %*% beta
-          y_rand_strap <- family_nonprobsvy$mu(eta_rand)
-          y_nons_strap <- family_nonprobsvy$mu(eta_nons)
+          y_rand_strap <- family_nonprobsvy$linkinv(eta_rand)
+          y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
           model_rand <- nonprobMI_nn(data = y_nons_strap,
@@ -790,7 +790,7 @@ bootMI_multicore <- function(X_rand,
 
           beta <- model_strap$coefficients
           eta <- pop_totals %*% beta / N
-          y_strap_rand <- family_nonprobsvy$mu(eta)
+          y_strap_rand <- family_nonprobsvy$linkinv(eta)
 
           #mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
           as.vector(y_strap_rand)
@@ -831,8 +831,8 @@ bootMI_multicore <- function(X_rand,
           beta <- model_strap$coefficients
           eta_rand <- pop_totals %*% beta
           eta_nons <- X_nons_strap %*% beta
-          y_strap_rand <- family_nonprobsvy$mu(eta_rand)
-          y_strap_nons <- family_nonprobsvy$mu(eta_nons)
+          y_strap_rand <- family_nonprobsvy$linkinv(eta_rand)
+          y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
 
 
           model_rand <- nonprobMI_nn(data = y_strap_nons,
@@ -916,7 +916,7 @@ bootIPW_multicore <- function(X_rand,
                                         est_method =  est_method,
                                         maxit = maxit,
                                         control_selection = control_selection,
-                                        start_selection = start_selection)
+                                        start = start_selection)
 
 
         model_sel <- estimation_method$model_selection(X,

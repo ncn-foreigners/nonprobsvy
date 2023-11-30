@@ -499,7 +499,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
 
     arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(int j = 0; j < nfolds; j++) {
       if (verbose) {
         wcout << "Starting CV fold #" << j+1 << endl;
@@ -517,7 +517,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       int ncols = X_test.n_cols;
       arma::uvec idxx = arma::regspace<arma::uvec>(0, ncols - 3);
 
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for(int i = 0; i < nlambda; i++) {
         // lambda = lambdas1(i);
         //arma::vec loss_theta_vec(nfolds, arma::fill::zeros);

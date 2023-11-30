@@ -189,127 +189,132 @@ expect_identical(y_all_corr_all$confidence_interval,
                                             y22_corr_all$confidence_interval$upper_bound),
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
+# These tests are only supposed to be run on developer's machine and
+# package GitHub page not on CRAN (they take too long)
 
-#### variable selection  ------------------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  #### variable selection  ------------------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-## y_11
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  ## y_11
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-expect_equal(y11_corr_scad$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-              y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y11_corr_scad$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+                y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
 
-## y_12
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  ## y_12
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
-expect_equal(y12_corr_scad$output$SE, 0.15341599, tolerance = 0.0001) ## true value for this sim
-expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y12_corr_scad$output$SE, 0.15341599, tolerance = 0.0001) ## true value for this sim
+  expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+                 y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-## y_21
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  ## y_21
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
-expect_equal(y21_corr_scad$output$SE, 0.0090012565, tolerance = 0.0001) ## true value for this sim
-expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-               y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y21_corr_scad$output$SE, 0.0090012565, tolerance = 0.0001) ## true value for this sim
+  expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+                 y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-## y_22
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  ## y_22
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
-expect_equal(y22_corr_scad$output$SE, 0.011240221, tolerance = 0.0001) ## true value for this sim
-expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
+  expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y22_corr_scad$output$SE, 0.011240221, tolerance = 0.0001) ## true value for this sim
+  expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+                 y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
-## lasso
+  ## lasso
 
-# expect_silent(
-#   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                            target = ~ Y_11,
-#                            data = sample_B1,
-#                            pop_totals = X_totals[1:11],
-#                            method_selection = "logit",
-#                            control_inference = controlInf(vars_selection = TRUE),
-#                            control_selection = controlSel(penalty = "lasso"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+  # expect_silent(
+  #   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                            target = ~ Y_11,
+  #                            data = sample_B1,
+  #                            pop_totals = X_totals[1:11],
+  #                            method_selection = "logit",
+  #                            control_inference = controlInf(vars_selection = TRUE),
+  #                            control_selection = controlSel(penalty = "lasso"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
 
-## MCP
+  ## MCP
 
-# expect_silent(
-#   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "logit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "MCP"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+  # expect_silent(
+  #   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "logit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "MCP"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
 
-##### all target variables  ---------------------------------------------------------------
+  ##### all target variables  ---------------------------------------------------------------
 
-# expect_silent(
-#   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "logit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-#                             verbose = T)
-# )
+  # expect_silent(
+  #   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "logit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             verbose = T)
+  # )
+
+}
 
 
 ## non-linear case ------------------------------------------------------------------------
@@ -498,125 +503,127 @@ expect_identical(y_all_corr_all$confidence_interval,
 #### variable selection  ------------------------------------------------------------------
 ##### one target variable  ----------------------------------------------------------------
 
-## y_11
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
-expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
-expect_equal(y11_corr_scad$output$SE, 0.059381217, tolerance = 0.0001) ## true value for this sim
-expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-               y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  ## y_11
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_12
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y11_corr_scad$output$SE, 0.059381217, tolerance = 0.0001) ## true value for this sim
+  expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+                 y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y12_corr_scad$output$mean, 5.796713, tolerance = 0.0001) ## true value for this sim
-expect_equal(y12_corr_scad$output$SE, 0.14583111, tolerance = 0.0001) ## true value for this sim
-expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  ## y_12
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_21
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y12_corr_scad$output$mean, 5.796713, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y12_corr_scad$output$SE, 0.14583111, tolerance = 0.0001) ## true value for this sim
+  expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+                 y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y21_corr_scad$output$mean, 0.6060074, tolerance = 0.0001) ## true value for this sim
-expect_equal(y21_corr_scad$output$SE, 0.010194911, tolerance = 0.0001) ## true value for this sim
-expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-               y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  ## y_21
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_22
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "logit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y21_corr_scad$output$mean, 0.6060074, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y21_corr_scad$output$SE, 0.010194911, tolerance = 0.0001) ## true value for this sim
+  expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+                 y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y22_corr_scad$output$mean, 0.64707641, tolerance = 0.0001) ## true value for this sim
-expect_equal(y22_corr_scad$output$SE, 0.0099648982, tolerance = 0.0001) ## true value for this sim
-expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
+  ## y_22
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "logit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-
-## lasso
-
-# expect_silent(
-#   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                            target = ~ Y_11,
-#                            data = sample_B1,
-#                            pop_totals = X_totals[1:11],
-#                            method_selection = "logit",
-#                            control_inference = controlInf(vars_selection = TRUE),
-#                            control_selection = controlSel(penalty = "lasso"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-## MCP
-
-# expect_silent(
-#   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "logit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "MCP"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-##### all target variables  ---------------------------------------------------------------
-
-# expect_silent(
-#   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "logit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-#                             verbose = T)
-# )
+  expect_equal(y22_corr_scad$output$mean, 0.64707641, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y22_corr_scad$output$SE, 0.0099648982, tolerance = 0.0001) ## true value for this sim
+  expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+                 y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
+  ## lasso
+
+  # expect_silent(
+  #   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                            target = ~ Y_11,
+  #                            data = sample_B1,
+  #                            pop_totals = X_totals[1:11],
+  #                            method_selection = "logit",
+  #                            control_inference = controlInf(vars_selection = TRUE),
+  #                            control_selection = controlSel(penalty = "lasso"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+
+  ## MCP
+
+  # expect_silent(
+  #   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "logit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "MCP"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+
+  ##### all target variables  ---------------------------------------------------------------
+
+  # expect_silent(
+  #   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "logit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             verbose = T)
+  # )
+
+}
 
 
 # check probit ----------------------------------------------------------------------------
@@ -802,129 +809,129 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  #### variable selection  ------------------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-#### variable selection  ------------------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+  ## y_11
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_11
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y11_corr_scad$output$mean, 3.0633399, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y11_corr_scad$output$SE, 0.049384577, tolerance = 0.0001) ## true value for this sim
+  expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+                 y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y11_corr_scad$output$mean, 3.0633399, tolerance = 0.0001) ## true value for this sim
-expect_equal(y11_corr_scad$output$SE, 0.049384577, tolerance = 0.0001) ## true value for this sim
-expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-               y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  ## y_12
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_12
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y12_corr_scad$output$mean, 6.9420676, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y12_corr_scad$output$SE, 0.15578019, tolerance = 0.0001) ## true value for this sim
+  expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+                 y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y12_corr_scad$output$mean, 6.9420676, tolerance = 0.0001) ## true value for this sim
-expect_equal(y12_corr_scad$output$SE, 0.15578019, tolerance = 0.0001) ## true value for this sim
-expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  ## y_21
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_21
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y21_corr_scad$output$mean, 0.78324543, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y21_corr_scad$output$SE, 0.0090654702, tolerance = 0.0001) ## true value for this sim
+  expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+                 y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y21_corr_scad$output$mean, 0.78324543, tolerance = 0.0001) ## true value for this sim
-expect_equal(y21_corr_scad$output$SE, 0.0090654702, tolerance = 0.0001) ## true value for this sim
-expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-               y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  ## y_22
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_22
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-
-expect_equal(y22_corr_scad$output$mean, 0.57672297, tolerance = 0.0001) ## true value for this sim
-expect_equal(y22_corr_scad$output$SE, 0.011433876, tolerance = 0.0001) ## true value for this sim
-expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
-
-
-## lasso
-
-# expect_silent(
-#   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                            target = ~ Y_11,
-#                            data = sample_B1,
-#                            pop_totals = X_totals[1:11],
-#                            method_selection = "probit",
-#                            control_inference = controlInf(vars_selection = TRUE),
-#                            control_selection = controlSel(penalty = "lasso"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-## MCP
-
-# expect_silent(
-#   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "probit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "MCP"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-##### all target variables  ---------------------------------------------------------------
-
-# expect_silent(
-#   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "probit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-#                             verbose = T)
-# )
+  expect_equal(y22_corr_scad$output$mean, 0.57672297, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y22_corr_scad$output$SE, 0.011433876, tolerance = 0.0001) ## true value for this sim
+  expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+                 y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
+  ## lasso
+
+  # expect_silent(
+  #   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                            target = ~ Y_11,
+  #                            data = sample_B1,
+  #                            pop_totals = X_totals[1:11],
+  #                            method_selection = "probit",
+  #                            control_inference = controlInf(vars_selection = TRUE),
+  #                            control_selection = controlSel(penalty = "lasso"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+
+  ## MCP
+
+  # expect_silent(
+  #   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "probit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "MCP"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+
+  ##### all target variables  ---------------------------------------------------------------
+
+  # expect_silent(
+  #   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "probit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             verbose = T)
+  # )
+
+}
 
 ## non-linear case ------------------------------------------------------------------------
 #### correctly specified variables --------------------------------------------------------
@@ -1110,131 +1117,129 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  #### variable selection  ------------------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-#### variable selection  ------------------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+  ## y_11
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_11
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y11_corr_scad$output$SE, 0.059381198, tolerance = 0.0001) ## true value for this sim
+  expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+                y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
-expect_equal(y11_corr_scad$output$SE, 0.059381198, tolerance = 0.0001) ## true value for this sim
-expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-              y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  ## y_12
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_12
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y12_corr_scad$output$mean, 5.7967136, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y12_corr_scad$output$SE, 0.14583128, tolerance = 0.0001) ## true value for this sim
+  expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+                 y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y12_corr_scad$output$mean, 5.7967136, tolerance = 0.0001) ## true value for this sim
-expect_equal(y12_corr_scad$output$SE, 0.14583128, tolerance = 0.0001) ## true value for this sim
-expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  ## y_21
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_21
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  expect_equal(y21_corr_scad$output$mean, 0.60600756, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y21_corr_scad$output$SE, 0.010194928, tolerance = 0.0001) ## true value for this sim
+  expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+                 y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-expect_equal(y21_corr_scad$output$mean, 0.60600756, tolerance = 0.0001) ## true value for this sim
-expect_equal(y21_corr_scad$output$SE, 0.010194928, tolerance = 0.0001) ## true value for this sim
-expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-               y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  ## y_22
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "probit",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_22
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "probit",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-
-expect_equal(y22_corr_scad$output$mean, 0.64707626, tolerance = 0.0001) ## true value for this sim
-expect_equal(y22_corr_scad$output$SE, 0.0099648984, tolerance = 0.0001) ## true value for this sim
-expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
-
-
-## lasso
-
-# expect_silent(
-#   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                            target = ~ Y_11,
-#                            data = sample_B1,
-#                            pop_totals = X_totals[1:11],
-#                            method_selection = "probit",
-#                            control_inference = controlInf(vars_selection = TRUE),
-#                            control_selection = controlSel(penalty = "lasso"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-## MCP
-
-# expect_silent(
-#   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "probit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "MCP"))
-# )
-#
-# expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
-
-##### all target variables  ---------------------------------------------------------------
-
-# expect_silent(
-#   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-#                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
-#                             data = sample_B1,
-#                             pop_totals = X_totals[1:11],
-#                             method_selection = "probit",
-#                             control_inference = controlInf(vars_selection = TRUE),
-#                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-#                             verbose = T)
-# )
+  expect_equal(y22_corr_scad$output$mean, 0.64707626, tolerance = 0.0001) ## true value for this sim
+  expect_equal(y22_corr_scad$output$SE, 0.0099648984, tolerance = 0.0001) ## true value for this sim
+  expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+                 y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
+  ## lasso
 
+  # expect_silent(
+  #   y11_corr_lasso <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                            target = ~ Y_11,
+  #                            data = sample_B1,
+  #                            pop_totals = X_totals[1:11],
+  #                            method_selection = "probit",
+  #                            control_inference = controlInf(vars_selection = TRUE),
+  #                            control_selection = controlSel(penalty = "lasso"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
 
+  ## MCP
+
+  # expect_silent(
+  #   y11_corr_mcp <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "probit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "MCP"))
+  # )
+  #
+  # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_lasso$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_lasso$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_lasso$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_lasso$selection$coefficients) == 2)
+
+  ##### all target variables  ---------------------------------------------------------------
+
+  # expect_silent(
+  #   y_all_corr_all <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+  #                             target = ~ Y_11, + Y_12 + Y_21 + Y_22,
+  #                             data = sample_B1,
+  #                             pop_totals = X_totals[1:11],
+  #                             method_selection = "probit",
+  #                             control_inference = controlInf(vars_selection = TRUE),
+  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             verbose = T)
+  # )
+
+}
 
 # check cloglog -----------------------------------------------------
 ## linear case ----------------------------------------------------------------------------
@@ -1417,139 +1422,143 @@ expect_silent(
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 #
 
-#### variable selection  ------------------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
-## y_11 to fix
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  #### variable selection  ------------------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-# expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_scad$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
-# expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-#                y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  ## y_11 to fix
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_12 to fix
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  # expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_scad$output$SE, 0.04853563, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+  #                y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
 
-# expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y12_corr_scad$output$SE, 0.15341599, tolerance = 0.0001) ## true value for this sim
-# expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-#               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-# expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  ## y_12 to fix
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_21 to fix
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  # expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y12_corr_scad$output$SE, 0.15341599, tolerance = 0.0001) ## true value for this sim
+  # expect_true(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+  #               y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  # expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-# expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y21_corr_scad$output$SE, 0.0090012565, tolerance = 0.0001) ## true value for this sim
-# expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-#                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-# expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  ## y_21 to fix
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
 
-## y_22 to fix
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B1,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
+  # expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y21_corr_scad$output$SE, 0.0090012565, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+  #                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  # expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-# expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y22_corr_scad$output$SE, 0.011240221, tolerance = 0.0001) ## true value for this sim
-# expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-#                y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-# expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
+  ## y_22 to fix
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B1,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
+
+  # expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y22_corr_scad$output$SE, 0.011240221, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+  #                y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
 
-## non-linear case ------------------------------------------------------------------------
-#### correctly specified variables --------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+  ## non-linear case ------------------------------------------------------------------------
+  #### correctly specified variables --------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-## for y11
-expect_silent(
-  y11_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
-                          target = ~ Y_11,
-                          data = sample_B2,
-                          pop_totals = X_totals[1:5],
-                          method_selection = "cloglog")
-)
-#
-# expect_equal(y11_corr_one$output$mean, 2.10861, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_one$output$SE, 0.1243684, tolerance = 0.0001) ## true value for this sim
-# expect_true(y11_corr_one$confidence_interval$lower_bound < mean(Y_11) &
-#               y11_corr_one$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-#
-#
-# ## for y12
-expect_silent(
-  y12_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
-                          target = ~ Y_12,
-                          data = sample_B2,
-                          pop_totals = X_totals[1:5],
-                          method_selection = "cloglog")
-)
-# expect_equal(y12_corr_one$output$mean, 5.708058, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y12_corr_one$output$SE, 0.2604017, tolerance = 0.0001) ## true value for this sim
-# expect_false(y12_corr_one$confidence_interval$lower_bound < mean(Y_12) &
-#                y12_corr_one$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-#
-#
-# ## for y21
-expect_silent(
-  y21_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
-                          target = ~ Y_21,
-                          data = sample_B2,
-                          pop_totals = X_totals[1:5],
-                          method_selection = "cloglog")
-)
-#
-# expect_equal(y21_corr_one$output$mean, 0.6096105, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y21_corr_one$output$SE, 0.02698877, tolerance = 0.0001) ## true value for this sim
-# expect_true(y21_corr_one$confidence_interval$lower_bound < mean(Y_21) &
-#               y21_corr_one$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-#
-# ## for y22
-expect_silent(
-  y22_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
-                          target = ~ Y_22,
-                          data = sample_B2,
-                          pop_totals = X_totals[1:5],
-                          method_selection = "cloglog")
-)
-#
-# expect_equal(y22_corr_one$output$mean, 0.6210885, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y22_corr_one$output$SE, 0.02561999, tolerance = 0.0001) ## true value for this sim
-# expect_true(y22_corr_one$confidence_interval$lower_bound < mean(Y_22) &
-#               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-#
+  ## for y11
+  expect_silent(
+    y11_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                            target = ~ Y_11,
+                            data = sample_B2,
+                            pop_totals = X_totals[1:5],
+                            method_selection = "cloglog")
+  )
+  #
+  # expect_equal(y11_corr_one$output$mean, 2.10861, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_one$output$SE, 0.1243684, tolerance = 0.0001) ## true value for this sim
+  # expect_true(y11_corr_one$confidence_interval$lower_bound < mean(Y_11) &
+  #               y11_corr_one$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  #
+  #
+  # ## for y12
+  expect_silent(
+    y12_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                            target = ~ Y_12,
+                            data = sample_B2,
+                            pop_totals = X_totals[1:5],
+                            method_selection = "cloglog")
+  )
+  # expect_equal(y12_corr_one$output$mean, 5.708058, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y12_corr_one$output$SE, 0.2604017, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y12_corr_one$confidence_interval$lower_bound < mean(Y_12) &
+  #                y12_corr_one$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  #
+  #
+  # ## for y21
+  expect_silent(
+    y21_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                            target = ~ Y_21,
+                            data = sample_B2,
+                            pop_totals = X_totals[1:5],
+                            method_selection = "cloglog")
+  )
+  #
+  # expect_equal(y21_corr_one$output$mean, 0.6096105, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y21_corr_one$output$SE, 0.02698877, tolerance = 0.0001) ## true value for this sim
+  # expect_true(y21_corr_one$confidence_interval$lower_bound < mean(Y_21) &
+  #               y21_corr_one$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  #
+  # ## for y22
+  expect_silent(
+    y22_corr_one <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                            target = ~ Y_22,
+                            data = sample_B2,
+                            pop_totals = X_totals[1:5],
+                            method_selection = "cloglog")
+  )
+  #
+  # expect_equal(y22_corr_one$output$mean, 0.6210885, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y22_corr_one$output$SE, 0.02561999, tolerance = 0.0001) ## true value for this sim
+  # expect_true(y22_corr_one$confidence_interval$lower_bound < mean(Y_22) &
+  #               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  #
+
+}
 # ##### all target variables  ---------------------------------------------------------------
 #
 expect_silent(
@@ -1670,76 +1679,78 @@ expect_silent(
 #                                             y22_corr_all$confidence_interval$upper_bound),
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
+  #### variable selection  ------------------------------------------------------------------
+  ##### one target variable  ----------------------------------------------------------------
 
-#### variable selection  ------------------------------------------------------------------
-##### one target variable  ----------------------------------------------------------------
+  ## y_11
+  expect_silent(
+    y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_11,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
+  #
+  # expect_equal(y11_corr_scad$output$mean, 1.992688, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y11_corr_scad$output$SE, 0.06352848, tolerance = 0.0001) ## true value for this sim
+  # expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
+  #               y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
+  # expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
+  #
+  # ## y_12
+  expect_silent(
+    y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_12,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
+  #
+  # expect_equal(y12_corr_scad$output$mean, 5.712705, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y12_corr_scad$output$SE, 0.1460298, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
+  #                y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
+  # expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
+  #
+  # ## y_21
+  expect_silent(
+    y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_21,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
+  #
+  # expect_equal(y21_corr_scad$output$mean, 0.5955036, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y21_corr_scad$output$SE, 0.01039547, tolerance = 0.0001) ## true value for this sim
+  # expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
+  #                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
+  # expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
+  #
+  # ## y_22
+  expect_silent(
+    y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                             target = ~ Y_22,
+                             data = sample_B2,
+                             pop_totals = X_totals[1:11],
+                             method_selection = "cloglog",
+                             control_inference = controlInf(vars_selection = TRUE),
+                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+  )
+  #
+  # expect_equal(y22_corr_scad$output$mean, 0.621987, tolerance = 0.0001) ## true value for this sim
+  # expect_equal(y22_corr_scad$output$SE, 0.01026539, tolerance = 0.0001) ## true value for this sim
+  # # to fix
+  # # expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
+  # #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
+  # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
-## y_11
-expect_silent(
-  y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_11,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-#
-# expect_equal(y11_corr_scad$output$mean, 1.992688, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y11_corr_scad$output$SE, 0.06352848, tolerance = 0.0001) ## true value for this sim
-# expect_true(y11_corr_scad$confidence_interval$lower_bound < mean(Y_11) &
-#               y11_corr_scad$confidence_interval$upper_bound > mean(Y_11)) ## conf int
-# expect_true(NROW(y11_corr_scad$selection$coefficients) == 2)
-#
-# ## y_12
-expect_silent(
-  y12_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_12,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-#
-# expect_equal(y12_corr_scad$output$mean, 5.712705, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y12_corr_scad$output$SE, 0.1460298, tolerance = 0.0001) ## true value for this sim
-# expect_false(y12_corr_scad$confidence_interval$lower_bound < mean(Y_12) &
-#                y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
-# expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
-#
-# ## y_21
-expect_silent(
-  y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_21,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-#
-# expect_equal(y21_corr_scad$output$mean, 0.5955036, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y21_corr_scad$output$SE, 0.01039547, tolerance = 0.0001) ## true value for this sim
-# expect_false(y21_corr_scad$confidence_interval$lower_bound < mean(Y_21) &
-#                y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
-# expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
-#
-# ## y_22
-expect_silent(
-  y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                           target = ~ Y_22,
-                           data = sample_B2,
-                           pop_totals = X_totals[1:11],
-                           method_selection = "cloglog",
-                           control_inference = controlInf(vars_selection = TRUE),
-                           control_selection = controlSel(penalty = "SCAD", nfolds = 5))
-)
-#
-# expect_equal(y22_corr_scad$output$mean, 0.621987, tolerance = 0.0001) ## true value for this sim
-# expect_equal(y22_corr_scad$output$SE, 0.01026539, tolerance = 0.0001) ## true value for this sim
-# # to fix
-# # expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
-# #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
-# expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
+}

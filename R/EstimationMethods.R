@@ -195,9 +195,9 @@ gee <- function(...) {
          est_ps_rand_der = est_ps_rand_der,
          variance_covariance = variance_covariance,
          df_residual = df_residual,
-         log_likelihood = "NULL",
+         log_likelihood = NA,
          eta = eta,
-         aic = NULL,
+         aic = NA,
          variance = variance,
          residuals = residuals,
          method = method)
@@ -403,13 +403,15 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   }
 
   eta_out <- as.vector(beta_hat %*% t(X))
-  y_hat <- family$mu(eta_out)
+  y_hat <- family$linkinv(eta_out)
   y_rand_pred <- y_hat[loc_rand]
   y_nons_pred <- y_hat[loc_nons]
 
   if (!boot) {
-    sigma_nons <- family$variance(mu = y_nons_pred, y = y[loc_nons])
-    sigma_rand <- family$variance(mu = y_rand_pred, y = y[loc_rand])
+    # sigma_nons <- family$variance(mu = y_nons_pred, y = y[loc_nons])
+    # sigma_rand <- family$variance(mu = y_rand_pred, y = y[loc_rand])
+    sigma_nons <- family$variance(mu = y_nons_pred)
+    sigma_rand <- family$variance(mu = y_rand_pred)
     residuals <- family$residuals(mu = y_nons_pred, y = y[loc_nons])
   }
 
@@ -422,7 +424,7 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
 
   # grad = multiroot$f.root[(p+1):(2*p)]
   if (!boot) {
-    hess <- NULL
+    hess <- NA
     selection <- list(theta_hat = theta_hat, # TODO list as close as possible to SelecttionList
                       grad = multiroot$fvec[1:(p)],
                       hess = hess, # TODO
@@ -430,9 +432,9 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
                       est_ps_rand = est_ps_rand,
                       variance_covariance = vcov_selection,
                       df_residual = df_residual,
-                      log_likelihood = "NULL",
+                      log_likelihood = NA,
                       eta = eta_sel,
-                      aic = NULL,
+                      aic = NA,
                       residuals = resids,
                       variance = variance,
                       method = method)
@@ -489,8 +491,8 @@ u_theta_beta_dr <- function(par,
   ps <- as.vector(ps)
 
   eta <- X %*% beta
-  mu <- family_nonprobsvy$mu(eta)
-  mu_der <- as.vector(family_nonprobsvy$mu_der(eta))
+  mu <- family_nonprobsvy$linkinv(eta)
+  mu_der <- as.vector(family_nonprobsvy$mu.eta(eta))
   res <- family_nonprobsvy$residuals(mu = mu, y = y)
   mu_der <- 1
 

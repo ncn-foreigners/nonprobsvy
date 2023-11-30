@@ -37,7 +37,7 @@ glm_nonprobsvy <- function(outcome,
         y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
       } else {
         eta <- pop_totals %*% model_nons_coefs / pop_totals[1]
-        y_rand_pred <- family_nonprobsvy$mu(eta)
+        y_rand_pred <- family_nonprobsvy$linkinv(eta)
       }
       y_nons_pred <- model_out$glm$fitted.values
     } else {
@@ -58,7 +58,7 @@ glm_nonprobsvy <- function(outcome,
       } else {
         eta <- pop_totals %*% model_nons_coefs / pop_totals[1]
       }
-      y_rand_pred <- family_nonprobsvy$mu(eta)
+      y_rand_pred <- family_nonprobsvy$linkinv(eta)
       y_nons_pred <- model$fitted.values
 
       model_out <- list(glm = model,
@@ -87,6 +87,7 @@ nn_nonprobsvy <- function(outcome,
                           pop_totals,
                           model_frame = NULL,
                           start_outcome = NULL) { # TODO consider add data standardization before modelling
+
   model_nons <- nonprobMI_nn(data = X_nons,
                              query = X_nons,
                              k = control$k,

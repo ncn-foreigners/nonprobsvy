@@ -209,9 +209,7 @@ u_theta <- function(R,
                     h,
                     N = NULL,
                     pop_totals = NULL,
-                    pop_size = NULL
-) {
-
+                    pop_size = NULL) {
 
   method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
@@ -481,8 +479,8 @@ internal_varMI <- function(svydesign,
       eta_nons <- X_nons %*% beta
       eta_rand <- X_rand %*% beta
 
-      mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
-      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu.eta(eta_rand)))
+      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu.eta(eta_nons)) %*% X_nons) %*% mx
       residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 
       # nonprobability component
@@ -521,8 +519,8 @@ internal_varMI <- function(svydesign,
       } else {
         eta_rand <- pop_totals %*% beta
       }
-      mx <- 1/N * pop_totals * as.vector(family_nonprobsvy$mu_der(eta_rand))
-      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+      mx <- 1/N * pop_totals * as.vector(family_nonprobsvy$mu.eta(eta_rand))
+      c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu.eta(eta_nons)) %*% X_nons) %*% mx
       residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
 
       # nonprobability component

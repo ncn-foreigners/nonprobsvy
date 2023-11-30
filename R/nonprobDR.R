@@ -37,6 +37,10 @@ nonprobDR <- function(selection,
                       se,
                       ...) {
 
+  if (method_outcome %in% c("pmm", "nn")) {
+    message("Bootstrap variance only, analytical version during implementation")
+    control_inference$var_method <- "bootstrap"
+  }
   h <- control_selection$h
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
@@ -579,10 +583,6 @@ nonprobDR <- function(selection,
     } else {
       stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
     }
-    if (method_outcome == "nn") {
-      var_method <- "bootstrap"
-      warning("bootstrap variance only, analytical version during implementation")
-    }
     ys$k <- as.numeric(y_nons) # TODO name to change
 
     if (se) {
@@ -679,7 +679,7 @@ nonprobDR <- function(selection,
                              bias_correction = bias_corr,
                              verbose = verbose)
         }
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         var <- boot_obj$var
         mu_hat <- boot_obj$mu
       } else {
@@ -721,6 +721,7 @@ nonprobDR <- function(selection,
                         std_err = theta_standard_errors,
                         residuals = selection_model$residuals,
                         variance = as.vector(selection_model$variance),
+                        variance_covariance = selection_model$variance_covariance,
                         fitted_values = prop_scores,
                         family = selection_model$method,
                         linear_predictors = selection_model$eta,

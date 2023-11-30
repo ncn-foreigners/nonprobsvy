@@ -46,6 +46,10 @@ nonprobMI <- function(outcome,
     SE_values <- NULL
   }
   num_boot <- control_inference$num_boot
+  if (method_outcome == "pmm") {
+    control_inference$var_method <- "bootstrap"
+    message("Bootstrap variance only, analytical version during implementation.")
+  }
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
       pop_totals_sel <- pop_totals
@@ -259,8 +263,8 @@ nonprobMI <- function(outcome,
       }
       var <- boot_obj$var
       mu_hat <- boot_obj$mu
-      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability",
-                                                         prob = "probability sample in case of bootstrap variance"))))
+      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA,
+                                                         prob = NA))))
     } else {
       stop("Invalid method for variance estimation.")
     }

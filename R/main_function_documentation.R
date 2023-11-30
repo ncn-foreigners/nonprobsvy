@@ -140,7 +140,7 @@ NULL
 #'   this method on `cloglog` and `probit` links.
 #'
 #'   Since it is not straightforward thing to calculate variances of these estimators, in the literature proposed are asymptotic equivalents
-#'   of variances that are derives using Taylor approximation. Details cen be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/intro.html).
+#'   of variances that are derives using Taylor approximation. Details can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/intro.html).
 #'   Moreover one can use bootstrap approach for variance estimation.
 #'
 #'   The function also allows the selection of variables with known methods that have been implemented to handle the integration of probability and non-probability sampling.
