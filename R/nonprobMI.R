@@ -100,7 +100,9 @@ nonprobMI <- function(outcome,
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       ## estimation
+
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
+
       model_obj <- MethodOutcome(outcome = outcome,
                                  data = data,
                                  weights = weights,

@@ -101,8 +101,15 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
 #' @param nfolds The number of folds during cross-validation for variables selection model.
-#' @param treetype type of tree for nearest neighbour imputation passed to [RANN::nn2()] function.
-#' @param searchtype type of search for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param treetype Type of tree for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param searchtype Type of search for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param predictive_match Indicates how to select 'closest' unit from
+#' nonprobability sample for each unit in probability sample. Either \code{1}
+#' (default) or \code{2} where \code{1} is matching by minimising distance
+#' between \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}} and
+#' \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{2} is matching by
+#' minimising distance between \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}
+#' and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.
 #'
 #' @return List with selected parameters.
 #'
@@ -124,8 +131,12 @@ controlOut <- function(epsilon = 1e-6,
                        nlambda = 100,
                        nfolds = 10,
                        treetype = "kd",
-                       searchtype = "standard"
+                       searchtype = "standard",
+                       predictive_match = 1:2
                        ) {
+
+  if (missing(predictive_match))
+    predictive_match <- 1
 
   list(epsilon = epsilon,
        maxit = maxit,
@@ -138,7 +149,8 @@ controlOut <- function(epsilon = 1e-6,
        nlambda = nlambda,
        nfolds = nfolds,
        treetype = treetype,
-       searchtype = searchtype)
+       searchtype = searchtype,
+       predictive_match = predictive_match)
 
 }
 

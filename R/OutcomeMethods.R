@@ -166,42 +166,68 @@ pmm_nonprobsvy <- function(outcome,
                                vars_selection,
                                pop_totals)
 
-  model_nons <- nonprobMI_nn(data = glm_object$y_nons_pred,
-                             query = glm_object$y_nons_pred,
-                             k = control$k,
-                             treetype = control$treetype,
-                             searchtype = control$searchtype)
+  # This is commented now because it is not needed
+  # model_nons <- nonprobMI_nn(data = glm_object$y_nons_pred,
+  #                            query = glm_object$y_nons_pred,
+  #                            k = control$k,
+  #                            treetype = control$treetype,
+  #                            searchtype = control$searchtype)
+  #
+  # y_nons_pred <- apply(model_nons$nn.idx, 1,
+  #                      FUN=\(x) mean(y_nons[x])
+  #                      #FUN=\(x) mean(sample_nonprob$short_[x])
+  # )
 
-  y_nons_pred <- apply(model_nons$nn.idx, 1,
-                       FUN=\(x) mean(y_nons[x])
-                       #FUN=\(x) mean(sample_nonprob$short_[x])
+  switch (control$predictive_match,
+    { # 1
+      if (is.null(pop_totals)) {
+        model_rand <- nonprobMI_nn(data = y_nons,
+                                   query = glm_object$y_rand_pred,
+                                   k = control$k,
+                                   treetype = control$treetype,
+                                   searchtype = control$searchtype)
+
+        y_rand_pred <- apply(model_rand$nn.idx, 1,
+                             FUN=\(x) mean(y_nons[x])
+                             #FUN=\(x) mean(sample_nonprob$short_[x])
+        )
+      } else {
+        model_rand <- nonprobMI_nn(data = y_nons,
+                                   query = glm_object$y_rand_pred,
+                                   k = control$k,
+                                   treetype = control$treetype,
+                                   searchtype = control$searchtype)
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    },
+    { # 2
+      if (is.null(pop_totals)) {
+        model_rand <- nonprobMI_nn(data = glm_object$y_nons_pred,
+                                   query = glm_object$y_rand_pred,
+                                   k = control$k,
+                                   treetype = control$treetype,
+                                   searchtype = control$searchtype)
+
+        y_rand_pred <- apply(model_rand$nn.idx, 1,
+                             FUN=\(x) mean(y_nons[x])
+                             #FUN=\(x) mean(sample_nonprob$short_[x])
+        )
+      } else {
+        model_rand <- nonprobMI_nn(data = glm_object$y_nons_pred,
+                                   query = glm_object$y_rand_pred,
+                                   k = control$k,
+                                   treetype = control$treetype,
+                                   searchtype = control$searchtype)
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    }
   )
 
-  if (is.null(pop_totals)) {
-    model_rand <- nonprobMI_nn(data = glm_object$y_nons_pred,
-                               query = glm_object$y_rand_pred,
-                               k = control$k,
-                               treetype = control$treetype,
-                               searchtype = control$searchtype)
-
-    y_rand_pred <- apply(model_rand$nn.idx, 1,
-                         FUN=\(x) mean(y_nons[x])
-                         #FUN=\(x) mean(sample_nonprob$short_[x])
-    )
-    } else {
-       model_rand <- nonprobMI_nn(data = glm_object$y_nons_pred,
-                                 query = glm_object$y_rand_pred,
-                                 k = control$k,
-                                 treetype = control$treetype,
-                                 searchtype = control$searchtype)
-       y_rand_pred <- mean(y_nons[model_rand$nn.idx])
-  }
-
-  model_out <- list(model_nons = model_nons,
+  model_out <- list(#model_nons = model_nons,
                     model_rand = model_rand)
   list(model = model_out,
        y_rand_pred = y_rand_pred,
-       y_nons_pred = y_nons_pred,
+       #y_nons_pred = y_nons_pred,
        parameters = glm_object$parameters)
 }
 
