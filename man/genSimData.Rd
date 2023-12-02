@@ -33,10 +33,10 @@ generate simulated data according to Chen, Li & Wu (2020), section 5
 }
 \examples{
 ## generate data with N=20000 and n=2000
-genSimData(N=20000,n=2000)
+genSimData(N = 20000, n = 2000)
 
 ## generate data when big data is almost as N
-genSimData(N=10000,n=9000)
+genSimData(N = 10000, n = 9000)
 
 }
 \references{

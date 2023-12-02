@@ -278,7 +278,7 @@ in the documentation of control functions for \code{nonprob}.
 library(sampling)
 set.seed(123)
 # sizes of population and probability sample
-N <-  20000 # population
+N <- 20000 # population
 n_b <- 1000 # probability
 # data
 z1 <- rbinom(N, 1, 0.7)
@@ -297,44 +297,52 @@ sigma_50 <- 5.2
 sigma_80 <- 2.4
 
 # response variables
-y30 <- 2 + x1  + x2 + x3 + x4 + sigma_30*epsilon
-y50 <- 2 + x1  + x2 + x3 + x4 + sigma_50*epsilon
-y80 <- 2 + x1  + x2 + x3 + x4 + sigma_80*epsilon
+y30 <- 2 + x1 + x2 + x3 + x4 + sigma_30 * epsilon
+y50 <- 2 + x1 + x2 + x3 + x4 + sigma_50 * epsilon
+y80 <- 2 + x1 + x2 + x3 + x4 + sigma_80 * epsilon
 
 # population
 sim_data <- data.frame(y30, y50, y80, x1, x2, x3, x4)
 ## propensity score model for nonprobability sample (sum to 1000)
-eta <- -4.461 + 0.1*x1 + 0.2*x2 + 0.1*x3 + 0.2*x4
+eta <- -4.461 + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4
 rho <- plogis(eta)
 
 # inclusion probabilities for probability sample
-z_prob <- x3+0.2051
+z_prob <- x3 + 0.2051
 sim_data$p_prob <- inclusionprobabilities(z_prob, n = n_b)
 
 # data
 sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
 sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
 nonprob_df <- subset(sim_data, flag_nonprob == 1) ## nonprobability sample
-svyprob <- svydesign(ids=~1, probs = ~ p_prob,
-                     data = subset(sim_data, flag_prob == 1),
-                     pps = "brewer") ## probability sample
+svyprob <- svydesign(
+  ids = ~1, probs = ~p_prob,
+  data = subset(sim_data, flag_prob == 1),
+  pps = "brewer"
+) ## probability sample
 
 ## mass imputation estimator
-MI_res <- nonprob(outcome = y80 ~ x1 + x2 + x3 + x4,
-                  data = nonprob_df,
-                  svydesign = svyprob)
+MI_res <- nonprob(
+  outcome = y80 ~ x1 + x2 + x3 + x4,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(MI_res)
 ## inverse probability weighted estimator
-IPW_res <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                   target = ~ y80,
-                   data = nonprob_df,
-                   svydesign = svyprob)
+IPW_res <- nonprob(
+  selection = ~ x1 + x2 + x3 + x4,
+  target = ~y80,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(IPW_res)
 ## doubly robust estimator
-DR_res <- nonprob(outcome = y80 ~ x1 + x2 + x3 + x4,
-                  selection = ~ x1 + x2 + x3 + x4,
-                  data = nonprob_df,
-                  svydesign = svyprob)
+DR_res <- nonprob(
+  outcome = y80 ~ x1 + x2 + x3 + x4,
+  selection = ~ x1 + x2 + x3 + x4,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(DR_res)
 }
 }

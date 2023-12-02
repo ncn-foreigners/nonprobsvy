@@ -11,7 +11,6 @@ poisson_nonprobsvy <- function(link = "log") {
 }
 
 gaussian_nonprobsvy <- function(link = "identity") {
-
   x <- stats::gaussian(link = link)
   # x$mu_der <- function(mu) 1
   x$residuals <- function(mu, y) as.vector(y - mu)
@@ -21,7 +20,6 @@ gaussian_nonprobsvy <- function(link = "identity") {
 }
 
 binomial_nonprobsvy <- function(link = "logit") {
-
   x <- stats::binomial(link = link)
   x$mu.eta2 <- function(mu) 1 - 2 * mu # second derivative
   x$residuals <- function(mu, y) as.vector(y - mu)
