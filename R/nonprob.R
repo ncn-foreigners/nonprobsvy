@@ -38,7 +38,15 @@ nonprob <- function(data,
   if(missing(family_outcome)) family_outcome <- "gaussian"
   if(missing(method_outcome)) method_outcome <- "glm"
   if(!(method_outcome %in% c("glm", "nn", "pmm"))) stop("Invalid method for outcome variable.")
-
+  if (!is.null(svydesign)) {
+    if(class(svydesign)[2] != "survey.design") stop("svydesign must be a survey.design object.")
+  }
+  if (!is.null(pop_totals)) {
+    if (!is.vector(pop_totals)) stop("pop_totals must be a vector.")
+  }
+  if (!is.null(pop_means)) {
+    if (!is.vector(pop_means)) stop("pop_means must be a vector.")
+  }
   if(!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for selection formula.")
   if(!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
   if (!is.null(control_selection$key)) {

@@ -140,7 +140,7 @@ NULL
 #'   this method on `cloglog` and `probit` links.
 #'
 #'   Since it is not straightforward thing to calculate variances of these estimators, in the literature proposed are asymptotic equivalents
-#'   of variances that are derives using Taylor approximation. Details cen be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/intro.html).
+#'   of variances that are derives using Taylor approximation. Details can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/intro.html).
 #'   Moreover one can use bootstrap approach for variance estimation.
 #'
 #'   The function also allows the selection of variables with known methods that have been implemented to handle the integration of probability and non-probability sampling.
@@ -226,7 +226,7 @@ NULL
 #'  \item{\code{prior.weights} -- the weights initially supplied, a vector of 1s if none were.}
 #'  \item{\code{formula} -- the formula supplied.}
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
-#'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NULL`.}
+#'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NA`.}
 #'  \item{\code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds for variables selection model
 #'  when propensity score model is fitting.}
 #'   }

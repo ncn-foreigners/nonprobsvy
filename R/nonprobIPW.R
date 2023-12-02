@@ -425,7 +425,7 @@ nonprobIPW <- function(selection,
         }
         var <- boot_obj$var
         mu_hat <- boot_obj$mu
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = "no division into nonprobability", prob = "probability sample in case of bootstrap variance"))))
+        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
       } else {
         stop("Invalid method for variance estimation.")
       }
