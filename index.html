@@ -102,7 +102,7 @@
 <div class="section level2">
 <h2 id="basic-idea">Basic idea<a class="anchor" aria-label="anchor" href="#basic-idea"></a>
 </h2>
-<p>Consider the following setting where two samples are available: non-probability (denoted as <span class="math inline"><em>S</em><sub><em>A</em></sub></span> ) and probability (denoted as <span class="math inline"><em>S</em><sub><em>B</em></sub></span>) where set of auxiliary variables (denoted as <span class="math inline"><strong>X</strong></span>) is available for both sources while <span class="math inline"><em>Y</em></span> and <span class="math inline"><strong>d</strong></span> (or <span class="math inline"><strong>w</strong></span>) is present only in probability sample.</p>
+<p>Consider the following setting where two samples are available: non-probability (denoted as <span class="math inline"><em>S</em><sub><em>A</em></sub></span>) and probability (denoted as <span class="math inline"><em>S</em><sub><em>B</em></sub></span>) where set of auxiliary variables (denoted as <span class="math inline"><strong>X</strong></span>) is available for both sources while <span class="math inline"><em>Y</em></span> and <span class="math inline"><strong>d</strong></span> (or <span class="math inline"><strong>w</strong></span>) is present only in probability sample.</p>
 <table class="table">
 <colgroup>
 <col width="15%">
@@ -114,56 +114,56 @@
 <thead><tr class="header">
 <th>Sample</th>
 <th align="right"></th>
-<th align="center">Auxiliary variables <span class="math inline"><strong>X</strong></span>
+<th align="center">Auxiliary variables <span class="math inline">$\bol dsymbol{X}$</span>
 </th>
 <th align="center">Target variable <span class="math inline"><em>Y</em></span>
 </th>
-<th align="center">Design (<span class="math inline"><strong>d</strong></span>) or calibrated (<span class="math inline"><strong>w</strong></span>) weights</th>
+<th align="center">Design (<span class="math inline">$\bold symbol{d}$</span>) or calibrated (<span class="math inline">$\bold symbol{w}$</span>) weights</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td>
-<span class="math inline"><em>S</em><sub><em>A</em></sub></span> (non-probability)</td>
+<span class="math inline"><em>S</em><sub><em>A</em></sub></span> (non-p robability)</td>
 <td align="right">1</td>
-<td align="center"><span class="math inline">✓</span></td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
+<td align="center">$ $</td>
 <td align="center">?</td>
 </tr>
 <tr class="even">
 <td></td>
 <td align="right">…</td>
-<td align="center"><span class="math inline">✓</span></td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
+<td align="center">$ $</td>
 <td align="center">?</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td align="right"><span class="math inline"><em>n</em><sub><em>A</em></sub></span></td>
-<td align="center"><span class="math inline">✓</span></td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
+<td align="center">$ $</td>
 <td align="center">?</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline"><em>S</em><sub><em>B</em></sub></span> (probability)</td>
+<span class="math inline"><em>S</em><sub><em>B</em></sub></span> (p robability)</td>
 <td align="right"><span class="math inline"><em>n</em><sub><em>A</em></sub> + 1</span></td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 <td align="center">?</td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td align="right">…</td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 <td align="center">?</td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 </tr>
 <tr class="even">
 <td></td>
 <td align="right"><span class="math inline"><em>n</em><sub><em>A</em></sub> + <em>n</em><sub><em>B</em></sub></span></td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 <td align="center">?</td>
-<td align="center"><span class="math inline">✓</span></td>
+<td align="center">$ $</td>
 </tr>
 </tbody>
 </table>
@@ -173,274 +173,151 @@
 </h2>
 <p>Suppose <span class="math inline"><em>Y</em></span> is the target variable, <span class="math inline"><strong>X</strong></span> is a matrix of auxiliary variables, <span class="math inline"><em>R</em></span> is the inclusion indicator. Then, if we are interested in estimating the mean <span class="math inline"><em>τ̄</em><sub><em>Y</em></sub></span> or the sum <span class="math inline"><em>τ</em><sub><em>Y</em></sub></span> of the of the target variable given the observed data set <span class="math inline">(<em>y</em><sub><em>k</em></sub>,<strong>x</strong><sub><em>k</em></sub>,<em>R</em><sub><em>k</em></sub>)</span>, we can approach this problem with the possible scenarios:</p>
 <ul>
-<li>unit-level data is available for the non-probability sample <span class="math inline"><em>S</em><sub><em>A</em></sub></span>, i.e. <span class="math inline">(<em>y</em><sub><em>k</em></sub>,<strong>x</strong><sub><em>k</em></sub>)</span> is available for all units <span class="math inline"><em>k</em> ∈ <em>S</em><sub><em>A</em></sub></span>, and population-level data is available for <span class="math inline"><strong>x</strong><sub>1</sub>, ..., <strong>x</strong><sub><em>p</em></sub></span>, denoted as <span class="math inline"><em>τ</em><sub><em>x</em><sub>1</sub></sub>, <em>τ</em><sub><em>x</em><sub>2</sub></sub>, ..., <em>τ</em><sub><em>x</em><sub><em>p</em></sub></sub></span> and population size <span class="math inline"><em>N</em></span> is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),</li>
+<li>unit-level data is available for the non-probability sample <span class="math inline"><em>S</em><sub><em>A</em></sub></span>, i.e. <span class="math inline"><em>y</em><sub><em>k</em></sub>, <strong>x</strong><sub><em>k</em></sub></span> is available for all units <span class="math inline"><em>k</em> ∈ <em>S</em><sub><em>A</em></sub></span>, and population-level data is available for <span class="math inline"><strong>x</strong><sub>1</sub>, ..., <strong>x</strong><sub><em>p</em></sub></span>, denoted as <span class="math inline"><em>τ</em><sub><em>x</em><sub>1</sub></sub>, <em>τ</em><sub><em>x</em><sub>2</sub></sub>, ..., <em>τ</em><sub><em>x</em><sub><em>p</em></sub></sub></span> and population size <span class="math inline"><em>N</em></span> is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),</li>
 <li>unit-level data is available for the non-probability sample <span class="math inline"><em>S</em><sub><em>A</em></sub></span> and the probability sample <span class="math inline"><em>S</em><sub><em>B</em></sub></span>, i.e. <span class="math inline">(<em>y</em><sub><em>k</em></sub>,<strong>x</strong><sub><em>k</em></sub>,<em>R</em><sub><em>k</em></sub>)</span> is determined by the data. is determined by the data: <span class="math inline"><em>R</em><sub><em>k</em></sub> = 1</span> if <span class="math inline"><em>k</em> ∈ <em>S</em><sub><em>A</em></sub></span> otherwise <span class="math inline"><em>R</em><sub><em>k</em></sub> = 0</span>, <span class="math inline"><em>y</em><sub><em>k</em></sub></span> is observed only for sample <span class="math inline"><em>S</em><sub><em>A</em></sub></span> and <span class="math inline"><strong>x</strong><sub><em>k</em></sub></span> is observed in both in both <span class="math inline"><em>S</em><sub><em>A</em></sub></span> and <span class="math inline"><em>S</em><sub><em>B</em></sub></span>,</li>
 </ul>
 <div class="section level3">
 <h3 id="when-unit-level-data-is-available-for-non-probability-survey-only">When unit-level data is available for non-probability survey only<a class="anchor" aria-label="anchor" href="#when-unit-level-data-is-available-for-non-probability-survey-only"></a>
 </h3>
-<table class="table table">
-<tr>
-<th>
-Estimator
-</th>
-<th>
-Example code
-</th>
+<table class="table">
+<colgroup>
+<col width="17%">
+<col width="82%">
+</colgroup>
+<thead><tr class="header">
+<th>Estimator</th>
+<th>Example code</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Mass imputation based on regression imputation
-</td>
-<td>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>,</span>
-<span>  pop_totals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>`(Intercept)`<span class="op">=</span> <span class="va">N</span>,</span>
-<span>                 x1 <span class="op">=</span> <span class="va">tau_x1</span>,</span>
-<span>                 x2 <span class="op">=</span> <span class="va">tau_x2</span>,</span>
-<span>                 <span class="va">...</span>,</span>
-<span>                 xk <span class="op">=</span> <span class="va">tau_xk</span><span class="op">)</span>,</span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"glm"</span>,</span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Mass imputation based on regression imputation</td>
+<td>```{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, pop_totals = c(`(Intercept)`= N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_outcome = “glm”, family_outcome = “gaussian” ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Inverse probability weighting
-</td>
-<td>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span>  <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  target <span class="op">=</span> <span class="op">~</span> <span class="va">y</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  pop_totals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>`(Intercept)` <span class="op">=</span> <span class="va">N</span>, </span>
-<span>                 x1 <span class="op">=</span> <span class="va">tau_x1</span>, </span>
-<span>                 x2 <span class="op">=</span> <span class="va">tau_x2</span>, </span>
-<span>                 <span class="va">...</span>, </span>
-<span>                 xk <span class="op">=</span> <span class="va">tau_xk</span><span class="op">)</span>, </span>
-<span>  method_selection <span class="op">=</span> <span class="st">"logit"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint
-</td>
-<td>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span>  <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  target <span class="op">=</span> <span class="op">~</span> <span class="va">y</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  pop_totals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>`(Intercept)`<span class="op">=</span> <span class="va">N</span>, </span>
-<span>                 x1 <span class="op">=</span> <span class="va">tau_x1</span>, </span>
-<span>                 x2 <span class="op">=</span> <span class="va">tau_x2</span>, </span>
-<span>                 <span class="va">...</span>, </span>
-<span>                 xk <span class="op">=</span> <span class="va">tau_xk</span><span class="op">)</span>, </span>
-<span>  method_selection <span class="op">=</span> <span class="st">"logit"</span>, </span>
-<span>  control_selection <span class="op">=</span> <span class="fu"><a href="reference/controlSel.html">controlSel</a></span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Inverse probability weighting</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, pop_totals = c(`(Intercept)` = N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_selection = “logit” ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Doubly robust estimator
-</td>
-<td>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nonprob</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> ... <span class="sc">+</span> xk, </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> …, <span class="sc">+</span> xk, </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">pop_totals =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> <span class="ot">=</span> N, </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x1 =</span> tau_x1, </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x2 =</span> tau_x2, </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                 ..., </span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">xk =</span> tau_xk), </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">svydesign =</span> prob, </span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">method_outcome =</span> <span class="st">"glm"</span>, </span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">family_outcome =</span> <span class="st">"gaussian"</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
+<tr class="even">
+<td>Inverse probability weighting with calibration constraint</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, pop_totals = c(`(Intercept)`= N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_selection = “logit”, control_selection = controlSel(est_method_sel = “gee”, h = 1) ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Doubly robust estimator</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + …, + xk, pop_totals = c(`(Intercept)` = N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+</tbody>
 </table>
 </div>
 <div class="section level3">
 <h3 id="when-unit-level-data-are-available-for-both-surveys">When unit-level data are available for both surveys<a class="anchor" aria-label="anchor" href="#when-unit-level-data-are-available-for-both-surveys"></a>
 </h3>
-<table class="table table">
-<tr>
-<th>
-Estimator
-</th>
-<th>
-Example code
-</th>
+<table class="table">
+<colgroup>
+<col width="24%">
+<col width="75%">
+</colgroup>
+<thead><tr class="header">
+<th>Estimator</th>
+<th>Example code</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Mass imputation based on regression imputation
-</td>
-<td>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"glm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Mass imputation based on regression imputation</td>
+<td>```{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Mass imputation based on nearest neighbour imputation
-</td>
-<td>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"nn"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_outcome <span class="op">=</span> <span class="fu">controlOutcome</span><span class="op">(</span>k <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Mass imputation based on predictive mean matching
-</td>
-<td>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"pmm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Mass imputation based on nearest neighbour imputation</td>
+<td>```{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “nn”, family_outcome = “gaussian”, control_outcome = controlOutcome(k = 2) ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Mass imputation based on regression imputation with variable selection (LASSO)
-</td>
-<td>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"pmm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_outcome <span class="op">=</span> <span class="fu"><a href="reference/controlOut.html">controlOut</a></span><span class="op">(</span>penalty <span class="op">=</span> <span class="st">"lasso"</span><span class="op">)</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Inverse probability weighting
-</td>
-<td>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span>  <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  target <span class="op">=</span> <span class="op">~</span> <span class="va">y</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_selection <span class="op">=</span> <span class="st">"logit"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Mass imputation based on predictive mean matching</td>
+<td>```{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian” ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint
-</td>
-<td>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span>  <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  target <span class="op">=</span> <span class="op">~</span> <span class="va">y</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_selection <span class="op">=</span> <span class="st">"logit"</span>, </span>
-<span>  control_selection <span class="op">=</span> <span class="fu"><a href="reference/controlSel.html">controlSel</a></span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint with variable selection (SCAD)
-</td>
-<td>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span>  <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  target <span class="op">=</span> <span class="op">~</span> <span class="va">y</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"pmm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Mass imputation based on regression imputation with variable selection (LASSO)</td>
+<td>```{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian”, control_outcome = controlOut(penalty = “lasso”), control_inference = controlInf(vars_selection = TRUE) ) ```</td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Doubly robust estimator
-</td>
-<td>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"glm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
 </tr>
-<tr></tr>
-<tr>
-<td>
-Doubly robust estimator with variable selection (SCAD) and bias minimization
-</td>
-<td>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  outcome <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">...</span> <span class="op">+</span> <span class="va">xk</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
-<span>  svydesign <span class="op">=</span> <span class="va">prob</span>,</span>
-<span>  method_outcome <span class="op">=</span> <span class="st">"glm"</span>, </span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span></span>
-<span>    vars_selection <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>    bias_correction <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</td>
+<tr class="even">
+<td>Inverse probability weighting</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_selection = “logit” ) ```</td>
 </tr>
-<tr></tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Inverse probability weighting with calibration constraint</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_selection = “logit”, control_selection = controlSel(est_method_sel = “gee”, h = 1) ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Inverse probability weighting with calibration constraint with variable selection (SCAD)</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian”, control_inference = controlInf(vars_selection = TRUE) ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Doubly robust estimator</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Doubly robust estimator with variable selection (SCAD) and bias minimization</td>
+<td>```{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian”, control_inference = controlInf( vars_selection = TRUE, bias_correction = TRUE ) ) ```</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+</tr>
+</tbody>
 </table>
 </div>
 </div>
@@ -448,7 +325,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
 </h2>
 <p>Simulate example data from the following paper: Kim, Jae Kwang, and Zhonglei Wang. “Sampling techniques for big data analysis.” International Statistical Review 87 (2019): S177-S191 [section 5.2]</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://r-survey.r-forge.r-project.org/survey/" class="external-link">survey</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ncn-foreigners/nonprobsvy" class="external-link">nonprobsvy</a></span><span class="op">)</span></span>
 <span></span>
@@ -468,11 +345,11 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="va">population</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">x1</span>,<span class="va">x2</span>,<span class="va">y1</span>,<span class="va">y2</span>,<span class="va">p1</span>,<span class="va">p2</span>,<span class="va">base_w_srs</span>, <span class="va">flag_bd1</span>, <span class="va">flag_srs</span><span class="op">)</span></span>
 <span><span class="va">base_w_bd</span> <span class="op">&lt;-</span> <span class="va">N</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">population</span><span class="op">$</span><span class="va">flag_bd1</span><span class="op">)</span></span></code></pre></div>
 <p>Declare <code>svydesign</code> object with <code>survey</code> package</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sample_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids<span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, weights <span class="op">=</span> <span class="op">~</span> <span class="va">base_w_srs</span>, </span>
 <span>                         data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Estimate population mean of <code>y1</code> based on doubly robust estimator using IPW with calibration constraints.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
@@ -480,7 +357,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_dr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -533,14 +410,14 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; BIC: 1010645</span></span>
 <span><span class="co">#&gt; Log-Likelihood: -505309 on 694009 Degrees of freedom</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_mi</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -574,14 +451,14 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; -------------------------</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
 <span>  target <span class="op">=</span> <span class="op">~</span><span class="va">y1</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_ipw</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -635,7 +512,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <div class="section level2">
 <h2 id="references-selected">References (selected)<a class="anchor" aria-label="anchor" href="#references-selected"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-chen2020" class="csl-entry">
 Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference With Nonprobability Survey Samples.” <em>Journal of the American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi.org/10.1080/01621459.2019.1677241" class="external-link uri">https://doi.org/10.1080/01621459.2019.1677241</a>.
 </div>
