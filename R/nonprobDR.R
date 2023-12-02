@@ -8,7 +8,6 @@
 #' @importFrom stats terms
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
-#' @import RcppArmadillo
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 

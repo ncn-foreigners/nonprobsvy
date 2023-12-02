@@ -5,7 +5,6 @@
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
 #' @importFrom stats terms
-#' @import RcppArmadillo
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 

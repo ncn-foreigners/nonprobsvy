@@ -8,7 +8,6 @@
 #' @importFrom RANN nn2
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms
-#' @import RcppArmadillo
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
