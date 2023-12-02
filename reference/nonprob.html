@@ -420,7 +420,7 @@ estimation process of bias minimization approach.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>     cluster, strata</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># sizes of population and probability sample</span></span></span>
-<span class="r-in"><span><span class="va">N</span> <span class="op">&lt;-</span>  <span class="fl">20000</span> <span class="co"># population</span></span></span>
+<span class="r-in"><span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">20000</span> <span class="co"># population</span></span></span>
 <span class="r-in"><span><span class="va">n_b</span> <span class="op">&lt;-</span> <span class="fl">1000</span> <span class="co"># probability</span></span></span>
 <span class="r-in"><span><span class="co"># data</span></span></span>
 <span class="r-in"><span><span class="va">z1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span></span></span>
@@ -439,32 +439,36 @@ estimation process of bias minimization approach.</p>
 <span class="r-in"><span><span class="va">sigma_80</span> <span class="op">&lt;-</span> <span class="fl">2.4</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># response variables</span></span></span>
-<span class="r-in"><span><span class="va">y30</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span>  <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_30</span><span class="op">*</span><span class="va">epsilon</span></span></span>
-<span class="r-in"><span><span class="va">y50</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span>  <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_50</span><span class="op">*</span><span class="va">epsilon</span></span></span>
-<span class="r-in"><span><span class="va">y80</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span>  <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_80</span><span class="op">*</span><span class="va">epsilon</span></span></span>
+<span class="r-in"><span><span class="va">y30</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_30</span> <span class="op">*</span> <span class="va">epsilon</span></span></span>
+<span class="r-in"><span><span class="va">y50</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_50</span> <span class="op">*</span> <span class="va">epsilon</span></span></span>
+<span class="r-in"><span><span class="va">y80</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">sigma_80</span> <span class="op">*</span> <span class="va">epsilon</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># population</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y30</span>, <span class="va">y50</span>, <span class="va">y80</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">## propensity score model for nonprobability sample (sum to 1000)</span></span></span>
-<span class="r-in"><span><span class="va">eta</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">4.461</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">*</span><span class="va">x1</span> <span class="op">+</span> <span class="fl">0.2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">*</span><span class="va">x3</span> <span class="op">+</span> <span class="fl">0.2</span><span class="op">*</span><span class="va">x4</span></span></span>
+<span class="r-in"><span><span class="va">eta</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">4.461</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">x2</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x3</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">x4</span></span></span>
 <span class="r-in"><span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># inclusion probabilities for probability sample</span></span></span>
-<span class="r-in"><span><span class="va">z_prob</span> <span class="op">&lt;-</span> <span class="va">x3</span><span class="op">+</span><span class="fl">0.2051</span></span></span>
+<span class="r-in"><span><span class="va">z_prob</span> <span class="op">&lt;-</span> <span class="va">x3</span> <span class="op">+</span> <span class="fl">0.2051</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/inclusionprobabilities.html" class="external-link">inclusionprobabilities</a></span><span class="op">(</span><span class="va">z_prob</span>, n <span class="op">=</span> <span class="va">n_b</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># data</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_nonprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="co">## sampling nonprob</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span><span class="op">)</span> <span class="co">## sampling prob</span></span></span>
 <span class="r-in"><span><span class="va">nonprob_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_nonprob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## nonprobability sample</span></span></span>
-<span class="r-in"><span><span class="va">svyprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids<span class="op">=</span><span class="op">~</span><span class="fl">1</span>, probs <span class="op">=</span> <span class="op">~</span> <span class="va">p_prob</span>,</span></span>
-<span class="r-in"><span>                     data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_prob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                     pps <span class="op">=</span> <span class="st">"brewer"</span><span class="op">)</span> <span class="co">## probability sample</span></span></span>
+<span class="r-in"><span><span class="va">svyprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  ids <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, probs <span class="op">=</span> <span class="op">~</span><span class="va">p_prob</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_prob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  pps <span class="op">=</span> <span class="st">"brewer"</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="co">## probability sample</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## mass imputation estimator</span></span></span>
-<span class="r-in"><span><span class="va">MI_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span>outcome <span class="op">=</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
-<span class="r-in"><span>                  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
-<span class="r-in"><span>                  svydesign <span class="op">=</span> <span class="va">svyprob</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">MI_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  outcome <span class="op">=</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
+<span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">MI_res</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
@@ -501,10 +505,12 @@ estimation process of bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co">## inverse probability weighted estimator</span></span></span>
-<span class="r-in"><span><span class="va">IPW_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span>selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
-<span class="r-in"><span>                   target <span class="op">=</span> <span class="op">~</span> <span class="va">y80</span>,</span></span>
-<span class="r-in"><span>                   data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
-<span class="r-in"><span>                   svydesign <span class="op">=</span> <span class="va">svyprob</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">IPW_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
+<span class="r-in"><span>  target <span class="op">=</span> <span class="op">~</span><span class="va">y80</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
+<span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">IPW_res</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
@@ -553,10 +559,12 @@ estimation process of bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 7826.161</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -3893.985 on 2071 Degrees of freedom</span>
 <span class="r-in"><span><span class="co">## doubly robust estimator</span></span></span>
-<span class="r-in"><span><span class="va">DR_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span>outcome <span class="op">=</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
-<span class="r-in"><span>                  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
-<span class="r-in"><span>                  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
-<span class="r-in"><span>                  svydesign <span class="op">=</span> <span class="va">svyprob</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">DR_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  outcome <span class="op">=</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
+<span class="r-in"><span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
+<span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">DR_res</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
