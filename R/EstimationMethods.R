@@ -24,6 +24,8 @@ mle <- function(...) {
     aic <- 2 * (length(theta_hat) - log_likelihood)
     residuals <- model$residuals
     variance <- as.vector(model$variance)
+    deviance = model$deviance
+    deviance_null = model$deviance_null
 
     list(theta_hat = theta_hat,
          grad = grad,
@@ -124,6 +126,35 @@ mle <- function(...) {
                                weights_rand = weights_rand,
                                start = start,
                                control = control_selection)
+
+    #### deviance
+    # # null model
+    # max_lik_null <- max_lik(X_nons = rep(1, nrow(X_nons)),
+    #                         X_rand = rep(1, nrow(X_rand)),
+    #                         weights = weights,
+    #                         weights_rand = weights_rand,
+    #                         start = 0,
+    #                         control = control_selection)
+    # log_lik_null <- max_lik_null$log_l
+    #
+    # # saturated model
+    # sats <- factor(1:length(R))
+    # df_sat <- data.frame(R = R, sats = sats)
+    # mod_sat <- model.frame(R ~ sats, data = df_sat)
+    # X_sat <- model.matrix(mod_sat)
+    # max_lik_sat <- max_lik(X_nons = X_sat[which(R == 1), ,drop = FALSE],
+    #                        X_rand = X_sat[which(R == 0), ,drop = FALSE],
+    #                        weights = weights,
+    #                        weights_rand = weights_rand,
+    #                        start = rep(0, ncol(X_sat)),
+    #                        control = control_selection)
+    # log_lik_sat <- max_lik_sat$log_l
+    #
+    # # null deviance
+    # deviance_null <- log_lik_sat - log_lik_null
+    #
+    # # deviance
+    # deviance <- log_lik_sat - maxLik_nons_obj$log_l
 
     theta <- maxLik_nons_obj$theta_hat
     eta_nons <- theta %*% t(X_nons)

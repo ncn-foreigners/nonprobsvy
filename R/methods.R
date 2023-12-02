@@ -415,15 +415,17 @@ logLik.nonprobsvy <- function(object, ...) { # TODO consider adding appropriate 
 #' @exportS3Method
 AIC.nonprobsvy <- function(object,
                            ...) {
-  if (!is.character(object$selection$log_likelihood)) {
-    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- 2 * (length(object$selection$coefficients) - object$selection$log_likelihood)
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object)))  {
+      if (!is.na(object$selection$log_likelihood)) {
+        res_sel <- 2 * (length(object$selection$coefficients) - object$selection$log_likelihood)
+      } else {
+        res_sel <- NA
+      }
+    }
     if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome[[1]]$aic
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
     if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
     if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
-  } else{
-    res <- "not available for this method"
-  }
   res
 }
 #' @method BIC nonprobsvy
@@ -432,27 +434,23 @@ AIC.nonprobsvy <- function(object,
 #' @exportS3Method
 BIC.nonprobsvy <- function(object,
                            ...) {
-  if (!is.character(object$selection$log_likelihood)) {
-    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- length(object$selection$coefficients) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
-    if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
-
-      if (!is.null(object$outcome[[1]]$coefficients)) {
-        if (object$control$control_inference$vars_selection == TRUE) {
-          options(AIC="BIC")
-          res_out <- HelpersMG::ExtractAIC.glm(object$outcome[[1]])[2]
-        } else {
-          res_out <- BIC(object$outcome[[1]])
-        }
+    if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+      if (!is.na(object$selection$log_likelihood)) {
+      res_sel <- length(object$selection$coefficients) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
       } else {
-        res_out <- "not available for this methos"
+        res_sel <- NA
+      }
+    }
+    if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
+      if (class(object$outcome[[1]])[1] == "glm") {
+        res_out <- BIC(object$outcome[[1]])
+      } else {
+        res_out <- NA
       }
     }
     if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
     if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
     if (class(object)[2] == "nonprobsvy_dr") res <- list("selection" = res_sel, "outcome" = res_out)
-  } else {
-    res <- "not available for this method"
-  }
   res
 }
 #' @title Confidence Intervals for Model Parameters
@@ -532,7 +530,7 @@ vcov.nonprobsvy <- function(object,
 #' @importFrom stats deviance
 #' @exportS3Method
 deviance.nonprobsvy <- function(object,
-                                ...) { # TODO if conditions like method = "glm"
+                                ...) {
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) {
     if ((class(object$outcome[[1]])[1] == "glm") ) {
       res_out <- deviance(object$outcome[[1]])
@@ -541,12 +539,11 @@ deviance.nonprobsvy <- function(object,
     }
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+    message("Deviance for selection model not available yet.")
     if(!is.character(object$selection$log_likelihood)) {
-      # TODO null_model <-
-      # TODO sat_model <-
-      res_sel <- -2 * logLik(object)
+      res_sel <- NA
     } else {
-      res_sel <- "NULL"
+      res_sel <- NA
     }
   }
   if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)

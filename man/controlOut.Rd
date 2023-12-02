@@ -8,7 +8,7 @@ controlOut(
   epsilon = 1e-06,
   maxit = 100,
   trace = FALSE,
-  k = 5,
+  k = 1,
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,

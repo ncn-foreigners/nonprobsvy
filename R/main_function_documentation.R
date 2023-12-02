@@ -226,7 +226,7 @@ NULL
 #'  \item{\code{prior.weights} -- the weights initially supplied, a vector of 1s if none were.}
 #'  \item{\code{formula} -- the formula supplied.}
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
-#'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NULL`.}
+#'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NA`.}
 #'  \item{\code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds for variables selection model
 #'  when propensity score model is fitting.}
 #'   }
