@@ -209,8 +209,9 @@ nonprobMI <- function(outcome,
                                 n_nons = n_nons,
                                 N = N_est_rand,
                                 family = family_outcome,
-                                parameters = model_obj$parameters,
-                                pop_totals = pop_totals)
+                                model_obj = model_obj,
+                                pop_totals = pop_totals,
+                                k = control_outcome$k)
 
       var_nonprob <- var_obj$var_nonprob
       var_prob <- var_obj$var_prob

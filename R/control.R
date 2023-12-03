@@ -161,6 +161,7 @@ controlOut <- function(epsilon = 1e-6,
        nfolds = nfolds,
        treetype = treetype,
        searchtype = searchtype,
+       # add bayesian
        predictive_match = predictive_match,
        pmm_weights = pmm_weights)
 

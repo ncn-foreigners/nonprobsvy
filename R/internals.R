@@ -458,9 +458,11 @@ internal_varMI <- function(svydesign,
                            n_nons,
                            N,
                            family,
-                           parameters,
-                           pop_totals
+                           model_obj,
+                           pop_totals,
+                           k
                            ) {
+  parameters <- model_obj$parameters
 
   if(is.character(family)) {
     family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
@@ -490,6 +492,26 @@ internal_varMI <- function(svydesign,
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
 
+      comp1 <- sum(model_obj$y_rand_pred ^ 2 * weights_rand * (weights_rand - 1))
+
+      # Assuming independence, this needs to be corrected later
+      comp2 <- 0
+
+      # this can be both speed up and greatly simplified
+      comp3 <- sum(sapply(
+        1:n_rand,
+        FUN = function (x) {
+          sum(sapply(
+            1:x,
+            FUN = function (y) {
+              weights_rand[x] * weights_rand[y] *
+                sum(outer(X = y[model_obj$model$model_rand$nn.idx[x, ]],
+                          Y = y[model_obj$model$model_rand$nn.idx[y, ]]))
+            }
+          ))
+        }
+      ))
+
       # beta <- parameters[,1]
       # eta_nons <- X_nons %*% beta
       # eta_rand <- X_rand %*% beta
@@ -504,7 +526,8 @@ internal_varMI <- function(svydesign,
 
       # nonprobability component
       # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
-      var_nonprob <- 0
+      var_nonprob <- (comp1 + comp2 + comp1) / (N ^ 2 * k ^ 2)
+      var_prob <- 0
       # var_nonprob <- as.vector(var_nonprob)
       # TODO to consider
     }
