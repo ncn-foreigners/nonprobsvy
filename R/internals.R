@@ -526,10 +526,10 @@ internal_varMI <- function(svydesign,
 
       # nonprobability component
       # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
-      var_nonprob <- (comp1 + comp2 + comp1) / (N ^ 2 * k ^ 2)
+      var_nonprob <- (comp1 + comp2 + comp1) / (N ^ 2 * k ^ 2) -
+        weighted.mean(model_obj$y_rand_pred, w = weights_rand) ^ 2
       var_prob <- 0
       # var_nonprob <- as.vector(var_nonprob)
-      # TODO to consider
     }
   } else {
     if (method == "nn") {
