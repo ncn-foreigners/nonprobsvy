@@ -446,7 +446,6 @@ AIC.nonprobsvy <- function(object,
 }
 #' @method BIC nonprobsvy
 #' @importFrom stats BIC
-#' @importFrom HelpersMG ExtractAIC.glm
 #' @exportS3Method
 BIC.nonprobsvy <- function(object,
                            ...) {

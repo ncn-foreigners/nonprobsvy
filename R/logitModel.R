@@ -1,23 +1,6 @@
-#' @title Logit model for weights adjustment
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#'
-#' @description \code{logit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a logit link function.
-#'
-#' @param ... Additional, optional arguments.
-#'
-#' @return List with selected methods/objects/functions.
-#'
-#' @seealso
-#'
-#' [nonprob()] -- for fitting procedure with non-probability samples.
-#'
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
-#'
-#'
-#' @export
-
 logit_model_nonprobsvy <- function(...) {
   link <- function(mu) {
     log(mu / (1 - mu))

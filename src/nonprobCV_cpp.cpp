@@ -1,6 +1,3 @@
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 //#include <Eigen/Dense>
@@ -342,7 +339,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
       }
     }
   } else if (penalty == "lasso") {
-    for (int i = 0; i < par.size(); i++) {
+    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
       if (par[i] < 0) {
         penaltyd[i] = - lambda;
       } else if (par[i] > 0) {
@@ -353,7 +350,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
     }
     // penaltyd = lambda * arma::sign(par);
   } else if (penalty == "MCP") {
-    for (int i = 0; i < par.size(); i++) {
+    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
       if (std::abs(par[i]) <= a*lambda) {
         if (par[i] < 0) {
           penaltyd[i] = - (lambda - std::abs(par[i]) / a);

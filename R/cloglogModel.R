@@ -1,20 +1,6 @@
-#' @title Complementary log-log model for weights adjustment
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#'
-#' @description \code{cloglog_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a complementary log-log link function.
-#'
-#' @param ... Additional, optional arguments.
-#'
-#' @seealso
-#'
-#' [nonprob()] -- for fitting procedure with non-probability samples.
-#'
-#' @return List with selected methods/objects/functions.
 #' @importFrom maxLik maxLik
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
-#' @export
-
 cloglog_model_nonprobsvy <- function(...) {
   link <- function(mu) {
     log(-log(1 - mu))

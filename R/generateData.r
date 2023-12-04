@@ -1,9 +1,9 @@
 #' @import mathjaxr
 NULL
-#' @title genSimData
+#' @title Simulation data
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #
-#' @description generate simulated data according to Chen, Li & Wu (2020), section 5
+#' @description Generate simulated data according to Chen, Li & Wu (2020), section 5.
 #'
 #' \loadmathjax
 #
@@ -23,7 +23,7 @@ NULL
 #' \item{srs -- probabilities of inclusion to random sample such that max(srs)/min(srs)=50}
 #' }
 #'
-#' @references Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 115(532), 2011–2021. https://doi.org/10.1080/01621459.2019.1677241
+#' @references Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 115(532), 2011–2021. doi:10.1080/01621459.2019.1677241
 #'
 #' @examples
 #' ## generate data with N=20000 and n=2000

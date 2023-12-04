@@ -9,4 +9,5 @@ playground
 .DS_Store
 src/*.o
 src/*.so
+src/Makevars
 docs

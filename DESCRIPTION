@@ -16,7 +16,12 @@ Authors@R:
              family = "Chlebicki",
              role = "ctb",
              email = "piochl@st.amu.edu.pl"))
-Description: An R package for statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. Details can be found in: Wu et al. (2020) <https://doi.org/10.1080/01621459.2019.1677241>, Kim et al. (2021) <https://doi.org/10.1111/rssa.12696>, Wu et al. (2023) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>, Kim et al. (2021) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>, Kim et al. (2020) <https://doi.org/10.1111/rssb.12354>.
+Description: An R package for statistical inference with non-probability samples when auxiliary information
+    from external sources such as probability samples or population totals or means is available. Details can be found
+    in: Wu et al. (2020) <doi:10.1080/01621459.2019.1677241>, Kim et al. (2021) <doi:10.1111/rssa.12696>,
+    Wu et al. (2023) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>,
+    Kim et al. (2021) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>,
+    Kim et al. (2020) <doi:10.1111/rssb.12354>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -31,6 +36,20 @@ Suggests:
     sampling,
     spelling
 Depends: survey
-Imports: maxLik, stats, Matrix, MASS, ncvreg, RANN, Rcpp, mathjaxr, nleqslv, doParallel, foreach, parallel, HelpersMG
-LinkingTo: RcppArmadillo, Rcpp
+Imports: 
+    maxLik,
+    stats,
+    Matrix,
+    MASS,
+    ncvreg,
+    mathjaxr,
+    RANN,
+    Rcpp,
+    nleqslv,
+    doParallel,
+    foreach,
+    parallel
+LinkingTo: 
+    RcppArmadillo,
+    Rcpp
 Language: en-US
