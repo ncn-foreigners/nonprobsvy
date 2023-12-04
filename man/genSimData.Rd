@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateData.r
 \name{genSimData}
 \alias{genSimData}
-\title{genSimData}
+\title{Simulation data}
 \usage{
 genSimData(N = 10000, n = 1000)
 }
