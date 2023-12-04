@@ -7,6 +7,9 @@
     <loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE-text.html</loc>
   </url>
   <url>
+    <loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE.html</loc>
+  </url>
+  <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/authors.html</loc>
   </url>
   <url>
@@ -14,9 +17,6 @@
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/cloglog_model_nonprobsvy.html</loc>
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/confint.nonprobsvy.html</loc>
@@ -37,16 +37,10 @@
     <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/logit_model_nonprobsvy.html</loc>
-  </url>
-  <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/nonprob.html</loc>
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/pop.size.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/probit_model_nonprobsvy.html</loc>
   </url>
   <url>
     <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/summary.nonprobsvy.html</loc>
