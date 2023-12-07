@@ -240,8 +240,10 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap"))
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                verbose = TRUE)
   )
+
 
   expect_silent(
     test2a_bootstrap <- nonprob(selection = ~ x,
@@ -249,15 +251,19 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap"))
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                verbose = TRUE)
   )
+
 
   expect_silent(
     test3a_bootstrap <- nonprob(outcome = y1 ~ x,
                                 data = source_nonprob_p,
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap"))
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                verbose = TRUE)
   )
+
 
   expect_equivalent(test1a$output$mean, test1a_bootstrap$output$mean, tolerance = 0.1)
   # expect_equivalent(test1a$output$SE, test1a_bootstrap$output$SE, tolerance = 0.1) to check

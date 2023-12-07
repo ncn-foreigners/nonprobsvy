@@ -1,8 +1,22 @@
+#' @title Probit model for weights adjustment
+#' @author Łukasz Chrostowski, Maciej Beręsewicz
+#'
+#' @description \code{probit_model_nonprobsvy} returns all the methods/objects/functions required to estimate the model, assuming a probit link function.
+#' @param ... Additional, optional arguments.
+#'
+#' @return List with selected methods/objects/functions.
+#'
+#' @seealso
+#'
+#' [nonprob()] -- for fitting procedure with non-probability samples.
+#'
 #' @importFrom maxLik maxLik
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @export
+# must be exported to be visible in c++ script, to consider any other option
 probit_model_nonprobsvy <- function(...) {
   link <- function(mu) {
     qnorm(mu)
