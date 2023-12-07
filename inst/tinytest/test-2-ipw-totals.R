@@ -192,7 +192,7 @@ expect_identical(y_all_corr_all$confidence_interval,
 # These tests are only supposed to be run on developer's machine and
 # package GitHub page not on CRAN (they take too long)
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
@@ -314,7 +314,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             verbose = T)
   # )
 
-}
+# }
 
 
 ## non-linear case ------------------------------------------------------------------------
@@ -503,7 +503,7 @@ expect_identical(y_all_corr_all$confidence_interval,
 #### variable selection  ------------------------------------------------------------------
 ##### one target variable  ----------------------------------------------------------------
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   ## y_11
   expect_silent(
@@ -623,7 +623,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             verbose = T)
   # )
 
-}
+# }
 
 
 # check probit ----------------------------------------------------------------------------
@@ -809,7 +809,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
@@ -931,7 +931,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             verbose = T)
   # )
 
-}
+# }
 
 ## non-linear case ------------------------------------------------------------------------
 #### correctly specified variables --------------------------------------------------------
@@ -1117,7 +1117,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
@@ -1239,7 +1239,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             verbose = T)
   # )
 
-}
+# }
 
 # check cloglog -----------------------------------------------------
 ## linear case ----------------------------------------------------------------------------
@@ -1422,7 +1422,7 @@ expect_silent(
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 #
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
@@ -1558,7 +1558,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
   #
 
-}
+# }
 # ##### all target variables  ---------------------------------------------------------------
 #
 expect_silent(
@@ -1679,7 +1679,7 @@ expect_silent(
 #                                             y22_corr_all$confidence_interval$upper_bound),
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
@@ -1753,4 +1753,4 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   # #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
   # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
-}
+# }

@@ -40,6 +40,7 @@ nonprobIPW <- function(selection,
   nlambda <- control_selection$nlambda
   nfolds <- control_selection$nfolds
   eps <- control_selection$epsilon
+  rep_type <- control_inference$rep_type
   if (!(target[3] == "NULL()")) stop("ill-defined formula for the target")
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
@@ -408,6 +409,7 @@ nonprobIPW <- function(selection,
           boot_obj <- bootIPW_multicore(
             X_rand = X_rand,
             X_nons = X_nons,
+            svydesign = svydesign,
             y = y_nons,
             num_boot = num_boot,
             weights = weights,
@@ -434,6 +436,7 @@ nonprobIPW <- function(selection,
           boot_obj <- bootIPW(
             X_rand = X_rand,
             X_nons = X_nons,
+            svydesign = svydesign,
             y = y_nons,
             num_boot = num_boot,
             weights = weights,

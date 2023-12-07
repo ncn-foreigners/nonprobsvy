@@ -52,6 +52,7 @@ nonprobDR <- function(selection,
   nlambda <- control_selection$nlambda
   num_boot <- control_inference$num_boot
   eps <- control_selection$epsilon
+  rep_type <- control_inference$rep_type
   ps_rand <- svydesign$prob
   weights_rand <- 1 / ps_rand
 
@@ -672,6 +673,7 @@ nonprobDR <- function(selection,
           boot_obj <- bootDR_multicore(
             outcome = outcome,
             data = data,
+            svydesign = svydesign,
             SelectionModel = SelectionModel,
             OutcomeModel = OutcomeModel,
             family_outcome = family_outcome,
@@ -705,6 +707,7 @@ nonprobDR <- function(selection,
           boot_obj <- bootDR(
             outcome = outcome,
             data = data,
+            svydesign = svydesign,
             SelectionModel = SelectionModel,
             OutcomeModel = OutcomeModel,
             family_outcome = family_outcome,
