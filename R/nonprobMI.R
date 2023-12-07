@@ -80,12 +80,16 @@ nonprobMI <- function(outcome,
       if (var_selection == TRUE) {
         nlambda <- control_outcome$nlambda
         beta <- ncvreg::cv.ncvreg(
-          X = X[loc_nons, -1, drop = FALSE],
+          X = X_nons[, -1, drop = FALSE],
           y = y_nons,
           penalty = control_outcome$penalty,
           family = family_outcome,
           trace = verbose,
-          nfolds = control_outcome$nfolds
+          nfolds = control_outcome$nfolds,
+          nlambda = nlambda,
+          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          lambda_min = control_outcome$lambda_min,
+          eps = control_outcome$epsilon
         )
 
         beta_est <- beta$fit$beta[, beta$min]
@@ -159,7 +163,11 @@ nonprobMI <- function(outcome,
           penalty = control_outcome$penalty,
           family = family_outcome,
           trace = verbose,
-          nlambda = nlambda
+          nfolds = control_outcome$nfolds,
+          nlambda = nlambda,
+          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          lambda_min = control_outcome$lambda_min,
+          eps = control_outcome$epsilon
         )
 
         beta_est <- beta$fit$beta[, beta$min]

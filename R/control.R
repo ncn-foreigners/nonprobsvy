@@ -111,7 +111,7 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #'
 #' @export
 
-controlOut <- function(epsilon = 1e-6,
+controlOut <- function(epsilon = 1e-4,
                        maxit = 100,
                        trace = FALSE,
                        k = 1,
