@@ -323,6 +323,7 @@ nonprobIPW <- function(selection,
     df_residual <- nrow(X_nons) - length(theta_hat)
     weights_nons <- 1 / ps_nons
     N <- sum(weights * weights_nons)
+    residuals <- as.vector(rep(1, n_nons) - ps_nons)
 
     selection_model <- list(
       theta_hat = theta_hat,
@@ -336,7 +337,8 @@ nonprobIPW <- function(selection,
       var_cov1 = var_cov1,
       var_cov2 = var_cov2,
       df_residual = df_residual,
-      log_likelihood = "NULL"
+      residuals = residuals,
+      log_likelihood = NA
     )
     #######################################
   } else {

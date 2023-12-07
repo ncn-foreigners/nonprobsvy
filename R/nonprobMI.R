@@ -85,7 +85,7 @@ nonprobMI <- function(outcome,
           penalty = control_outcome$penalty,
           family = family_outcome,
           trace = verbose,
-          nlambda = nlambda
+          nfolds = control_outcome$nfolds
         )
 
         beta_est <- beta$fit$beta[, beta$min]
