@@ -32,6 +32,7 @@ nonprobMI <- function(outcome,
                       se,
                       ...) {
   var_selection <- control_inference$vars_selection
+  outcome_init <- outcome
   outcomes <- ff(outcome)
   output <- list()
   ys <- list()
@@ -210,7 +211,7 @@ nonprobMI <- function(outcome,
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
-    ys$k <- as.numeric(y_nons) # TODO name to change
+    ys[[k]] <- as.numeric(y_nons)
     if (se) {
       # design based variance estimation based on approximations of the second-order inclusion probabilities
       if (control_inference$var_method == "analytic") { # consider move variance implementation to internals
@@ -317,11 +318,12 @@ nonprobMI <- function(outcome,
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   names(OutcomeList) <- outcomes$f
   names(pop_size) <- "pop_size"
+  names(ys) <- all.vars(outcome_init[[2]])
 
   structure(
     list(
       X = if (isTRUE(x)) X else NULL,
-      y = if (isTRUE(y)) as.numeric(y) else NULL,
+      y = if (isTRUE(y)) ys else NULL,
       control = list(
         control_outcome = control_outcome,
         control_inference = control_inference

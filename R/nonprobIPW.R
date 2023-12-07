@@ -44,7 +44,7 @@ nonprobIPW <- function(selection,
   if (!(target[3] == "NULL()")) stop("ill-defined formula for the target")
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
-  outcome <- stats::as.formula(paste(target[2], dependents))
+  outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
   outcomes <- ff(outcome)
   output <- list()
   ys <- list()
@@ -365,7 +365,7 @@ nonprobIPW <- function(selection,
         flag = FALSE
       )$y_nons
     }
-    ys$k <- as.numeric(y_nons) # TODO name to change
+    ys[[k]] <- as.numeric(y_nons)
     mu_hat <- mu_hatIPW(
       y = y_nons,
       weights = weights,
@@ -503,6 +503,7 @@ nonprobIPW <- function(selection,
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
   names(pop_size) <- "pop_size"
+  names(ys) <- all.vars(outcome_init[[2]])
 
   SelectionList <- list(
     coefficients = selection_model$theta_hat,

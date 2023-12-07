@@ -39,6 +39,7 @@ nonprobDR <- function(selection,
     message("Bootstrap variance only, analytical version during implementation")
     control_inference$var_method <- "bootstrap"
   }
+  outcome_init <- outcome
   h <- control_selection$h
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
@@ -633,7 +634,7 @@ nonprobDR <- function(selection,
     } else {
       stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
     }
-    ys$k <- as.numeric(y_nons) # TODO name to change
+    ys[[k]] <- as.numeric(y_nons)
 
     if (se) {
       if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
@@ -777,6 +778,7 @@ nonprobDR <- function(selection,
   names(OutcomeList) <- outcomes$f
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
+  names(ys) <- all.vars(outcome_init[[2]])
 
   SelectionList <- list(
     coefficients = selection_model$theta_hat,
@@ -801,7 +803,7 @@ nonprobDR <- function(selection,
   structure(
     list(
       X = if (isTRUE(x)) X else NULL,
-      y = if (isTRUE(y)) as.numeric(y) else NULL,
+      y = if (isTRUE(y)) ys else NULL,
       prob = prop_scores,
       weights = as.vector(weights_nons),
       control = list(
