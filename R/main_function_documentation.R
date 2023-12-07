@@ -188,8 +188,6 @@ NULL
 #'  \item{\code{output} -- output of the model with information on the estimated population mean and standard errors.}
 #'  \item{\code{SE} -- standard error of the estimator of the population mean, divided into errors from probability and non-probability samples.}
 #'  \item{\code{confidence_interval} -- confidence interval of population mean estimator}
-#'  \item{\code{coeff_selection} -- `data.frame` of the estimated coefficients of the propensity score (inverse probability weighting) model and their standard errors.}
-#'  \item{\code{coeff_outcome} -- `data.frame` of the estimated coefficients of the outcome (mass imputation) model and their standard errors.}
 #'  \item{\code{nonprob_size} -- size of non-probability sample}
 #'  \item{\code{prob_size} -- size of probability sample}
 #'  \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
