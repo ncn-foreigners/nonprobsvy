@@ -582,10 +582,10 @@ nonprobDR <- function(selection,
       # if(is.null(pop_size)) pop_size <- N_nons
       est_ps_rand <- NULL
       est_ps_rand_der <- NULL
-      log_likelihood <- "NULL"
+      log_likelihood <- NA
       weights_rand <- NULL
       sigma <- NULL
-      residuals <- ps_nons - rep(1, n_nons)
+      residuals <- as.vector(rep(1, n_nons) - ps_nons)
 
       selection_model <- list(
         theta_hat = theta_hat,
