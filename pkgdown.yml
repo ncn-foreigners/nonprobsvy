@@ -2,7 +2,7 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles: {}
-last_built: 2023-12-04T23:25Z
+last_built: 2023-12-07T08:53Z
 urls:
   reference: https://ncn-foreigners.github.io/nonprobsvy/reference
   article: https://ncn-foreigners.github.io/nonprobsvy/articles
