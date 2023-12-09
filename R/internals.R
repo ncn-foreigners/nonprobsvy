@@ -519,8 +519,8 @@ internal_varMI <- function(svydesign,
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
       if (predictive_match == 1) {
-        # comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))
-        comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
+        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N)) / 2
+        #comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
 
         # Assuming independence, this needs to be corrected later
         comp2 <- 0

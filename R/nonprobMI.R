@@ -46,8 +46,8 @@ nonprobMI <- function(outcome,
   }
   num_boot <- control_inference$num_boot
   if (method_outcome == "pmm") {
-    control_inference$var_method <- "bootstrap"
-    message("Bootstrap variance only, analytical version during implementation.")
+    # control_inference$var_method <- "bootstrap"
+    # message("Bootstrap variance only, analytical version during implementation.")
   }
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
