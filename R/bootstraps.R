@@ -135,11 +135,22 @@ bootMI <- function(X_rand,
         y_nons_strap <- family_nonprobsvy$mu(eta_nons)
 
 
-        model_rand <- nonprobMI_nn(data = y_nons_strap,
-                                   query = y_rand_strap,
-                                   k = control_outcome$k,
-                                   treetype = control_outcome$treetype,
-                                   searchtype = control_outcome$searchtype)
+        model_rand <- switch (control_outcome$predictive_match,
+          { # 1
+            nonprobMI_nn(data = y_strap,
+                         query = y_rand_strap,
+                         k = control_outcome$k,
+                         treetype = control_outcome$treetype,
+                         searchtype = control_outcome$searchtype)
+          },
+          { # 2
+            nonprobMI_nn(data = y_nons_strap,
+                         query = y_rand_strap,
+                         k = control_outcome$k,
+                         treetype = control_outcome$treetype,
+                         searchtype = control_outcome$searchtype)
+          }
+        )
 
         y_rand_strap <- apply(model_rand$nn.idx, 1,
                               FUN=\(x) mean(y_strap[x])
@@ -751,6 +762,7 @@ bootMI_multicore <- function(X_rand,
                                         family = family,
                                         start = start_outcome)
 
+
           beta <- model_strap$coefficients
           eta_rand <- X_rand_strap %*% beta
           eta_nons <- X_nons_strap %*% beta
@@ -758,11 +770,22 @@ bootMI_multicore <- function(X_rand,
           y_nons_strap <- family_nonprobsvy$mu(eta_nons)
 
 
-          model_rand <- nonprobMI_nn(data = y_nons_strap,
-                                     query = y_rand_strap,
-                                     k = control_outcome$k,
-                                     treetype = control_outcome$treetype,
-                                     searchtype = control_outcome$searchtype)
+          model_rand <- switch (control_outcome$predictive_match,
+            { # 1
+              nonprobMI_nn(data = y_strap,
+                           query = y_rand_strap,
+                           k = control_outcome$k,
+                           treetype = control_outcome$treetype,
+                           searchtype = control_outcome$searchtype)
+            },
+            { # 2
+              nonprobMI_nn(data = y_nons_strap,
+                           query = y_rand_strap,
+                           k = control_outcome$k,
+                           treetype = control_outcome$treetype,
+                           searchtype = control_outcome$searchtype)
+            }
+        )
 
           y_rand_strap <- apply(model_rand$nn.idx, 1,
                                 FUN=\(x) mean(y_strap[x])

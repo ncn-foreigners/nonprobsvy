@@ -211,7 +211,8 @@ nonprobMI <- function(outcome,
                                 family = family_outcome,
                                 model_obj = model_obj,
                                 pop_totals = pop_totals,
-                                k = control_outcome$k)
+                                k = control_outcome$k,
+                                predictive_match = control_outcome$predictive_match)
 
       var_nonprob <- var_obj$var_nonprob
       var_prob <- var_obj$var_prob
