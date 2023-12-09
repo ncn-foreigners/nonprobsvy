@@ -1,6 +1,3 @@
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 //#include <Eigen/Dense>
@@ -342,7 +339,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
       }
     }
   } else if (penalty == "lasso") {
-    for (int i = 0; i < par.size(); i++) {
+    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
       if (par[i] < 0) {
         penaltyd[i] = - lambda;
       } else if (par[i] > 0) {
@@ -353,7 +350,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
     }
     // penaltyd = lambda * arma::sign(par);
   } else if (penalty == "MCP") {
-    for (int i = 0; i < par.size(); i++) {
+    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
       if (std::abs(par[i]) <= a*lambda) {
         if (par[i] < 0) {
           penaltyd[i] = - (lambda - std::abs(par[i]) / a);
@@ -499,7 +496,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
 
     arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(int j = 0; j < nfolds; j++) {
       if (verbose) {
         wcout << "Starting CV fold #" << j+1 << endl;
@@ -517,7 +514,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       int ncols = X_test.n_cols;
       arma::uvec idxx = arma::regspace<arma::uvec>(0, ncols - 3);
 
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for(int i = 0; i < nlambda; i++) {
         // lambda = lambdas1(i);
         //arma::vec loss_theta_vec(nfolds, arma::fill::zeros);

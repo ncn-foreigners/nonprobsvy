@@ -62,30 +62,28 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        nlambda = 50,
                        nfolds = 10,
                        print_level = 0,
-                       start_type = c("glm", "naive")
-                       ) {
-
-  list(epsilon = epsilon,
-       maxit = maxit,
-       trace = trace,
-       optimizer = if(missing(optimizer)) "optim" else optimizer,
-       maxLik_method = maxLik_method,
-       optim_method = optim_method,
-       dependence = dependence,
-       key = key,
-       est_method_sel = if(missing(est_method_sel)) "mle" else est_method_sel,
-       h = if(missing(h)) 1 else h,
-       penalty = if(missing(penalty)) "SCAD" else penalty,
-       a_SCAD = a_SCAD,
-       a_MCP = a_MCP,
-       lambda_min = lambda_min,
-       nlambda = nlambda,
-       nfolds = nfolds,
-       lambda = lambda,
-       print_level = print_level,
-       start_type = if(missing(start_type)) "naive" else start_type
-      )
-
+                       start_type = c("glm", "naive")) {
+  list(
+    epsilon = epsilon,
+    maxit = maxit,
+    trace = trace,
+    optimizer = if (missing(optimizer)) "optim" else optimizer,
+    maxLik_method = maxLik_method,
+    optim_method = optim_method,
+    dependence = dependence,
+    key = key,
+    est_method_sel = if (missing(est_method_sel)) "mle" else est_method_sel,
+    h = if (missing(h)) 1 else h,
+    penalty = if (missing(penalty)) "SCAD" else penalty,
+    a_SCAD = a_SCAD,
+    a_MCP = a_MCP,
+    lambda_min = lambda_min,
+    nlambda = nlambda,
+    nfolds = nfolds,
+    lambda = lambda,
+    print_level = print_level,
+    start_type = if (missing(start_type)) "naive" else start_type
+  )
 }
 
 #' @title Control parameters for outcome model
@@ -127,10 +125,10 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #'
 #' @export
 
-controlOut <- function(epsilon = 1e-6,
+controlOut <- function(epsilon = 1e-4,
                        maxit = 100,
                        trace = FALSE,
-                       k = 5,
+                       k = 1,
                        penalty = c("SCAD", "lasso", "MCP"),
                        a_SCAD = 3.7,
                        a_MCP = 3,
@@ -196,23 +194,27 @@ controlOut <- function(epsilon = 1e-6,
 #' @export
 
 controlInf <- function(vars_selection = FALSE,
-                       var_method = c("analytic",
-                                      "bootstrap"),
-                       rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap",
-                                    "subbootstrap","mrbbootstrap","Fay"),
+                       var_method = c(
+                         "analytic",
+                         "bootstrap"
+                       ),
+                       rep_type = c(
+                         "auto", "JK1", "JKn", "BRR", "bootstrap",
+                         "subbootstrap", "mrbbootstrap", "Fay"
+                       ),
                        bias_inf = c("union", "div"),
                        num_boot = 500,
                        bias_correction = FALSE,
                        alpha = 0.05,
                        cores = 1) {
-
-  list(vars_selection = if(missing(vars_selection)) FALSE else vars_selection,
-       var_method = if(missing(var_method)) "analytic" else var_method,
-       rep_type = if(missing(rep_type)) "subbootstrap" else rep_type,
-       bias_inf = if(missing(bias_inf)) "union" else bias_inf,
-       bias_correction = bias_correction,
-       num_boot = num_boot,
-       alpha = alpha,
-       cores = cores)
-
+  list(
+    vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
+    var_method = if (missing(var_method)) "analytic" else var_method,
+    rep_type = if (missing(rep_type)) "subbootstrap" else rep_type,
+    bias_inf = if (missing(bias_inf)) "union" else bias_inf,
+    bias_correction = bias_correction,
+    num_boot = num_boot,
+    alpha = alpha,
+    cores = cores
+  )
 }

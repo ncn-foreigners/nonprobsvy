@@ -13,7 +13,7 @@ logit_model_nonprobsvy(...)
 List with selected methods/objects/functions.
 }
 \description{
-\code{logit_model_nonprobsvy} returns all methods/objects/functions required for the model estimation assuming a logit link function.
+\code{logit_model_nonprobsvy} returns all the methods/objects/functions required to estimate the model, assuming a logit link function.
 }
 \seealso{
 \code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.

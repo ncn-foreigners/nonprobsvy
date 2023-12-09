@@ -8,6 +8,7 @@
 [![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10280114.svg)](https://doi.org/10.5281/zenodo.10280114)
 
 <!-- badges: end -->
 
@@ -609,8 +610,7 @@ Work on this package is supported by the National Science Centre, OPUS
 
 ## References (selected)
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-chen2020" class="csl-entry">
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateData.r
 \name{genSimData}
 \alias{genSimData}
-\title{genSimData}
+\title{Simulation data}
 \usage{
 genSimData(N = 10000, n = 1000)
 }
@@ -27,20 +27,20 @@ genSimData(N = 10000, n = 1000)
 }
 }
 \description{
-generate simulated data according to Chen, Li & Wu (2020), section 5
+Generate simulated data according to Chen, Li & Wu (2020), section 5.
 
 \loadmathjax
 }
 \examples{
 ## generate data with N=20000 and n=2000
-genSimData(N=20000,n=2000)
+genSimData(N = 20000, n = 2000)
 
 ## generate data when big data is almost as N
-genSimData(N=10000,n=9000)
+genSimData(N = 10000, n = 9000)
 
 }
 \references{
-Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 115(532), 2011–2021. https://doi.org/10.1080/01621459.2019.1677241
+Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey Samples. Journal of the American Statistical Association, 115(532), 2011–2021. doi:10.1080/01621459.2019.1677241
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz

@@ -94,17 +94,15 @@ with type \code{list} containing:\cr
 \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{control} -- list of control functions.}
-\item{\code{output} -- output of the model containing information about estimated population mean and standard errors.}
-\item{\code{SE} -- standard error of population mean estimator divided into errors coming from probability and non-probability samples.}
+\item{\code{output} -- output of the model with information on the estimated population mean and standard errors.}
+\item{\code{SE} -- standard error of the estimator of the population mean, divided into errors from probability and non-probability samples.}
 \item{\code{confidence_interval} -- confidence interval of population mean estimator}
-\item{\code{coeff_selection} -- \code{data.frame} of estimated coefficients of the propensity score (inverse probability weighting) model and their standard errors.}
-\item{\code{coeff_outcome} -- \code{data.frame} of estimated coefficients of the outcome (mass imputation) model and their standard errors.}
 \item{\code{nonprob_size} -- size of non-probability sample}
 \item{\code{prob_size} -- size of probability sample}
 \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
-\item{\code{outcome} -- list containing information about fitting of mass imputation model, in case of regression model, object containing list returned by the function
-\code{\link[stats:glm]{stats::glm()}}, in case of nearest neighbour imputation object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set on \code{TRUE}, then estimation is based on
-the joint estimating equations for \code{selection} and \code{outcome} model and therefore, the list differs from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
+\item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
+\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set to \code{TRUE}, the estimation is based on
+the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
 \itemize{
 \item{\code{coefficients} -- estimated coefficients of the regression model}
 \item{\code{std_err} -- standard errors of the estimated coefficients}
@@ -118,7 +116,7 @@ the joint estimating equations for \code{selection} and \code{outcome} model and
 \item{\code{method} -- set on \code{glm}, since the regression method}
 }
 }
-Additionally when variables selection model for outcome variable is fitting, list includes of \code{cve} -- the error for each value of \code{lambda}, averaged across the cross-validation folds.
+In addition, if the variable selection model for the outcome variable is fitting, the list includes the \code{cve} -- the error for each value of \code{lambda}, averaged across the cross-validation folds.
 \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 \itemize{
 \item{\code{coefficients} -- a named vector of coefficients}
@@ -133,29 +131,29 @@ Additionally when variables selection model for outcome variable is fitting, lis
 \item{\code{prior.weights} -- the weights initially supplied, a vector of 1s if none were.}
 \item{\code{formula} -- the formula supplied.}
 \item{\code{df_residual} -- the residual degrees of freedom.}
-\item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NULL}.}
-\item{\code{cve} -- the error for each value of \code{lambda}, averaged across the cross-validation folds for variables selection model
-when propensity score model is fitting.}
+\item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NA}.}
+\item{\code{cve} -- the error for each value of the \code{lambda}, averaged across the cross-validation folds for the variable selection model
+when the propensity score model is fitting.}
 }
 }
 }
 }
 \description{
 \code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
-The function allows you to estimate the population mean having access to a reference probability sample as well as total/mean values of covariates.
+The function allows you to estimate the population mean with access to a reference probability sample, as well as sums and means of covariates.
 
-In the package implemented state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
-Yang et al. (2020), Wu (2022) and use \code{survey} package \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} for inference.
+The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
+Yang et al. (2020), Wu (2022) and use the \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} \code{survey} package for inference.
 
-Provided propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
-doubly robust estimators that take into account minimization of the asymptotic bias of the population mean estimators,
-variable selection or overlap between random and non-random sample.
-The package uses \code{survey} package functionalities when a probability sample is available.
+It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbor) and
+doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators,
+variable selection or overlap between probability and non-probability samples.
+The package uses \code{survey} package functionality when a probability sample is available.
 }
 \details{
-Let \mjseqn{y} be the response variable for which we want to estimate population mean
-given by \mjsdeqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purposes we consider data integration
-with the following structure. Let \mjseqn{S_A} be the non-probability sample with design matrix of covariates as
+Let \mjseqn{y} be the response variable for which we want to estimate the population mean,
+given by \mjsdeqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purpose we consider data integration
+with the following structure. Let \mjseqn{S_A} be the non-probability sample with the design matrix of covariates as
 \mjsdeqn{
 \boldsymbol{X}_A =
   \begin{bmatrix}
@@ -175,7 +173,7 @@ y_{2} \cr
 y_{n_{A}}.
 \end{bmatrix}
 }
-On the other hand let \mjseqn{S_B} be the probability sample with design matrix of covariates as
+On the other hand, let \mjseqn{S_B} be the probability sample with design matrix of covariates be
 \mjsdeqn{
 \boldsymbol{X}_B =
   \begin{bmatrix}
@@ -185,46 +183,44 @@ x_{21} & x_{22} & \cdots & x_{2p} \cr
 x_{n_{B}1} & x_{n_{B}2} & \cdots & x_{n_{B}p}. \cr
 \end{bmatrix}
 }
-Instead of sample of units we can consider vector of population totals in the form of \mjseqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
-\mjseqn{\frac{\tau_x}{N}}, where \mjseqn{\mathcal{U}} regards to some finite population. Notice that we do not assume access to the response variable for \mjseqn{S_B}.
-Generally we provide following assumptions:
+Instead of a sample of units we can consider a vector of population sums in the form of \mjseqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
+\mjseqn{\frac{\tau_x}{N}}, where \mjseqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \mjseqn{S_B}.
+In general we make the following assumptions:
 \enumerate{
 \item The selection indicator of belonging to non-probability sample \mjseqn{R_{i}} and the response variable \mjseqn{y_i} are independent given the set of covariates \mjseqn{\boldsymbol{x}_i}.
-\item All units have a non-zero propensity score, that is, \mjseqn{\pi_{i}^{A} > 0} for all i.
+\item All units have a non-zero propensity score, i.e., \mjseqn{\pi_{i}^{A} > 0} for all i.
 \item The indicator variables \mjseqn{R_{i}^{A}} and \mjseqn{R_{j}^{A}} are independent for given \mjseqn{\boldsymbol{x}_i} and \mjseqn{\boldsymbol{x}_j} for \mjseqn{i \neq j}.
 }
 
-There are three possible approaches to problem of population mean estimation using non-probability samples:
+There are three possible approaches to the problem of estimating population mean using non-probability samples:
 \enumerate{
-\item Inverse probability weighting -- The biggest drawback of the non-probability sampling is unknown selection mechanism for a unit to be included in the sample.
-This is why we talk about so called “biased sample” problem.
-Inverse probability approach is based on assumption that reference probability sample
-is available and therefore we can estimate propensity score of selection mechanism.
-Estimator has following form:
+\item Inverse probability weighting - The main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
+This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
+is available and therefore we can estimate the propensity score of the selection mechanism.
+The estimator has the following form:
 \mjsdeqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
-For this purpose with consider multiple ways of estimation. The first approach is Maximum Likelihood Estimation with corrected
-log-likelihood function which is given by the following formula
+For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
+log-likelihood function, which is given by the following formula
 \mjsdeqn{
  \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{A}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{B}}d_{i}^{B}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.}
-In the literature main approach is based on \code{logit} link function when it comes to modelling propensity scores \mjseqn{\pi_i^A},
-however we expand propensity score model with the additional link functions, such as \code{cloglog} and \code{probit}.
-The pseudo score equations derived from ML methods can be replaced by idea of generalized estimating equations with calibration constraints defined by equations
+In the literature, the main approach to modelling propensity scores is based on the logit link function.
+However, we extend the propensity score model with the additional link functions such as cloglog and probit.
+The pseudo-score equations derived from ML methods can be replaced by the idea of generalised estimating equations
+with calibration constraints defined by equations.
 \mjsdeqn{
  \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_A} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_B} d_i^B \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
-Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} we do not require probability
-sample and can use vector of population totals/means.
-\item Mass imputation -- This method relies on framework,
-where imputed values of the outcome variables are created for whole probability sample.
-In this case we treat big-data sample as a training dataset, which is used to build an imputation model. Using imputed values
-for probability sample and design (known) weights, we can build population mean estimator of form:
+Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} We do not need a probability sample and can use a vector of population totals/means.
+\item Mass imputation -- This method is based on a framework where imputed values of outcome variables are created for the entire probability sample. In this case, we treat the large sample as a training data set that is used to build an imputation model.
+Using the imputed values for the probability sample and the (known) design weights,
+we can build a population mean estimator of the form:
 \mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
-It opens the the door to very flexible method for imputation model. In the package used generalized linear models from \code{\link[stats:glm]{stats::glm()}}
-nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
-\item Doubly robust estimation -- The IPW and MI estimators are sensible on misspecified models for propensity score and outcome variable respectively.
-For this purpose so called doubly-robust methods, which take into account these problems, are presented.
-It is quite simple idea of combination propensity score and imputation models during inference which lead to the following estimator
+It opens the the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
+the nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
+\item Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.
+To this end, so-called doubly robust methods are presented that take these problems into account.
+It is a simple idea to combine propensity score and imputation models during inference, leading to the following estimator
 \mjsdeqn{\hat{\mu}_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
-In addition, an approach based directly on bias minimisation has been implemented. Following formula
+In addition, an approach based directly on bias minimisation has been implemented. The following formula
 \mjsdeqn{
    \begin{aligned}
    bias(\hat{\mu}_{DR}) = & \mathbb{E} (\hat{\mu}_{DR} - \mu) \cr = & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (\frac{R_i^A}{\pi_i^A (\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\theta})}
@@ -246,17 +242,17 @@ lead us to system of equations
   \end{array} \right\rbrace,
   \end{aligned}
   }
-where \mjseqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is mass imputation (regression) model for outcome variable and
-propensity scores \mjseqn{\pi_i^A} are estimated using \code{logit} function for the model. As in the \code{MLE} and \code{GEE} approaches we have expanded
-this method on \code{cloglog} and \code{probit} links.
+where \mjseqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is a mass imputation (regression) model for the outcome variable and
+propensity scores \mjseqn{\pi_i^A} are estimated using a \code{logit} function for the model. As with the \code{MLE} and \code{GEE} approaches we have extended
+this method to \code{cloglog} and \code{probit} links.
 }
 
-Since it is not straightforward thing to calculate variances of these estimators, in the literature proposed are asymptotic equivalents
-of variances that are derives using Taylor approximation. Details cen be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/intro.html}{here}.
-Moreover one can use bootstrap approach for variance estimation.
+As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
+Details can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/intro.html}{here}.
+In addition, a bootstrap approach can be used for variance estimation.
 
-The function also allows the selection of variables with known methods that have been implemented to handle the integration of probability and non-probability sampling.
-In the presence of high-dimensional data, variable selection is important, because it can reduce variability in estimation resulting from using irrelevant variables for model building.
+The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
+In the presence of high-dimensional data, variable selection is important, because it can reduce the variability in the estimate that results from using irrelevant variables to build the model.
 Let \mjseqn{\operatorname{U}\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)} be the joint estimating function for \mjseqn{\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)}. We define the
 penalized estimating functions as
 \mjsdeqn{
@@ -266,10 +262,10 @@ penalized estimating functions as
   \end{array} \right\rbrace,
   }
 where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
-Details of penalization functions and techniques for solving these types of equations can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
-In order to use variables selection model, set the \code{vars_selection} parameter in the \code{\link[=controlInf]{controlInf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=controlSel]{controlSel()}} and \code{\link[=controlOut]{controlOut()}}
-you can adjust parameters for the selection of the relevant variables, such as number of folds during cross-validation algorithm or lambda value for penalizations. Details can be found
-in the documentation of control functions for \code{nonprob}.
+Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
+To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=controlInf]{controlInf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=controlSel]{controlSel()}} and \code{\link[=controlOut]{controlOut()}}
+you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
+in the documentation of the control functions for \code{nonprob}.
 }
 \examples{
 \donttest{
@@ -278,7 +274,7 @@ in the documentation of control functions for \code{nonprob}.
 library(sampling)
 set.seed(123)
 # sizes of population and probability sample
-N <-  20000 # population
+N <- 20000 # population
 n_b <- 1000 # probability
 # data
 z1 <- rbinom(N, 1, 0.7)
@@ -297,44 +293,52 @@ sigma_50 <- 5.2
 sigma_80 <- 2.4
 
 # response variables
-y30 <- 2 + x1  + x2 + x3 + x4 + sigma_30*epsilon
-y50 <- 2 + x1  + x2 + x3 + x4 + sigma_50*epsilon
-y80 <- 2 + x1  + x2 + x3 + x4 + sigma_80*epsilon
+y30 <- 2 + x1 + x2 + x3 + x4 + sigma_30 * epsilon
+y50 <- 2 + x1 + x2 + x3 + x4 + sigma_50 * epsilon
+y80 <- 2 + x1 + x2 + x3 + x4 + sigma_80 * epsilon
 
 # population
 sim_data <- data.frame(y30, y50, y80, x1, x2, x3, x4)
 ## propensity score model for nonprobability sample (sum to 1000)
-eta <- -4.461 + 0.1*x1 + 0.2*x2 + 0.1*x3 + 0.2*x4
+eta <- -4.461 + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4
 rho <- plogis(eta)
 
 # inclusion probabilities for probability sample
-z_prob <- x3+0.2051
+z_prob <- x3 + 0.2051
 sim_data$p_prob <- inclusionprobabilities(z_prob, n = n_b)
 
 # data
 sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
 sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
 nonprob_df <- subset(sim_data, flag_nonprob == 1) ## nonprobability sample
-svyprob <- svydesign(ids=~1, probs = ~ p_prob,
-                     data = subset(sim_data, flag_prob == 1),
-                     pps = "brewer") ## probability sample
+svyprob <- svydesign(
+  ids = ~1, probs = ~p_prob,
+  data = subset(sim_data, flag_prob == 1),
+  pps = "brewer"
+) ## probability sample
 
 ## mass imputation estimator
-MI_res <- nonprob(outcome = y80 ~ x1 + x2 + x3 + x4,
-                  data = nonprob_df,
-                  svydesign = svyprob)
+MI_res <- nonprob(
+  outcome = y80 ~ x1 + x2 + x3 + x4,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(MI_res)
 ## inverse probability weighted estimator
-IPW_res <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                   target = ~ y80,
-                   data = nonprob_df,
-                   svydesign = svyprob)
+IPW_res <- nonprob(
+  selection = ~ x1 + x2 + x3 + x4,
+  target = ~y80,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(IPW_res)
 ## doubly robust estimator
-DR_res <- nonprob(outcome = y80 ~ x1 + x2 + x3 + x4,
-                  selection = ~ x1 + x2 + x3 + x4,
-                  data = nonprob_df,
-                  svydesign = svyprob)
+DR_res <- nonprob(
+  outcome = y80 ~ x1 + x2 + x3 + x4,
+  selection = ~ x1 + x2 + x3 + x4,
+  data = nonprob_df,
+  svydesign = svyprob
+)
 summary(DR_res)
 }
 }
@@ -355,27 +359,27 @@ probability surveys and big found data for finite population inference using mas
 Survey Methodology, June 2021 29 Vol. 47, No. 1, pp. 29-58
 }
 \seealso{
-\code{\link[stats:optim]{stats::optim()}} -- For more information on \code{optim} function used in
-\code{optim} method of fitting propensity score model.
+\code{\link[stats:optim]{stats::optim()}} -- For more information on the \code{optim} function used in the
+\code{optim} method of propensity score model fitting.
 
-\code{\link[maxLik:maxLik]{maxLik::maxLik()}} -- For more information on \code{maxLik} function used in
-\code{maxLik} method of fitting propensity score model.
+\code{\link[maxLik:maxLik]{maxLik::maxLik()}} -- For more information on the \code{maxLik} function used in
+\code{maxLik} method of propensity score model fitting.
 
-\code{\link[ncvreg:cv.ncvreg]{ncvreg::cv.ncvreg()}} -- For more information on \code{cv.ncvreg} function used in
-variable selection model for outcome model.
+\code{\link[ncvreg:cv.ncvreg]{ncvreg::cv.ncvreg()}} -- For more information on the \code{cv.ncvreg} function used in
+variable selection for the outcome model.
 
-\code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} -- For more information on \code{nleqslv} function used in
-estimation process of bias minimization approach.
+\code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} -- For more information on the \code{nleqslv} function used in
+estimation process of the bias minimization approach.
 
-\code{\link[stats:glm]{stats::glm()}} -- For more information about generalised linear models used during mass imputation process.
+\code{\link[stats:glm]{stats::glm()}} -- For more information about the generalised linear models used during mass imputation process.
 
-\code{\link[RANN:nn2]{RANN::nn2()}} -- For more information about nearest neighbor algorithm used during mass imputation process.
+\code{\link[RANN:nn2]{RANN::nn2()}} -- For more information about the nearest neighbour algorithm used during mass imputation process.
 
-\code{\link[=controlSel]{controlSel()}} -- For control parameters related to selection model.
+\code{\link[=controlSel]{controlSel()}} -- For the control parameters related to selection model.
 
-\code{\link[=controlOut]{controlOut()}} -- For control parameters related to outcome model.
+\code{\link[=controlOut]{controlOut()}} -- For the control parameters related to outcome model.
 
-\code{\link[=controlInf]{controlInf()}} -- For control parameters related to statistical inference.
+\code{\link[=controlInf]{controlInf()}} -- For the control parameters related to statistical inference.
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
