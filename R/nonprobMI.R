@@ -337,7 +337,9 @@ nonprobMI <- function(outcome,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
-      outcome = OutcomeList
+      outcome = OutcomeList,
+      boot_sample = if (control_inference$var_method == "bootstrap" & control_inference$keep_boot)
+        boot_obj$stat else NULL
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )

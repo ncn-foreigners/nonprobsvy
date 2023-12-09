@@ -538,7 +538,9 @@ nonprobIPW <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
-      selection = SelectionList
+      selection = SelectionList,
+      boot_sample = if (control_inference$var_method == "bootstrap" & control_inference$keep_boot)
+        boot_obj$stat else NULL
     ),
     class = c("nonprobsvy", "nonprobsvy_ipw")
   )

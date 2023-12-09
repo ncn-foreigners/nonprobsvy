@@ -567,9 +567,27 @@ internal_varMI <- function(svydesign,
         var_nonprob <- comp1 + comp2 + comp3
         var_prob <- 0
         # var_nonprob <- as.vector(var_nonprob)
-      } else {
-        # TODO
-        var_nonprob <- 0
+      } else {# copy-paste
+        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))# / 2
+        comp2 <- 0
+        comp3 <- sum(sapply(
+          1:n_rand, FUN = function (i) {
+            sum(sapply(1:i, FUN = function (j) {
+              ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
+              jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
+
+              res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
+              res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
+              (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
+            }
+            ))
+          }
+        ))
+        # print(comp1)
+        # print(comp2)
+        # print(format(comp3, scientific = FALSE, digits = 12))
+        var_nonprob <- comp1 + comp2 + comp3
+        var_prob <- 0
       }
     }
   } else {

@@ -183,6 +183,8 @@ controlOut <- function(epsilon = 1e-4,
 #' @param num_boot number of iteration for bootstrap algorithms.
 #' @param alpha Significance level, Default is 0.05.
 #' @param cores Number of cores in parallel computing.
+#' @param keep_boot Logical indicating whether statistics from bootstrap should be kept.
+#' By default set to \code{TRUE}
 #'
 #'
 #' @return List with selected parameters.
@@ -206,7 +208,8 @@ controlInf <- function(vars_selection = FALSE,
                        num_boot = 500,
                        bias_correction = FALSE,
                        alpha = 0.05,
-                       cores = 1) {
+                       cores = 1,
+                       keep_boot) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
     var_method = if (missing(var_method)) "analytic" else var_method,
@@ -215,6 +218,12 @@ controlInf <- function(vars_selection = FALSE,
     bias_correction = bias_correction,
     num_boot = num_boot,
     alpha = alpha,
-    cores = cores
+    cores = cores,
+    keep_boot = if(missing(keep_boot)) TRUE else {
+      if (!is.logical(keep_boot))
+        stop("keep_boot argument for controlInf must be logical")
+      else
+        keep_boot
+    }
   )
 }

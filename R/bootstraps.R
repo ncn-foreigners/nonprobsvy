@@ -280,7 +280,8 @@ bootMI <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -422,7 +423,8 @@ bootIPW <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -654,7 +656,8 @@ bootDR <- function(outcome,
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -747,7 +750,8 @@ bootDR_sel <- function(X,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1022,7 +1026,8 @@ bootMI_multicore <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1166,7 +1171,8 @@ bootIPW_multicore <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1409,7 +1415,8 @@ bootDR_multicore <- function(outcome,
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1515,6 +1522,7 @@ bootDR_sel_multicore <- function(X,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
