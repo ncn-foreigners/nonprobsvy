@@ -186,51 +186,107 @@ pmm_nonprobsvy <- function(outcome,
     pop_totals
   )
 
-  model_nons <- nonprobMI_nn(
-    data = glm_object$y_nons_pred,
-    query = glm_object$y_nons_pred,
-    k = control$k,
-    treetype = control$treetype,
-    searchtype = control$searchtype
+  # This is commented now because it is not needed
+  # model_nons <- nonprobMI_nn(data = glm_object$y_nons_pred,
+  #                            query = glm_object$y_nons_pred,
+  #                            k = control$k,
+  #                            treetype = control$treetype,
+  #                            searchtype = control$searchtype)
+  #
+  # y_nons_pred <- apply(model_nons$nn.idx, 1,
+  #                      FUN=\(x) mean(y_nons[x])
+  #                      #FUN=\(x) mean(sample_nonprob$short_[x])
+  # )
+
+  # add protection for very low values in weighting
+  switch (control$predictive_match,
+    { # 1
+      if (is.null(pop_totals)) {
+        model_rand <- nonprobMI_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        switch (control$pmm_weights,
+          "none" = {y_rand_pred <- apply(model_rand$nn.idx, 1,
+                                         FUN=\(x) mean(y_nons[x])
+                                         #FUN=\(x) mean(sample_nonprob$short_[x])
+          )},
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+                                 FUN=\(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                                                        w = 1 / model_rand$nn.dist[x,])
+                                 #FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprobMI_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    },
+    { # 2
+      if (is.null(pop_totals)) {
+        model_rand <- nonprobMI_nn(
+          data = glm_object$y_nons_pred,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        y_rand_pred <- apply(model_rand$nn.idx, 1,
+                             FUN=\(x) mean(y_nons[x])
+                             #FUN=\(x) mean(sample_nonprob$short_[x])
+        )
+
+        switch (control$pmm_weights,
+          "none" = {y_rand_pred <- apply(model_rand$nn.idx, 1,
+                                       FUN=\(x) mean(y_nons[x])
+                                       #FUN=\(x) mean(sample_nonprob$short_[x])
+          )},
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+                                  FUN=\(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                                                         w = 1 / model_rand$nn.dist[x,])
+                                  #FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprobMI_nn(
+          data = glm_object$y_nons_pred,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    }
   )
-
-  y_nons_pred <- apply(model_nons$nn.idx, 1,
-    FUN = \(x) mean(y_nons[x])
-    # FUN=\(x) mean(sample_nonprob$short_[x])
-  )
-
-  if (is.null(pop_totals)) {
-    model_rand <- nonprobMI_nn(
-      data = glm_object$y_nons_pred,
-      query = glm_object$y_rand_pred,
-      k = control$k,
-      treetype = control$treetype,
-      searchtype = control$searchtype
-    )
-
-    y_rand_pred <- apply(model_rand$nn.idx, 1,
-      FUN = \(x) mean(y_nons[x])
-      # FUN=\(x) mean(sample_nonprob$short_[x])
-    )
-  } else {
-    model_rand <- nonprobMI_nn(
-      data = glm_object$y_nons_pred,
-      query = glm_object$y_rand_pred,
-      k = control$k,
-      treetype = control$treetype,
-      searchtype = control$searchtype
-    )
-    y_rand_pred <- mean(y_nons[model_rand$nn.idx])
-  }
 
   model_out <- list(
-    model_nons = model_nons,
+    #model_nons = model_nons,
     model_rand = model_rand
   )
   list(
     model = model_out,
     y_rand_pred = y_rand_pred,
-    y_nons_pred = y_nons_pred,
+    #y_nons_pred = y_nons_pred,
     parameters = glm_object$parameters
   )
 }

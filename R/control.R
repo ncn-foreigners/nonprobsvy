@@ -99,8 +99,22 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
 #' @param nfolds The number of folds during cross-validation for variables selection model.
-#' @param treetype type of tree for nearest neighbour imputation passed to [RANN::nn2()] function.
-#' @param searchtype type of search for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param treetype Type of tree for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param searchtype Type of search for nearest neighbour imputation passed to [RANN::nn2()] function.
+#' @param predictive_match (Only for predictive mean matching)
+#' Indicates how to select 'closest' unit from nonprobability sample for each
+#' unit in probability sample. Either \code{1} (default) or \code{2} where
+#' \code{1} is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+#' \mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{2}
+#' is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+#' \mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.
+#' @param pmm_weights (Only for predictive mean matching)
+#' Indicate how to weight \code{k} nearest neighbours in \mjseqn{S_{B}} to
+#' create imputed value for units in \mjseqn{S_{A}}. The default value
+#' \code{"none"} indicates that mean of \code{k} nearest \mjseqn{y}'s from
+#' \mjseqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+#' weighted mean of these \code{k} values where weights are inversely
+#' proportional to distance between matched values.
 #'
 #' @return List with selected parameters.
 #'
@@ -122,21 +136,33 @@ controlOut <- function(epsilon = 1e-4,
                        nlambda = 100,
                        nfolds = 10,
                        treetype = "kd",
-                       searchtype = "standard") {
-  list(
-    epsilon = epsilon,
-    maxit = maxit,
-    trace = trace,
-    k = k,
-    penalty = if (missing(penalty)) "SCAD" else penalty,
-    a_SCAD = a_SCAD,
-    a_MCP = a_MCP,
-    lambda_min = lambda_min,
-    nlambda = nlambda,
-    nfolds = nfolds,
-    treetype = treetype,
-    searchtype = searchtype
-  )
+                       searchtype = "standard",
+                       predictive_match = 1:2,
+                       pmm_weights = c("none", "prop_dist")
+                       ) {
+
+  if (missing(predictive_match))
+    predictive_match <- 1
+
+  if (missing(pmm_weights))
+    pmm_weights <- "none"
+
+  list(epsilon = epsilon,
+       maxit = maxit,
+       trace = trace,
+       k = k,
+       penalty = if(missing(penalty)) "SCAD" else penalty,
+       a_SCAD = a_SCAD,
+       a_MCP = a_MCP,
+       lambda_min = lambda_min,
+       nlambda = nlambda,
+       nfolds = nfolds,
+       treetype = treetype,
+       searchtype = searchtype,
+       # add bayesian
+       predictive_match = predictive_match,
+       pmm_weights = pmm_weights)
+
 }
 
 
@@ -157,6 +183,8 @@ controlOut <- function(epsilon = 1e-4,
 #' @param num_boot number of iteration for bootstrap algorithms.
 #' @param alpha Significance level, Default is 0.05.
 #' @param cores Number of cores in parallel computing.
+#' @param keep_boot Logical indicating whether statistics from bootstrap should be kept.
+#' By default set to \code{TRUE}
 #'
 #'
 #' @return List with selected parameters.
@@ -180,7 +208,8 @@ controlInf <- function(vars_selection = FALSE,
                        num_boot = 500,
                        bias_correction = FALSE,
                        alpha = 0.05,
-                       cores = 1) {
+                       cores = 1,
+                       keep_boot) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
     var_method = if (missing(var_method)) "analytic" else var_method,
@@ -189,6 +218,12 @@ controlInf <- function(vars_selection = FALSE,
     bias_correction = bias_correction,
     num_boot = num_boot,
     alpha = alpha,
-    cores = cores
+    cores = cores,
+    keep_boot = if(missing(keep_boot)) TRUE else {
+      if (!is.logical(keep_boot))
+        stop("keep_boot argument for controlInf must be logical")
+      else
+        keep_boot
+    }
   )
 }

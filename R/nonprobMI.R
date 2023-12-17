@@ -46,8 +46,8 @@ nonprobMI <- function(outcome,
   }
   num_boot <- control_inference$num_boot
   if (method_outcome == "pmm") {
-    control_inference$var_method <- "bootstrap"
-    message("Bootstrap variance only, analytical version during implementation.")
+    # control_inference$var_method <- "bootstrap"
+    # message("Bootstrap variance only, analytical version during implementation.")
   }
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
@@ -109,6 +109,7 @@ nonprobMI <- function(outcome,
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       ## estimation
+
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(
         outcome = outcome,
@@ -227,8 +228,10 @@ nonprobMI <- function(outcome,
           n_nons = n_nons,
           N = N_est_rand,
           family = family_outcome,
-          parameters = model_obj$parameters,
-          pop_totals = pop_totals
+          model_obj = model_obj,
+          pop_totals = pop_totals,
+          k = control_outcome$k,
+          predictive_match = control_outcome$predictive_match
         )
 
         var_nonprob <- var_obj$var_nonprob
@@ -334,7 +337,9 @@ nonprobMI <- function(outcome,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
-      outcome = OutcomeList
+      outcome = OutcomeList,
+      boot_sample = if (control_inference$var_method == "bootstrap" & control_inference$keep_boot)
+        boot_obj$stat else NULL
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )

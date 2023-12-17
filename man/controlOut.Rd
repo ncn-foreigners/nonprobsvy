@@ -16,7 +16,9 @@ controlOut(
   nlambda = 100,
   nfolds = 10,
   treetype = "kd",
-  searchtype = "standard"
+  searchtype = "standard",
+  predictive_match = 1:2,
+  pmm_weights = c("none", "prop_dist")
 )
 }
 \arguments{
@@ -40,9 +42,25 @@ controlOut(
 
 \item{nfolds}{The number of folds during cross-validation for variables selection model.}
 
-\item{treetype}{type of tree for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
+\item{treetype}{Type of tree for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
 
-\item{searchtype}{type of search for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
+\item{searchtype}{Type of search for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
+
+\item{predictive_match}{(Only for predictive mean matching)
+Indicates how to select 'closest' unit from nonprobability sample for each
+unit in probability sample. Either \code{1} (default) or \code{2} where
+\code{1} is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+\mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{2}
+is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+\mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.}
+
+\item{pmm_weights}{(Only for predictive mean matching)
+Indicate how to weight \code{k} nearest neighbours in \mjseqn{S_{B}} to
+create imputed value for units in \mjseqn{S_{A}}. The default value
+\code{"none"} indicates that mean of \code{k} nearest \mjseqn{y}'s from
+\mjseqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+weighted mean of these \code{k} values where weights are inversely
+proportional to distance between matched values.}
 }
 \value{
 List with selected parameters.

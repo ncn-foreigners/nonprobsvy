@@ -484,9 +484,14 @@ internal_varMI <- function(svydesign,
                            n_nons,
                            N,
                            family,
-                           parameters,
-                           pop_totals) {
-  if (is.character(family)) {
+                           model_obj,
+                           pop_totals,
+                           k,
+                           predictive_match
+                           ) {
+  parameters <- model_obj$parameters
+
+  if(is.character(family)) {
     family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
@@ -513,23 +518,77 @@ internal_varMI <- function(svydesign,
       var_nonprob <- 1 / n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
-      # beta <- parameters[,1]
-      # eta_nons <- X_nons %*% beta
-      # eta_rand <- X_rand %*% beta
-      #
-      # mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
-      # c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
-      # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
-      #
-      # # nonprobability component
-      # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
-      # var_nonprob <- as.vector(var_nonprob)
+      if (predictive_match == 1) {
+        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N)) / 2
+        #comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
 
-      # nonprobability component
-      # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
-      var_nonprob <- 0
-      # var_nonprob <- as.vector(var_nonprob)
-      # TODO to consider
+        # Assuming independence, this needs to be corrected later
+        comp2 <- 0
+
+        # this can be both speed up and greatly simplified
+        # This needs to be corrected values are too high
+        # this assumes that covariance is equal in the whole pop
+        # comp3 <- sum(sapply(1:n_rand, function(x) {sum((weights_rand[x] / N) * (weights_rand[1:x] / N))})) *
+        #   (mean(outer(model_obj$y_rand_pred, model_obj$y_rand_pred)) - mean(model_obj$y_rand_pred) ^ 2)
+        # this is usually veeery low and can probably be estimated by other method
+        # this should be always positive btw
+        comp3 <- sum(sapply(
+          1:n_rand, FUN = function (i) {
+            sum(sapply(1:i, FUN = function (j) {
+              ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
+              jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
+
+              res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
+              res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
+              (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
+              }
+            ))
+          }
+        ))
+
+
+        # beta <- parameters[,1]
+        # eta_nons <- X_nons %*% beta
+        # eta_rand <- X_rand %*% beta
+        #
+        # mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
+        # c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
+        # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
+        #
+        # # nonprobability component
+        # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
+        # var_nonprob <- as.vector(var_nonprob)
+
+        # nonprobability component
+        # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
+        # print(comp1)
+        # print(comp2)
+        # print(format(comp3, scientific = FALSE, digits = 12))
+        var_nonprob <- comp1 + comp2 + comp3
+        var_prob <- 0
+        # var_nonprob <- as.vector(var_nonprob)
+      } else {# copy-paste
+        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))# / 2
+        comp2 <- 0
+        comp3 <- sum(sapply(
+          1:n_rand, FUN = function (i) {
+            sum(sapply(1:i, FUN = function (j) {
+              ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
+              jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
+
+              res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
+              res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
+              (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
+            }
+            ))
+          }
+        ))
+        # print(comp1)
+        # print(comp2)
+        # print(format(comp3, scientific = FALSE, digits = 12))
+        var_nonprob <- comp1 + comp2 + comp3
+        var_prob <- 0
+      }
     }
   } else {
     if (method == "nn") {

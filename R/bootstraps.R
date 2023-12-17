@@ -150,12 +150,25 @@ bootMI <- function(X_rand,
         y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
-        model_rand <- nonprobMI_nn(
-          data = y_nons_strap,
-          query = y_rand_strap,
-          k = control_outcome$k,
-          treetype = control_outcome$treetype,
-          searchtype = control_outcome$searchtype
+        model_rand <- switch (control_outcome$predictive_match,
+          { # 1
+            nonprobMI_nn(
+              data = y_strap,
+              query = y_rand_strap,
+              k = control_outcome$k,
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+          },
+          { # 2
+            nonprobMI_nn(
+              data = y_nons_strap,
+              query = y_rand_strap,
+              k = control_outcome$k,
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+          }
         )
 
         y_rand_strap <- apply(model_rand$nn.idx, 1,
@@ -267,7 +280,8 @@ bootMI <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -409,7 +423,8 @@ bootIPW <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -641,7 +656,8 @@ bootDR <- function(outcome,
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -734,7 +750,8 @@ bootDR_sel <- function(X,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -886,6 +903,7 @@ bootMI_multicore <- function(X_rand,
             start = start_outcome
           )
 
+
           beta <- model_strap$coefficients
           eta_rand <- X_rand_strap %*% beta
           eta_nons <- X_nons_strap %*% beta
@@ -893,13 +911,26 @@ bootMI_multicore <- function(X_rand,
           y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
-          model_rand <- nonprobMI_nn(
-            data = y_nons_strap,
-            query = y_rand_strap,
-            k = control_outcome$k,
-            treetype = control_outcome$treetype,
-            searchtype = control_outcome$searchtype
-          )
+          model_rand <- switch (control_outcome$predictive_match,
+            { # 1
+              nonprobMI_nn(
+                data = y_strap,
+                query = y_rand_strap,
+                k = control_outcome$k,
+                treetype = control_outcome$treetype,
+                searchtype = control_outcome$searchtype
+              )
+            },
+            { # 2
+              nonprobMI_nn(
+                data = y_nons_strap,
+                query = y_rand_strap,
+                k = control_outcome$k,
+                treetype = control_outcome$treetype,
+                searchtype = control_outcome$searchtype
+              )
+            }
+        )
 
           y_rand_strap <- apply(model_rand$nn.idx, 1,
             FUN = \(x) mean(y_strap[x])
@@ -995,7 +1026,8 @@ bootMI_multicore <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1139,7 +1171,8 @@ bootIPW_multicore <- function(X_rand,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1382,7 +1415,8 @@ bootDR_multicore <- function(outcome,
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
 
@@ -1488,6 +1522,7 @@ bootDR_sel_multicore <- function(X,
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot
+    mu = mu_hat_boot,
+    stat = mu_hats
   )
 }
