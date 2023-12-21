@@ -1,6 +1,6 @@
 Package: nonprobsvy
 Type: Package
-Title: Package for Inference Based on Nonprobability Samples
+Title: Package for Inference Based on Non-probability Samples
 Version: 0.1.0
 Authors@R:
     c(person(given = "Łukasz",

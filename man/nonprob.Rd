@@ -33,7 +33,7 @@ nonprob(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} with data from the nonprobability sample.}
+\item{data}{\code{data.frame} with data from the non-probability sample.}
 
 \item{selection}{\code{formula}, the selection (propensity) equation.}
 
@@ -269,7 +269,7 @@ in the documentation of the control functions for \code{nonprob}.
 }
 \examples{
 \donttest{
-# generate data based on Doubly Robust Inference With Nonprobability Survey Samples (2021)
+# generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)
 # Yilin Chen , Pengfei Li & Changbao Wu
 library(sampling)
 set.seed(123)
@@ -299,7 +299,7 @@ y80 <- 2 + x1 + x2 + x3 + x4 + sigma_80 * epsilon
 
 # population
 sim_data <- data.frame(y30, y50, y80, x1, x2, x3, x4)
-## propensity score model for nonprobability sample (sum to 1000)
+## propensity score model for non-probability sample (sum to 1000)
 eta <- -4.461 + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4
 rho <- plogis(eta)
 
@@ -310,7 +310,7 @@ sim_data$p_prob <- inclusionprobabilities(z_prob, n = n_b)
 # data
 sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
 sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
-nonprob_df <- subset(sim_data, flag_nonprob == 1) ## nonprobability sample
+nonprob_df <- subset(sim_data, flag_nonprob == 1) ## non-probability sample
 svyprob <- svydesign(
   ids = ~1, probs = ~p_prob,
   data = subset(sim_data, flag_prob == 1),

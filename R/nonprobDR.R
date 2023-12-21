@@ -740,7 +740,7 @@ nonprobDR <- function(selection,
         }
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        # mu_hat <- boot_obj$mu
       } else {
         stop("Invalid method for variance estimation.")
       }

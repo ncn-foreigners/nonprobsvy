@@ -8,6 +8,7 @@
 #' @importFrom stats contrasts
 #' @importFrom nleqslv nleqslv
 #' @importFrom stats get_all_vars
+#' @importFrom stats cov
 
 # Selection model object
 internal_selection <- function(X,
@@ -564,8 +565,8 @@ internal_varMI <- function(svydesign,
         # print(comp1)
         # print(comp2)
         # print(format(comp3, scientific = FALSE, digits = 12))
-        var_nonprob <- comp1 + comp2 + comp3
-        var_prob <- 0
+        var_prob <- comp1 + comp2 + comp3
+        var_nonprob <- 0
         # var_nonprob <- as.vector(var_nonprob)
       } else {# copy-paste
         comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))# / 2
@@ -586,8 +587,8 @@ internal_varMI <- function(svydesign,
         # print(comp1)
         # print(comp2)
         # print(format(comp3, scientific = FALSE, digits = 12))
-        var_nonprob <- comp1 + comp2 + comp3
-        var_prob <- 0
+        var_prob <- comp1 + comp2 + comp3
+        var_nonprob <- 0
       }
     }
   } else {

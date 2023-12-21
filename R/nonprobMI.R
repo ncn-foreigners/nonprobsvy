@@ -283,7 +283,7 @@ nonprobMI <- function(outcome,
           )
         }
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        # mu_hat <- boot_obj$mu
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(
           nonprob = NA,
           prob = NA

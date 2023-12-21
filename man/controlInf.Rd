@@ -13,7 +13,8 @@ controlInf(
   num_boot = 500,
   bias_correction = FALSE,
   alpha = 0.05,
-  cores = 1
+  cores = 1,
+  keep_boot
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ selection and outcome model.
 \item{alpha}{Significance level, Default is 0.05.}
 
 \item{cores}{Number of cores in parallel computing.}
+
+\item{keep_boot}{Logical indicating whether statistics from bootstrap should be kept.
+By default set to \code{TRUE}}
 }
 \value{
 List with selected parameters.

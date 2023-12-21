@@ -1,6 +1,8 @@
 # These functions are only used internally, so there is no need for documenting them
 #' @importFrom survey as.svrepdesign
 #' @importFrom nleqslv nleqslv
+#' @importFrom utils setTxtProgressBar
+#' @importFrom utils txtProgressBar
 
 bootMI <- function(X_rand,
                    X_nons,
@@ -37,6 +39,8 @@ bootMI <- function(X_rand,
     family_nonprobsvy <- family_nonprobsvy()
   }
 
+  pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
     N <- sum(weights_rand)
@@ -71,8 +75,9 @@ bootMI <- function(X_rand,
         mu_hat_boot <- weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -111,8 +116,9 @@ bootMI <- function(X_rand,
         mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -179,8 +185,9 @@ bootMI <- function(X_rand,
         mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -210,8 +217,9 @@ bootMI <- function(X_rand,
         mu_hat_boot <- as.vector(y_strap_rand)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -232,8 +240,9 @@ bootMI <- function(X_rand,
         mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -269,18 +278,19 @@ bootMI <- function(X_rand,
         mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
     }
   }
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  # mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
@@ -289,12 +299,12 @@ bootIPW <- function(X_rand,
                     X_nons,
                     svydesign,
                     weights,
-                    y,
+                    ys,
                     R,
                     theta_hat,
                     num_boot,
                     weights_rand,
-                    mu_hat,
+                    mu_hats,
                     method_selection,
                     start_selection,
                     n_nons,
@@ -310,7 +320,6 @@ bootIPW <- function(X_rand,
                     pop_size,
                     pop_totals,
                     ...) {
-  mu_hats <- vector(mode = "numeric", length = num_boot)
   if (!is.null(weights_rand)) N <- sum(weights_rand)
   estimation_method <- get_method(est_method)
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -318,9 +327,16 @@ bootIPW <- function(X_rand,
   inv_link <- method$make_link_inv
   k <- 1
   rep_type <- control_inference$rep_type
+  mu_len <- length(mu_hats)
+  mu_hats_boot <- matrix(nrow = num_boot, ncol = mu_len)
+  boot_vars <- numeric(length = mu_len)
+
+  if (verbose) {
+    pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+  }
 
   if (is.null(pop_totals)) {
-  rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+  rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
     while (k <= num_boot) {
       strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
 
@@ -367,16 +383,18 @@ bootIPW <- function(X_rand,
       weights_nons <- 1 / ps_nons
       N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
 
-      mu_hat_boot <- mu_hatIPW(
-        y = y[strap_nons],
-        weights = weights[strap_nons],
-        weights_nons = weights_nons,
-        N = N_est_nons
-      ) # IPW estimator
-      mu_hats[k] <- mu_hat_boot
+      for (l in 1:mu_len) {
+        mu_hats_boot[k,l] <- mu_hatIPW(
+          y = ys[[l]][strap_nons],
+          weights = weights[strap_nons],
+          weights_nons = weights_nons,
+          N = N_est_nons
+        ) # IPW estimator
+      }
       if (verbose) {
-        info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-        print(info)
+        # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k,], sep = "")
+        # print(info)
+        utils::setTxtProgressBar(pb, k)
       }
       k <- k + 1
     }
@@ -405,26 +423,34 @@ bootIPW <- function(X_rand,
       weights_nons <- 1 / ps_nons
       N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
 
-      mu_hat_boot <- mu_hatIPW(
-        y = y[strap],
-        weights = weights_strap,
-        weights_nons = weights_nons,
-        N = N_est_nons
-      ) # IPW estimator
-      mu_hats[k] <- mu_hat_boot
+      for (l in 1:mu_len) {
+        mu_hats_boot[k,l] <- mu_hatIPW(
+          y = ys[[l]][strap],
+          weights = weights_strap,
+          weights_nons = weights_nons,
+          N = N_est_nons
+        ) # IPW estimator
+      }
       if (verbose) {
-        info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-        print(info)
+        # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k], sep = "")
+        # print(info)
+        utils::setTxtProgressBar(pb, k)
       }
       k <- k + 1
     }
   }
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  # mu_hats_boot_means <- colMeans(mu_hats_boot)
+  # boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  for (l in 1:mu_len) {
+    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[,l] - mu_hats[l])^2)
+  }
+  if (verbose) {
+    close(pb)
+  }
   list(
-    var = boot_var,
-    mu = mu_hat_boot,
-    stat = mu_hats
+    var = boot_vars,
+    # mu = mu_hats_boot_means,
+    stat = mu_hats_boot
   )
 }
 
@@ -503,6 +529,7 @@ bootDR <- function(outcome,
     boot_var <- var_obj$var
     mu_hat_boot <- var_obj$mu
   } else {
+    pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
     estimation_method <- get_method(est_method)
     if (is.null(pop_totals)) {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
@@ -586,8 +613,9 @@ bootDR <- function(outcome,
         )
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
@@ -645,18 +673,19 @@ bootDR <- function(outcome,
         mu_hat_boot <- 1 / N_est * sum(weights_nons_strap * (weights_strap * (y_strap - y_nons_pred))) + ifelse(method_outcome == "glm", 1 / pop_size * y_rand_pred, y_rand_pred)
         mu_hats[k] <- mu_hat_boot
         if (verbose) {
-          info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          print(info)
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
         }
         k <- k + 1
       }
     }
-    mu_hat_boot <- mean(mu_hats)
-    boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+    # mu_hat_boot <- mean(mu_hats)
+    boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
@@ -685,6 +714,8 @@ bootDR_sel <- function(X,
   X_rand <- X[loc_rand, , drop = FALSE]
   y_nons <- y[loc_nons]
   y_rand <- y[loc_rand]
+
+  pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
   while (k <= num_boot) {
@@ -741,16 +772,17 @@ bootDR_sel <- function(X,
     ) # DR estimator
     mu_hats[k] <- mu_hat_boot
     if (verbose) {
-      info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-      print(info)
+      # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+      # print(info)
+      utils::setTxtProgressBar(pb, k)
     }
     k <- k + 1
   }
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  # mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
@@ -1022,11 +1054,11 @@ bootMI_multicore <- function(X_rand,
       )
     }
   }
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  # mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
@@ -1040,12 +1072,12 @@ bootIPW_multicore <- function(X_rand,
                               X_nons,
                               svydesign,
                               weights,
-                              y,
+                              ys,
                               R,
                               theta_hat,
                               num_boot,
                               weights_rand,
-                              mu_hat,
+                              mu_hats,
                               method_selection,
                               start_selection,
                               n_nons,
@@ -1068,6 +1100,10 @@ bootIPW_multicore <- function(X_rand,
   inv_link <- method$make_link_inv
   rep_type <- control_inference$rep_type
 
+  mu_len <- length(mu_hats)
+  mu_hats_boot <- numeric(length = num_boot*mu_len)
+  boot_vars <- numeric(length = mu_len)
+
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
@@ -1079,7 +1115,7 @@ bootIPW_multicore <- function(X_rand,
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   k <- 1:num_boot
-  mu_hats <- foreach::`%dopar%`(
+  mu_hats_boot <- foreach::`%dopar%`(
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
       if (is.null(pop_totals)) {
@@ -1128,12 +1164,24 @@ bootIPW_multicore <- function(X_rand,
         weights_nons <- 1 / ps_nons
         N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
 
-        mu_hat_boot <- mu_hatIPW(
-          y = y[strap_nons],
-          weights = weights[strap_nons],
-          weights_nons = weights_nons,
-          N = N_est_nons
-        ) # IPW estimator
+        # mu_hat_boot <- mu_hatIPW(
+        #   y = y[strap_nons],
+        #   weights = weights[strap_nons],
+        #   weights_nons = weights_nons,
+        #   N = N_est_nons
+        # ) # IPW estimator
+
+        mu_hats_this_boot <- numeric(mu_len)
+
+        for (l in 1:mu_len) {
+          mu_hats_this_boot[l] <- mu_hatIPW(
+            y = ys[[l]][strap_nons],
+            weights = weights[strap_nons],
+            weights_nons = weights_nons,
+            N = N_est_nons
+          ) # IPW estimator
+        }
+        mu_hats_this_boot
       } else {
         strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
         X_strap <- X_nons[strap, , drop = FALSE]
@@ -1157,22 +1205,34 @@ bootIPW_multicore <- function(X_rand,
         weights_nons <- 1 / ps_nons
         N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
 
-        mu_hat_boot <- mu_hatIPW(
-          y = y[strap],
-          weights = weights_strap,
-          weights_nons = weights_nons,
-          N = N_est_nons
-        ) # IPW estimator
+        # mu_hat_boot <- mu_hatIPW(
+        #   y = y[strap],
+        #   weights = weights_strap,
+        #   weights_nons = weights_nons,
+        #   N = N_est_nons
+        # ) # IPW estimator
+        for (l in 1:mu_len) {
+          mu_hats_boot[k,l] <- mu_hatIPW(
+            y = ys[[l]][strap],
+            weights = weights_strap,
+            weights_nons = weights_nons,
+            N = N_est_nons
+          ) # IPW estimator
       }
-      mu_hat_boot
+      mu_hats_boot
+      }
     }
   )
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  mu_hats_boot <- matrix(mu_hats_boot, nrow = num_boot, ncol = mu_len, byrow = TRUE)
+  # mu_hats_boot_means <- colMeans(mu_hats_boot)
+  # boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  for (l in 1:mu_len) {
+    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[,l] - mu_hats[l])^2)
+  }
   list(
-    var = boot_var,
-    mu = mu_hat_boot,
-    stat = mu_hats
+    var = boot_vars,
+    # mu = mu_hats_boot_means,
+    stat = mu_hats_boot
   )
 }
 
@@ -1410,12 +1470,12 @@ bootDR_multicore <- function(outcome,
         }
       )
     }
-    mu_hat_boot <- mean(mu_hats)
+    # mu_hat_boot <- mean(mu_hats)
     boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   }
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
@@ -1518,11 +1578,11 @@ bootDR_sel_multicore <- function(X,
       ) # DR estimator
     }
   )
-  mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
+  # mu_hat_boot <- mean(mu_hats)
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
   list(
     var = boot_var,
-    mu = mu_hat_boot,
+    # mu = mu_hat_boot,
     stat = mu_hats
   )
 }
