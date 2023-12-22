@@ -170,7 +170,8 @@ pmm_nonprobsvy <- function(outcome,
                            vars_selection,
                            pop_totals,
                            model_frame) {
-  glm_object <- glm_nonprobsvy(outcome,
+  glm_object <- glm_nonprobsvy(
+    outcome,
     data,
     weights,
     family_outcome,
@@ -286,9 +287,11 @@ pmm_nonprobsvy <- function(outcome,
   )
 
   model_out <- list(
-    # model_nons = model_nons,
-    model_rand = model_rand
+    #model_nons = model_nons,
+    model_rand = model_rand,
+    glm_object = glm_object$model
   )
+  attr(model_out, "method") <- "pmm"
   list(
     model = model_out,
     y_rand_pred = y_rand_pred,
