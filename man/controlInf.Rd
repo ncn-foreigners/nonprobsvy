@@ -13,7 +13,9 @@ controlInf(
   num_boot = 500,
   bias_correction = FALSE,
   alpha = 0.05,
-  cores = 1
+  cores = 1,
+  keep_boot,
+  pmm_exact_se = FALSE
 )
 }
 \arguments{
@@ -38,6 +40,18 @@ selection and outcome model.
 \item{alpha}{Significance level, Default is 0.05.}
 
 \item{cores}{Number of cores in parallel computing.}
+
+\item{keep_boot}{Logical indicating whether statistics from bootstrap should be kept.
+By default set to \code{TRUE}}
+
+\item{pmm_exact_se}{Logical value indicating whether to compute the exact
+standard error estimate for \code{pmm} estimator. The variance estimator for
+estimation based on \code{pmm} can be decomposed into three parts, with the
+third being computed using covariance between imputed values for units in
+probability sample using predictive matches from non-probability sample.
+In most situations this term is negligible and is very computationally
+expensive so by default this is set to \code{FALSE}, but it is reommended to
+set this value to \code{TRUE} before submitting final results.}
 }
 \value{
 List with selected parameters.

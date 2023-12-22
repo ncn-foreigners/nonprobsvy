@@ -487,7 +487,8 @@ internal_varMI <- function(svydesign,
                            model_obj,
                            pop_totals,
                            k,
-                           predictive_match
+                           predictive_match,
+                           pmm_exact_se
                            ) {
   parameters <- model_obj$parameters
 
@@ -518,77 +519,85 @@ internal_varMI <- function(svydesign,
       var_nonprob <- 1 / n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
-      if (predictive_match == 1) {
-        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N)) / 2
-        #comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
+      comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))
 
-        # Assuming independence, this needs to be corrected later
-        comp2 <- 0
+      # Cov est
+      comp2 <- outer(1 / weights_rand, 1 / weights_rand) * (
+        1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) / sum(1 - 1 / weights_rand)
+      ) - outer(1 / weights_rand, 1 / weights_rand)
+      # This can be better implemented i.e. faster
+      # Here for each pair (i,j) from prob sample
+      # we multiply every nearest neighbour of i with each of
+      # j's neighbours scaled by 1/k and sum over them all
+      # 100% there is a better way of implementing this
+      # Additionally if prob sample is large this may be slow because we
+      # are using matrixes of size n_rand x n_rand
+      # maybe some protection against large samples is warranted
+      mat_preds <- matrix(y[model_obj$model$model_rand$nn.idx[1:n_rand, ]], nrow = n_rand) / k
+      mat_preds <- sapply(
+        1:n_rand, FUN = function(i) {
+          sapply(1:n_rand, function (j) {
+            sum(outer(mat_preds[i, , drop = FALSE], mat_preds[j, , drop = FALSE]))
+          })
+        }
+      )
+      comp2 <- comp2 * (outer(weights_rand / N, weights_rand) ^ 2) *
+        mat_preds
+      # full est for second term
+      comp2 <- sum(comp2[row(comp2) != col(comp2)])
 
-        # this can be both speed up and greatly simplified
-        # This needs to be corrected values are too high
-        # this assumes that covariance is equal in the whole pop
-        # comp3 <- sum(sapply(1:n_rand, function(x) {sum((weights_rand[x] / N) * (weights_rand[1:x] / N))})) *
-        #   (mean(outer(model_obj$y_rand_pred, model_obj$y_rand_pred)) - mean(model_obj$y_rand_pred) ^ 2)
-        # this is usually veeery low and can probably be estimated by other method
-        # this should be always positive btw
-        comp3 <- sum(sapply(
-          1:n_rand, FUN = function (i) {
-            sum(sapply(1:i, FUN = function (j) {
-              ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
-              jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
+      # This in general cannot be computed from sample itself, we need to make
+      # a bootstrap. Usually this term is negligible hence by default its
+      # not computed, but it should be computed in serious publications
+      comp3 <- 0
 
-              res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
-              res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
-              (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
-              }
-            ))
-          }
-        ))
+      # An option in controlInf controlls this
+      # Maybe add a warning/message if this computation is ommited
+      if (pmm_exact_se) {
+        dd <- NULL
+        # add variable for loop size to control
+        for (jj in 1:50) {
+          boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+          y_nons_b <- y[boot_samp]
 
+          XX <- predict(
+            model_obj$model$glm_object,
+            newdata = as.data.frame(X_rand),
+            type = "response"
+          )
+          YY <- switch (predictive_match,
+            {nonprobMI_nn(
+              data = y_nons_b,
+              query = XX,
+              k = k,
+              searchtype = "standard",
+              treetype = "kd"
+            )},
+            {nonprobMI_nn(
+              data = predict(
+                model_obj$model$glm_object,
+                newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
+                type = "response"
+              ),
+              query = XX,
+              k = k,
+              searchtype = "standard",
+              treetype = "kd"
+            )}
+          )
 
-        # beta <- parameters[,1]
-        # eta_nons <- X_nons %*% beta
-        # eta_rand <- X_rand %*% beta
-        #
-        # mx <- 1/N * colSums(as.data.frame(X_rand) * (weights_rand * family_nonprobsvy$mu_der(eta_rand)))
-        # c <- solve(1/n_nons * t(as.data.frame(X_nons) * family_nonprobsvy$mu_der(eta_nons)) %*% X_nons) %*% mx
-        # residuals <- family_nonprobsvy$residuals(mu = y_pred, y  = y)
-        #
-        # # nonprobability component
-        # var_nonprob <- 1/n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
-        # var_nonprob <- as.vector(var_nonprob)
-
-        # nonprobability component
-        # var_nonprob <- 1/n_nons^2 * residuals^2 * X_nons %*% t(X_nons)
-        # print(comp1)
-        # print(comp2)
-        # print(format(comp3, scientific = FALSE, digits = 12))
-        var_nonprob <- comp1 + comp2 + comp3
-        var_prob <- 0
-        # var_nonprob <- as.vector(var_nonprob)
-      } else {# copy-paste
-        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))# / 2
-        comp2 <- 0
-        comp3 <- sum(sapply(
-          1:n_rand, FUN = function (i) {
-            sum(sapply(1:i, FUN = function (j) {
-              ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
-              jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
-
-              res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
-              res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
-              (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
-            }
-            ))
-          }
-        ))
-        # print(comp1)
-        # print(comp2)
-        # print(format(comp3, scientific = FALSE, digits = 12))
-        var_nonprob <- comp1 + comp2 + comp3
-        var_prob <- 0
+          dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
+        }
+        comp3 <- var(dd) * outer(weights_rand / N, weights_rand / N)
+        comp3 <- sum(comp3[lower.tri(comp3, diag = TRUE)])
       }
+      # else warning("Write some warning/message about std.error computation here")
+      print(format(comp1, scientific = FALSE, digits = 12))
+      print(format(comp2, scientific = FALSE, digits = 12))
+      print(format(comp3, scientific = FALSE, digits = 12))
+      # stop("abc")
+      var_nonprob <- comp1 + comp2 + comp3
+      var_prob <- 0
     }
   } else {
     if (method == "nn") {

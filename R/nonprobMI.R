@@ -212,6 +212,12 @@ nonprobMI <- function(outcome,
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
+
+    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$pmm_exact_se)) {
+      # if not pmm_exact_se then this can be dropped
+      model_obj$model$glm_obj <- NULL
+    }
+
     ys[[k]] <- as.numeric(y_nons)
     if (se) {
       # design based variance estimation based on approximations of the second-order inclusion probabilities
@@ -231,7 +237,8 @@ nonprobMI <- function(outcome,
           model_obj = model_obj,
           pop_totals = pop_totals,
           k = control_outcome$k,
-          predictive_match = control_outcome$predictive_match
+          predictive_match = control_outcome$predictive_match,
+          pmm_exact_se = control_inference$pmm_exact_se
         )
 
         var_nonprob <- var_obj$var_nonprob
