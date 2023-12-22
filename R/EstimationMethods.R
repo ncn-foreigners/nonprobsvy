@@ -405,6 +405,19 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   }
   prior_weights <- c(weights_rand, weights)
 
+  ######### BB
+  # multiroot <- nleqslv::nleqslv(
+  #   par = par0, # TODO add user-specified parameters to control functions
+  #   fn = u_theta_beta_dr,
+  #   R = R,
+  #   X = X,
+  #   y = y,
+  #   weights = prior_weights,
+  #   method_selection = method_selection,
+  #   family_nonprobsvy = family
+  # )
+  # par_sel <- multiroot$par
+  ######### NLESQLV
   multiroot <- nleqslv::nleqslv(
     x = par0, # TODO add user-specified parameters to control functions
     fn = u_theta_beta_dr,

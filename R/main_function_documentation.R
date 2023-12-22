@@ -207,7 +207,10 @@ NULL
 #'  \item{\code{method} -- set on `glm`, since the regression method}
 #'  }
 #'  }
-#'  In addition, if the variable selection model for the outcome variable is fitting, the list includes the \code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds.
+#'  In addition, if the variable selection model for the outcome variable is fitting, the list includes the
+#'  \itemize{
+#'  \item{\code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds.}
+#'  }
 #'  \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 #'  \itemize{
 #'  \item{\code{coefficients} -- a named vector of coefficients}
@@ -224,9 +227,12 @@ NULL
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
 #'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NA`.}
 #'  \item{\code{cve} -- the error for each value of the `lambda`, averaged across the cross-validation folds for the variable selection model
-#'  when the propensity score model is fitting.}
+#'  when the propensity score model is fitting. Returned only if selection of variables for the model is used.}
 #'   }
 #'  }
+#'  \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
+#'                       Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
+#'                       [controlInf()] is set on `TRUE`.}
 #' }
 #' @seealso
 #' [stats::optim()] -- For more information on the \code{optim} function used in the

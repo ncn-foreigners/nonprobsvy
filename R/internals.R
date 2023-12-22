@@ -122,6 +122,22 @@ theta_h_estimation <- function(R,
     pop_totals = pop_totals
   )
 
+  # ######### BB
+  # if (method_selection == "cloglog") {
+  #   root <- BB::dfsane(
+  #     par = start,
+  #     fn = u_theta,
+  #   )
+  # } else {
+  #   root <- BB::dfsane(
+  #     par = start,
+  #     fn = u_theta
+  #     # control = list(sigma = 0.1, trace = 1)
+  #   )
+  # }
+  # theta_root <- root$par
+  # print(theta_root)
+  ######### NLESQLV
   if (method_selection == "cloglog") {
     root <- nleqslv::nleqslv(
       x = start,
@@ -143,9 +159,8 @@ theta_h_estimation <- function(R,
       # control = list(sigma = 0.1, trace = 1)
     )
   }
-
-
   theta_root <- root$x
+  # stop("123")
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
       "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
@@ -488,11 +503,10 @@ internal_varMI <- function(svydesign,
                            model_obj,
                            pop_totals,
                            k,
-                           predictive_match
-                           ) {
+                           predictive_match) {
   parameters <- model_obj$parameters
 
-  if(is.character(family)) {
+  if (is.character(family)) {
     family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
@@ -520,8 +534,8 @@ internal_varMI <- function(svydesign,
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
       if (predictive_match == 1) {
-        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N)) / 2
-        #comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
+        comp1 <- sum(model_obj$y_rand_pred^2 * (weights_rand / N) * ((weights_rand - 1) / N)) / 2
+        # comp1 <- sum(model_obj$y_rand_pred * (weights_rand / N) * ((weights_rand - 1) / N))
 
         # Assuming independence, this needs to be corrected later
         comp2 <- 0
@@ -534,16 +548,16 @@ internal_varMI <- function(svydesign,
         # this is usually veeery low and can probably be estimated by other method
         # this should be always positive btw
         comp3 <- sum(sapply(
-          1:n_rand, FUN = function (i) {
-            sum(sapply(1:i, FUN = function (j) {
+          1:n_rand,
+          FUN = function(i) {
+            sum(sapply(1:i, FUN = function(j) {
               ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
               jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
 
               res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
               res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
               (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
-              }
-            ))
+            }))
           }
         ))
 
@@ -568,20 +582,20 @@ internal_varMI <- function(svydesign,
         var_prob <- comp1 + comp2 + comp3
         var_nonprob <- 0
         # var_nonprob <- as.vector(var_nonprob)
-      } else {# copy-paste
-        comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))# / 2
+      } else { # copy-paste
+        comp1 <- sum(model_obj$y_rand_pred^2 * (weights_rand / N) * ((weights_rand - 1) / N)) # / 2
         comp2 <- 0
         comp3 <- sum(sapply(
-          1:n_rand, FUN = function (i) {
-            sum(sapply(1:i, FUN = function (j) {
+          1:n_rand,
+          FUN = function(i) {
+            sum(sapply(1:i, FUN = function(j) {
               ii <- y[model_obj$model$model_rand$nn.idx[i, ]]
               jj <- y[model_obj$model$model_rand$nn.idx[j, ]]
 
               res1 <- sapply(1:10, function(z) mean(sample(x = ii, replace = TRUE, size = k)))
               res2 <- sapply(1:10, function(z) mean(sample(x = jj, replace = TRUE, size = k)))
               (weights_rand[i] / N) * (weights_rand[j] / N) * cov(res1, res2)
-            }
-            ))
+            }))
           }
         ))
         # print(comp1)

@@ -539,7 +539,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
   expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-  ## y_21
+  #  y_21
   expect_silent(
     y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_21,
@@ -556,7 +556,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
   expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-  ## y_22
+  # # y_22
   expect_silent(
     y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_22,
@@ -1121,7 +1121,7 @@ expect_identical(y_all_corr_all$confidence_interval,
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
-  ## y_11
+  # # y_11
   expect_silent(
     y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_11,
@@ -1155,7 +1155,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
   expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-  ## y_21
+  # # y_21
   expect_silent(
     y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_21,
@@ -1172,7 +1172,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
   expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-  ## y_22
+  # # y_22
   expect_silent(
     y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_22,

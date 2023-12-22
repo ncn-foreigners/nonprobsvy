@@ -319,7 +319,8 @@ residuals.nonprobsvy <- function(object,
       R <- rep(1, object$nonprob_size)
       s <- rep(1, object$nonprob_size)
     }
-    r <- object$selection$residuals
+    r <- object$selection$residualsPackage
+
     res_sel <- switch(type,
       "response" = r,
       "working" = r / propensity_scores * (1 - propensity_scores),

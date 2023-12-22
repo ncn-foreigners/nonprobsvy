@@ -46,243 +46,302 @@ bootMI <- function(X_rand,
     N <- sum(weights_rand)
     rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
     if (method == "glm") {
-
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        # using svy package
-        strap_rand_svy <- which(rep_weights[, k] != 0)
-        weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-        N_strap <- sum(weights_rand_strap_svy)
-        # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
+            # using svy package
+            strap_rand_svy <- which(rep_weights[, k] != 0)
+            weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+            N_strap <- sum(weights_rand_strap_svy)
+            # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
-        model_strap <- stats::glm.fit(
-          x = X_nons_strap,
-          y = y_strap,
-          weights = weights_strap,
-          family = family,
-          start = start_outcome
+            model_strap <- stats::glm.fit(
+              x = X_nons_strap,
+              y = y_strap,
+              weights = weights_strap,
+              family = family,
+              start = start_outcome
+            )
+
+            beta <- model_strap$coefficients
+            eta <- X_rand %*% beta
+            y_strap_rand <- family_nonprobsvy$linkinv(eta)
+
+            # mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
+            mu_hat_boot <- weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-        beta <- model_strap$coefficients
-        eta <- X_rand %*% beta
-        y_strap_rand <- family_nonprobsvy$linkinv(eta)
-
-        # mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
-        mu_hat_boot <- weighted.mean(x = y_strap_rand, w = weights_rand_strap_svy)
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     } else if (method == "nn") {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-        # weights_rand_strap <- weights_rand[strap_rand]
-        # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
-        # N_strap <- sum(weights_rand_strap)
+            # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
+            # weights_rand_strap <- weights_rand[strap_rand]
+            # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+            # N_strap <- sum(weights_rand_strap)
 
-        # using svy package
-        strap_rand_svy <- which(rep_weights[, k] != 0)
-        weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-        N_strap <- sum(weights_rand_strap_svy)
-        X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
-        weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
+            # using svy package
+            strap_rand_svy <- which(rep_weights[, k] != 0)
+            weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+            N_strap <- sum(weights_rand_strap_svy)
+            X_rand_strap <- X_rand[which(rep_weights[, k] != 0), ]
+            weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
 
-        model_rand <- nonprobMI_nn(
-          data = X_nons_strap,
-          query = X_rand_strap,
-          k = control_outcome$k,
-          treetype = control_outcome$treetype,
-          searchtype = control_outcome$searchtype
+            model_rand <- nonprobMI_nn(
+              data = X_nons_strap,
+              query = X_rand_strap,
+              k = control_outcome$k,
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+
+            y_rand_strap <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_strap[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+
+            mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-        y_rand_strap <- apply(model_rand$nn.idx, 1,
-          FUN = \(x) mean(y_strap[x])
-          # FUN=\(x) mean(sample_nonprob$short_[x])
-        )
-
-        mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     } else if (method == "pmm") {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-        # weights_rand_strap <- weights_rand[strap_rand]
-        # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
-        # N_strap <- sum(weights_rand_strap)
+            # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
+            # weights_rand_strap <- weights_rand[strap_rand]
+            # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+            # N_strap <- sum(weights_rand_strap)
 
-        # using svy package
-        strap_rand_svy <- which(rep_weights[, k] != 0)
-        weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-        N_strap <- sum(weights_rand_strap_svy)
-        X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
-        weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
+            # using svy package
+            strap_rand_svy <- which(rep_weights[, k] != 0)
+            weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+            N_strap <- sum(weights_rand_strap_svy)
+            X_rand_strap <- X_rand[which(rep_weights[, k] != 0), ]
+            weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
 
-        model_strap <- stats::glm.fit(
-          x = X_nons_strap,
-          y = y_strap,
-          weights = weights_strap,
-          family = family,
-          start = start_outcome
-        )
-
-        beta <- model_strap$coefficients
-        eta_rand <- X_rand_strap %*% beta
-        eta_nons <- X_nons_strap %*% beta
-        y_rand_strap <- family_nonprobsvy$linkinv(eta_rand)
-        y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
-
-
-        model_rand <- switch (control_outcome$predictive_match,
-          { # 1
-            nonprobMI_nn(
-              data = y_strap,
-              query = y_rand_strap,
-              k = control_outcome$k,
-              treetype = control_outcome$treetype,
-              searchtype = control_outcome$searchtype
+            model_strap <- stats::glm.fit(
+              x = X_nons_strap,
+              y = y_strap,
+              weights = weights_strap,
+              family = family,
+              start = start_outcome
             )
+
+            beta <- model_strap$coefficients
+            eta_rand <- X_rand_strap %*% beta
+            eta_nons <- X_nons_strap %*% beta
+            y_rand_strap <- family_nonprobsvy$linkinv(eta_rand)
+            y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
+
+
+            model_rand <- switch(control_outcome$predictive_match,
+              { # 1
+                nonprobMI_nn(
+                  data = y_strap,
+                  query = y_rand_strap,
+                  k = control_outcome$k,
+                  treetype = control_outcome$treetype,
+                  searchtype = control_outcome$searchtype
+                )
+              },
+              { # 2
+                nonprobMI_nn(
+                  data = y_nons_strap,
+                  query = y_rand_strap,
+                  k = control_outcome$k,
+                  treetype = control_outcome$treetype,
+                  searchtype = control_outcome$searchtype
+                )
+              }
+            )
+
+            y_rand_strap <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_strap[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+
+            mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
           },
-          { # 2
-            nonprobMI_nn(
-              data = y_nons_strap,
-              query = y_rand_strap,
-              k = control_outcome$k,
-              treetype = control_outcome$treetype,
-              searchtype = control_outcome$searchtype
-            )
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
           }
         )
-
-        y_rand_strap <- apply(model_rand$nn.idx, 1,
-          FUN = \(x) mean(y_strap[x])
-          # FUN=\(x) mean(sample_nonprob$short_[x])
-        )
-
-        mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     }
   } else {
     N <- pop_totals[1]
     if (method == "glm") {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        model_strap <- stats::glm.fit(
-          x = X_nons_strap,
-          y = y_strap,
-          weights = weights_strap,
-          family = family,
-          start = start_outcome
+            model_strap <- stats::glm.fit(
+              x = X_nons_strap,
+              y = y_strap,
+              weights = weights_strap,
+              family = family,
+              start = start_outcome
+            )
+
+            beta <- model_strap$coefficients
+            eta <- pop_totals %*% beta / N
+            y_strap_rand <- family_nonprobsvy$linkinv(eta)
+
+            # mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
+            mu_hat_boot <- as.vector(y_strap_rand)
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-        beta <- model_strap$coefficients
-        eta <- pop_totals %*% beta / N
-        y_strap_rand <- family_nonprobsvy$linkinv(eta)
-
-        # mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
-        mu_hat_boot <- as.vector(y_strap_rand)
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     } else if (method == "nn") {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        model_rand <- nonprobMI_nn(
-          data = X_nons_strap,
-          query = t(pop_totals / N),
-          k = control_outcome$k,
-          treetype = control_outcome$treetype,
-          searchtype = control_outcome$searchtype
+            model_rand <- nonprobMI_nn(
+              data = X_nons_strap,
+              query = t(pop_totals / N),
+              k = control_outcome$k,
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+            mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-        mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     } else if (method == "pmm") {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        weights_strap <- weights[strap]
-        X_nons_strap <- X_nons[strap, , drop = FALSE]
-        y_strap <- y[strap]
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            weights_strap <- weights[strap]
+            X_nons_strap <- X_nons[strap, , drop = FALSE]
+            y_strap <- y[strap]
 
-        model_strap <- stats::glm.fit(
-          x = X_nons_strap,
-          y = y_strap,
-          weights = weights_strap,
-          family = family,
-          start = start_outcome
+            model_strap <- stats::glm.fit(
+              x = X_nons_strap,
+              y = y_strap,
+              weights = weights_strap,
+              family = family,
+              start = start_outcome
+            )
+
+            beta <- model_strap$coefficients
+            eta_rand <- pop_totals %*% beta
+            eta_nons <- X_nons_strap %*% beta
+            y_strap_rand <- family_nonprobsvy$linkinv(eta_rand)
+            y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
+
+
+            model_rand <- nonprobMI_nn(
+              data = y_strap_nons,
+              query = y_strap_rand,
+              k = control_outcome$k,
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+            mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-        beta <- model_strap$coefficients
-        eta_rand <- pop_totals %*% beta
-        eta_nons <- X_nons_strap %*% beta
-        y_strap_rand <- family_nonprobsvy$linkinv(eta_rand)
-        y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
-
-
-        model_rand <- nonprobMI_nn(
-          data = y_strap_nons,
-          query = y_strap_rand,
-          k = control_outcome$k,
-          treetype = control_outcome$treetype,
-          searchtype = control_outcome$searchtype
-        )
-        mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     }
   }
@@ -336,113 +395,133 @@ bootIPW <- function(X_rand,
   }
 
   if (is.null(pop_totals)) {
-  rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
+    rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
     while (k <= num_boot) {
-      strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+      tryCatch(
+        {
+          strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
 
-      # using svy package
-      strap_rand_svy <- which(rep_weights[, k] != 0)
-      weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-      N_strap <- sum(weights_rand_strap_svy)
-      X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
-      weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
+          # using svy package
+          strap_rand_svy <- which(rep_weights[, k] != 0)
+          weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+          N_strap <- sum(weights_rand_strap_svy)
+          X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
+          weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
 
-      # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-      # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
+          # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
+          # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
 
-      X_nons_strap <- X_nons[strap_nons, , drop = FALSE]
-      X <- rbind(X_rand_strap, X_nons_strap)
-      n_rand_strap <- nrow(X_rand_strap)
+          X_nons_strap <- X_nons[strap_nons, , drop = FALSE]
+          X <- rbind(X_rand_strap, X_nons_strap)
+          n_rand_strap <- nrow(X_rand_strap)
 
-      R_nons <- rep(1, n_nons)
-      R_rand <- rep(0, n_rand_strap)
-      R <- c(R_rand, R_nons)
+          R_nons <- rep(1, n_nons)
+          R_rand <- rep(0, n_rand_strap)
+          R <- c(R_rand, R_nons)
 
-      model_sel <- internal_selection(
-        X = X,
-        X_nons = X_nons_strap,
-        X_rand = X_rand_strap,
-        weights = weights[strap_nons],
-        weights_rand = weights_strap_rand,
-        R = R,
-        method_selection = method_selection,
-        optim_method = optim_method,
-        h = h,
-        est_method = est_method,
-        maxit = maxit,
-        control_selection = control_selection,
-        start = start_selection
+          model_sel <- internal_selection(
+            X = X,
+            X_nons = X_nons_strap,
+            X_rand = X_rand_strap,
+            weights = weights[strap_nons],
+            weights_rand = weights_strap_rand,
+            R = R,
+            method_selection = method_selection,
+            optim_method = optim_method,
+            h = h,
+            est_method = est_method,
+            maxit = maxit,
+            control_selection = control_selection,
+            start = start_selection
+          )
+
+          est_method_obj <- estimation_method$estimation_model(
+            model = model_sel,
+            method_selection = method_selection
+          )
+
+          ps_nons <- est_method_obj$ps_nons
+          weights_nons <- 1 / ps_nons
+          N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
+
+          for (l in 1:mu_len) {
+            mu_hats_boot[k, l] <- mu_hatIPW(
+              y = ys[[l]][strap_nons],
+              weights = weights[strap_nons],
+              weights_nons = weights_nons,
+              N = N_est_nons
+            ) # IPW estimator
+          }
+          if (verbose) {
+            # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k,], sep = "")
+            # print(info)
+            utils::setTxtProgressBar(pb, k)
+          }
+          k <- k + 1
+        },
+        error = function(e) {
+          if (verbose) {
+            info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+            print(info)
+          }
+        }
       )
-
-      est_method_obj <- estimation_method$estimation_model(
-        model = model_sel,
-        method_selection = method_selection
-      )
-
-      ps_nons <- est_method_obj$ps_nons
-      weights_nons <- 1 / ps_nons
-      N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
-
-      for (l in 1:mu_len) {
-        mu_hats_boot[k,l] <- mu_hatIPW(
-          y = ys[[l]][strap_nons],
-          weights = weights[strap_nons],
-          weights_nons = weights_nons,
-          N = N_est_nons
-        ) # IPW estimator
-      }
-      if (verbose) {
-        # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k,], sep = "")
-        # print(info)
-        utils::setTxtProgressBar(pb, k)
-      }
-      k <- k + 1
     }
-  }  else {
-     while (k <= num_boot) {
-      strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+  } else {
+    while (k <= num_boot) {
+      tryCatch(
+        {
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
 
-      X_strap <- X_nons[strap, , drop = FALSE]
-      R_strap <- R[strap]
-      weights_strap <- weights[strap]
+          X_strap <- X_nons[strap, , drop = FALSE]
+          R_strap <- R[strap]
+          weights_strap <- weights[strap]
 
-      h_object_strap <- theta_h_estimation(
-        R = R_strap,
-        X = X_strap,
-        weights_rand = NULL,
-        weights = weights_strap,
-        h = h,
-        method_selection = method_selection,
-        maxit = maxit,
-        pop_totals = pop_totals,
-        start = start_selection
+          h_object_strap <- theta_h_estimation(
+            R = R_strap,
+            X = X_strap,
+            weights_rand = NULL,
+            weights = weights_strap,
+            h = h,
+            method_selection = method_selection,
+            maxit = maxit,
+            pop_totals = pop_totals,
+            start = start_selection
+          )
+          theta_hat_strap <- h_object_strap$theta_h
+          ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
+
+          weights_nons <- 1 / ps_nons
+          N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
+
+          for (l in 1:mu_len) {
+            mu_hats_boot[k, l] <- mu_hatIPW(
+              y = ys[[l]][strap],
+              weights = weights_strap,
+              weights_nons = weights_nons,
+              N = N_est_nons
+            ) # IPW estimator
+          }
+          if (verbose) {
+            # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k], sep = "")
+            # print(info)
+            utils::setTxtProgressBar(pb, k)
+          }
+          k <- k + 1
+        },
+        error = function(e) {
+          if (verbose) {
+            info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+            print(info)
+          }
+        }
       )
-      theta_hat_strap <- h_object_strap$theta_h
-      ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
-
-      weights_nons <- 1 / ps_nons
-      N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
-
-      for (l in 1:mu_len) {
-        mu_hats_boot[k,l] <- mu_hatIPW(
-          y = ys[[l]][strap],
-          weights = weights_strap,
-          weights_nons = weights_nons,
-          N = N_est_nons
-        ) # IPW estimator
-      }
-      if (verbose) {
-        # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hats_boot[k], sep = "")
-        # print(info)
-        utils::setTxtProgressBar(pb, k)
-      }
-      k <- k + 1
     }
   }
   # mu_hats_boot_means <- colMeans(mu_hats_boot)
   # boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   for (l in 1:mu_len) {
-    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[,l] - mu_hats[l])^2)
+    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[, l] - mu_hats[l])^2)
   }
   if (verbose) {
     close(pb)
@@ -535,149 +614,169 @@ bootDR <- function(outcome,
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
       N <- sum(weights_rand)
       while (k <= num_boot) {
-        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
+        tryCatch(
+          {
+            strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
 
-        # using svy package
-        strap_rand_svy <- which(rep_weights[, k] != 0)
-        weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-        # N_strap <- sum(weights_rand_strap_svy)
-        # X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
-        weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
+            # using svy package
+            strap_rand_svy <- which(rep_weights[, k] != 0)
+            weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+            # N_strap <- sum(weights_rand_strap_svy)
+            # X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
+            weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
 
-        model_obj <- MethodOutcome(
-          outcome = outcome,
-          data = data[strap_nons, ],
-          weights = weights[strap_nons],
-          family_outcome = family_outcome,
-          start_outcome = start_outcome,
-          X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
-          y_nons = OutcomeModel$y_nons[strap_nons],
-          X_rand = OutcomeModel$X_rand[strap_rand_svy, , drop = FALSE],
-          control = control_outcome,
-          n_nons = n_nons,
-          n_rand = n_rand,
-          model_frame = OutcomeModel$model_frame_rand[strap_rand_svy, ],
-          vars_selection = control_inference$vars_selection,
-          pop_totals = pop_totals
+            model_obj <- MethodOutcome(
+              outcome = outcome,
+              data = data[strap_nons, ],
+              weights = weights[strap_nons],
+              family_outcome = family_outcome,
+              start_outcome = start_outcome,
+              X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
+              y_nons = OutcomeModel$y_nons[strap_nons],
+              X_rand = OutcomeModel$X_rand[strap_rand_svy, , drop = FALSE],
+              control = control_outcome,
+              n_nons = n_nons,
+              n_rand = n_rand,
+              model_frame = OutcomeModel$model_frame_rand[strap_rand_svy, ],
+              vars_selection = control_inference$vars_selection,
+              pop_totals = pop_totals
+            )
+
+
+            y_rand_pred <- model_obj$y_rand_pred
+            y_nons_pred <- model_obj$y_nons_pred
+
+            X_sel <- rbind(
+              SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
+              SelectionModel$X_nons[strap_nons, , drop = FALSE]
+            )
+            n_rand_strap <- nrow(SelectionModel$X_rand[strap_rand_svy, , drop = FALSE])
+
+            R_nons <- rep(1, n_nons)
+            R_rand <- rep(0, n_rand_strap)
+            R <- c(R_rand, R_nons)
+
+            model_sel <- internal_selection(
+              X = X_sel,
+              X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
+              X_rand = SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
+              weights = weights[strap_nons],
+              weights_rand = weights_strap_rand,
+              R = R,
+              method_selection = method_selection,
+              optim_method = optim_method,
+              h = h,
+              est_method = est_method,
+              maxit = maxit,
+              control_selection = control_selection,
+              start = start_selection
+            )
+
+            est_method_obj <- estimation_method$estimation_model(
+              model = model_sel,
+              method_selection = method_selection
+            )
+            ps_nons <- est_method_obj$ps_nons
+            weights_nons <- 1 / ps_nons
+            N_est_nons <- sum(weights_nons)
+            N_est_rand <- sum(weights_strap_rand)
+
+            mu_hat_boot <- mu_hatDR(
+              y = OutcomeModel$y_nons[strap_nons],
+              y_nons = y_nons_pred,
+              y_rand = y_rand_pred,
+              weights = weights[strap_nons],
+              weights_nons = weights_nons,
+              weights_rand = weights_strap_rand,
+              N_nons = N_est_nons,
+              N_rand = N_est_rand
+            )
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-
-        y_rand_pred <- model_obj$y_rand_pred
-        y_nons_pred <- model_obj$y_nons_pred
-
-        X_sel <- rbind(
-          SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
-          SelectionModel$X_nons[strap_nons, , drop = FALSE]
-        )
-        n_rand_strap <- nrow(SelectionModel$X_rand[strap_rand_svy, , drop = FALSE])
-
-        R_nons <- rep(1, n_nons)
-        R_rand <- rep(0, n_rand_strap)
-        R <- c(R_rand, R_nons)
-
-        model_sel <- internal_selection(
-          X = X_sel,
-          X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
-          X_rand = SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
-          weights = weights[strap_nons],
-          weights_rand = weights_strap_rand,
-          R = R,
-          method_selection = method_selection,
-          optim_method = optim_method,
-          h = h,
-          est_method = est_method,
-          maxit = maxit,
-          control_selection = control_selection,
-          start = start_selection
-        )
-
-        est_method_obj <- estimation_method$estimation_model(
-          model = model_sel,
-          method_selection = method_selection
-        )
-        ps_nons <- est_method_obj$ps_nons
-        weights_nons <- 1 / ps_nons
-        N_est_nons <- sum(weights_nons)
-        N_est_rand <- sum(weights_strap_rand)
-
-        mu_hat_boot <- mu_hatDR(
-          y = OutcomeModel$y_nons[strap_nons],
-          y_nons = y_nons_pred,
-          y_rand = y_rand_pred,
-          weights = weights[strap_nons],
-          weights_nons = weights_nons,
-          weights_rand = weights_strap_rand,
-          N_nons = N_est_nons,
-          N_rand = N_est_rand
-        )
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     } else {
       while (k <= num_boot) {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-        X_strap_nons <- SelectionModel$X_nons[strap, , drop = FALSE]
-        y_strap <- OutcomeModel$y_nons[strap]
-        R_strap <- rep(1, n_nons)
-        weights_strap <- weights[strap]
-        n_rand <- 0
-        X_strap_rand <- NULL
+        tryCatch(
+          {
+            strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+            X_strap_nons <- SelectionModel$X_nons[strap, , drop = FALSE]
+            y_strap <- OutcomeModel$y_nons[strap]
+            R_strap <- rep(1, n_nons)
+            weights_strap <- weights[strap]
+            n_rand <- 0
+            X_strap_rand <- NULL
 
-        h_object_strap <- theta_h_estimation(
-          R = R_strap,
-          X = X_strap_nons,
-          weights = weights_strap,
-          h = h,
-          method_selection = method_selection,
-          maxit = maxit,
-          pop_totals = pop_totals,
-          weights_rand = NULL,
-          start = start_selection
+            h_object_strap <- theta_h_estimation(
+              R = R_strap,
+              X = X_strap_nons,
+              weights = weights_strap,
+              h = h,
+              method_selection = method_selection,
+              maxit = maxit,
+              pop_totals = pop_totals,
+              weights_rand = NULL,
+              start = start_selection
+            )
+
+            theta_hat_strap <- h_object_strap$theta_h
+            method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+            method <- get_method(method_selection_function)
+            inv_link <- method$make_link_inv
+            ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap_nons))
+            weights_nons_strap <- 1 / ps_nons_strap
+            N_est <- sum(weights_strap * weights_nons_strap)
+            if (is.null(pop_size)) pop_size <- N_est
+
+            model_obj <- MethodOutcome(
+              outcome = outcome,
+              data = data[strap, , drop = FALSE],
+              weights = weights_strap,
+              family_outcome = family_outcome,
+              start_outcome = start_outcome,
+              X_nons = X_strap_nons,
+              y_nons = y_strap,
+              X_rand = X_strap_rand,
+              control = control_outcome,
+              n_nons = n_nons,
+              n_rand = n_rand,
+              model_frame = OutcomeModel$model_frame_rand,
+              vars_selection = control_inference$vars_selection,
+              pop_totals = pop_totals
+            )
+
+            y_rand_pred <- model_obj$y_rand_pred
+            y_nons_pred <- model_obj$y_nons_pred
+
+            mu_hat_boot <- 1 / N_est * sum(weights_nons_strap * (weights_strap * (y_strap - y_nons_pred))) + ifelse(method_outcome == "glm", 1 / pop_size * y_rand_pred, y_rand_pred)
+            mu_hats[k] <- mu_hat_boot
+            if (verbose) {
+              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+              # print(info)
+              utils::setTxtProgressBar(pb, k)
+            }
+            k <- k + 1
+          },
+          error = function(e) {
+            if (verbose) {
+              info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+              print(info)
+            }
+          }
         )
-
-        theta_hat_strap <- h_object_strap$theta_h
-        method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-        method <- get_method(method_selection_function)
-        inv_link <- method$make_link_inv
-        ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap_nons))
-        weights_nons_strap <- 1 / ps_nons_strap
-        N_est <- sum(weights_strap * weights_nons_strap)
-        if (is.null(pop_size)) pop_size <- N_est
-
-        model_obj <- MethodOutcome(
-          outcome = outcome,
-          data = data[strap, , drop = FALSE],
-          weights = weights_strap,
-          family_outcome = family_outcome,
-          start_outcome = start_outcome,
-          X_nons = X_strap_nons,
-          y_nons = y_strap,
-          X_rand = X_strap_rand,
-          control = control_outcome,
-          n_nons = n_nons,
-          n_rand = n_rand,
-          model_frame = OutcomeModel$model_frame_rand,
-          vars_selection = control_inference$vars_selection,
-          pop_totals = pop_totals
-        )
-
-        y_rand_pred <- model_obj$y_rand_pred
-        y_nons_pred <- model_obj$y_nons_pred
-
-        mu_hat_boot <- 1 / N_est * sum(weights_nons_strap * (weights_strap * (y_strap - y_nons_pred))) + ifelse(method_outcome == "glm", 1 / pop_size * y_rand_pred, y_rand_pred)
-        mu_hats[k] <- mu_hat_boot
-        if (verbose) {
-          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-          # print(info)
-          utils::setTxtProgressBar(pb, k)
-        }
-        k <- k + 1
       }
     }
     # mu_hat_boot <- mean(mu_hats)
@@ -719,64 +818,74 @@ bootDR_sel <- function(X,
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
   while (k <= num_boot) {
-    strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
-    # strap_rand <- sample.int(replace = TRUE, n = n_rand,  prob = 1/weights_rand)
+    tryCatch(
+      {
+        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+        # strap_rand <- sample.int(replace = TRUE, n = n_rand,  prob = 1/weights_rand)
 
-    weights_nons <- weights[strap_nons]
-    # weights_rand_strap <- weights_rand[strap_rand]
+        weights_nons <- weights[strap_nons]
+        # weights_rand_strap <- weights_rand[strap_rand]
 
-    # using svy package
-    strap_rand_svy <- which(rep_weights[, k] != 0)
-    weights_rand_strap_svy <- rep_weights[, k] * weights_rand
-    N_strap <- sum(weights_rand_strap_svy)
-    # X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
-    weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
+        # using svy package
+        strap_rand_svy <- which(rep_weights[, k] != 0)
+        weights_rand_strap_svy <- rep_weights[, k] * weights_rand
+        N_strap <- sum(weights_rand_strap_svy)
+        # X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
+        weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
 
 
-    X_strap <- rbind(X_rand[strap_rand_svy, , drop = FALSE], X_nons[strap_nons, , drop = FALSE])
-    y_strap <- c(y_rand[strap_rand_svy], y_nons[strap_nons])
-    n_rand_strap <- nrow(X_rand[strap_rand_svy, , drop = FALSE])
+        X_strap <- rbind(X_rand[strap_rand_svy, , drop = FALSE], X_nons[strap_nons, , drop = FALSE])
+        y_strap <- c(y_rand[strap_rand_svy], y_nons[strap_nons])
+        n_rand_strap <- nrow(X_rand[strap_rand_svy, , drop = FALSE])
 
-    R_nons <- rep(1, n_nons)
-    R_rand <- rep(0, n_rand_strap)
-    R <- c(R_rand, R_nons)
+        R_nons <- rep(1, n_nons)
+        R_rand <- rep(0, n_rand_strap)
+        R <- c(R_rand, R_nons)
 
-    model_strap <- mm(
-      X = X_strap,
-      y = y_strap,
-      weights = weights_nons,
-      weights_rand = weights_strap_rand,
-      R = R, # c(R[loc_nons][strap_nons], R[loc_rand][strap_rand]),
-      n_nons = n_nons,
-      n_rand = n_rand_strap,
-      method_selection = method_selection,
-      family = family_nonprobsvy,
-      start_outcome = start_outcome,
-      start_selection = start_selection,
-      boot = TRUE
+        model_strap <- mm(
+          X = X_strap,
+          y = y_strap,
+          weights = weights_nons,
+          weights_rand = weights_strap_rand,
+          R = R, # c(R[loc_nons][strap_nons], R[loc_rand][strap_rand]),
+          n_nons = n_nons,
+          n_rand = n_rand_strap,
+          method_selection = method_selection,
+          family = family_nonprobsvy,
+          start_outcome = start_outcome,
+          start_selection = start_selection,
+          boot = TRUE
+        )
+
+        weights_nons_strap <- 1 / model_strap$selection$ps_nons
+        N_nons <- sum(weights_nons * weights_nons_strap)
+        N_rand <- sum(weights_strap_rand)
+
+        mu_hat_boot <- mu_hatDR(
+          y = y_nons[strap_nons],
+          y_nons = model_strap$outcome$y_nons_pred,
+          y_rand = model_strap$outcome$y_rand_pred,
+          weights = weights_nons,
+          weights_nons = weights_nons_strap,
+          weights_rand = weights_strap_rand,
+          N_nons = N_nons,
+          N_rand = N_rand
+        ) # DR estimator
+        mu_hats[k] <- mu_hat_boot
+        if (verbose) {
+          # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
+          # print(info)
+          utils::setTxtProgressBar(pb, k)
+        }
+        k <- k + 1
+      },
+      error = function(e) {
+        if (verbose) {
+          info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
+          print(info)
+        }
+      }
     )
-
-    weights_nons_strap <- 1 / model_strap$selection$ps_nons
-    N_nons <- sum(weights_nons * weights_nons_strap)
-    N_rand <- sum(weights_strap_rand)
-
-    mu_hat_boot <- mu_hatDR(
-      y = y_nons[strap_nons],
-      y_nons = model_strap$outcome$y_nons_pred,
-      y_rand = model_strap$outcome$y_rand_pred,
-      weights = weights_nons,
-      weights_nons = weights_nons_strap,
-      weights_rand = weights_strap_rand,
-      N_nons = N_nons,
-      N_rand = N_rand
-    ) # DR estimator
-    mu_hats[k] <- mu_hat_boot
-    if (verbose) {
-      # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-      # print(info)
-      utils::setTxtProgressBar(pb, k)
-    }
-    k <- k + 1
   }
   # mu_hat_boot <- mean(mu_hats)
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
@@ -839,12 +948,11 @@ bootMI_multicore <- function(X_rand,
     N <- sum(weights_rand)
     rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
     if (method == "glm") {
-
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -874,7 +982,7 @@ bootMI_multicore <- function(X_rand,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -910,7 +1018,7 @@ bootMI_multicore <- function(X_rand,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -925,7 +1033,7 @@ bootMI_multicore <- function(X_rand,
           weights_rand_strap_svy <- rep_weights[, k] * weights_rand
           N_strap <- sum(weights_rand_strap_svy)
           X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
-          weights_strap_rand <- weights_rand_strap_svy[weights_rand_strap_svy!=0]
+          weights_strap_rand <- weights_rand_strap_svy[weights_rand_strap_svy != 0]
 
           model_strap <- stats::glm.fit(
             x = X_nons_strap,
@@ -943,7 +1051,7 @@ bootMI_multicore <- function(X_rand,
           y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
-          model_rand <- switch (control_outcome$predictive_match,
+          model_rand <- switch(control_outcome$predictive_match,
             { # 1
               nonprobMI_nn(
                 data = y_strap,
@@ -962,7 +1070,7 @@ bootMI_multicore <- function(X_rand,
                 searchtype = control_outcome$searchtype
               )
             }
-        )
+          )
 
           y_rand_strap <- apply(model_rand$nn.idx, 1,
             FUN = \(x) mean(y_strap[x])
@@ -978,7 +1086,7 @@ bootMI_multicore <- function(X_rand,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -1003,7 +1111,7 @@ bootMI_multicore <- function(X_rand,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -1022,7 +1130,7 @@ bootMI_multicore <- function(X_rand,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
@@ -1101,7 +1209,7 @@ bootIPW_multicore <- function(X_rand,
   rep_type <- control_inference$rep_type
 
   mu_len <- length(mu_hats)
-  mu_hats_boot <- numeric(length = num_boot*mu_len)
+  mu_hats_boot <- numeric(length = num_boot * mu_len)
   boot_vars <- numeric(length = mu_len)
 
   cl <- parallel::makeCluster(cores)
@@ -1119,7 +1227,7 @@ bootIPW_multicore <- function(X_rand,
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
       if (is.null(pop_totals)) {
-        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
 
         # using svy package
         strap_rand_svy <- which(rep_weights[, k] != 0)
@@ -1183,7 +1291,7 @@ bootIPW_multicore <- function(X_rand,
         }
         mu_hats_this_boot
       } else {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
         X_strap <- X_nons[strap, , drop = FALSE]
         R_strap <- R[strap]
         weights_strap <- weights[strap]
@@ -1212,14 +1320,14 @@ bootIPW_multicore <- function(X_rand,
         #   N = N_est_nons
         # ) # IPW estimator
         for (l in 1:mu_len) {
-          mu_hats_boot[k,l] <- mu_hatIPW(
+          mu_hats_boot[k, l] <- mu_hatIPW(
             y = ys[[l]][strap],
             weights = weights_strap,
             weights_nons = weights_nons,
             N = N_est_nons
           ) # IPW estimator
-      }
-      mu_hats_boot
+        }
+        mu_hats_boot
       }
     }
   )
@@ -1227,7 +1335,7 @@ bootIPW_multicore <- function(X_rand,
   # mu_hats_boot_means <- colMeans(mu_hats_boot)
   # boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   for (l in 1:mu_len) {
-    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[,l] - mu_hats[l])^2)
+    boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[, l] - mu_hats[l])^2)
   }
   list(
     var = boot_vars,
@@ -1334,7 +1442,7 @@ bootDR_multicore <- function(outcome,
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
           estimation_method <- get_method(est_method)
-          strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
 
           # using svy package
@@ -1400,7 +1508,7 @@ bootDR_multicore <- function(outcome,
           N_est_nons <- sum(weights_nons)
           N_est_rand <- sum(weights_strap_rand)
 
-         mu_hatDR(
+          mu_hatDR(
             y = OutcomeModel$y_nons[strap_nons],
             y_nons = y_nons_pred,
             y_rand = y_rand_pred,
@@ -1417,7 +1525,7 @@ bootDR_multicore <- function(outcome,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           X_nons_strap <- SelectionModel$X_nons[strap, , drop = FALSE]
           y_strap <- OutcomeModel$y_nons[strap]
           R_strap <- rep(1, n_nons)
@@ -1526,7 +1634,7 @@ bootDR_sel_multicore <- function(X,
   mu_hats <- foreach::`%dopar%`(
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
-      strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1/weights)
+      strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
       # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
 
       weights_strap <- weights[strap_nons]

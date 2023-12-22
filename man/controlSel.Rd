@@ -87,12 +87,11 @@ List with selected parameters.
 \description{
 \code{controlSel} constructs a list with all necessary control parameters
 for selection model.
-
-\loadmathjax
 }
 \seealso{
 \code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
+\loadmathjax
 }
