@@ -473,7 +473,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
   Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
 
   arma::vec weights;
-  arma::vec loss_theta_av(nlambda, arma::fill::zeros);
+  arma::vec loss_theta_av(nlambda);
   const arma::vec& R_ = R;
   const arma::mat& X_ = X;
 
@@ -549,8 +549,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       //loss_theta_av(i) = mean(loss_theta_vec);
     }
 
-    arma::vec loss_theta_av(nlambda);
     arma::vec loss_theta_vec(nfolds);
+    // Vector to store means, one for each field
     for (int i = 0; i < nlambda; i++) {
       // arma::vec loss_theta_vec(nfolds);
       for (int j = 0; j < nfolds; j++) {

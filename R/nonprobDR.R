@@ -68,6 +68,9 @@ nonprobDR <- function(selection,
     confidence_interval <- NULL
     SE_values <- NULL
   }
+  if (control_inference$var_method == "bootstrap") {
+    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
 
   # Selection models
   if (is.null(pop_totals) && !is.null(svydesign)) {
@@ -740,7 +743,8 @@ nonprobDR <- function(selection,
         }
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        stat[, k] <- boot_obj$stat
+        # mu_hat <- boot_obj$mu
       } else {
         stop("Invalid method for variance estimation.")
       }
@@ -768,6 +772,11 @@ nonprobDR <- function(selection,
     #                      dimnames = list(names(theta_hat),
     #                                      c("Estimate", "Std. Error")))
     OutcomeList[[k]]$method <- method_outcome
+    if (control_inference$vars_selection == TRUE) {
+      OutcomeList[[k]]$cve <- cve_outcome
+    } else {
+      NULL
+    }
   }
   weights_summary <- summary(as.vector(weights_nons))
   prop_scores <- c(ps_nons, est_ps_rand)
@@ -779,6 +788,13 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+
+  boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    stat
+  } else {
+    NULL
+  }
+  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   SelectionList <- list(
     coefficients = selection_model$theta_hat,
@@ -794,7 +810,12 @@ nonprobDR <- function(selection,
     prior.weights = weights,
     formula = selection,
     df_residual = selection_model$df_residual,
-    log_likelihood = selection_model$log_likelihood
+    log_likelihood = selection_model$log_likelihood,
+    cve = if (control_inference$vars_selection == TRUE) {
+      cve_selection
+    } else {
+      NULL
+    }
   )
   # df.null = selection_model$df_null
   # converged)
@@ -819,8 +840,7 @@ nonprobDR <- function(selection,
       pop_size = pop_size,
       outcome = OutcomeList,
       selection = SelectionList,
-      boot_sample = if (control_inference$var_method == "bootstrap" & control_inference$keep_boot)
-        boot_obj$stat else NULL
+      boot_sample = boot_sample
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )

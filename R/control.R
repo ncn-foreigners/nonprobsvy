@@ -1,9 +1,10 @@
 #' @title Control parameters for selection model
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
+#' \loadmathjax
+#'
 #' @description \code{controlSel} constructs a list with all necessary control parameters
 #' for selection model.
 #'
-#' \loadmathjax
 #'
 #' @param method estimation method.
 #' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
@@ -138,31 +139,32 @@ controlOut <- function(epsilon = 1e-4,
                        treetype = "kd",
                        searchtype = "standard",
                        predictive_match = 1:2,
-                       pmm_weights = c("none", "prop_dist")
-                       ) {
-
-  if (missing(predictive_match))
+                       pmm_weights = c("none", "prop_dist")) {
+  if (missing(predictive_match)) {
     predictive_match <- 1
+  }
 
-  if (missing(pmm_weights))
+  if (missing(pmm_weights)) {
     pmm_weights <- "none"
+  }
 
-  list(epsilon = epsilon,
-       maxit = maxit,
-       trace = trace,
-       k = k,
-       penalty = if(missing(penalty)) "SCAD" else penalty,
-       a_SCAD = a_SCAD,
-       a_MCP = a_MCP,
-       lambda_min = lambda_min,
-       nlambda = nlambda,
-       nfolds = nfolds,
-       treetype = treetype,
-       searchtype = searchtype,
-       # add bayesian
-       predictive_match = predictive_match,
-       pmm_weights = pmm_weights)
-
+  list(
+    epsilon = epsilon,
+    maxit = maxit,
+    trace = trace,
+    k = k,
+    penalty = if (missing(penalty)) "SCAD" else penalty,
+    a_SCAD = a_SCAD,
+    a_MCP = a_MCP,
+    lambda_min = lambda_min,
+    nlambda = nlambda,
+    nfolds = nfolds,
+    treetype = treetype,
+    searchtype = searchtype,
+    # add bayesian
+    predictive_match = predictive_match,
+    pmm_weights = pmm_weights
+  )
 }
 
 
@@ -228,10 +230,12 @@ controlInf <- function(vars_selection = FALSE,
     num_boot = num_boot,
     alpha = alpha,
     cores = cores,
-    keep_boot = if(missing(keep_boot)) TRUE else {
-      if (!is.logical(keep_boot))
+    keep_boot = if (missing(keep_boot)) {
+      TRUE
+    } else {
+      if (!is.logical(keep_boot)) {
         stop("keep_boot argument for controlInf must be logical")
-      else
+      } else {
         keep_boot
     },
     pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)

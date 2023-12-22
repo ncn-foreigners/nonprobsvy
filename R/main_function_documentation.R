@@ -16,7 +16,7 @@ NULL
 #' The package uses `survey` package functionality when a probability sample is available.
 #'
 #'
-#' @param data `data.frame` with data from the nonprobability sample.
+#' @param data `data.frame` with data from the non-probability sample.
 #' @param selection `formula`, the selection (propensity) equation.
 #' @param outcome `formula`, the outcome equation.
 #' @param target `formula` with target variables.
@@ -207,7 +207,10 @@ NULL
 #'  \item{\code{method} -- set on `glm`, since the regression method}
 #'  }
 #'  }
-#'  In addition, if the variable selection model for the outcome variable is fitting, the list includes the \code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds.
+#'  In addition, if the variable selection model for the outcome variable is fitting, the list includes the
+#'  \itemize{
+#'  \item{\code{cve} -- the error for each value of `lambda`, averaged across the cross-validation folds.}
+#'  }
 #'  \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 #'  \itemize{
 #'  \item{\code{coefficients} -- a named vector of coefficients}
@@ -224,9 +227,12 @@ NULL
 #'  \item{\code{df_residual} -- the residual degrees of freedom.}
 #'  \item{\code{log_likelihood} -- value of log-likelihood function if `mle` method, in the other case `NA`.}
 #'  \item{\code{cve} -- the error for each value of the `lambda`, averaged across the cross-validation folds for the variable selection model
-#'  when the propensity score model is fitting.}
+#'  when the propensity score model is fitting. Returned only if selection of variables for the model is used.}
 #'   }
 #'  }
+#'  \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
+#'                       Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
+#'                       [controlInf()] is set on `TRUE`.}
 #' }
 #' @seealso
 #' [stats::optim()] -- For more information on the \code{optim} function used in the
@@ -253,7 +259,7 @@ NULL
 
 #' @examples
 #' \donttest{
-#' # generate data based on Doubly Robust Inference With Nonprobability Survey Samples (2021)
+#' # generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)
 #' # Yilin Chen , Pengfei Li & Changbao Wu
 #' library(sampling)
 #' set.seed(123)
@@ -283,7 +289,7 @@ NULL
 #'
 #' # population
 #' sim_data <- data.frame(y30, y50, y80, x1, x2, x3, x4)
-#' ## propensity score model for nonprobability sample (sum to 1000)
+#' ## propensity score model for non-probability sample (sum to 1000)
 #' eta <- -4.461 + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4
 #' rho <- plogis(eta)
 #'
@@ -294,7 +300,7 @@ NULL
 #' # data
 #' sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
 #' sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
-#' nonprob_df <- subset(sim_data, flag_nonprob == 1) ## nonprobability sample
+#' nonprob_df <- subset(sim_data, flag_nonprob == 1) ## non-probability sample
 #' svyprob <- svydesign(
 #'   ids = ~1, probs = ~p_prob,
 #'   data = subset(sim_data, flag_prob == 1),

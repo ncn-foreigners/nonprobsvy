@@ -49,6 +49,9 @@ nonprobMI <- function(outcome,
     # control_inference$var_method <- "bootstrap"
     # message("Bootstrap variance only, analytical version during implementation.")
   }
+  if (control_inference$var_method == "bootstrap") {
+    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals) && !is.null(svydesign)) {
       pop_totals_sel <- pop_totals
@@ -88,7 +91,10 @@ nonprobMI <- function(outcome,
           trace = verbose,
           nfolds = control_outcome$nfolds,
           nlambda = nlambda,
-          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          gamma = switch(control_outcome$penalty,
+            SCAD = control_outcome$a_SCAD,
+            control_outcome$a_MCP
+          ),
           lambda_min = control_outcome$lambda_min,
           eps = control_outcome$epsilon
         )
@@ -167,7 +173,10 @@ nonprobMI <- function(outcome,
           trace = verbose,
           nfolds = control_outcome$nfolds,
           nlambda = nlambda,
-          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          gamma = switch(control_outcome$penalty,
+            SCAD = control_outcome$a_SCAD,
+            control_outcome$a_MCP
+          ),
           lambda_min = control_outcome$lambda_min,
           eps = control_outcome$epsilon
         )
@@ -290,7 +299,8 @@ nonprobMI <- function(outcome,
           )
         }
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        stat[, k] <- boot_obj$stat
+        # mu_hat <- boot_obj$mu
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(
           nonprob = NA,
           prob = NA
@@ -321,6 +331,11 @@ nonprobMI <- function(outcome,
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
     OutcomeList[[k]]$method <- method_outcome
+    if (control_inference$vars_selection == TRUE) {
+      OutcomeList[[k]]$cve <- cve_outcome
+    } else {
+      NULL
+    }
   }
   output <- do.call(rbind, output)
   confidence_interval <- do.call(rbind, confidence_interval)
@@ -329,6 +344,13 @@ nonprobMI <- function(outcome,
   names(OutcomeList) <- outcomes$f
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+
+  boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    stat
+  } else {
+    NULL
+  }
+  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   structure(
     list(
@@ -345,8 +367,7 @@ nonprobMI <- function(outcome,
       prob_size = n_rand,
       pop_size = pop_size,
       outcome = OutcomeList,
-      boot_sample = if (control_inference$var_method == "bootstrap" & control_inference$keep_boot)
-        boot_obj$stat else NULL
+      boot_sample = boot_sample
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )

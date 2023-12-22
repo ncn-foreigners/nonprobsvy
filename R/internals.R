@@ -8,6 +8,7 @@
 #' @importFrom stats contrasts
 #' @importFrom nleqslv nleqslv
 #' @importFrom stats get_all_vars
+#' @importFrom stats cov
 
 # Selection model object
 internal_selection <- function(X,
@@ -121,6 +122,22 @@ theta_h_estimation <- function(R,
     pop_totals = pop_totals
   )
 
+  # ######### BB
+  # if (method_selection == "cloglog") {
+  #   root <- BB::dfsane(
+  #     par = start,
+  #     fn = u_theta,
+  #   )
+  # } else {
+  #   root <- BB::dfsane(
+  #     par = start,
+  #     fn = u_theta
+  #     # control = list(sigma = 0.1, trace = 1)
+  #   )
+  # }
+  # theta_root <- root$par
+  # print(theta_root)
+  ######### NLESQLV
   if (method_selection == "cloglog") {
     root <- nleqslv::nleqslv(
       x = start,
@@ -142,9 +159,8 @@ theta_h_estimation <- function(R,
       # control = list(sigma = 0.1, trace = 1)
     )
   }
-
-
   theta_root <- root$x
+  # stop("123")
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
       "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
@@ -492,7 +508,7 @@ internal_varMI <- function(svydesign,
                            ) {
   parameters <- model_obj$parameters
 
-  if(is.character(family)) {
+  if (is.character(family)) {
     family_nonprobsvy <- paste(family, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
@@ -592,12 +608,12 @@ internal_varMI <- function(svydesign,
         comp3 <- sum(comp3[lower.tri(comp3, diag = TRUE)])
       }
       # else warning("Write some warning/message about std.error computation here")
-      print(format(comp1, scientific = FALSE, digits = 12))
-      print(format(comp2, scientific = FALSE, digits = 12))
-      print(format(comp3, scientific = FALSE, digits = 12))
+      #print(format(comp1, scientific = FALSE, digits = 12))
+      #print(format(comp2, scientific = FALSE, digits = 12))
+      #print(format(comp3, scientific = FALSE, digits = 12))
       # stop("abc")
-      var_nonprob <- comp1 + comp2 + comp3
-      var_prob <- 0
+      var_prob <- comp1 + comp2 + comp3
+      var_nonprob <- 0
     }
   } else {
     if (method == "nn") {

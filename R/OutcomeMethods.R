@@ -200,7 +200,7 @@ pmm_nonprobsvy <- function(outcome,
   # )
 
   # add protection for very low values in weighting
-  switch (control$predictive_match,
+  switch(control$predictive_match,
     { # 1
       if (is.null(pop_totals)) {
         model_rand <- nonprobMI_nn(
@@ -211,17 +211,20 @@ pmm_nonprobsvy <- function(outcome,
           searchtype = control$searchtype
         )
 
-        switch (control$pmm_weights,
-          "none" = {y_rand_pred <- apply(model_rand$nn.idx, 1,
-                                         FUN=\(x) mean(y_nons[x])
-                                         #FUN=\(x) mean(sample_nonprob$short_[x])
-          )},
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          },
           "prop_dist" = {
             # TODO:: these weights will need to be saved for variance estimation
             y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-                                 FUN=\(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                                                        w = 1 / model_rand$nn.dist[x,])
-                                 #FUN=\(x) mean(sample_nonprob$short_[x])
+              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+              # FUN=\(x) mean(sample_nonprob$short_[x])
             )
           }
         )
@@ -248,21 +251,24 @@ pmm_nonprobsvy <- function(outcome,
         )
 
         y_rand_pred <- apply(model_rand$nn.idx, 1,
-                             FUN=\(x) mean(y_nons[x])
-                             #FUN=\(x) mean(sample_nonprob$short_[x])
+          FUN = \(x) mean(y_nons[x])
+          # FUN=\(x) mean(sample_nonprob$short_[x])
         )
 
-        switch (control$pmm_weights,
-          "none" = {y_rand_pred <- apply(model_rand$nn.idx, 1,
-                                       FUN=\(x) mean(y_nons[x])
-                                       #FUN=\(x) mean(sample_nonprob$short_[x])
-          )},
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          },
           "prop_dist" = {
             # TODO:: these weights will need to be saved for variance estimation
             y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-                                  FUN=\(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                                                         w = 1 / model_rand$nn.dist[x,])
-                                  #FUN=\(x) mean(sample_nonprob$short_[x])
+              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+              # FUN=\(x) mean(sample_nonprob$short_[x])
             )
           }
         )
@@ -289,7 +295,7 @@ pmm_nonprobsvy <- function(outcome,
   list(
     model = model_out,
     y_rand_pred = y_rand_pred,
-    #y_nons_pred = y_nons_pred,
+    # y_nons_pred = y_nons_pred,
     parameters = glm_object$parameters
   )
 }
