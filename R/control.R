@@ -237,7 +237,8 @@ controlInf <- function(vars_selection = FALSE,
         stop("keep_boot argument for controlInf must be logical")
       } else {
         keep_boot
-    },
+    }
+  },
     pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
       stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se
   )

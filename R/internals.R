@@ -9,6 +9,8 @@
 #' @importFrom nleqslv nleqslv
 #' @importFrom stats get_all_vars
 #' @importFrom stats cov
+#' @importFrom stats var
+#' @importFrom stats predict
 
 # Selection model object
 internal_selection <- function(X,
