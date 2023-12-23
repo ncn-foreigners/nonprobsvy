@@ -39,7 +39,9 @@ bootMI <- function(X_rand,
     family_nonprobsvy <- family_nonprobsvy()
   }
 
-  pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+  if (verbose) {
+    pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+  }
 
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
@@ -313,19 +315,42 @@ bootMI <- function(X_rand,
             )
 
             beta <- model_strap$coefficients
-            eta_rand <- pop_totals %*% beta
+            eta_rand <- pop_totals %*% beta / N
             eta_nons <- X_nons_strap %*% beta
             y_strap_rand <- family_nonprobsvy$linkinv(eta_rand)
             y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
 
 
-            model_rand <- nonprobMI_nn(
-              data = y_strap_nons,
-              query = y_strap_rand,
-              k = control_outcome$k,
-              treetype = control_outcome$treetype,
-              searchtype = control_outcome$searchtype
+            model_rand <- switch(control_outcome$predictive_match,
+                                 { # 1
+                                   nonprobMI_nn(
+                                     data = y_strap,
+                                     query = y_strap_rand,
+                                     k = control_outcome$k,
+                                     treetype = control_outcome$treetype,
+                                     searchtype = control_outcome$searchtype
+                                   )
+                                 },
+                                 { # 2
+                                   nonprobMI_nn(
+                                     data = y_strap_nons,
+                                     query = y_strap_rand,
+                                     k = control_outcome$k,
+                                     treetype = control_outcome$treetype,
+                                     searchtype = control_outcome$searchtype
+                                   )
+                                 }
             )
+            #
+            # model_rand <- nonprobMI_nn(
+            #   data = y_strap_nons,
+            #   query = y_strap_rand,
+            #   k = control_outcome$k,
+            #   treetype = control_outcome$treetype,
+            #   searchtype = control_outcome$searchtype
+            # )
+
+
             mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
@@ -608,7 +633,9 @@ bootDR <- function(outcome,
     boot_var <- var_obj$var
     mu_hat_boot <- var_obj$mu
   } else {
-    pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+    if (verbose) {
+      pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+    }
     estimation_method <- get_method(est_method)
     if (is.null(pop_totals)) {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
@@ -814,7 +841,9 @@ bootDR_sel <- function(X,
   y_nons <- y[loc_nons]
   y_rand <- y[loc_rand]
 
-  pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+  if (verbose) {
+    pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+  }
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
   while (k <= num_boot) {

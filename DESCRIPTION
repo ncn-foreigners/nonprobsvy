@@ -39,12 +39,12 @@ Imports:
     ncvreg,
     mathjaxr,
     RANN,
-    Rcpp,
+    Rcpp (>= 0.11.0),
     nleqslv,
     doParallel,
     foreach,
     parallel
 LinkingTo: 
-    RcppArmadillo,
-    Rcpp
+    Rcpp,
+    RcppArmadillo
 Language: en-US

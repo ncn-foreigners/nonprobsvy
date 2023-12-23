@@ -45,9 +45,9 @@ nonprobMI <- function(outcome,
     SE_values <- NULL
   }
   num_boot <- control_inference$num_boot
-  if (method_outcome == "pmm") {
-    # control_inference$var_method <- "bootstrap"
-    # message("Bootstrap variance only, analytical version during implementation.")
+  if (method_outcome == "pmm" & (!is.null(pop_totals) | !is.null(pop_means)) ) {
+    control_inference$var_method <- "bootstrap"
+    message("Bootstrap variance only, analytical version during implementation.")
   }
   if (control_inference$var_method == "bootstrap") {
     stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
