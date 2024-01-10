@@ -13,7 +13,7 @@
 ## installation will do the right thing. Should you need it, uncomment it and
 ## set the appropriate value, possibly CXX17.
 ## CXX_STD = CXX17
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+#PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
 #FLIBS = -L/opt/homebrew/Cellar/gcc/13.2.0/bin/../lib/gcc/current/gcc/aarch64-apple-darwin23/13 -lgfortran
 #FLIBS = -L/usr/local/bin/ -lgfortran

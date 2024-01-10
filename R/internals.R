@@ -571,43 +571,54 @@ internal_varMI <- function(svydesign,
 
       # An option in controlInf controlls this
       # Maybe add a warning/message if this computation is ommited
+      # if (pmm_exact_se) {
+      #   dd <- NULL
+      #   # add variable for loop size to control
+      #   for (jj in 1:50) {
+      #     boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+      #     y_nons_b <- y[boot_samp]
+      #
+      #     XX <- predict(
+      #       model_obj$model$glm_object,
+      #       newdata = as.data.frame(X_rand),
+      #       type = "response"
+      #     )
+      #     YY <- switch (predictive_match,
+      #       {nonprobMI_nn(
+      #         data = y_nons_b,
+      #         query = XX,
+      #         k = k,
+      #         searchtype = "standard",
+      #         treetype = "kd"
+      #       )},
+      #       {nonprobMI_nn(
+      #         data = predict(
+      #           model_obj$model$glm_object,
+      #           newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
+      #           type = "response"
+      #         ),
+      #         query = XX,
+      #         k = k,
+      #         searchtype = "standard",
+      #         treetype = "kd"
+      #       )}
+      #     )
+      #
+      #     dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
+      #   }
+      #   comp3 <- var(dd) * outer(weights_rand / N, weights_rand / N)
+      #   comp3 <- sum(comp3[lower.tri(comp3, diag = TRUE)])
+      # }
       if (pmm_exact_se) {
-        dd <- NULL
-        # add variable for loop size to control
-        for (jj in 1:50) {
-          boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
-          y_nons_b <- y[boot_samp]
-
-          XX <- predict(
-            model_obj$model$glm_object,
-            newdata = as.data.frame(X_rand),
-            type = "response"
-          )
-          YY <- switch (predictive_match,
-            {nonprobMI_nn(
-              data = y_nons_b,
-              query = XX,
-              k = k,
-              searchtype = "standard",
-              treetype = "kd"
-            )},
-            {nonprobMI_nn(
-              data = predict(
-                model_obj$model$glm_object,
-                newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
-                type = "response"
-              ),
-              query = XX,
-              k = k,
-              searchtype = "standard",
-              treetype = "kd"
-            )}
-          )
-
-          dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
+        mat_preds <- matrix(y[model_obj$model$model_rand$nn.idx[1:n_rand, ]], nrow = n_rand) / k
+        for (ii in 1:n_rand) {
+          for (jj in 1:ii) {
+            comp3 <- comp3 +
+              (weights_rand[ii] * weights_rand[jj] / N ^ 2) *
+              (sum(outer(mat_preds[ii,], mat_preds[jj, ])) -
+                 model_obj$y_rand_pred[ii] * model_obj$y_rand_pred[jj])
+          }
         }
-        comp3 <- var(dd) * outer(weights_rand / N, weights_rand / N)
-        comp3 <- sum(comp3[lower.tri(comp3, diag = TRUE)])
       }
       # else warning("Write some warning/message about std.error computation here")
       #print(format(comp1, scientific = FALSE, digits = 12))

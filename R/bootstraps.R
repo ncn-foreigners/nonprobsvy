@@ -930,7 +930,7 @@ bootDR_sel <- function(X,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 bootMI_multicore <- function(X_rand,
                              X_nons,
                              weights,
@@ -964,9 +964,19 @@ bootMI_multicore <- function(X_rand,
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
+
+  ## progress bar
+  if (verbose) {
+    pb <- progress::progress_bar$new(total = num_boot)
+    opts <- list(progress = \(n) pb$tick())
+  } else {
+    opts <- NULL
+  }
+  ###
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
     "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "nonprobMI_nn"
@@ -979,7 +989,7 @@ bootMI_multicore <- function(X_rand,
     if (method == "glm") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1009,7 +1019,7 @@ bootMI_multicore <- function(X_rand,
     } else if (method == "nn") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1045,7 +1055,7 @@ bootMI_multicore <- function(X_rand,
     } else if (method == "pmm") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1113,7 +1123,7 @@ bootMI_multicore <- function(X_rand,
     N <- pop_totals[1]
     if (method == "glm") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1138,7 +1148,7 @@ bootMI_multicore <- function(X_rand,
       )
     } else if (method == "nn") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1157,7 +1167,7 @@ bootMI_multicore <- function(X_rand,
       )
     } else if (method == "pmm") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -1204,7 +1214,7 @@ bootMI_multicore <- function(X_rand,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 bootIPW_multicore <- function(X_rand,
                               X_nons,
                               svydesign,
@@ -1242,8 +1252,16 @@ bootIPW_multicore <- function(X_rand,
   boot_vars <- numeric(length = mu_len)
 
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
+  ## progress bar
+  if (verbose) {
+    pb <- progress::progress_bar$new(total = num_boot)
+    opts <- list(progress = \(n) pb$tick())
+  } else {
+    opts <- NULL
+  }
+  ###
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
     "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "theta_h_estimation"
@@ -1253,7 +1271,7 @@ bootIPW_multicore <- function(X_rand,
 
   k <- 1:num_boot
   mu_hats_boot <- foreach::`%dopar%`(
-    obj = foreach::foreach(k = k, .combine = c),
+    obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
     ex = {
       if (is.null(pop_totals)) {
         strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
@@ -1377,7 +1395,7 @@ bootIPW_multicore <- function(X_rand,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 bootDR_multicore <- function(outcome,
                              data,
                              svydesign,
@@ -1455,9 +1473,17 @@ bootDR_multicore <- function(outcome,
     mu_hat_boot <- var_obj$mu
   } else {
     rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+
     cl <- parallel::makeCluster(cores)
-    doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl)
     on.exit(parallel::stopCluster(cl))
+    ## progress bar
+    if (verbose) {
+      pb <- progress::progress_bar$new(total = num_boot)
+      opts <- list(progress = \(n) pb$tick())
+    } else {
+      opts <- NULL
+    }
     parallel::clusterExport(cl = cl, varlist = c(
       "internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "theta_h_estimation",
       "mle", "mu_hatDR", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
@@ -1468,7 +1494,7 @@ bootDR_multicore <- function(outcome,
 
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
         ex = {
           estimation_method <- get_method(est_method)
           strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
@@ -1552,7 +1578,7 @@ bootDR_multicore <- function(outcome,
     } else {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c),
+        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           X_nons_strap <- SelectionModel$X_nons[strap, , drop = FALSE]
@@ -1622,7 +1648,7 @@ bootDR_multicore <- function(outcome,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 bootDR_sel_multicore <- function(X,
                                  svydesign,
                                  R,
@@ -1651,8 +1677,15 @@ bootDR_sel_multicore <- function(X,
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   cl <- parallel::makeCluster(cores)
-  doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl))
+  ## progress bar
+  if (verbose) {
+    pb <- progress::progress_bar$new(total = num_boot)
+    opts <- list(progress = \(n) pb$tick())
+  } else {
+    opts <- NULL
+  }
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "mle",
     "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "mm", "u_theta_beta_dr",
@@ -1661,7 +1694,7 @@ bootDR_sel_multicore <- function(X,
 
   k <- 1:num_boot
   mu_hats <- foreach::`%dopar%`(
-    obj = foreach::foreach(k = k, .combine = c),
+    obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
     ex = {
       strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
       # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)

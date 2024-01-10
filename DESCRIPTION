@@ -41,7 +41,8 @@ Imports:
     RANN,
     Rcpp (>= 0.11.0),
     nleqslv,
-    doParallel,
+    doSNOW,
+    progress,
     foreach,
     parallel
 LinkingTo: 
