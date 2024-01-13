@@ -49,9 +49,9 @@ controlOut(
 \item{predictive_match}{(Only for predictive mean matching)
 Indicates how to select 'closest' unit from nonprobability sample for each
 unit in probability sample. Either \code{1} (default) or \code{2} where
-\code{1} is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+\code{1} is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
 \mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{2}
-is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
 \mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.}
 
 \item{pmm_weights}{(Only for predictive mean matching)

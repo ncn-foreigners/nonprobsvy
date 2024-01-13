@@ -539,10 +539,10 @@ internal_varMI <- function(svydesign,
     } else if (method == "pmm") {
       comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))
 
-      # Cov est
-      comp2 <- outer(1 / weights_rand, 1 / weights_rand) * (
+      # second order inclusion prob
+      pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
         1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) / sum(1 - 1 / weights_rand)
-      ) - outer(1 / weights_rand, 1 / weights_rand)
+      )
       # This can be better implemented i.e. faster
       # Here for each pair (i,j) from prob sample
       # we multiply every nearest neighbour of i with each of
@@ -559,8 +559,9 @@ internal_varMI <- function(svydesign,
           })
         }
       )
-      comp2 <- comp2 * (outer(weights_rand / N, weights_rand) ^ 2) *
-        mat_preds
+      comp2 <- (1 - (pi_ij ^ -1) * outer(1 / weights_rand, 1 / weights_rand)) *
+        outer(weights_rand, weights_rand) *
+        mat_preds  / N ^ 2
       # full est for second term
       comp2 <- sum(comp2[row(comp2) != col(comp2)])
 
@@ -614,16 +615,16 @@ internal_varMI <- function(svydesign,
         for (ii in 1:n_rand) {
           for (jj in 1:ii) {
             comp3 <- comp3 +
-              (weights_rand[ii] * weights_rand[jj] / N ^ 2) *
+              ((pi_ij[ii, jj] ^ -1) / N ^ 2) *
               (sum(outer(mat_preds[ii,], mat_preds[jj, ])) -
                  model_obj$y_rand_pred[ii] * model_obj$y_rand_pred[jj])
           }
         }
       }
       # else warning("Write some warning/message about std.error computation here")
-      #print(format(comp1, scientific = FALSE, digits = 12))
-      #print(format(comp2, scientific = FALSE, digits = 12))
-      #print(format(comp3, scientific = FALSE, digits = 12))
+      # print(format(comp1, scientific = FALSE, digits = 12))
+      # print(format(comp2, scientific = FALSE, digits = 12))
+      # print(format(comp3, scientific = FALSE, digits = 12))
       # stop("abc")
       var_prob <- comp1 + comp2 + comp3
       var_nonprob <- 0

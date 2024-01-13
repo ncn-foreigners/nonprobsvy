@@ -105,9 +105,9 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #' @param predictive_match (Only for predictive mean matching)
 #' Indicates how to select 'closest' unit from nonprobability sample for each
 #' unit in probability sample. Either \code{1} (default) or \code{2} where
-#' \code{1} is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+#' \code{1} is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
 #' \mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{2}
-#' is matching by minimising distance between \mjseqn{\hat{y}_{i}} for
+#' is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
 #' \mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.
 #' @param pmm_weights (Only for predictive mean matching)
 #' Indicate how to weight \code{k} nearest neighbours in \mjseqn{S_{B}} to
@@ -193,8 +193,13 @@ controlOut <- function(epsilon = 1e-4,
 #' third being computed using covariance between imputed values for units in
 #' probability sample using predictive matches from non-probability sample.
 #' In most situations this term is negligible and is very computationally
-#' expensive so by default this is set to \code{FALSE}, but it is reommended to
+#' expensive so by default this is set to \code{FALSE}, but it is recommended to
 #' set this value to \code{TRUE} before submitting final results.
+#' @param pmm_k_choice Character value indicating how \code{k} hyper-parameter
+#' should be chosen, by default \code{"none"} meaning \code{k} provided in
+#' \code{control_outcome} argument will be used. For now the only other
+#' option \code{"min_var"} means that \code{k}  will be chosen by minimizing
+#' estimated variance of estimator for mean.
 #'
 #'
 #' @return List with selected parameters.
@@ -220,7 +225,8 @@ controlInf <- function(vars_selection = FALSE,
                        alpha = 0.05,
                        cores = 1,
                        keep_boot,
-                       pmm_exact_se = FALSE) {
+                       pmm_exact_se = FALSE,
+                       pmm_k_choice = c("none", "min_var")) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
     var_method = if (missing(var_method)) "analytic" else var_method,
@@ -239,7 +245,8 @@ controlInf <- function(vars_selection = FALSE,
         keep_boot
     }
   },
-    pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
-      stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se
+  pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
+      stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se,
+  pmm_k_choice = if (missing(pmm_k_choice)) "none" else pmm_k_choice
   )
 }
