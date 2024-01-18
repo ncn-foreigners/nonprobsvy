@@ -18,7 +18,8 @@ controlOut(
   treetype = "kd",
   searchtype = "standard",
   predictive_match = 1:2,
-  pmm_weights = c("none", "prop_dist")
+  pmm_weights = c("none", "prop_dist"),
+  pmm_k_choice = c("none", "min_var")
 )
 }
 \arguments{
@@ -61,6 +62,13 @@ create imputed value for units in \mjseqn{S_{A}}. The default value
 \mjseqn{S_{B}} should be used whereas \code{"prop_dist"} results in
 weighted mean of these \code{k} values where weights are inversely
 proportional to distance between matched values.}
+
+\item{pmm_k_choice}{Character value indicating how \code{k} hyper-parameter
+should be chosen, by default \code{"none"} meaning \code{k} provided in
+\code{control_outcome} argument will be used. For now the only other
+option \code{"min_var"} means that \code{k}  will be chosen by minimizing
+estimated variance of estimator for mean. Parameter \code{k} provided in
+this control list will be chosen as starting point.}
 }
 \value{
 List with selected parameters.

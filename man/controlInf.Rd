@@ -15,8 +15,7 @@ controlInf(
   alpha = 0.05,
   cores = 1,
   keep_boot,
-  pmm_exact_se = FALSE,
-  pmm_k_choice = c("none", "min_var")
+  pmm_exact_se = FALSE
 )
 }
 \arguments{
@@ -53,12 +52,6 @@ probability sample using predictive matches from non-probability sample.
 In most situations this term is negligible and is very computationally
 expensive so by default this is set to \code{FALSE}, but it is recommended to
 set this value to \code{TRUE} before submitting final results.}
-
-\item{pmm_k_choice}{Character value indicating how \code{k} hyper-parameter
-should be chosen, by default \code{"none"} meaning \code{k} provided in
-\code{control_outcome} argument will be used. For now the only other
-option \code{"min_var"} means that \code{k}  will be chosen by minimizing
-estimated variance of estimator for mean.}
 }
 \value{
 List with selected parameters.
