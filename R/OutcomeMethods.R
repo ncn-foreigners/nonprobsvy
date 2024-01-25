@@ -155,7 +155,9 @@ nn_nonprobsvy <- function(outcome,
     parameters = parameters
   )
 }
-
+#' @importFrom stats loess
+#' @importFrom stats predict
+#' @importFrom stats loess.control
 pmm_nonprobsvy <- function(outcome,
                            data,
                            weights,
@@ -170,21 +172,41 @@ pmm_nonprobsvy <- function(outcome,
                            vars_selection,
                            pop_totals,
                            model_frame) {
-  glm_object <- glm_nonprobsvy(
-    outcome,
-    data,
-    weights,
-    family_outcome,
-    start_outcome = start_outcome,
-    X_nons,
-    y_nons,
-    X_rand,
-    control,
-    n_nons,
-    n_rand,
-    model_frame,
-    vars_selection,
-    pop_totals
+  glm_object <- switch (control$pmm_reg_engine,
+    "glm" = glm_nonprobsvy(
+      outcome,
+      data,
+      weights,
+      family_outcome,
+      start_outcome = start_outcome,
+      X_nons,
+      y_nons,
+      X_rand,
+      control,
+      n_nons,
+      n_rand,
+      model_frame,
+      vars_selection,
+      pop_totals
+    ),
+    "loess" = {
+      # doesn't accept weights
+      mm <- stats::loess(
+        outcome,
+        data,
+        span = .2,
+        control = stats::loess.control(surface = "direct")
+      )
+      mm$data <- data
+      mm$formula <- outcome
+
+      list(
+        model = mm,
+        y_rand_pred = predict(mm, newdata = model_frame),
+        y_nons_pred = predict(mm),
+        parameters = NULL
+      )
+    }
   )
 
   # This is commented now because it is not needed

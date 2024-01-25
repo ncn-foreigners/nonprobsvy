@@ -343,9 +343,11 @@ nonprobMI <- function(outcome,
           family = family_outcome,
           model_obj = model_obj,
           pop_totals = pop_totals,
+          # we should probably just pass full control list
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine
         )
 
         var_nonprob <- var_obj$var_nonprob

@@ -490,6 +490,10 @@ internal_varDR <- function(OutcomeModel,
   )
 }
 # Variance for mass imputation estimator
+#' @importFrom stats loess
+#' @importFrom stats predict
+#' @importFrom stats loess.control
+#' @importFrom survey svymean
 internal_varMI <- function(svydesign,
                            X_nons,
                            X_rand,
@@ -506,7 +510,8 @@ internal_varMI <- function(svydesign,
                            pop_totals,
                            k,
                            predictive_match,
-                           pmm_exact_se
+                           pmm_exact_se,
+                           pmm_reg_engine
                            ) {
   parameters <- model_obj$parameters
 
@@ -554,23 +559,39 @@ internal_varMI <- function(svydesign,
         dd <- NULL
         # add variable for loop size to control
         for (jj in 1:50) {
-          boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
-          # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
-          y_nons_b <- y[boot_samp]
+          reg_object_boot <- NULL
+          while (is.null(reg_object_boot)) {
+            boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+            # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
+            y_nons_b <- y[boot_samp]
 
-          glm_object_boot <- stats::glm(
-            formula = model_obj$model$glm_object$formula,
-            data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
-            #weights = weights,
-            family = model_obj$model$glm_object$family,
-            start = model_obj$model$glm_object$coefficients
-          )
+            #print(model_obj$model$glm_object$data[boot_samp, , drop = FALSE])
 
-          XX <- predict(
-            glm_object_boot,
-            newdata = as.data.frame(X_rand),
-            type = "response"
-          )
+            reg_object_boot <- switch (pmm_reg_engine,
+              "glm" = stats::glm(
+                formula = model_obj$model$glm_object$formula,
+                data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+                #weights = weights,
+                family = model_obj$model$glm_object$family,
+                start = model_obj$model$glm_object$coefficients
+              ),
+              "loess" = stats::loess(
+                formula = model_obj$model$glm_object$formula,
+                data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+                span = .2,
+                control = stats::loess.control(surface = "direct")
+              )
+            )
+            XX <- predict(
+              reg_object_boot,
+              newdata = as.data.frame(X_rand),
+              type = "response"
+            )
+            if (any(!is.finite(XX))) {
+              reg_object_boot <- NULL
+            }
+          }
+
           YY <- switch (predictive_match,
             {nonprobMI_nn(
               data = y_nons_b,
@@ -581,7 +602,7 @@ internal_varMI <- function(svydesign,
             )},
             {nonprobMI_nn(
               data = predict(
-                glm_object_boot,
+                reg_object_boot,
                 newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
                 type = "response"
               ),
