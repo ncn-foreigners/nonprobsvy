@@ -537,96 +537,67 @@ internal_varMI <- function(svydesign,
       var_nonprob <- 1 / n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
-      comp1 <- sum(model_obj$y_rand_pred ^ 2 * (weights_rand / N) * ((weights_rand - 1) / N))
-
-      # second order inclusion prob
-      pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
-        1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) / sum(1 - 1 / weights_rand)
-      )
-      # This can be better implemented i.e. faster
-      # Here for each pair (i,j) from prob sample
-      # we multiply every nearest neighbour of i with each of
-      # j's neighbours scaled by 1/k and sum over them all
-      # 100% there is a better way of implementing this
-      # Additionally if prob sample is large this may be slow because we
-      # are using matrixes of size n_rand x n_rand
-      # maybe some protection against large samples is warranted
-      mat_preds <- matrix(y[model_obj$model$model_rand$nn.idx[1:n_rand, ]], nrow = n_rand) / k
-      mat_preds <- sapply(
-        1:n_rand, FUN = function(i) {
-          sapply(1:n_rand, function (j) {
-            sum(outer(mat_preds[i, , drop = FALSE], mat_preds[j, , drop = FALSE]))
-          })
-        }
-      )
-      comp2 <- (1 - (pi_ij ^ -1) * outer(1 / weights_rand, 1 / weights_rand)) *
-        outer(weights_rand, weights_rand) *
-        mat_preds  / N ^ 2
-      # full est for second term
-      comp2 <- sum(comp2[row(comp2) != col(comp2)])
+      comp1 <- as.numeric(attr(svymean(~y_hat_MI, svydesign), "var"))
 
       # This in general cannot be computed from sample itself, we need to make
-      # a bootstrap. Usually this term is negligible hence by default its
+      # a bootstrap. Sometimes this term is negligible hence by default its
       # not computed, but it should be computed in serious publications
-      comp3 <- 0
+      comp2 <- 0
 
-      # An option in controlInf controlls this
-      # Maybe add a warning/message if this computation is ommited
-      # if (pmm_exact_se) {
-      #   dd <- NULL
-      #   # add variable for loop size to control
-      #   for (jj in 1:50) {
-      #     boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
-      #     y_nons_b <- y[boot_samp]
-      #
-      #     XX <- predict(
-      #       model_obj$model$glm_object,
-      #       newdata = as.data.frame(X_rand),
-      #       type = "response"
-      #     )
-      #     YY <- switch (predictive_match,
-      #       {nonprobMI_nn(
-      #         data = y_nons_b,
-      #         query = XX,
-      #         k = k,
-      #         searchtype = "standard",
-      #         treetype = "kd"
-      #       )},
-      #       {nonprobMI_nn(
-      #         data = predict(
-      #           model_obj$model$glm_object,
-      #           newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
-      #           type = "response"
-      #         ),
-      #         query = XX,
-      #         k = k,
-      #         searchtype = "standard",
-      #         treetype = "kd"
-      #       )}
-      #     )
-      #
-      #     dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
-      #   }
-      #   comp3 <- var(dd) * outer(weights_rand / N, weights_rand / N)
-      #   comp3 <- sum(comp3[lower.tri(comp3, diag = TRUE)])
-      # }
+      # An option in controlInf controls this
+      # Maybe add a warning/message if this computation is omited
       if (pmm_exact_se) {
-        mat_preds <- matrix(y[model_obj$model$model_rand$nn.idx[1:n_rand, ]], nrow = n_rand) / k
-        for (ii in 1:n_rand) {
-          for (jj in 1:ii) {
-            comp3 <- comp3 +
-              ((pi_ij[ii, jj] ^ -1) / N ^ 2) *
-              (sum(outer(mat_preds[ii,], mat_preds[jj, ])) -
-                 model_obj$y_rand_pred[ii] * model_obj$y_rand_pred[jj])
-          }
+        pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
+          1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
+            sum(1 - 1 / weights_rand))
+
+        dd <- NULL
+        # add variable for loop size to control
+        for (jj in 1:50) {
+          boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+          # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
+          y_nons_b <- y[boot_samp]
+
+          glm_object_boot <- stats::glm(
+            formula = model_obj$model$glm_object$formula,
+            data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+            #weights = weights,
+            family = model_obj$model$glm_object$family,
+            start = model_obj$model$glm_object$coefficients
+          )
+
+          XX <- predict(
+            glm_object_boot,
+            newdata = as.data.frame(X_rand),
+            type = "response"
+          )
+          YY <- switch (predictive_match,
+            {nonprobMI_nn(
+              data = y_nons_b,
+              query = XX,
+              k = k,
+              searchtype = "standard",
+              treetype = "kd"
+            )},
+            {nonprobMI_nn(
+              data = predict(
+                glm_object_boot,
+                newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
+                type = "response"
+              ),
+              query = XX,
+              k = k,
+              searchtype = "standard",
+              treetype = "kd"
+            )}
+          )
+
+          dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
         }
+        comp2 <- var(dd) * (pi_ij ^ -1) / N ^ 2
+        comp2 <- sum(comp2[lower.tri(comp2, diag = TRUE)])
       }
-      # else warning("Write some warning/message about std.error computation here")
-      # print(format(comp1, scientific = FALSE, digits = 12))
-      # print(format(comp2, scientific = FALSE, digits = 12))
-      # print(format(comp3, scientific = FALSE, digits = 12))
-      # stop("abc")
-      var_prob <- comp1 + comp2 + comp3
+      var_prob <- comp1 + comp2
       var_nonprob <- 0
     }
   } else {
