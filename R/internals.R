@@ -685,17 +685,33 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
     ##### Model frame for probability sample #####
     if (outcome_name %in% colnames(svydesign$variables)) {
+      # design_to_frame <- svydesign$variables
+      # design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
+      # model_Frame_rand <- model.frame(formula, design_to_frame)
+      # mt_rand <- attr(model_Frame_rand, "terms")
+      # nons_names_rand <- attr(mt_rand, "term.labels")
+
+      # TODO to consider this version
       design_to_frame <- svydesign$variables
-      design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0
-      model_Frame_rand <- model.frame(formula, design_to_frame)
-      mt_rand <- attr(model_Frame_rand, "terms")
-      nons_names_rand <- attr(mt_rand, "term.labels")
+      design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
+      names_rand <- all.vars(formula)
+      model_Frame_rand <- design_to_frame[,names_rand]
+
+      nons_names_rand <- attr(attr(model.frame(formula, design_to_frame), "terms"), "term.labels")
     } else {
-      model_Frame_rand <- model.frame(formula[-2], svydesign$variables)
-      mt_rand <- attr(model_Frame_rand, "terms")
-      nons_names_rand <- attr(mt_rand, "term.labels")
+      design_to_frame <- svydesign$variables
+      names_rand <- all.vars(formula[-2])
+      model_Frame_rand <- design_to_frame[,names_rand]
+
+      nons_names_rand <- attr(attr(model.frame(formula[-2], design_to_frame), "terms"), "term.labels")
+
+      # model_Frame_rand <- model.frame(formula[-2], svydesign$variables)
+      # mt_rand <- attr(model_Frame_rand, "terms")
+      # nons_names_rand <- attr(mt_rand, "term.labels")
     }
+    # TODO colnames(model_Frame_rand) <- all.vars(formula)
     # print(nons_names_rand)
+    # TODO think out this condition
     if (all(nons_names %in% nons_names_rand)) { # colnames(svydesign$variables)
       dot_check <- sapply(formula, FUN = function(x) {
         x == "."

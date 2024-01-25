@@ -124,6 +124,10 @@ nonprobDR <- function(selection,
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons) # joint model matrix
     ######  WORKING VERSION
     if (var_selection == TRUE) {
+      # TODO add std seperately on X_nons and X_rand, after that do join to X matrix
+      # X_rand_stand <- ncvreg::std(weights_rand * X_rand)
+      # X_nons_stand <- ncvreg::std(X_nons)
+      # X_stand <- rbind(X_rand_stand, X_nons_stand)
       X_stand <- ncvreg::std(X) # penalizing without an intercept
       prior_weights <- c(weights_rand, weights)
 
@@ -184,6 +188,8 @@ nonprobDR <- function(selection,
 
     ############# WORKING VERSION
     if (var_selection == TRUE) {
+      # TODO "standardize pop_totals" - dividing by N (?) - means from X_nons / std from X_nons e.g.
+      # pop_totals <- colMeans(X_nons) / apply(X_nons, 2, sd)
       X_stand <- ncvreg::std(X) # penalizing without an intercept
 
       method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")

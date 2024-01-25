@@ -180,6 +180,7 @@ nonprobMI <- function(outcome,
       ########### WORKING VERSION
 
       if (var_selection == TRUE) {
+        # TODO add variables randomization
         nlambda <- control_outcome$nlambda
         beta <- ncvreg::cv.ncvreg(
           X = X_nons[, -1, drop = FALSE],

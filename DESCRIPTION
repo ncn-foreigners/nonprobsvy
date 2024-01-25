@@ -30,7 +30,9 @@ Suggests:
     covr,
     sampling,
     spelling
-Depends: survey
+Depends:
+  R (>= 4.3.0),
+  survey
 Imports: 
     maxLik,
     stats,

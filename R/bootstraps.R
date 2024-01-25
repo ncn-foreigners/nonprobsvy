@@ -420,7 +420,7 @@ bootIPW <- function(X_rand,
   }
 
   if (is.null(pop_totals)) {
-    rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
+    rep_weights <- survey::as.svrepdesign(design = svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
     while (k <= num_boot) {
       tryCatch(
         {

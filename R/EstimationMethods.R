@@ -405,6 +405,37 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   }
   prior_weights <- c(weights_rand, weights)
 
+  # MI - bias correction #########
+  # multiroot <- nleqslv::nleqslv( # TODO to fix "Jacobian is completely unusable (all zero entries?)"
+  #   x = rep(0, p), # TODO add user-specified parameters to control functions
+  #   fn = u_beta_mi,# TODO algorithm did not converge in maxit iterations for cloglog
+  #   R = R,
+  #   X = X,
+  #   y = y,
+  #   weights = prior_weights,
+  #   family_nonprobsvy = family
+  # )
+  # print(multiroot$x)
+  ##########
+
+  # IPW - bias correction #########
+  # multiroot <- nleqslv::nleqslv(
+  #   x = rep(0, p), # TODO add user-specified parameters to control functions
+  #   fn = u_theta_ipw,
+  #   method = "Newton", # TODO consider the method Broyden
+  #   global = "qline", # c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
+  #   xscalm = "fixed", # c("fixed","auto")
+  #   jacobian = TRUE,
+  #   control = list(scalex = rep(1, length(rep(0, p)))), # TODO algorithm did not converge in maxit iterations for cloglog
+  #   R = R,
+  #   X = X,
+  #   y = y,
+  #   weights = weights,
+  #   method_selection = method_selection
+  # )
+  # print(multiroot$x)
+  ##########
+
   ######### BB
   # multiroot <- nleqslv::nleqslv(
   #   par = par0, # TODO add user-specified parameters to control functions
@@ -602,8 +633,7 @@ u_theta_ipw <- function(par,
 
   p <- ncol(X)
   theta <- par
-  X0 <- cbind(1, X)
-  eta_pi <- X0 %*% theta
+  eta_pi <- X %*% theta
   y[which(is.na(y))] <- 0
 
   R_rand <- 1 - R
@@ -613,7 +643,7 @@ u_theta_ipw <- function(par,
   y_mean <- mean(y[loc_nons])
 
   # UTB <- apply(X0 * (R * as.vector(inv_link(eta_pi)) - y), 2, sum)/n # TODO
-  UTB <- apply(X0 * (R / as.vector(inv_link(eta_pi)) * y - R * y) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
+  UTB <- apply(X * (R / as.vector(inv_link(eta_pi)) * y - mean(y)) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
 
   UTB
 }
@@ -634,8 +664,8 @@ u_beta_mi <- function(par,
   p <- ncol(X)
   beta <- par
   eta <- X %*% beta
-  mu <- family_nonprobsvy$mu(eta)
-  mu_der <- family_nonprobsvy$mu_der(mu)
+  mu <- family_nonprobsvy$mu.eta(eta)
+  # mu_der <- family_nonprobsvy$mu.eta2(mu)
 
   n <- length(R)
   R_rand <- 1 - R
@@ -643,7 +673,10 @@ u_beta_mi <- function(par,
   loc_rand <- which(R == 0)
   y_mean <- mean(y[loc_nons])
 
-  UTB <- apply(X * y - X * R_rand * weights * as.vector(mu), 2, sum)
+  # UTB <- apply(X * y - X * R_rand * weights * as.vector(mu), 2, sum)
+  # UTB <- apply(X[loc_rand,] * (weights[loc_rand] * as.vector(mu[loc_rand]) - mean(y)), 2, sum)
+  # UTB <- apply(X * (weights * as.vector(mu) - mean(y)), 2, sum)
+  UTB <- apply(X * (R_rand * weights * as.vector(eta) - y_mean), 2, sum)
   UTB
 }
 

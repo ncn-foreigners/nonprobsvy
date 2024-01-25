@@ -97,6 +97,7 @@ nonprobIPW <- function(selection,
 
     if (var_selection == TRUE) {
       # X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
+      # TODO add std seperately on X_nons and X_rand, after that do join to X matrix
       X_stand <- ncvreg::std(X) # penalizing without an intercept
       prior_weights <- c(weights_rand, weights)
 
@@ -223,6 +224,10 @@ nonprobIPW <- function(selection,
 
     if (var_selection == TRUE) {
       X_stand <- ncvreg::std(X) # penalizing without an intercept
+      # pop_totals_varsel <- pop_totals[-1] - colMeans(model$X_nons[,-1]) / apply(model$X_nons[,-1], 2, sd) * pop_totals[1]
+      # print(pop_totals)
+      # print(pop_totals_varsel)
+      # stop("123")
 
       method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
       method <- get_method(method_selection_function)
