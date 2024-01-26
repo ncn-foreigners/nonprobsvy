@@ -511,7 +511,8 @@ internal_varMI <- function(svydesign,
                            k,
                            predictive_match,
                            pmm_exact_se,
-                           pmm_reg_engine
+                           pmm_reg_engine,
+                           pi_ij
                            ) {
   parameters <- model_obj$parameters
 
@@ -552,9 +553,20 @@ internal_varMI <- function(svydesign,
       # An option in controlInf controls this
       # Maybe add a warning/message if this computation is omited
       if (pmm_exact_se) {
-        pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
-          1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
-            sum(1 - 1 / weights_rand))
+        if ("ppsmat" %in% class(pi_ij)) {
+          pi_ij <- pi_ij$pij
+        }
+        # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
+        #   pi_ij <- svydesign$dcheck[[1]]$dcheck
+        # }
+        if (is.null(pi_ij)) {
+          pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
+            1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
+              sum(1 - 1 / weights_rand))
+        }
+        # if (!is.matrix(pi_ij)) {
+        #
+        # }
 
         dd <- NULL
         # add variable for loop size to control
@@ -616,7 +628,8 @@ internal_varMI <- function(svydesign,
           dd <- rbind(dd, apply(YY$nn.idx, 1,FUN=\(x) mean(y_nons_b[x])))
         }
         comp2 <- var(dd) * (pi_ij ^ -1) / N ^ 2
-        comp2 <- sum(comp2[lower.tri(comp2, diag = TRUE)])
+        #print(comp2)
+        comp2 <- sum(comp2)
       }
       var_prob <- comp1 + comp2
       var_nonprob <- 0

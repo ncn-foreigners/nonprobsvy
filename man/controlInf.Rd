@@ -15,7 +15,8 @@ controlInf(
   alpha = 0.05,
   cores = 1,
   keep_boot,
-  pmm_exact_se = FALSE
+  pmm_exact_se = FALSE,
+  pi_ij
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ probability sample using predictive matches from non-probability sample.
 In most situations this term is negligible and is very computationally
 expensive so by default this is set to \code{FALSE}, but it is recommended to
 set this value to \code{TRUE} before submitting final results.}
+
+\item{pi_ij}{TODO, either matrix or \code{ppsmat} class object.}
 }
 \value{
 List with selected parameters.

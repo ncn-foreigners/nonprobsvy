@@ -133,7 +133,9 @@ nonprobMI <- function(outcome,
           pop_totals = pop_totals,
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
         )
 
         var_nonprob <- var_obj$var_nonprob
@@ -347,7 +349,8 @@ nonprobMI <- function(outcome,
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
           pmm_exact_se = control_inference$pmm_exact_se,
-          pmm_reg_engine = control_outcome$pmm_reg_engine
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
         )
 
         var_nonprob <- var_obj$var_nonprob
