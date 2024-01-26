@@ -208,8 +208,8 @@ nonprobMI <- function(outcome,
 
         X_design <- as.matrix(X[, beta_selected + 1, drop = FALSE])
         # colnames(X_design) <- c("(Intercept)", colnames(Xsel))
-        X_rand <- X_design[loc_rand, ]
-        X_nons <- X_design[loc_nons, ]
+        X_rand <- X_design[loc_rand, , drop = FALSE]
+        X_nons <- X_design[loc_nons, , drop = FALSE]
       }
       ################
 
