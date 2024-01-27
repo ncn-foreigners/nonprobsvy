@@ -553,7 +553,7 @@ internal_varMI <- function(svydesign,
       # An option in controlInf controls this
       # Maybe add a warning/message if this computation is omited
       if (pmm_exact_se) {
-        if ("ppsmat" %in% class(pi_ij)) {
+        if (isTRUE("ppsmat" %in% class(pi_ij))) {
           pi_ij <- pi_ij$pij
         }
         # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
@@ -577,7 +577,8 @@ internal_varMI <- function(svydesign,
             # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
             y_nons_b <- y[boot_samp]
 
-            #print(model_obj$model$glm_object$data[boot_samp, , drop = FALSE])
+            # print(model_obj$model$glm_object$data[boot_samp, , drop = FALSE] |> head())
+            # print(as.data.frame(X_rand) |> head())
 
             reg_object_boot <- switch (pmm_reg_engine,
               "glm" = stats::glm(
@@ -596,9 +597,11 @@ internal_varMI <- function(svydesign,
             )
             XX <- predict(
               reg_object_boot,
-              newdata = as.data.frame(X_rand),
+              newdata = svydesign$variables,
               type = "response"
             )
+            #XX <- reg_object_boot$family$mu.eta(X_rand %*% reg_object_boot$coefficients)
+
             if (any(!is.finite(XX))) {
               reg_object_boot <- NULL
             }
@@ -615,7 +618,7 @@ internal_varMI <- function(svydesign,
             {nonprobMI_nn(
               data = predict(
                 reg_object_boot,
-                newdata = as.data.frame(X_nons[boot_samp, , drop = FALSE]),
+                newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
                 type = "response"
               ),
               query = XX,
