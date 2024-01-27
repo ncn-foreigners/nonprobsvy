@@ -126,8 +126,8 @@ theta_h_estimation <- function(R,
       x = start,
       fn = u_theta,
       method = "Newton", # TODO consider the methods
-      global = "cline", # qline",
-      xscalm = "fixed",
+      global = "dbldog", # qline",
+      xscalm = "auto",
       jacobian = TRUE
     )
   } else {
@@ -135,8 +135,8 @@ theta_h_estimation <- function(R,
       x = start,
       fn = u_theta,
       method = "Newton", # TODO consider the methods
-      global = "cline", # qline",
-      xscalm = "fixed",
+      global = "dbldog", # qline",
+      xscalm = "auto",
       jacobian = TRUE,
       jac = u_theta_der
       # control = list(sigma = 0.1, trace = 1)
