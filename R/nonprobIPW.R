@@ -505,7 +505,7 @@ nonprobIPW <- function(selection,
   for (k in 1:outcomes$l) {
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hats[k], SE = SE[k]))))
   }
-  X <- rbind(X_nons, X_rand) # joint model matrix
+  X <- rbind(X_rand, X_nons) # joint model matrix
   parameters <- matrix(c(theta_hat, theta_standard_errors),
     ncol = 2,
     dimnames = list(

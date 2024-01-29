@@ -325,7 +325,6 @@ gee <- function(...) {
       }
     }
 
-
     h_object <- theta_h_estimation(
       R = R,
       X = X,
@@ -343,7 +342,7 @@ gee <- function(...) {
     eta_rand <- theta_hat %*% t(as.matrix(X_rand))
     ps_nons <- inv_link(eta_nons)
     est_ps_rand <- inv_link(eta_rand)
-    variance_covariance <- solve(-hess)
+    variance_covariance <- MASS::ginv(-hess) #solve(-hess)
     resids <- R - c(est_ps_rand, ps_nons)
 
     df_reduced <- nrow(X) - length(theta_hat)

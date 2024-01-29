@@ -254,7 +254,7 @@ logit_model_nonprobsvy <- function(...) {
 
 
   b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
-    hess_inv_neg <- solve(-hess) # MASS::ginv(hess)
+    hess_inv_neg <-  MASS::ginv(hess) #solve(-hess)
     if (is.null(pop_size)) {
       b <- -((1 - ps) / ps * weights * (y - mu)) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
     } else {

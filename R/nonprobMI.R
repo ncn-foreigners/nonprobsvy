@@ -207,8 +207,8 @@ nonprobMI <- function(outcome,
 
         X_design <- as.matrix(X[, beta_selected + 1, drop = FALSE])
         # colnames(X_design) <- c("(Intercept)", colnames(Xsel))
-        X_rand <- X_design[loc_rand, ]
-        X_nons <- X_design[loc_nons, ]
+        X_rand <- X_design[loc_rand, , drop = FALSE]
+        X_nons <- X_design[loc_nons, , drop = FALSE]
       }
       ################
 
@@ -424,7 +424,7 @@ nonprobMI <- function(outcome,
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
     }
 
-    X <- rbind(X_nons, X_rand) # joint model matrix
+    X <- rbind(X_rand, X_nons) # joint model matrix
     # if (is.null(pop_size))
     pop_size <- N_est_rand # estimated pop_size
 

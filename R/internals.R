@@ -123,7 +123,7 @@ theta_h_estimation <- function(R,
     method_selection = method_selection,
     pop_totals = pop_totals
   )
-
+  #print(start)
   # ######### BB
   # if (method_selection == "cloglog") {
   #   root <- BB::dfsane(
@@ -145,8 +145,8 @@ theta_h_estimation <- function(R,
       x = start,
       fn = u_theta,
       method = "Newton", # TODO consider the methods
-      global = "cline", # qline",
-      xscalm = "fixed",
+      global = "dbldog", # qline",
+      xscalm = "auto",
       jacobian = TRUE
     )
   } else {
@@ -154,8 +154,8 @@ theta_h_estimation <- function(R,
       x = start,
       fn = u_theta,
       method = "Newton", # TODO consider the methods
-      global = "cline", # qline",
-      xscalm = "fixed",
+      global = "dbldog", # qline",
+      xscalm = "auto",
       jacobian = TRUE,
       jac = u_theta_der
       # control = list(sigma = 0.1, trace = 1)
@@ -245,6 +245,8 @@ u_theta <- function(R,
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
   function(par) {
+    #loc_nons = which(R == 1)
+    #loc_rand = which(R == 0)
     theta <- as.matrix(par)
     n <- length(R)
     X0 <- as.matrix(X)
@@ -255,6 +257,8 @@ u_theta <- function(R,
     N_nons <- sum(1 / ps)
     weights_sum <- sum(weights)
 
+    # "1" = t(X0[loc_nons,]) %*% (1/ps[loc_nons]) - t(X0[loc_rand,]) %*% weights[loc_rand],
+    # "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
     if (is.null(pop_totals)) {
       eq <- switch(h,
         "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
@@ -282,22 +286,26 @@ u_theta_der <- function(R,
   inv_link_rev <- method$make_link_inv_rev
 
   function(par) {
+    #loc_nons = which(R == 1)
+    #loc_rand = which(R == 0)
     theta <- as.matrix(par)
     X0 <- as.matrix(X)
     p <- ncol(X0)
-    eta <- X0 %*% theta
+    eta <- as.numeric(X0 %*% theta)
     ps <- inv_link(eta)
     ps <- as.vector(ps)
     N_nons <- sum(1 / ps)
     R_rand <- 1 - R
     weights_sum <- sum(weights)
 
+    # "1" = t(X0[loc_nons, ]) %*% weights[loc_nons] %*% t(inv_link_rev(eta)[loc_nons]) %*% X0[loc_nons, ],
+    # "2" =
     if (!is.null(pop_totals)) {
-      mxDer <- t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0
+      mxDer <- t(R * X0 * weights * inv_link_rev(eta)) %*% X0
     } else {
       mxDer <- switch(h,
-        "1" = t(R * as.data.frame(X0) * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
-        "2" = -t(R_rand * as.data.frame(X0) * weights * dinv_link(eta)) %*% X0
+        "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
+        "2" = - t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
       )
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
@@ -344,7 +352,7 @@ internal_varIPW <- function(svydesign,
 
   # sparse matrix
   b_vec <- cbind(-1, b)
-  H_mx <- cbind(0, N * solve(hess))
+  H_mx <- cbind(0, N * MASS::ginv(hess)) #solve(hess)
   sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)
 
   V1 <- var_cov1(
