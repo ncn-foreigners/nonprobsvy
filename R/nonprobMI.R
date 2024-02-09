@@ -133,7 +133,9 @@ nonprobMI <- function(outcome,
           pop_totals = pop_totals,
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
         )
 
         var_nonprob <- var_obj$var_nonprob
@@ -344,9 +346,12 @@ nonprobMI <- function(outcome,
           family = family_outcome,
           model_obj = model_obj,
           pop_totals = pop_totals,
+          # we should probably just pass full control list
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
         )
 
         var_nonprob <- var_obj$var_nonprob
@@ -360,7 +365,8 @@ nonprobMI <- function(outcome,
       } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
         # bootstrap variance
         if (control_inference$cores > 1) {
-          boot_obj <- bootMI_multicore(X_rand = X_rand,
+          boot_obj <- bootMI_multicore(
+            X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,
             y = y_nons,
@@ -370,6 +376,7 @@ nonprobMI <- function(outcome,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -379,7 +386,8 @@ nonprobMI <- function(outcome,
             verbose = verbose
           )
         } else {
-          boot_obj <- bootMI(X_rand = X_rand,
+          boot_obj <- bootMI(
+            X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,
             y = y_nons,
@@ -389,6 +397,7 @@ nonprobMI <- function(outcome,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -446,7 +455,11 @@ nonprobMI <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+<<<<<<< HEAD
     list(stat = stat, comp3_stat = comp3_stat)
+=======
+    list(stat = stat, comp2 = boot_obj$comp2)
+>>>>>>> pmm
   } else {
     NULL
   }

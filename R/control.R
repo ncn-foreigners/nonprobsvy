@@ -122,6 +122,7 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
 #' option \code{"min_var"} means that \code{k}  will be chosen by minimizing
 #' estimated variance of estimator for mean. Parameter \code{k} provided in
 #' this control list will be chosen as starting point.
+#' @param pmm_reg_engine TODO
 #'
 #' @return List with selected parameters.
 #'
@@ -146,7 +147,8 @@ controlOut <- function(epsilon = 1e-4,
                        searchtype = "standard",
                        predictive_match = 1:2,
                        pmm_weights = c("none", "prop_dist"),
-                       pmm_k_choice = c("none", "min_var")) {
+                       pmm_k_choice = c("none", "min_var"),
+                       pmm_reg_engine = c("glm", "loess")) {
   if (missing(predictive_match)) {
     predictive_match <- 1
   }
@@ -168,10 +170,10 @@ controlOut <- function(epsilon = 1e-4,
     nfolds = nfolds,
     treetype = treetype,
     searchtype = searchtype,
-    # add bayesian
     predictive_match = predictive_match,
     pmm_weights = pmm_weights,
-    pmm_k_choice = if (missing(pmm_k_choice)) "none" else pmm_k_choice
+    pmm_k_choice = if (missing(pmm_k_choice)) "none" else pmm_k_choice,
+    pmm_reg_engine = if (missing(pmm_reg_engine)) "glm" else pmm_reg_engine
   )
 }
 
@@ -203,6 +205,7 @@ controlOut <- function(epsilon = 1e-4,
 #' In most situations this term is negligible and is very computationally
 #' expensive so by default this is set to \code{FALSE}, but it is recommended to
 #' set this value to \code{TRUE} before submitting final results.
+#' @param pi_ij TODO, either matrix or \code{ppsmat} class object.
 #'
 #'
 #' @return List with selected parameters.
@@ -228,7 +231,8 @@ controlInf <- function(vars_selection = FALSE,
                        alpha = 0.05,
                        cores = 1,
                        keep_boot,
-                       pmm_exact_se = FALSE) {
+                       pmm_exact_se = FALSE,
+                       pi_ij) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
     var_method = if (missing(var_method)) "analytic" else var_method,
@@ -241,13 +245,14 @@ controlInf <- function(vars_selection = FALSE,
     keep_boot = if (missing(keep_boot)) {
       TRUE
     } else {
-      if (!is.logical(keep_boot)) {
-        stop("keep_boot argument for controlInf must be logical")
-      } else {
-        keep_boot
-    }
-  },
-  pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
-      stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se
+        if (!is.logical(keep_boot)) {
+          stop("keep_boot argument for controlInf must be logical")
+        } else {
+          keep_boot
+      }
+    },
+    pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
+        stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se,
+    pi_ij = if (missing(pi_ij)) NULL else pi_ij
   )
 }

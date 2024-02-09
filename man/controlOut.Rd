@@ -19,7 +19,8 @@ controlOut(
   searchtype = "standard",
   predictive_match = 1:2,
   pmm_weights = c("none", "prop_dist"),
-  pmm_k_choice = c("none", "min_var")
+  pmm_k_choice = c("none", "min_var"),
+  pmm_reg_engine = c("glm", "loess")
 )
 }
 \arguments{
@@ -69,6 +70,8 @@ should be chosen, by default \code{"none"} meaning \code{k} provided in
 option \code{"min_var"} means that \code{k}  will be chosen by minimizing
 estimated variance of estimator for mean. Parameter \code{k} provided in
 this control list will be chosen as starting point.}
+
+\item{pmm_reg_engine}{TODO}
 }
 \value{
 List with selected parameters.
