@@ -44,17 +44,13 @@ bootMI <- function(X_rand,
     pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
   }
 
-<<<<<<< HEAD
-  pmm_exact_se <- control_inference$pmm_exact_se
-  comp3_stat <- numeric(length = num_boot)
-=======
+
   predictive_match = control_outcome$predictive_match
   pmm_exact_se = control_inference$pmm_exact_se
   pmm_reg_engine = control_outcome$pmm_reg_engine
   pi_ij = control_inference$pi_ij
   pmm_exact_se <- control_inference$pmm_exact_se
   #comp3_stat <- numeric(length = num_boot)
->>>>>>> pmm
 
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
@@ -226,25 +222,6 @@ bootMI <- function(X_rand,
               # print(info)
               utils::setTxtProgressBar(pb, k)
             }
-
-<<<<<<< HEAD
-            comp3 <- 0
-            if (pmm_exact_se) {
-              pi_ij <- outer(1 / weights_rand_strap, 1 / weights_rand_strap) * (
-                1 - outer(1 - 1 / weights_rand_strap, 1 - 1 / weights_rand_strap) / sum(1 - 1 / weights_rand_strap)
-              )
-              mat_preds <- matrix(y_strap[model_rand$nn.idx[1:n_rand_strap, ]], nrow = n_rand_strap) / control_outcome$k
-              for (ii in 1:n_rand_strap) {
-                for (jj in 1:ii) {
-                  comp3 <- comp3 +
-                    ((pi_ij[ii, jj] ^ -1) / N ^ 2) *
-                    (sum(outer(mat_preds[ii,], mat_preds[jj, ])) -
-                       y_rand_strap[ii] * y_rand_strap[jj])
-                }
-              }
-            }
-            comp3_stat[k] <- comp3
-=======
             # slower option
             # if (pmm_exact_se) {
             #   comp2 <- pmm_exact(pi_ij,
@@ -260,7 +237,6 @@ bootMI <- function(X_rand,
             # }
 
             #comp2_stat[k] <- comp2
->>>>>>> pmm
             k <- k + 1
           },
           error = function(e) {
@@ -421,13 +397,6 @@ bootMI <- function(X_rand,
   }
   # mu_hat_boot <- mean(mu_hats)
   if (method == "pmm") {
-<<<<<<< HEAD
-    comp3_mean <- mean(comp3)
-  } else {
-    comp3_mean <- 0
-  }
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2) + comp3_mean
-=======
     if (pmm_exact_se) {
       comp2 <- pmm_exact(pi_ij,
                          weights_rand,
@@ -446,16 +415,11 @@ bootMI <- function(X_rand,
     comp2 <- 0
   }
   boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2) + comp2
->>>>>>> pmm
   list(
     var = boot_var,
     # mu = mu_hat_boot,
     stat = mu_hats,
-<<<<<<< HEAD
-    comp3_stat = comp3_stat
-=======
     comp2 = comp2
->>>>>>> pmm
   )
 }
 

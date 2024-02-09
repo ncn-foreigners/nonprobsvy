@@ -455,11 +455,7 @@ nonprobMI <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-<<<<<<< HEAD
-    list(stat = stat, comp3_stat = comp3_stat)
-=======
     list(stat = stat, comp2 = boot_obj$comp2)
->>>>>>> pmm
   } else {
     NULL
   }
