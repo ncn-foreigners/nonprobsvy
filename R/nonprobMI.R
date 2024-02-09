@@ -364,7 +364,8 @@ nonprobMI <- function(outcome,
       } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
         # bootstrap variance
         if (control_inference$cores > 1) {
-          boot_obj <- bootMI_multicore(X_rand = X_rand,
+          boot_obj <- bootMI_multicore(
+            X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,
             y = y_nons,
@@ -374,6 +375,7 @@ nonprobMI <- function(outcome,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -383,7 +385,8 @@ nonprobMI <- function(outcome,
             verbose = verbose
           )
         } else {
-          boot_obj <- bootMI(X_rand = X_rand,
+          boot_obj <- bootMI(
+            X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,
             y = y_nons,
@@ -393,6 +396,7 @@ nonprobMI <- function(outcome,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -449,7 +453,7 @@ nonprobMI <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    stat
+    list(stat = stat, comp2 = boot_obj$comp2)
   } else {
     NULL
   }

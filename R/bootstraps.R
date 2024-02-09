@@ -14,6 +14,7 @@ bootMI <- function(X_rand,
                    weights_rand,
                    mu_hat,
                    svydesign,
+                   model_obj = model_obj,
                    rep_type,
                    method,
                    control_outcome,
@@ -42,6 +43,13 @@ bootMI <- function(X_rand,
   if (verbose) {
     pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
   }
+
+  predictive_match = control_outcome$predictive_match
+  pmm_exact_se = control_inference$pmm_exact_se
+  pmm_reg_engine = control_outcome$pmm_reg_engine
+  pi_ij = control_inference$pi_ij
+  pmm_exact_se <- control_inference$pmm_exact_se
+  #comp3_stat <- numeric(length = num_boot)
 
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
@@ -212,6 +220,22 @@ bootMI <- function(X_rand,
               # print(info)
               utils::setTxtProgressBar(pb, k)
             }
+
+            # slower option
+            # if (pmm_exact_se) {
+            #   comp2 <- pmm_exact(pi_ij,
+            #                      weights_rand_strap,
+            #                      n_nons = n_nons,
+            #                      y = y,
+            #                      pmm_reg_engine = pmm_reg_engine,
+            #                      model_obj = model_obj,
+            #                      svydesign = svydesign,
+            #                      predictive_match = predictive_match,
+            #                      k = control_inference$k,
+            #                      N = N)
+            # }
+
+            #comp2_stat[k] <- comp2
             k <- k + 1
           },
           error = function(e) {
@@ -371,11 +395,30 @@ bootMI <- function(X_rand,
     }
   }
   # mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
+  if (method == "pmm") {
+    if (pmm_exact_se) {
+      comp2 <- pmm_exact(pi_ij,
+                         weights_rand,
+                         n_nons = n_nons,
+                         y = y,
+                         pmm_reg_engine = pmm_reg_engine,
+                         model_obj = model_obj,
+                         svydesign = svydesign,
+                         predictive_match = predictive_match,
+                         k = control_inference$k,
+                         N = N)
+    } else {
+      comp2 <- 0
+    }
+  } else {
+    comp2 <- 0
+  }
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2) + comp2
   list(
     var = boot_var,
     # mu = mu_hat_boot,
-    stat = mu_hats
+    stat = mu_hats,
+    comp2 = comp2
   )
 }
 
