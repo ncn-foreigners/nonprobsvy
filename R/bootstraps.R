@@ -43,6 +43,9 @@ bootMI <- function(X_rand,
     pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
   }
 
+  pmm_exact_se <- control_inference$pmm_exact_se
+  comp3_stat <- numeric(length = num_boot)
+
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
     N <- sum(weights_rand)
@@ -162,6 +165,7 @@ bootMI <- function(X_rand,
             weights_rand_strap_svy <- rep_weights[, k] * weights_rand
             N_strap <- sum(weights_rand_strap_svy)
             X_rand_strap <- X_rand[which(rep_weights[, k] != 0), ]
+            n_rand_strap <- nrow(X_rand_strap)
             weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
 
             model_strap <- stats::glm.fit(
@@ -212,6 +216,23 @@ bootMI <- function(X_rand,
               # print(info)
               utils::setTxtProgressBar(pb, k)
             }
+
+            comp3 <- 0
+            if (pmm_exact_se) {
+              pi_ij <- outer(1 / weights_rand_strap, 1 / weights_rand_strap) * (
+                1 - outer(1 - 1 / weights_rand_strap, 1 - 1 / weights_rand_strap) / sum(1 - 1 / weights_rand_strap)
+              )
+              mat_preds <- matrix(y_strap[model_rand$nn.idx[1:n_rand_strap, ]], nrow = n_rand_strap) / control_outcome$k
+              for (ii in 1:n_rand_strap) {
+                for (jj in 1:ii) {
+                  comp3 <- comp3 +
+                    ((pi_ij[ii, jj] ^ -1) / N ^ 2) *
+                    (sum(outer(mat_preds[ii,], mat_preds[jj, ])) -
+                       y_rand_strap[ii] * y_rand_strap[jj])
+                }
+              }
+            }
+            comp3_stat[k] <- comp3
             k <- k + 1
           },
           error = function(e) {
@@ -371,11 +392,17 @@ bootMI <- function(X_rand,
     }
   }
   # mu_hat_boot <- mean(mu_hats)
-  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2)
+  if (method == "pmm") {
+    comp3_mean <- mean(comp3)
+  } else {
+    comp3_mean <- 0
+  }
+  boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat)^2) + comp3_mean
   list(
     var = boot_var,
     # mu = mu_hat_boot,
-    stat = mu_hats
+    stat = mu_hats,
+    comp3_stat = comp3_stat
   )
 }
 

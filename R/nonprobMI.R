@@ -399,6 +399,7 @@ nonprobMI <- function(outcome,
         }
         var <- boot_obj$var
         stat[, k] <- boot_obj$stat
+        comp3_stat <- boot_obj$comp3_stat
         # mu_hat <- boot_obj$mu
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(
           nonprob = NA,
@@ -445,7 +446,7 @@ nonprobMI <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    stat
+    list(stat = stat, comp3_stat = comp3_stat)
   } else {
     NULL
   }
