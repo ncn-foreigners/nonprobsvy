@@ -222,19 +222,19 @@ bootMI <- function(X_rand,
               utils::setTxtProgressBar(pb, k)
             }
             # slower option
-            if (pmm_exact_se) {
-              comp2 <- pmm_exact(pi_ij,
-                                 weights_rand,
-                                 n_nons = n_nons,
-                                 y = y,
-                                 pmm_reg_engine = pmm_reg_engine,
-                                 model_obj = model_obj,
-                                 svydesign = svydesign,
-                                 predictive_match = predictive_match,
-                                 k = control_inference$k,
-                                 N = N)
-              comp2_stat[k] <- comp2
-            }
+            # if (pmm_exact_se) {
+            #   comp2 <- pmm_exact(pi_ij,
+            #                      weights_rand,
+            #                      n_nons = n_nons,
+            #                      y = y,
+            #                      pmm_reg_engine = pmm_reg_engine,
+            #                      model_obj = model_obj,
+            #                      svydesign = svydesign,
+            #                      predictive_match = predictive_match,
+            #                      k = control_inference$k,
+            #                      N = N)
+            #   comp2_stat[k] <- comp2
+            # }
             k <- k + 1
           },
           error = function(e) {
@@ -396,16 +396,16 @@ bootMI <- function(X_rand,
   # mu_hat_boot <- mean(mu_hats)
   if (method == "pmm") {
     if (pmm_exact_se) {
-      # comp2 <- pmm_exact(pi_ij,
-      #                    weights_rand,
-      #                    n_nons = n_nons,
-      #                    y = y,
-      #                    pmm_reg_engine = pmm_reg_engine,
-      #                    model_obj = model_obj,
-      #                    svydesign = svydesign,
-      #                    predictive_match = predictive_match,
-      #                    k = control_inference$k,
-      #                    N = N)
+      comp2 <- pmm_exact(pi_ij,
+                         weights_rand,
+                         n_nons = n_nons,
+                         y = y,
+                         pmm_reg_engine = pmm_reg_engine,
+                         model_obj = model_obj,
+                         svydesign = svydesign,
+                         predictive_match = predictive_match,
+                         k = control_inference$k,
+                         N = N)
       comp2 <- mean(comp2_stat)
     } else {
       comp2 <- 0
