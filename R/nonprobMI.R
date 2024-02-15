@@ -481,3 +481,41 @@ nonprobMI <- function(outcome,
     class = c("nonprobsvy", "nonprobsvy_mi")
   )
 }
+
+
+
+nonprobMI_fit <- function(outcome,
+                          data,
+                          weights,
+                          svydesign,
+                          family_outcome,
+                          start,
+                          control_outcome = controlOut(),
+                          verbose,
+                          model,
+                          x,
+                          y) {
+  family <- family_outcome
+
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
+  data$weights <- weights # TODO just for now, find more efficient way
+  model_nons <- stats::glm(
+    formula = outcome,
+    data = data,
+    weights = weights,
+    family = family,
+    start = start,
+    control = list(
+      control_outcome$epsilon,
+      control_outcome$maxit,
+      control_outcome$trace
+    )
+  )
+
+  model_nons
+}
