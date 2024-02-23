@@ -55,7 +55,11 @@ bootMI <- function(X_rand,
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
     N <- sum(weights_rand)
-    rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+    if (class(svydesign)[1] != "pps") {
+      rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+    } else {
+      stop("pps bootstrap variance in development")
+    }
     if (method == "glm") {
       while (k <= num_boot) {
         tryCatch(
@@ -483,7 +487,11 @@ bootMI_multicore <- function(X_rand,
   if (is.null(pop_totals)) {
     n_rand <- nrow(X_rand)
     N <- sum(weights_rand)
-    rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+    if (class(svydesign)[1] != "pps") {
+      rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+    } else {
+      stop("pps bootstrap variance in development")
+    }
     if (method == "glm") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(

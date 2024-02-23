@@ -66,8 +66,8 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
     x = par0, # TODO add user-specified parameters to control functions
     fn = u_theta_beta_dr,
     method = "Newton", # TODO consider the method Broyden
-    global = "qline", # c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
-    xscalm = "fixed", # c("fixed","auto")
+    global = "dbldog", # c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
+    xscalm = "auto", # c("fixed","auto")
     jacobian = TRUE,
     control = list(scalex = rep(1, length(par0))), # TODO algorithm did not converge in maxit iterations for cloglog
     R = R,
