@@ -1,8 +1,3 @@
-## -*- mode: makefile; -*-
-
-#PKG_CPPFLAGS = -I../inst/include
-#PKG_CXXFLAGS = @OPENMP_FLAG@
-#PKG_LIBS= @OPENMP_FLAG@ $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 ## With R 3.1.0 or later, you can uncomment the following line to tell R to
 ## enable compilation with C++11 (where available)
@@ -18,3 +13,7 @@
 ## _In general_ we should no longer need to set a standard as any recent R
 ## installation will do the right thing. Should you need it, uncomment it and
 ## set the appropriate value, possibly CXX17.
+#CXX_STD = CXX11
+
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

@@ -41,7 +41,7 @@ Imports:
     ncvreg,
     mathjaxr,
     RANN,
-    Rcpp (>= 0.11.0),
+    Rcpp (>= 1.0.12),
     nleqslv,
     doSNOW,
     progress,
