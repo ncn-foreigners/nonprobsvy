@@ -120,6 +120,8 @@ mle <- function(...) {
           control = control_selection
         )$theta_hat)
         start <- c(intercept_start, rep(0, ncol(X_nons) - 1))
+      } else if (control_selection$start_type == "zero") {
+        start <- rep(0, ncol(X))
       }
     }
 

@@ -586,7 +586,11 @@ nonprobDR <- function(selection,
       ps_nons_der <- dinv_link(eta_nons)
       weights_nons <- 1 / ps_nons
       N_nons <- sum(weights * weights_nons)
-      variance_covariance <- solve(-hess)
+      variance_covariance <- try(solve(-hess), silent = TRUE)
+      if(inherits(variance_covariance, "try-error")){
+        message("solve() failed, using ginv() instead.")
+        variance_covariance <- MASS::ginv(-hess)
+      }
       theta_standard_errors <- sqrt(diag(variance_covariance))
       df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
       # if(is.null(pop_size)) pop_size <- N_nons

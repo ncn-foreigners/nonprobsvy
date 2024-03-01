@@ -5,6 +5,7 @@
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
 #' @importFrom stats terms
+#' @importFrom MASS ginv
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
@@ -321,7 +322,11 @@ nonprobIPW <- function(selection,
     eta_nons <- theta_hat %*% t(X_nons)
     ps_nons <- inv_link(eta_nons)
     ps_nons_der <- dinv_link(eta_nons)
-    variance_covariance <- solve(-hess)
+    variance_covariance <- try(solve(-hess), silent = TRUE)
+    if(inherits(variance_covariance, "try-error")){
+      message("solve() failed, using ginv() instead.")
+      variance_covariance <- MASS::ginv(-hess)
+    }
     theta_standard_errors <- sqrt(diag(variance_covariance))
     var_cov1 <- method$variance_covariance1
     var_cov2 <- method$variance_covariance2

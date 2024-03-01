@@ -113,6 +113,8 @@ gee <- function(...) {
           start = 0
         )$theta_h)
         start <- c(start_h, rep(0, ncol(X) - 1))
+      } else if (control_selection$start_type == "zero") {
+        start <- rep(0, ncol(X))
       }
     }
 
@@ -133,7 +135,11 @@ gee <- function(...) {
     eta_rand <- theta_hat %*% t(as.matrix(X_rand))
     ps_nons <- inv_link(eta_nons)
     est_ps_rand <- inv_link(eta_rand)
-    variance_covariance <- MASS::ginv(-hess) #solve(-hess)
+    variance_covariance <- try(solve(-hess), silent = TRUE)
+    if(inherits(variance_covariance, "try-error")){
+      message("solve() failed, using ginv() instead.")
+      variance_covariance <- MASS::ginv(-hess)
+    }
     resids <- R - c(est_ps_rand, ps_nons)
 
     df_reduced <- nrow(X) - length(theta_hat)

@@ -34,6 +34,7 @@
 #' \itemize{
 #' \item if \code{glm} then start taken from the glm function called on samples.
 #' \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
+#' \item if \code{zero} then start is a vector of zeros.
 #' }
 #'
 #' @return List with selected parameters.
@@ -63,7 +64,9 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        nlambda = 50,
                        nfolds = 10,
                        print_level = 0,
-                       start_type = c("glm", "naive")) {
+                       start_type = c("glm", "naive", "zero")) {
+
+
   list(
     epsilon = epsilon,
     maxit = maxit,
@@ -86,3 +89,7 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
     start_type = if (missing(start_type)) "naive" else start_type
   )
 }
+
+
+
+
