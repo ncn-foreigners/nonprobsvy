@@ -5,24 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="An R package for statistical inference with non-probability samples when auxiliary information
-    from external sources such as probability samples or population totals or means is available. Details can be found
-    in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;,
-    Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;,
-    Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;,
-    Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
-<title>Package for Inference Based on Nonprobability Samples • nonprobsvy</title>
+<meta name="description" content="An R package for statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. Details can be found in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;, Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;, Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
+<title>Package for Inference Based on Non-Probability Samples • nonprobsvy</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Package for Inference Based on Nonprobability Samples">
-<meta property="og:description" content="An R package for statistical inference with non-probability samples when auxiliary information
-    from external sources such as probability samples or population totals or means is available. Details can be found
-    in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;,
-    Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;,
-    Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;,
-    Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Package for Inference Based on Non-Probability Samples">
+<meta property="og:description" content="An R package for statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. Details can be found in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;, Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;, Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -265,18 +255,18 @@ Inverse probability weighting with calibration constraint
 Doubly robust estimator
 </td>
 <td>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nonprob</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> ... <span class="sc">+</span> xk, </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> …, <span class="sc">+</span> xk, </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">pop_totals =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> <span class="ot">=</span> N, </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x1 =</span> tau_x1, </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x2 =</span> tau_x2, </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                 ..., </span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">xk =</span> tau_xk), </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">svydesign =</span> prob, </span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">method_outcome =</span> <span class="st">"glm"</span>, </span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">family_outcome =</span> <span class="st">"gaussian"</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">nonprob</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> ... <span class="sc">+</span> xk, </span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">outcome =</span> y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> …, <span class="sc">+</span> xk, </span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">pop_totals =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> <span class="ot">=</span> N, </span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                 <span class="at">x1 =</span> tau_x1, </span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                 <span class="at">x2 =</span> tau_x2, </span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>                 ..., </span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>                 <span class="at">xk =</span> tau_xk), </span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">svydesign =</span> prob, </span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">method_outcome =</span> <span class="st">"glm"</span>, </span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">family_outcome =</span> <span class="st">"gaussian"</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>)</span></code></pre></div>
 </td>
 </tr>
 <tr></tr>

@@ -104,7 +104,7 @@ The package uses <code>survey</code> package functionality when a probability sa
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>data</dt>
-<dd><p><code>data.frame</code> with data from the nonprobability sample.</p></dd>
+<dd><p><code>data.frame</code> with data from the non-probability sample.</p></dd>
 
 
 <dt>selection</dt>
@@ -239,7 +239,8 @@ the joint estimating equations for the <code>selection</code> and <code>outcome<
 <li><p><code>method</code> -- set on <code>glm</code>, since the regression method</p></li>
 </ul>
 
-In addition, if the variable selection model for the outcome variable is fitting, the list includes the <code>cve</code> -- the error for each value of <code>lambda</code>, averaged across the cross-validation folds.</li>
+In addition, if the variable selection model for the outcome variable is fitting, the list includes the<ul><li><p><code>cve</code> -- the error for each value of <code>lambda</code>, averaged across the cross-validation folds.</p></li>
+</ul></li>
 <li><p><code>selection</code> -- list containing information about fitting of propensity score model, such as
 </p><ul><li><p><code>coefficients</code> -- a named vector of coefficients</p></li>
 <li><p><code>std_err</code> -- standard errors of the estimated model coefficients</p></li>
@@ -255,8 +256,11 @@ In addition, if the variable selection model for the outcome variable is fitting
 <li><p><code>df_residual</code> -- the residual degrees of freedom.</p></li>
 <li><p><code>log_likelihood</code> -- value of log-likelihood function if <code>mle</code> method, in the other case <code>NA</code>.</p></li>
 <li><p><code>cve</code> -- the error for each value of the <code>lambda</code>, averaged across the cross-validation folds for the variable selection model
-when the propensity score model is fitting.</p></li>
+when the propensity score model is fitting. Returned only if selection of variables for the model is used.</p></li>
 </ul></li>
+<li><p><code>stat</code> -- matrix of the estimated population means in each bootstrap iteration.
+Returned only if a bootstrap method is used to estimate the variance and <code>keep_boot</code> in
+<code><a href="controlInf.html">controlInf()</a></code> is set on <code>TRUE</code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -406,7 +410,7 @@ estimation process of the bias minimization approach.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="co"># generate data based on Doubly Robust Inference With Nonprobability Survey Samples (2021)</span></span></span>
+<span class="r-in"><span><span class="co"># generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)</span></span></span>
 <span class="r-in"><span><span class="co"># Yilin Chen , Pengfei Li &amp; Changbao Wu</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">sampling</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
@@ -441,7 +445,7 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># population</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y30</span>, <span class="va">y50</span>, <span class="va">y80</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co">## propensity score model for nonprobability sample (sum to 1000)</span></span></span>
+<span class="r-in"><span><span class="co">## propensity score model for non-probability sample (sum to 1000)</span></span></span>
 <span class="r-in"><span><span class="va">eta</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">4.461</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">x2</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x3</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">x4</span></span></span>
 <span class="r-in"><span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -452,7 +456,7 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span><span class="co"># data</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_nonprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="co">## sampling nonprob</span></span></span>
 <span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span><span class="op">)</span> <span class="co">## sampling prob</span></span></span>
-<span class="r-in"><span><span class="va">nonprob_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_nonprob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## nonprobability sample</span></span></span>
+<span class="r-in"><span><span class="va">nonprob_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_nonprob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## non-probability sample</span></span></span>
 <span class="r-in"><span><span class="va">svyprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  ids <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, probs <span class="op">=</span> <span class="op">~</span><span class="va">p_prob</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_prob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span></span>

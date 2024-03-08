@@ -43,7 +43,7 @@ for outcome model."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aj
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Control parameters for outcome model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/HEAD/R/control.R" class="external-link"><code>R/control.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/HEAD/R/control_outcome.R" class="external-link"><code>R/control_outcome.R</code></a></small>
       <div class="d-none name"><code>controlOut.Rd</code></div>
     </div>
 
@@ -66,7 +66,11 @@ for outcome model.</p>
 <span>  nlambda <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  nfolds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  treetype <span class="op">=</span> <span class="st">"kd"</span>,</span>
-<span>  searchtype <span class="op">=</span> <span class="st">"standard"</span></span>
+<span>  searchtype <span class="op">=</span> <span class="st">"standard"</span>,</span>
+<span>  predictive_match <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
+<span>  pmm_weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"prop_dist"</span><span class="op">)</span>,</span>
+<span>  pmm_k_choice <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"min_var"</span><span class="op">)</span>,</span>
+<span>  pmm_reg_engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"loess"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,11 +117,44 @@ for outcome model.</p>
 
 
 <dt>treetype</dt>
-<dd><p>type of tree for nearest neighbour imputation passed to <code><a href="https://rdrr.io/pkg/RANN/man/nn2.html" class="external-link">RANN::nn2()</a></code> function.</p></dd>
+<dd><p>Type of tree for nearest neighbour imputation passed to <code><a href="https://rdrr.io/pkg/RANN/man/nn2.html" class="external-link">RANN::nn2()</a></code> function.</p></dd>
 
 
 <dt>searchtype</dt>
-<dd><p>type of search for nearest neighbour imputation passed to <code><a href="https://rdrr.io/pkg/RANN/man/nn2.html" class="external-link">RANN::nn2()</a></code> function.</p></dd>
+<dd><p>Type of search for nearest neighbour imputation passed to <code><a href="https://rdrr.io/pkg/RANN/man/nn2.html" class="external-link">RANN::nn2()</a></code> function.</p></dd>
+
+
+<dt>predictive_match</dt>
+<dd><p>(Only for predictive mean matching)
+Indicates how to select 'closest' unit from nonprobability sample for each
+unit in probability sample. Either <code>1</code> (default) or <code>2</code> where
+<code>1</code> is matching by minimizing distance between <em></em>\(\hat{y}_{i}\) for
+<em></em>\(i \in S_{A}\) and <em></em>\(y_{j}\) for <em></em>\(j \in S_{B}\) and <code>2</code>
+is matching by minimizing distance between <em></em>\(\hat{y}_{i}\) for
+<em></em>\(i \in S_{A}\) and <em></em>\(\hat{y}_{i}\) for <em></em>\(i \in S_{A}\).</p></dd>
+
+
+<dt>pmm_weights</dt>
+<dd><p>(Only for predictive mean matching)
+Indicate how to weight <code>k</code> nearest neighbours in <em></em>\(S_{B}\) to
+create imputed value for units in <em></em>\(S_{A}\). The default value
+<code>"none"</code> indicates that mean of <code>k</code> nearest <em></em>\(y\)'s from
+<em></em>\(S_{B}\) should be used whereas <code>"prop_dist"</code> results in
+weighted mean of these <code>k</code> values where weights are inversely
+proportional to distance between matched values.</p></dd>
+
+
+<dt>pmm_k_choice</dt>
+<dd><p>Character value indicating how <code>k</code> hyper-parameter
+should be chosen, by default <code>"none"</code> meaning <code>k</code> provided in
+<code>control_outcome</code> argument will be used. For now the only other
+option <code>"min_var"</code> means that <code>k</code>  will be chosen by minimizing
+estimated variance of estimator for mean. Parameter <code>k</code> provided in
+this control list will be chosen as starting point.</p></dd>
+
+
+<dt>pmm_reg_engine</dt>
+<dd><p>TODO</p></dd>
 
 </dl></div>
     <div class="section level2">

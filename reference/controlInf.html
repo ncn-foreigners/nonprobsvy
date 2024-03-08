@@ -43,7 +43,7 @@ for statistical inference."><!-- mathjax --><script src="https://cdnjs.cloudflar
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Control parameters for inference</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/HEAD/R/control.R" class="external-link"><code>R/control.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/HEAD/R/control_inference.R" class="external-link"><code>R/control_inference.R</code></a></small>
       <div class="d-none name"><code>controlInf.Rd</code></div>
     </div>
 
@@ -63,7 +63,10 @@ for statistical inference.</p>
 <span>  num_boot <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  bias_correction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  cores <span class="op">=</span> <span class="fl">1</span></span>
+<span>  cores <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">keep_boot</span>,</span>
+<span>  pmm_exact_se <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">pi_ij</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -103,6 +106,26 @@ selection and outcome model.</p></li>
 
 <dt>cores</dt>
 <dd><p>Number of cores in parallel computing.</p></dd>
+
+
+<dt>keep_boot</dt>
+<dd><p>Logical indicating whether statistics from bootstrap should be kept.
+By default set to <code>TRUE</code></p></dd>
+
+
+<dt>pmm_exact_se</dt>
+<dd><p>Logical value indicating whether to compute the exact
+standard error estimate for <code>pmm</code> estimator. The variance estimator for
+estimation based on <code>pmm</code> can be decomposed into three parts, with the
+third being computed using covariance between imputed values for units in
+probability sample using predictive matches from non-probability sample.
+In most situations this term is negligible and is very computationally
+expensive so by default this is set to <code>FALSE</code>, but it is recommended to
+set this value to <code>TRUE</code> before submitting final results.</p></dd>
+
+
+<dt>pi_ij</dt>
+<dd><p>TODO, either matrix or <code>ppsmat</code> class object.</p></dd>
 
 </dl></div>
     <div class="section level2">
