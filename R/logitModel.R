@@ -253,10 +253,10 @@ logit_model_nonprobsvy <- function(...) {
   }
 
 
-  b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights) {
+  b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose) {
     hess_inv_neg <- try(solve(-hess), silent = TRUE)
     if(inherits(hess_inv_neg, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       hess_inv_neg <- MASS::ginv(-hess)
     }
     if (is.null(pop_size)) {
@@ -267,10 +267,10 @@ logit_model_nonprobsvy <- function(...) {
     list(b = b)
   }
 
-  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
     hess_inv <- try(solve(hess), silent = TRUE)
     if(inherits(hess_inv, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       hess_inv <- MASS::ginv(hess)
     }
     -(((1 - ps) / ps) * weights * (y - y_pred - h_n)) %*% X %*% hess_inv

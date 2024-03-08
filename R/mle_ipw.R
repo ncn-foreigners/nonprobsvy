@@ -89,6 +89,7 @@ mle <- function(...) {
                               maxit,
                               control_selection,
                               start,
+                              verbose = FALSE,
                               varcov = FALSE,
                               ...) {
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")

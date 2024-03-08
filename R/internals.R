@@ -26,6 +26,7 @@ internal_selection <- function(X,
                                maxit,
                                control_selection,
                                start,
+                               verbose,
                                bias_correction = FALSE,
                                varcov = FALSE,
                                ...) {
@@ -46,6 +47,7 @@ internal_selection <- function(X,
     varcov = varcov,
     control_selection = control_selection,
     start = start,
+    verbose = verbose,
     ...
   )
 }

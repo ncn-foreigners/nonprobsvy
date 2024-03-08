@@ -422,7 +422,8 @@ nonprobDR <- function(selection,
           est_method = est_method,
           maxit = maxit,
           control_selection = control_selection,
-          start = start_selection
+          start = start_selection,
+          verbose = verbose
         )
 
         estimation_method <- get_method(est_method)
@@ -588,7 +589,7 @@ nonprobDR <- function(selection,
       N_nons <- sum(weights * weights_nons)
       variance_covariance <- try(solve(-hess), silent = TRUE)
       if(inherits(variance_covariance, "try-error")){
-        message("solve() failed, using ginv() instead.")
+        if(verbose) message("solve() failed, using ginv() instead.")
         variance_covariance <- MASS::ginv(-hess)
       }
       theta_standard_errors <- sqrt(diag(variance_covariance))
@@ -672,7 +673,8 @@ nonprobDR <- function(selection,
           h = h,
           pop_totals = pop_totals,
           sigma = sigma,
-          bias_correction = bias_corr
+          bias_correction = bias_corr,
+          verbose = verbose
         )
 
         var_prob <- var_obj$var_prob

@@ -20,7 +20,8 @@ internal_varDR <- function(OutcomeModel,
                            h,
                            pop_totals,
                            sigma,
-                           bias_correction) {
+                           bias_correction,
+                           verbose) {
   ######### mm
   if (bias_correction == TRUE) {
     infl1 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons^2
@@ -51,7 +52,8 @@ internal_varDR <- function(OutcomeModel,
       eta = eta,
       h_n = h_n,
       y_pred = y_nons_pred,
-      weights = weights
+      weights = weights,
+      verbose = verbose
     )
 
     # asymptotic variance by each propensity score method (nonprobability component)

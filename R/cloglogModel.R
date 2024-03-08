@@ -267,11 +267,11 @@ cloglog_model_nonprobsvy <- function(...) {
     V2
   }
 
-  b_vec_ipw <- function(y, mu, ps, psd = NULL, eta = NULL, X, hess, pop_size, weights) { # TODO to fix
+  b_vec_ipw <- function(y, mu, ps, X, hess, pop_size, weights, verbose, psd = NULL, eta = NULL) {
 
     hess_inv_neg <- try(solve(-hess), silent = TRUE)
     if(inherits(hess_inv_neg, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       hess_inv_neg <- MASS::ginv(-hess)
     }
     # print(mean(-((1 - ps)/ps^2 * log(1 - ps) * weights * (y - mu))))
@@ -286,10 +286,10 @@ cloglog_model_nonprobsvy <- function(...) {
     list(b = b)
   }
 
-  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights) {
+  b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
     hess_inv <- try(solve(hess), silent = TRUE)
     if(inherits(hess_inv, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       hess_inv <- MASS::ginv(hess)
     }
     (((1 - ps) / ps^2) * weights * (y - y_pred - h_n) * exp(eta)) %*% X %*% hess_inv

@@ -154,8 +154,9 @@ nonprobIPW <- function(selection,
       est_method = est_method,
       maxit = maxit,
       start = start_selection,
-      varcov = TRUE,
-      control_selection = control_selection
+      control_selection = control_selection,
+      verbose = verbose,
+      varcov = TRUE
     )
 
     estimation_method <- get_method(est_method)
@@ -324,7 +325,7 @@ nonprobIPW <- function(selection,
     ps_nons_der <- dinv_link(eta_nons)
     variance_covariance <- try(solve(-hess), silent = TRUE)
     if(inherits(variance_covariance, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       variance_covariance <- MASS::ginv(-hess)
     }
     theta_standard_errors <- sqrt(diag(variance_covariance))
@@ -414,7 +415,8 @@ nonprobIPW <- function(selection,
           theta = theta_hat,
           h = h,
           var_cov1 = var_cov1,
-          var_cov2 = var_cov2
+          var_cov2 = var_cov2,
+          verbose = verbose
         )
 
         var_nonprob[k] <- var_obj$var_nonprob

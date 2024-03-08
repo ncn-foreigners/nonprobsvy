@@ -70,6 +70,7 @@ gee <- function(...) {
                               maxit,
                               control_selection,
                               start,
+                              verbose,
                               varcov = FALSE,
                               ...) {
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -137,7 +138,7 @@ gee <- function(...) {
     est_ps_rand <- inv_link(eta_rand)
     variance_covariance <- try(solve(-hess), silent = TRUE)
     if(inherits(variance_covariance, "try-error")){
-      message("solve() failed, using ginv() instead.")
+      if(verbose) message("solve() failed, using ginv() instead.")
       variance_covariance <- MASS::ginv(-hess)
     }
     resids <- R - c(est_ps_rand, ps_nons)
