@@ -31,7 +31,6 @@ Suggests:
     sampling,
     spelling
 Depends:
-  R (>= 4.3.0),
   survey
 Imports: 
     maxLik,
