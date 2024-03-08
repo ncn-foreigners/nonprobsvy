@@ -58,7 +58,8 @@ nonprob <- function(data,
   if (is.null(selection) & is.null(outcome)) {
     stop("Please provide selection or outcome formula.")
   }
-  if (inherits(selection, "formula") && inherits(target, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
+  if (inherits(selection, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
+    if (inherits(target, "formula") == FALSE) stop("Please provide target variable")
     model_used <- "P"
   }
 

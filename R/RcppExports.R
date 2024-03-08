@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 cv_nonprobsvy_rcpp <- function(X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, pop_totals, verbose, lambda = -1) {
-    .Call('_nonprobsvy_cv_nonprobsvy_rcpp', PACKAGE = 'nonprobsvy', X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, pop_totals, verbose, lambda)
+    .Call(`_nonprobsvy_cv_nonprobsvy_rcpp`, X, R, weights_X, method_selection, h, maxit, eps, lambda_min, nlambda, nfolds, penalty, a, pop_totals, verbose, lambda)
 }
 

@@ -473,7 +473,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
   Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
 
   arma::vec weights;
-  arma::vec loss_theta_av(nlambda, arma::fill::zeros);
+  arma::vec loss_theta_av(nlambda);
   const arma::vec& R_ = R;
   const arma::mat& X_ = X;
 
@@ -508,6 +508,13 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       arma::uvec idx_rand = find(folds_rand != sample_rand(j));
       const arma::mat& X_rand_train = X_rand.rows(idx_rand);
       const arma::mat& X_rand_test = X_rand.rows(find(folds_rand == sample_rand(j)));
+
+      // Randomize the columns (features) in the training data
+      // arma::uvec col_indices = arma::shuffle(arma::regspace<arma::uvec>(0, X_nons_train.n_cols - 1));
+      // arma::mat X_nons_train_randomized = X_nons_train.cols(col_indices);
+      // arma::mat X_rand_train_randomized = X_rand_train.cols(col_indices);
+      // arma::mat X_nons_test_randomized = X_nons_test.cols(col_indices);
+      // arma::mat X_rand_test_randomized = X_rand_test.cols(col_indices);
 
       const arma::mat& X_train = arma::join_cols(X_rand_train, X_nons_train);
       const arma::mat& X_test = arma::join_cols(X_rand_test, X_nons_test);
@@ -549,8 +556,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       //loss_theta_av(i) = mean(loss_theta_vec);
     }
 
-    arma::vec loss_theta_av(nlambda);
     arma::vec loss_theta_vec(nfolds);
+    // Vector to store means, one for each field
     for (int i = 0; i < nlambda; i++) {
       // arma::vec loss_theta_vec(nfolds);
       for (int j = 0; j < nfolds; j++) {

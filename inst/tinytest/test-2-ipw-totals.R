@@ -192,7 +192,7 @@ expect_identical(y_all_corr_all$confidence_interval,
 # These tests are only supposed to be run on developer's machine and
 # package GitHub page not on CRAN (they take too long)
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
@@ -314,7 +314,7 @@ expect_identical(y_all_corr_all$confidence_interval,
   #                             verbose = T)
   # )
 
-# }
+}
 
 
 ## non-linear case ------------------------------------------------------------------------
@@ -503,7 +503,7 @@ expect_identical(y_all_corr_all$confidence_interval,
 #### variable selection  ------------------------------------------------------------------
 ##### one target variable  ----------------------------------------------------------------
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   ## y_11
   expect_silent(
@@ -539,7 +539,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
   expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-  ## y_21
+  #  y_21
   expect_silent(
     y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_21,
@@ -556,7 +556,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
   expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-  ## y_22
+  # # y_22
   expect_silent(
     y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_22,
@@ -623,7 +623,7 @@ expect_identical(y_all_corr_all$confidence_interval,
   #                             verbose = T)
   # )
 
-# }
+}
 
 
 # check probit ----------------------------------------------------------------------------
@@ -809,7 +809,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
@@ -931,7 +931,7 @@ expect_identical(y_all_corr_all$confidence_interval,
   #                             verbose = T)
   # )
 
-# }
+}
 
 ## non-linear case ------------------------------------------------------------------------
 #### correctly specified variables --------------------------------------------------------
@@ -1117,11 +1117,11 @@ expect_identical(y_all_corr_all$confidence_interval,
                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
-  ## y_11
+  # # y_11
   expect_silent(
     y11_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_11,
@@ -1155,7 +1155,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y12_corr_scad$confidence_interval$upper_bound > mean(Y_12)) ## conf int
   expect_true(NROW(y12_corr_scad$selection$coefficients) == 2)
 
-  ## y_21
+  # # y_21
   expect_silent(
     y21_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_21,
@@ -1172,7 +1172,7 @@ expect_identical(y_all_corr_all$confidence_interval,
                  y21_corr_scad$confidence_interval$upper_bound > mean(Y_21)) ## conf int
   expect_true(NROW(y21_corr_scad$selection$coefficients) == 2)
 
-  ## y_22
+  # # y_22
   expect_silent(
     y22_corr_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                              target = ~ Y_22,
@@ -1239,7 +1239,7 @@ expect_identical(y_all_corr_all$confidence_interval,
   #                             verbose = T)
   # )
 
-# }
+}
 
 # check cloglog -----------------------------------------------------
 ## linear case ----------------------------------------------------------------------------
@@ -1422,7 +1422,7 @@ expect_silent(
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 #
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
@@ -1558,7 +1558,7 @@ expect_silent(
   #               y22_corr_one$confidence_interval$upper_bound > mean(Y_22)) ## conf int
   #
 
-# }
+}
 # ##### all target variables  ---------------------------------------------------------------
 #
 expect_silent(
@@ -1679,7 +1679,7 @@ expect_silent(
 #                                             y22_corr_all$confidence_interval$upper_bound),
 #                             row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
@@ -1753,4 +1753,4 @@ expect_silent(
   # #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
   # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
 
-# }
+}

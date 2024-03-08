@@ -68,6 +68,9 @@ nonprobDR <- function(selection,
     confidence_interval <- NULL
     SE_values <- NULL
   }
+  if (control_inference$var_method == "bootstrap") {
+    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
 
   # Selection models
   if (is.null(pop_totals) && !is.null(svydesign)) {
@@ -121,6 +124,10 @@ nonprobDR <- function(selection,
     X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons) # joint model matrix
     ######  WORKING VERSION
     if (var_selection == TRUE) {
+      # TODO add std seperately on X_nons and X_rand, after that do join to X matrix
+      # X_rand_stand <- ncvreg::std(weights_rand * X_rand)
+      # X_nons_stand <- ncvreg::std(X_nons)
+      # X_stand <- rbind(X_rand_stand, X_nons_stand)
       X_stand <- ncvreg::std(X) # penalizing without an intercept
       prior_weights <- c(weights_rand, weights)
 
@@ -181,6 +188,8 @@ nonprobDR <- function(selection,
 
     ############# WORKING VERSION
     if (var_selection == TRUE) {
+      # TODO "standardize pop_totals" - dividing by N (?) - means from X_nons / std from X_nons e.g.
+      # pop_totals <- colMeans(X_nons) / apply(X_nons, 2, sd)
       X_stand <- ncvreg::std(X) # penalizing without an intercept
 
       method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -413,7 +422,8 @@ nonprobDR <- function(selection,
           est_method = est_method,
           maxit = maxit,
           control_selection = control_selection,
-          start = start_selection
+          start = start_selection,
+          verbose = verbose
         )
 
         estimation_method <- get_method(est_method)
@@ -577,7 +587,11 @@ nonprobDR <- function(selection,
       ps_nons_der <- dinv_link(eta_nons)
       weights_nons <- 1 / ps_nons
       N_nons <- sum(weights * weights_nons)
-      variance_covariance <- solve(-hess)
+      variance_covariance <- try(solve(-hess), silent = TRUE)
+      if(inherits(variance_covariance, "try-error")){
+        if(verbose) message("solve() failed, using ginv() instead.")
+        variance_covariance <- MASS::ginv(-hess)
+      }
       theta_standard_errors <- sqrt(diag(variance_covariance))
       df_residual <- nrow(SelectionModel$X_nons) - length(theta_hat)
       # if(is.null(pop_size)) pop_size <- N_nons
@@ -659,7 +673,8 @@ nonprobDR <- function(selection,
           h = h,
           pop_totals = pop_totals,
           sigma = sigma,
-          bias_correction = bias_corr
+          bias_correction = bias_corr,
+          verbose = verbose
         )
 
         var_prob <- var_obj$var_prob
@@ -740,7 +755,8 @@ nonprobDR <- function(selection,
         }
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        stat[, k] <- boot_obj$stat
+        # mu_hat <- boot_obj$mu
       } else {
         stop("Invalid method for variance estimation.")
       }
@@ -768,6 +784,11 @@ nonprobDR <- function(selection,
     #                      dimnames = list(names(theta_hat),
     #                                      c("Estimate", "Std. Error")))
     OutcomeList[[k]]$method <- method_outcome
+    if (control_inference$vars_selection == TRUE) {
+      OutcomeList[[k]]$cve <- cve_outcome
+    } else {
+      NULL
+    }
   }
   weights_summary <- summary(as.vector(weights_nons))
   prop_scores <- c(ps_nons, est_ps_rand)
@@ -779,6 +800,13 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+
+  boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    stat
+  } else {
+    NULL
+  }
+  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   SelectionList <- list(
     coefficients = selection_model$theta_hat,
@@ -794,7 +822,12 @@ nonprobDR <- function(selection,
     prior.weights = weights,
     formula = selection,
     df_residual = selection_model$df_residual,
-    log_likelihood = selection_model$log_likelihood
+    log_likelihood = selection_model$log_likelihood,
+    cve = if (control_inference$vars_selection == TRUE) {
+      cve_selection
+    } else {
+      NULL
+    }
   )
   # df.null = selection_model$df_null
   # converged)
@@ -818,7 +851,8 @@ nonprobDR <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       outcome = OutcomeList,
-      selection = SelectionList
+      selection = SelectionList,
+      boot_sample = boot_sample
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )

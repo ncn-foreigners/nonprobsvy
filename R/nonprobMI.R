@@ -45,11 +45,114 @@ nonprobMI <- function(outcome,
     SE_values <- NULL
   }
   num_boot <- control_inference$num_boot
-  if (method_outcome == "pmm") {
+  if (method_outcome == "pmm" & (!is.null(pop_totals) | !is.null(pop_means)) ) {
     control_inference$var_method <- "bootstrap"
     message("Bootstrap variance only, analytical version during implementation.")
   }
+  if (control_inference$var_method == "bootstrap") {
+    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
+
   for (k in 1:outcomes$l) {
+
+    if (control_outcome$pmm_k_choice == "min_var" & method_outcome == "pmm") {
+      # This can be programmed a lot better possibly with custom method outcome that would
+      # store previous k-pmm model and omit the last estimation
+
+      ## TODO:: right now this only goes forward not backwards
+      var_prev <- Inf
+      cond <- TRUE
+      kk <- control_outcome$k - 1
+      while (cond) {
+        OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+        X_nons <- OutcomeModel$X_nons
+        X_rand <- OutcomeModel$X_rand
+        nons_names <- OutcomeModel$nons_names
+        y_nons <- OutcomeModel$y_nons
+
+        R_nons <- rep(1, nrow(X_nons))
+        R_rand <- rep(0, nrow(X_rand))
+        R <- c(R_nons, R_rand)
+
+        loc_nons <- which(R == 1)
+        loc_rand <- which(R == 0)
+
+        n_nons <- nrow(X_nons)
+        n_rand <- nrow(X_rand)
+        X <- rbind(X_nons, X_rand)
+
+        ps_rand <- svydesign$prob
+        weights_rand <- 1 / ps_rand
+        N_est_rand <- sum(weights_rand)
+
+        kk <- kk + 1
+        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
+        ## estimation
+
+        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
+        model_obj <- MethodOutcome(
+          outcome = outcome,
+          data = data,
+          weights = weights,
+          family_outcome = family_outcome,
+          start_outcome = start_outcome,
+          X_nons = X_nons,
+          y_nons = y_nons,
+          X_rand = X_rand,
+          control = control_outcome,
+          n_nons = n_nons,
+          n_rand = n_rand,
+          model_frame = OutcomeModel$model_frame_rand,
+          vars_selection = control_inference$vars_selection,
+          pop_totals = pop_totals
+        )
+        y_rand_pred <- model_obj$y_rand_pred
+        y_nons_pred <- model_obj$y_nons_pred
+        # parameters <- model_obj$parameters
+        OutcomeList[[k]] <- model_obj$model
+
+        # updating probability sample by adding y_hat variable
+        svydesign1 <- stats::update(svydesign,
+                                    y_hat_MI = y_rand_pred
+        )
+        mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
+
+        var_obj <- internal_varMI(
+          svydesign = svydesign1,
+          X_nons = X_nons,
+          X_rand = X_rand,
+          y = y_nons,
+          y_pred = y_nons_pred,
+          weights_rand = weights_rand,
+          method = method_outcome,
+          n_rand = n_rand,
+          n_nons = n_nons,
+          N = N_est_rand,
+          family = family_outcome,
+          model_obj = model_obj,
+          pop_totals = pop_totals,
+          k = control_outcome$k,
+          predictive_match = control_outcome$predictive_match,
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
+        )
+
+        var_nonprob <- var_obj$var_nonprob
+        var_prob <- var_obj$var_prob
+
+        se_nonprob <- sqrt(var_nonprob)
+        se_prob <- sqrt(var_prob)
+        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
+        # variance
+        var_now <- var_nonprob + var_prob
+        cond <- var_prev > var_now
+        var_prev <- var_now
+      }
+      control_outcome$k <- kk - 1
+      svydesign1 <- NULL # freeing up memmory
+    }
+
     if (is.null(pop_totals) && !is.null(svydesign)) {
       pop_totals_sel <- pop_totals
       outcome <- outcomes$outcome[[k]]
@@ -79,6 +182,7 @@ nonprobMI <- function(outcome,
       ########### WORKING VERSION
 
       if (var_selection == TRUE) {
+        # TODO add variables randomization
         nlambda <- control_outcome$nlambda
         beta <- ncvreg::cv.ncvreg(
           X = X_nons[, -1, drop = FALSE],
@@ -88,7 +192,10 @@ nonprobMI <- function(outcome,
           trace = verbose,
           nfolds = control_outcome$nfolds,
           nlambda = nlambda,
-          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          gamma = switch(control_outcome$penalty,
+            SCAD = control_outcome$a_SCAD,
+            control_outcome$a_MCP
+          ),
           lambda_min = control_outcome$lambda_min,
           eps = control_outcome$epsilon
         )
@@ -102,13 +209,14 @@ nonprobMI <- function(outcome,
 
         X_design <- as.matrix(X[, beta_selected + 1, drop = FALSE])
         # colnames(X_design) <- c("(Intercept)", colnames(Xsel))
-        X_rand <- X_design[loc_rand, ]
-        X_nons <- X_design[loc_nons, ]
+        X_rand <- X_design[loc_rand, , drop = FALSE]
+        X_nons <- X_design[loc_nons, , drop = FALSE]
       }
       ################
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
       ## estimation
+
       MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
       model_obj <- MethodOutcome(
         outcome = outcome,
@@ -166,7 +274,10 @@ nonprobMI <- function(outcome,
           trace = verbose,
           nfolds = control_outcome$nfolds,
           nlambda = nlambda,
-          gamma = switch(control_outcome$penalty, SCAD = control_outcome$a_SCAD, control_outcome$a_MCP),
+          gamma = switch(control_outcome$penalty,
+            SCAD = control_outcome$a_SCAD,
+            control_outcome$a_MCP
+          ),
           lambda_min = control_outcome$lambda_min,
           eps = control_outcome$epsilon
         )
@@ -211,6 +322,12 @@ nonprobMI <- function(outcome,
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
+
+    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$pmm_exact_se)) {
+      # if not pmm_exact_se then this can be dropped
+      model_obj$model$glm_obj <- NULL
+    }
+
     ys[[k]] <- as.numeric(y_nons)
     if (se) {
       # design based variance estimation based on approximations of the second-order inclusion probabilities
@@ -227,8 +344,14 @@ nonprobMI <- function(outcome,
           n_nons = n_nons,
           N = N_est_rand,
           family = family_outcome,
-          parameters = model_obj$parameters,
-          pop_totals = pop_totals
+          model_obj = model_obj,
+          pop_totals = pop_totals,
+          # we should probably just pass full control list
+          k = control_outcome$k,
+          predictive_match = control_outcome$predictive_match,
+          pmm_exact_se = control_inference$pmm_exact_se,
+          pmm_reg_engine = control_outcome$pmm_reg_engine,
+          pi_ij = control_inference$pi_ij
         )
 
         var_nonprob <- var_obj$var_nonprob
@@ -242,16 +365,18 @@ nonprobMI <- function(outcome,
       } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
         # bootstrap variance
         if (control_inference$cores > 1) {
-          boot_obj <- bootMI_multicore(X_rand,
-            X_nons,
-            weights,
-            y_nons,
-            family_outcome,
+          boot_obj <- bootMI_multicore(
+            X_rand = X_rand,
+            X_nons = X_nons,
+            weights = weights,
+            y = y_nons,
+            family_outcome = family_outcome,
             start_outcome = start_outcome,
             num_boot = num_boot,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -261,16 +386,18 @@ nonprobMI <- function(outcome,
             verbose = verbose
           )
         } else {
-          boot_obj <- bootMI(X_rand,
-            X_nons,
-            weights,
-            y_nons,
-            family_outcome,
+          boot_obj <- bootMI(
+            X_rand = X_rand,
+            X_nons = X_nons,
+            weights = weights,
+            y = y_nons,
+            family_outcome = family_outcome,
             start_outcome = start_outcome,
             num_boot = num_boot,
             weights_rand,
             mu_hat,
             svydesign,
+            model_obj = model_obj,
             rep_type = control_inference$rep_type,
             method = method_outcome,
             control_outcome = control_outcome,
@@ -280,7 +407,9 @@ nonprobMI <- function(outcome,
           )
         }
         var <- boot_obj$var
-        mu_hat <- boot_obj$mu
+        stat[, k] <- boot_obj$stat
+        comp3_stat <- boot_obj$comp3_stat
+        # mu_hat <- boot_obj$mu
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(
           nonprob = NA,
           prob = NA
@@ -305,12 +434,17 @@ nonprobMI <- function(outcome,
       SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
     }
 
-    X <- rbind(X_nons, X_rand) # joint model matrix
+    X <- rbind(X_rand, X_nons) # joint model matrix
     # if (is.null(pop_size))
     pop_size <- N_est_rand # estimated pop_size
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
     OutcomeList[[k]]$method <- method_outcome
+    if (control_inference$vars_selection == TRUE) {
+      OutcomeList[[k]]$cve <- cve_outcome
+    } else {
+      NULL
+    }
   }
   output <- do.call(rbind, output)
   confidence_interval <- do.call(rbind, confidence_interval)
@@ -319,6 +453,13 @@ nonprobMI <- function(outcome,
   names(OutcomeList) <- outcomes$f
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+
+  boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    list(stat = stat, comp2 = boot_obj$comp2)
+  } else {
+    NULL
+  }
+  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   structure(
     list(
@@ -334,8 +475,47 @@ nonprobMI <- function(outcome,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
-      outcome = OutcomeList
+      outcome = OutcomeList,
+      boot_sample = boot_sample
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )
+}
+
+
+
+nonprobMI_fit <- function(outcome,
+                          data,
+                          weights,
+                          svydesign,
+                          family_outcome,
+                          start,
+                          control_outcome = controlOut(),
+                          verbose,
+                          model,
+                          x,
+                          y) {
+  family <- family_outcome
+
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
+  data$weights <- weights # TODO just for now, find more efficient way
+  model_nons <- stats::glm(
+    formula = outcome,
+    data = data,
+    weights = weights,
+    family = family,
+    start = start,
+    control = list(
+      control_outcome$epsilon,
+      control_outcome$maxit,
+      control_outcome$trace
+    )
+  )
+
+  model_nons
 }

@@ -226,7 +226,27 @@ expect_true(
   (test3ann$confidence_interval[1] < 5.072862) &
     (5.072862 < test3ann$confidence_interval[2])
 )
+# MI - nn ####
+# test3ann <- nonprob(outcome = y1 ~ x,
+#                   data = source_nonprob_p,
+#                   svydesign = svy_a,
+#                   method_outcome = "nn")
+expect_silent(
+  test3apmm <- nonprob(outcome = y1 ~ x,
+                      data = source_nonprob_p,
+                      svydesign = svy_a,
+                      method_outcome = "pmm")
+)
+expect_equivalent(
+  test3apmm$output$mean,
+  5.086964,
+  tolerance = .01
+)
 
+expect_true(
+  (test3apmm$confidence_interval[1] < 5.086964) &
+    (5.086964 < test3ann$confidence_interval[2])
+)
 ## bootstrap
 
 # These tests are only supposed to be run on developer's machine and
