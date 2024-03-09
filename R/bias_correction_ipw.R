@@ -189,4 +189,3 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
     outcome = outcome
   )
 }
-

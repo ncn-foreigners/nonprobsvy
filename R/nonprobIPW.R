@@ -324,8 +324,8 @@ nonprobIPW <- function(selection,
     ps_nons <- inv_link(eta_nons)
     ps_nons_der <- dinv_link(eta_nons)
     variance_covariance <- try(solve(-hess), silent = TRUE)
-    if(inherits(variance_covariance, "try-error")){
-      if(verbose) message("solve() failed, using ginv() instead.")
+    if (inherits(variance_covariance, "try-error")) {
+      if (verbose) message("solve() failed, using ginv() instead.")
       variance_covariance <- MASS::ginv(-hess)
     }
     theta_standard_errors <- sqrt(diag(variance_covariance))

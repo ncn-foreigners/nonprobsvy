@@ -11,8 +11,8 @@ u_theta <- function(R,
   method <- get_method(method_selection)
   inv_link <- method$make_link_inv
   function(par) {
-    #loc_nons = which(R == 1)
-    #loc_rand = which(R == 0)
+    # loc_nons = which(R == 1)
+    # loc_rand = which(R == 0)
     theta <- as.matrix(par)
     n <- length(R)
     X0 <- as.matrix(X)
@@ -53,8 +53,8 @@ u_theta_der <- function(R,
   inv_link_rev <- method$make_link_inv_rev
 
   function(par) {
-    #loc_nons = which(R == 1)
-    #loc_rand = which(R == 0)
+    # loc_nons = which(R == 1)
+    # loc_rand = which(R == 0)
     theta <- as.matrix(par)
     X0 <- as.matrix(X)
     p <- ncol(X0)
@@ -72,7 +72,7 @@ u_theta_der <- function(R,
     } else {
       mxDer <- switch(h,
         "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
-        "2" = - t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
+        "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
       )
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
@@ -133,7 +133,7 @@ theta_h_estimation <- function(R,
     method_selection = method_selection,
     pop_totals = pop_totals
   )
-  #print(start)
+  # print(start)
   # ######### BB
   # if (method_selection == "cloglog") {
   #   root <- BB::dfsane(

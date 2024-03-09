@@ -15,7 +15,7 @@ pmm_nonprobsvy <- function(outcome,
                            vars_selection,
                            pop_totals,
                            model_frame) {
-  glm_object <- switch (control$pmm_reg_engine,
+  glm_object <- switch(control$pmm_reg_engine,
     "glm" = glm_nonprobsvy(
       outcome,
       data,
@@ -152,7 +152,7 @@ pmm_nonprobsvy <- function(outcome,
   )
 
   model_out <- list(
-    #model_nons = model_nons,
+    # model_nons = model_nons,
     model_rand = model_rand,
     glm_object = glm_object$model
   )
@@ -179,67 +179,70 @@ pmm_exact <- function(pi_ij,
                       predictive_match,
                       k,
                       N) {
-    # if (isTRUE("ppsmat" %in% class(pi_ij))) {
-    #   pi_ij <- pi_ij$pij
-    # }
-    # # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
-    # #   pi_ij <- svydesign$dcheck[[1]]$dcheck
-    # # }
-    # if (is.null(pi_ij)) {
-    #   pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
-    #     1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
-    #       sum(1 - 1 / weights_rand))
-    # }
-    # # if (!is.matrix(pi_ij)) {
-    # #
-    # # }
-    # add variable for loop size to control
-    loop_size <- 50
+  # if (isTRUE("ppsmat" %in% class(pi_ij))) {
+  #   pi_ij <- pi_ij$pij
+  # }
+  # # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
+  # #   pi_ij <- svydesign$dcheck[[1]]$dcheck
+  # # }
+  # if (is.null(pi_ij)) {
+  #   pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
+  #     1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
+  #       sum(1 - 1 / weights_rand))
+  # }
+  # # if (!is.matrix(pi_ij)) {
+  # #
+  # # }
+  # add variable for loop size to control
+  loop_size <- 50
 
-    dd <- vector(mode = "numeric", length = loop_size)
-    for (jj in 1:loop_size) {
-      reg_object_boot <- NULL
-      while (is.null(reg_object_boot)) {
-        boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
-        # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
-        y_nons_b <- y[boot_samp]
+  dd <- vector(mode = "numeric", length = loop_size)
+  for (jj in 1:loop_size) {
+    reg_object_boot <- NULL
+    while (is.null(reg_object_boot)) {
+      boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+      # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
+      y_nons_b <- y[boot_samp]
 
-        reg_object_boot <- switch (pmm_reg_engine,
-          "glm" = stats::glm(
-            formula = model_obj$model$glm_object$formula,
-            data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
-            #weights = weights,
-            family = model_obj$model$glm_object$family,
-            start = model_obj$model$glm_object$coefficients
-          ),
-          "loess" = stats::loess(
-            formula = model_obj$model$glm_object$formula,
-            data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
-            span = .2,
-            control = stats::loess.control(surface = "direct")
-          )
+      reg_object_boot <- switch(pmm_reg_engine,
+        "glm" = stats::glm(
+          formula = model_obj$model$glm_object$formula,
+          data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+          # weights = weights,
+          family = model_obj$model$glm_object$family,
+          start = model_obj$model$glm_object$coefficients
+        ),
+        "loess" = stats::loess(
+          formula = model_obj$model$glm_object$formula,
+          data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+          span = .2,
+          control = stats::loess.control(surface = "direct")
         )
-        XX <- predict(
-          reg_object_boot,
-          newdata = svydesign$variables,
-          type = "response"
-        )
-        #XX <- reg_object_boot$family$mu.eta(X_rand %*% reg_object_boot$coefficients)
+      )
+      XX <- predict(
+        reg_object_boot,
+        newdata = svydesign$variables,
+        type = "response"
+      )
+      # XX <- reg_object_boot$family$mu.eta(X_rand %*% reg_object_boot$coefficients)
 
-        if (any(!is.finite(XX))) {
-          reg_object_boot <- NULL
-        }
+      if (any(!is.finite(XX))) {
+        reg_object_boot <- NULL
       }
+    }
 
-      YY <- switch (predictive_match,
-        {nonprobMI_nn(
+    YY <- switch(predictive_match,
+      {
+        nonprobMI_nn(
           data = y_nons_b,
           query = XX,
           k = k,
           searchtype = "standard",
           treetype = "kd"
-        )},
-        {nonprobMI_nn(
+        )
+      },
+      {
+        nonprobMI_nn(
           data = predict(
             reg_object_boot,
             newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
@@ -249,11 +252,14 @@ pmm_exact <- function(pi_ij,
           k = k,
           searchtype = "standard",
           treetype = "kd"
-        )}
-      )
+        )
+      }
+    )
 
-      dd[jj] <- weighted.mean(apply(YY$nn.idx, 1, FUN=\(x) mean(y_nons_b[x])),
-                              weights_rand)
-    }
-    var(dd)
+    dd[jj] <- weighted.mean(
+      apply(YY$nn.idx, 1, FUN = \(x) mean(y_nons_b[x])),
+      weights_rand
+    )
+  }
+  var(dd)
 }

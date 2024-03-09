@@ -19,13 +19,13 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
       design_to_frame <- svydesign$variables
       design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
       names_rand <- all.vars(formula)
-      model_Frame_rand <- design_to_frame[,names_rand]
+      model_Frame_rand <- design_to_frame[, names_rand]
 
       nons_names_rand <- attr(attr(model.frame(formula, design_to_frame), "terms"), "term.labels")
     } else {
       design_to_frame <- svydesign$variables
       names_rand <- all.vars(formula[-2])
-      model_Frame_rand <- design_to_frame[,names_rand]
+      model_Frame_rand <- design_to_frame[, names_rand]
 
       nons_names_rand <- attr(attr(model.frame(formula[-2], design_to_frame), "terms"), "term.labels")
 

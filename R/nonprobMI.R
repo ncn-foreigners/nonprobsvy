@@ -45,7 +45,7 @@ nonprobMI <- function(outcome,
     SE_values <- NULL
   }
   num_boot <- control_inference$num_boot
-  if (method_outcome == "pmm" & (!is.null(pop_totals) | !is.null(pop_means)) ) {
+  if (method_outcome == "pmm" & (!is.null(pop_totals) | !is.null(pop_means))) {
     control_inference$var_method <- "bootstrap"
     message("Bootstrap variance only, analytical version during implementation.")
   }
@@ -54,7 +54,6 @@ nonprobMI <- function(outcome,
   }
 
   for (k in 1:outcomes$l) {
-
     if (control_outcome$pmm_k_choice == "min_var" & method_outcome == "pmm") {
       # This can be programmed a lot better possibly with custom method outcome that would
       # store previous k-pmm model and omit the last estimation
@@ -113,7 +112,7 @@ nonprobMI <- function(outcome,
 
         # updating probability sample by adding y_hat variable
         svydesign1 <- stats::update(svydesign,
-                                    y_hat_MI = y_rand_pred
+          y_hat_MI = y_rand_pred
         )
         mu_hat <- weighted.mean(y_rand_pred, w = weights_rand)
 

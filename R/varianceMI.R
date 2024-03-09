@@ -21,8 +21,7 @@ internal_varMI <- function(svydesign,
                            predictive_match,
                            pmm_exact_se,
                            pmm_reg_engine,
-                           pi_ij
-                           ) {
+                           pi_ij) {
   parameters <- model_obj$parameters
 
   if (is.character(family)) {
