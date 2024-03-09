@@ -45,27 +45,52 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.1" id="version-001">version 0.0.1<a class="anchor" aria-label="anchor" href="#version-001"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="version-010">version 0.1.0<a class="anchor" aria-label="anchor" href="#version-010"></a></h2>
 <hr><div class="section level3">
-<h3 id="features-0-0-1">Features<a class="anchor" aria-label="anchor" href="#features-0-0-1"></a></h3>
+<h3 id="features-0-1-0">Features<a class="anchor" aria-label="anchor" href="#features-0-1-0"></a></h3>
 <ul><li>implemented population mean estimation using doubly robust, inverse probability weighting and mass imputation methods</li>
 <li>implemented inverse probability weighting models with Maximum Likelihood Estimation and Generalized Estimating Equations methods with <code>logit</code>, <code>complementary log-log</code> and <code>probit</code> link functions.</li>
 <li>implemented <code>generalized linear models</code>, <code>nearest neighbours</code> and <code>predictive mean matching</code> methods for Mass Imputation</li>
+<li>implemented bias correction estimators for doubly-robust approach</li>
 <li>implemented estimation methods when vector of population means/totals is available</li>
 <li>implemented variables selection with <code>SCAD</code>, <code>LASSO</code> and <code>MCP</code> penalization equations</li>
-<li>implemented <code>analytic</code> and <code>bootstrap</code> (with parallel computation) variance for described estimators</li>
+<li>implemented <code>analytic</code> and <code>bootstrap</code> (with parallel computation - <code>doSNOW</code> package) variance for described estimators</li>
 <li>added control parameters for models</li>
+<li>added S3 methods for object of <code>nonprob</code> class such as
+<ul><li>
+<code>nobs</code> for samples size</li>
+<li>
+<code>pop.size</code> for population size estimation</li>
+<li>
+<code>residuals</code> for residuals of the inverse probability weighting model</li>
+<li>
+<code>cooks.distance</code> for identifying influential observations that have a significant impact on the parameter estimates</li>
+<li>
+<code>hatvalues</code> for measuring the leverage of individual observations</li>
+<li>
+<code>logLik</code> for computing the log-likelihood of the model,</li>
+<li>
+<code>AIC</code> (Akaike Information Criterion) for evaluating the model based on the trade-off between goodness of fit and complexity, helping in model selection</li>
+<li>
+<code>BIC</code> (Bayesian Information Criterion) for a similar purpose as AIC but with a stronger penalty for model complexity</li>
+<li>
+<code>confint</code> for calculating confidence intervals around parameter estimates</li>
+<li>
+<code>vcov</code> for obtaining the variance-covariance matrix of the parameter estimates</li>
+<li>
+<code>deviance</code> for assessing the goodness of fit of the model</li>
+</ul></li>
 </ul></div>
 <div class="section level3">
-<h3 id="unit-tests-0-0-1">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-0-1"></a></h3>
+<h3 id="unit-tests-0-1-0">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-0"></a></h3>
 <ul><li>added unit tests for IPW estimators.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="github-repository-0-0-1">Github repository<a class="anchor" aria-label="anchor" href="#github-repository-0-0-1"></a></h3>
+<h3 id="github-repository-0-1-0">Github repository<a class="anchor" aria-label="anchor" href="#github-repository-0-1-0"></a></h3>
 <ul><li>added automated <code>R-cmd</code> check</li>
 </ul></div>
 <div class="section level3">
-<h3 id="documentation-0-0-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-0-1"></a></h3>
+<h3 id="documentation-0-1-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-0"></a></h3>
 <ul><li>added documentation for <code>nonprob</code> function.</li>
 </ul></div>
 </div>
