@@ -29,7 +29,7 @@ internal_varDR <- function(OutcomeModel,
 
     # Variance estimators ####
     svydesign <- stats::update(svydesign,
-                               y_rand = y_rand_pred
+      y_rand = y_rand_pred
     )
     svydesign_mean <- survey::svymean(~y_rand, svydesign)
 
@@ -88,7 +88,7 @@ internal_varDR <- function(OutcomeModel,
       )
       # design based variance estimation based on approximations of the second-order inclusion probabilities
       svydesign <- stats::update(svydesign,
-                                 t = t
+        t = t
       )
       svydesign_mean <- survey::svymean(~t, svydesign) # perhaps using survey package to compute prob variance
       var_prob <- as.vector(attr(svydesign_mean, "var"))

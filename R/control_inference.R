@@ -65,14 +65,17 @@ controlInf <- function(vars_selection = FALSE,
     keep_boot = if (missing(keep_boot)) {
       TRUE
     } else {
-        if (!is.logical(keep_boot)) {
-          stop("keep_boot argument for controlInf must be logical")
-        } else {
-          keep_boot
+      if (!is.logical(keep_boot)) {
+        stop("keep_boot argument for controlInf must be logical")
+      } else {
+        keep_boot
       }
     },
-    pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1)
-        stop("Argument pmm_exact_se must be a logical scalar") else pmm_exact_se,
+    pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1) {
+      stop("Argument pmm_exact_se must be a logical scalar")
+    } else {
+      pmm_exact_se
+    },
     pi_ij = if (missing(pi_ij)) NULL else pi_ij
   )
 }

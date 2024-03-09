@@ -45,10 +45,10 @@ bootMI <- function(X_rand,
   }
 
 
-  predictive_match = control_outcome$predictive_match
-  pmm_exact_se = control_inference$pmm_exact_se
-  pmm_reg_engine = control_outcome$pmm_reg_engine
-  pi_ij = control_inference$pi_ij
+  predictive_match <- control_outcome$predictive_match
+  pmm_exact_se <- control_inference$pmm_exact_se
+  pmm_reg_engine <- control_outcome$pmm_reg_engine
+  pi_ij <- control_inference$pi_ij
   pmm_exact_se <- control_inference$pmm_exact_se
   comp2_stat <- numeric(length = num_boot)
 
@@ -349,24 +349,24 @@ bootMI <- function(X_rand,
 
 
             model_rand <- switch(control_outcome$predictive_match,
-                                 { # 1
-                                   nonprobMI_nn(
-                                     data = y_strap,
-                                     query = y_strap_rand,
-                                     k = control_outcome$k,
-                                     treetype = control_outcome$treetype,
-                                     searchtype = control_outcome$searchtype
-                                   )
-                                 },
-                                 { # 2
-                                   nonprobMI_nn(
-                                     data = y_strap_nons,
-                                     query = y_strap_rand,
-                                     k = control_outcome$k,
-                                     treetype = control_outcome$treetype,
-                                     searchtype = control_outcome$searchtype
-                                   )
-                                 }
+              { # 1
+                nonprobMI_nn(
+                  data = y_strap,
+                  query = y_strap_rand,
+                  k = control_outcome$k,
+                  treetype = control_outcome$treetype,
+                  searchtype = control_outcome$searchtype
+                )
+              },
+              { # 2
+                nonprobMI_nn(
+                  data = y_strap_nons,
+                  query = y_strap_rand,
+                  k = control_outcome$k,
+                  treetype = control_outcome$treetype,
+                  searchtype = control_outcome$searchtype
+                )
+              }
             )
             #
             # model_rand <- nonprobMI_nn(
@@ -401,15 +401,16 @@ bootMI <- function(X_rand,
   if (method == "pmm") {
     if (pmm_exact_se) {
       comp2 <- pmm_exact(pi_ij,
-                         weights_rand,
-                         n_nons = n_nons,
-                         y = y,
-                         pmm_reg_engine = pmm_reg_engine,
-                         model_obj = model_obj,
-                         svydesign = svydesign,
-                         predictive_match = predictive_match,
-                         k = control_inference$k,
-                         N = N)
+        weights_rand,
+        n_nons = n_nons,
+        y = y,
+        pmm_reg_engine = pmm_reg_engine,
+        model_obj = model_obj,
+        svydesign = svydesign,
+        predictive_match = predictive_match,
+        k = control_inference$k,
+        N = N
+      )
       comp2 <- mean(comp2_stat)
     } else {
       comp2 <- 0

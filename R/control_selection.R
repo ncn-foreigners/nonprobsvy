@@ -65,8 +65,6 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        nfolds = 10,
                        print_level = 0,
                        start_type = c("glm", "naive", "zero")) {
-
-
   list(
     epsilon = epsilon,
     maxit = maxit,
@@ -89,7 +87,3 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
     start_type = if (missing(start_type)) "naive" else start_type
   )
 }
-
-
-
-
