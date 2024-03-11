@@ -433,7 +433,7 @@ bootMI <- function(X_rand,
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 bootMI_multicore <- function(X_rand,
                              X_nons,
                              weights,
@@ -469,16 +469,16 @@ bootMI_multicore <- function(X_rand,
   }
 
   cl <- parallel::makeCluster(cores)
-  doSNOW::registerDoSNOW(cl)
+  doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
 
   ## progress bar
-  if (verbose) {
-    pb <- progress::progress_bar$new(total = num_boot)
-    opts <- list(progress = \(n) pb$tick())
-  } else {
-    opts <- NULL
-  }
+  # if (verbose) {
+  #   pb <- progress::progress_bar$new(total = num_boot)
+  #   opts <- list(progress = \(n) pb$tick())
+  # } else {
+  #   opts <- NULL
+  # }
   ###
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
@@ -496,7 +496,7 @@ bootMI_multicore <- function(X_rand,
     if (method == "glm") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
