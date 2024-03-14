@@ -130,7 +130,7 @@ bootDR_sel_multicore <- function(X,
                                  start_selection,
                                  start_outcome,
                                  cores,
-                                 verbose) { # TODO function to test
+                                 verbose) {
   mu_hats <- vector(mode = "numeric", length = num_boot)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
@@ -141,16 +141,11 @@ bootDR_sel_multicore <- function(X,
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
+  if (verbose) message("Multicores bootstrap in progress..")
+
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  ## progress bar
-  # if (verbose) {
-  #   pb <- progress::progress_bar$new(total = num_boot)
-  #   opts <- list(progress = \(n) pb$tick())
-  # } else {
-  #   opts <- NULL
-  # }
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "mle",
     "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "mm", "u_theta_beta_dr",

@@ -332,23 +332,19 @@ bootDR_multicore <- function(outcome,
       num_boot = num_boot,
       start_selection = start_selection,
       start_outcome = start_outcome,
-      cores = cores
+      cores = cores,
+      verbose
     )
     boot_var <- var_obj$var
     mu_hat_boot <- var_obj$mu
   } else {
     rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
+    if (verbose) message("Multicores bootstrap in progress..")
+
     cl <- parallel::makeCluster(cores)
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
-    ## progress bar
-    # if (verbose) {
-    #   pb <- progress::progress_bar$new(total = num_boot)
-    #   opts <- list(progress = \(n) pb$tick())
-    # } else {
-    #   opts <- NULL
-    # }
     parallel::clusterExport(cl = cl, varlist = c(
       "internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "theta_h_estimation",
       "mle", "mu_hatDR", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
@@ -443,7 +439,7 @@ bootDR_multicore <- function(outcome,
     } else {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           X_nons_strap <- SelectionModel$X_nons[strap, , drop = FALSE]
