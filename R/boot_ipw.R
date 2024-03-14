@@ -206,6 +206,7 @@ bootIPW_multicore <- function(X_rand,
                               cores,
                               pop_size,
                               pop_totals,
+                              verbose,
                               ...) {
   if (!is.null(weights_rand)) N <- sum(weights_rand)
   estimation_method <- get_method(est_method)
@@ -217,6 +218,8 @@ bootIPW_multicore <- function(X_rand,
   mu_len <- length(mu_hats)
   mu_hats_boot <- numeric(length = num_boot * mu_len)
   boot_vars <- numeric(length = mu_len)
+
+  if (verbose) message("Multicores bootstrap in progress..")
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)

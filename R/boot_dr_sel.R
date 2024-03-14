@@ -129,7 +129,8 @@ bootDR_sel_multicore <- function(X,
                                  rep_type,
                                  start_selection,
                                  start_outcome,
-                                 cores) {
+                                 cores,
+                                 verbose) {
   mu_hats <- vector(mode = "numeric", length = num_boot)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)
@@ -139,6 +140,8 @@ bootDR_sel_multicore <- function(X,
   y_rand <- y[loc_rand]
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
+
+  if (verbose) message("Multicores bootstrap in progress..")
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)

@@ -716,7 +716,8 @@ nonprobDR <- function(selection,
             pop_size = pop_size,
             pop_means = pop_means,
             bias_correction = bias_corr,
-            cores = control_inference$cores
+            cores = control_inference$cores,
+            verbose = verbose
           )
         } else {
           boot_obj <- bootDR(

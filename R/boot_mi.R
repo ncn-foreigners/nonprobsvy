@@ -449,6 +449,7 @@ bootMI_multicore <- function(X_rand,
                              control_inference,
                              pop_totals,
                              cores,
+                             verbose,
                              ...) {
   # mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
@@ -466,6 +467,8 @@ bootMI_multicore <- function(X_rand,
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
     family_nonprobsvy <- family_nonprobsvy()
   }
+
+  if (verbose) message("Multicores bootstrap in progress..")
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
