@@ -232,7 +232,7 @@ bootIPW_multicore <- function(X_rand,
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   k <- 1:num_boot
-  mu_hats_boot <- mu_hats_boot <- foreach::`%dopar%`(
+  mu_hats_boot <- foreach::`%dopar%`(
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
       if (is.null(pop_totals)) {
