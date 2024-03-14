@@ -204,7 +204,6 @@ bootIPW_multicore <- function(X_rand,
                               control_selection,
                               control_inference,
                               cores,
-                              verbose,
                               pop_size,
                               pop_totals,
                               ...) {
@@ -222,14 +221,6 @@ bootIPW_multicore <- function(X_rand,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  ## progress bar
-  # if (verbose) {
-  #   pb <- progress::progress_bar$new(total = num_boot)
-  #   opts <- list(progress = \(n) pb$tick())
-  # } else {
-  #   opts <- NULL
-  # }
-  ###
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
     "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "theta_h_estimation"
@@ -238,7 +229,7 @@ bootIPW_multicore <- function(X_rand,
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
   k <- 1:num_boot
-  mu_hats_boot <- foreach::`%dopar%`(
+  mu_hats_boot <- mu_hats_boot <- foreach::`%dopar%`(
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
       if (is.null(pop_totals)) {

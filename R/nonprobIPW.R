@@ -451,8 +451,7 @@ nonprobIPW <- function(selection,
           pop_totals = pop_totals,
           control_selection = control_selection,
           control_inference = control_inference,
-          cores = control_inference$cores,
-          verbose = verbose
+          cores = control_inference$cores
         )
       } else {
         boot_obj <- bootIPW(

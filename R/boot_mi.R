@@ -449,7 +449,6 @@ bootMI_multicore <- function(X_rand,
                              control_inference,
                              pop_totals,
                              cores,
-                             verbose,
                              ...) {
   # mu_hats <- vector(mode = "numeric", length = num_boot)
   n_nons <- nrow(X_nons)
@@ -471,15 +470,6 @@ bootMI_multicore <- function(X_rand,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-
-  ## progress bar
-  # if (verbose) {
-  #   pb <- progress::progress_bar$new(total = num_boot)
-  #   opts <- list(progress = \(n) pb$tick())
-  # } else {
-  #   opts <- NULL
-  # }
-  ###
   parallel::clusterExport(cl = cl, varlist = c(
     "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
     "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "nonprobMI_nn"
@@ -526,7 +516,7 @@ bootMI_multicore <- function(X_rand,
     } else if (method == "nn") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -562,7 +552,7 @@ bootMI_multicore <- function(X_rand,
     } else if (method == "pmm") {
       k <- 1:num_boot
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = k, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -630,7 +620,7 @@ bootMI_multicore <- function(X_rand,
     N <- pop_totals[1]
     if (method == "glm") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -655,7 +645,7 @@ bootMI_multicore <- function(X_rand,
       )
     } else if (method == "nn") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
@@ -674,7 +664,7 @@ bootMI_multicore <- function(X_rand,
       )
     } else if (method == "pmm") {
       mu_hats <- foreach::`%dopar%`(
-        obj = foreach::foreach(k = 1:num_boot, .combine = c, .options.snow = opts),
+        obj = foreach::foreach(k = 1:num_boot, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           weights_strap <- weights[strap]
