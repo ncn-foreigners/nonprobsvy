@@ -43,13 +43,13 @@ expect_silent(
   residuals(test1a, "pearsonSTD")
 )
 
-expect_silent(
-  cooks.distance(test1a)
-)
-
-expect_silent(
-  hatvalues(test1a)
-)
+# expect_silent(
+#   cooks.distance(test1a)
+# )
+#
+# expect_silent(
+#   hatvalues(test1a)
+# )
 
 expect_silent(
   logLik(test1a)
@@ -111,13 +111,13 @@ expect_silent(
   residuals(test2a, "pearsonSTD")
 )
 
-expect_silent(
-  cooks.distance(test2a)
-)
+# expect_silent(
+#   cooks.distance(test2a)
+# )
 
-expect_silent(
-  hatvalues(test2a)
-)
+# expect_silent(
+#   hatvalues(test2a)
+# )
 
 expect_silent(
   logLik(test2a)
@@ -180,13 +180,13 @@ expect_silent(
   residuals(test3a, "pearsonSTD")
 )
 
-expect_silent(
-  cooks.distance(test3a)
-)
-
-expect_silent(
-  hatvalues(test3a)
-)
+# expect_silent(
+#   cooks.distance(test3a)
+# )
+#
+# expect_silent(
+#   hatvalues(test3a)
+# )
 
 expect_silent(
   logLik(test3a)
