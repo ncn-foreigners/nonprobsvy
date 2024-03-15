@@ -38,7 +38,7 @@ pmm_nonprobsvy <- function(outcome,
         outcome,
         data,
         span = .2,
-        control = stats::loess.control(surface = "direct")
+        control = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
       )
       mm$data <- data
       mm$formula <- outcome
