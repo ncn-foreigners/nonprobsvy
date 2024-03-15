@@ -216,7 +216,7 @@ pmm_exact <- function(pi_ij,
           formula = model_obj$model$glm_object$formula,
           data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
           span = .2,
-          control = stats::loess.control(surface = "direct")
+          control = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
         )
       )
       XX <- predict(
