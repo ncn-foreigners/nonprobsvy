@@ -1,12 +1,12 @@
 # Definition of data
 #library(survey)
 # library(dplyr)
-data <- read.csv("test_data.csv")
+# data <- read.csv("test_data.csv")
 # data |>
 #   mutate(zawod_kod2 = factor(zawod_kod2),
 #          jedna_zmiana=as.numeric(jedna_zmiana))
-data$zawod_kod2 <- as.factor(data$zawod_kod2)
-data$jedna_zmiana <- as.numeric(data$jedna_zmiana)
+# data$zawod_kod2 <- as.factor(data$zawod_kod2)
+# data$jedna_zmiana <- as.numeric(data$jedna_zmiana)
 
 # ## probability sample
 # data |>
@@ -82,7 +82,7 @@ expect_true(
 pop_totals <- c(`(Intercept)` = 294294, klasa_prM = 128940, klasa_prS = 71230)
 test_dr_2 <- nonprob(selection = ~ klasa_pr,
                     outcome = jedna_zmiana ~ klasa_pr,
-                    data = subset(data, !is.na(id_cbop)),
+                    data = cbop_df,
                     pop_totals = pop_totals,
                     control_inference = controlInf(var_method = "analytic")) # TODO warning to connected to algorithm convergence
 

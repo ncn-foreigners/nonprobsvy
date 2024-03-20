@@ -339,7 +339,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
       }
     }
   } else if (penalty == "lasso") {
-    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
+    for (std::size_t i = 0; i < par.size(); i++) { // int i = 0; i < par.size(); i++
       if (par[i] < 0) {
         penaltyd[i] = - lambda;
       } else if (par[i] > 0) {
@@ -350,7 +350,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
     }
     // penaltyd = lambda * arma::sign(par);
   } else if (penalty == "MCP") {
-    for (int i = 0; i < par.size(); i++) { // convert par.size() to int
+    for (std::size_t i = 0; i < par.size(); i++) { // int i = 0; i < par.size(); i++
       if (std::abs(par[i]) <= a*lambda) {
         if (par[i] < 0) {
           penaltyd[i] = - (lambda - std::abs(par[i]) / a);
