@@ -11,6 +11,9 @@ pop.size(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+Vector returning the value of the estimated population size.
+}
 \description{
 Estimate size of population
 }
