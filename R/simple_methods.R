@@ -17,6 +17,7 @@ pop.size.nonprobsvy <- function(object,
 #' @description Estimate size of population
 #' @param object object returned by `nonprobsvy`.
 #' @param ... additional parameters
+#' @return Vector returning the value of the estimated population size.
 #' @export
 pop.size <- function(object, ...) {
   UseMethod("pop.size")

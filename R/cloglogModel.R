@@ -4,6 +4,8 @@
 #' @description \code{cloglog_model_nonprobsvy} returns all the methods/objects/functions required to estimate the model, assuming a cloglog link function.
 #' @param ... Additional, optional arguments.
 #'
+#' @return List with selected methods/objects/functions.
+#'
 #' @seealso
 #'
 #' [nonprob()] -- for fitting procedure with non-probability samples.

@@ -9,6 +9,9 @@ cloglog_model_nonprobsvy(...)
 \arguments{
 \item{...}{Additional, optional arguments.}
 }
+\value{
+List with selected methods/objects/functions.
+}
 \description{
 \code{cloglog_model_nonprobsvy} returns all the methods/objects/functions required to estimate the model, assuming a cloglog link function.
 }
