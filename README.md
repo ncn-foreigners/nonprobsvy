@@ -9,6 +9,10 @@
 [![Codecov test
 coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10280114.svg)](https://doi.org/10.5281/zenodo.10280114)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project.org/package=nonprobsvy)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
 
 <!-- badges: end -->
 
