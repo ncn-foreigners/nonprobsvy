@@ -53,11 +53,18 @@ Details on use of the package be found:
 
 ## Installation
 
-You can install the recent version of `nonprobsvy` package from
-[Github](https://github.com/ncn-foreigners/nonprobsvy) with:
+You can install the recent version of `nonprobsvy` package from main
+branch [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
 remotes::install_github("ncn-foreigners/nonprobsvy")
+```
+
+or install the stable version from
+[CRAN](https://CRAN.R-project.org/package=nonprobsvy)
+
+``` r
+install.packages("nonprobsvy")
 ```
 
 or development version from the `dev` branch
