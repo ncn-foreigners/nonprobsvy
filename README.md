@@ -9,6 +9,10 @@
 [![Codecov test
 coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10280114.svg)](https://doi.org/10.5281/zenodo.10280114)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project.org/package=nonprobsvy)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
 
 <!-- badges: end -->
 
@@ -49,11 +53,18 @@ Details on use of the package be found:
 
 ## Installation
 
-You can install the recent version of `nonprobsvy` package from
-[Github](https://github.com/ncn-foreigners/nonprobsvy) with:
+You can install the recent version of `nonprobsvy` package from main
+branch [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
 remotes::install_github("ncn-foreigners/nonprobsvy")
+```
+
+or install the stable version from
+[CRAN](https://CRAN.R-project.org/package=nonprobsvy)
+
+``` r
+install.packages("nonprobsvy")
 ```
 
 or development version from the `dev` branch
