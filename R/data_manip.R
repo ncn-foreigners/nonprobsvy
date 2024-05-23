@@ -25,7 +25,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     } else {
       design_to_frame <- svydesign$variables
       names_rand <- all.vars(formula[-2])
-      model_Frame_rand <- design_to_frame[, names_rand]
+      model_Frame_rand <- design_to_frame[, names_rand, drop = FALSE]
 
       nons_names_rand <- attr(attr(model.frame(formula[-2], design_to_frame), "terms"), "term.labels")
 
