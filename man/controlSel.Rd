@@ -24,7 +24,10 @@ controlSel(
   nlambda = 50,
   nfolds = 10,
   print_level = 0,
-  start_type = c("glm", "naive", "zero")
+  start_type = c("glm", "naive", "zero"),
+  nleqslv_method = c("Broyden", "Newton"),
+  nleqslv_global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
+  nleqslv_xscalm = c("fixed", "auto")
 )
 }
 \arguments{
@@ -81,6 +84,12 @@ controlSel(
 \item if \code{zero} then start is a vector of zeros.
 }
 }}
+
+\item{nleqslv_method}{The method that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+
+\item{nleqslv_global}{The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+
+\item{nleqslv_xscalm}{The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 }
 \value{
 List with selected parameters.

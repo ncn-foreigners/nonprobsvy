@@ -294,6 +294,9 @@ nonprobIPW <- function(selection,
           method_selection = method_selection,
           start = 0,
           maxit = maxit,
+          nleqslv_method = control_selection$nleqslv_method,
+          nleqslv_global = control_selection$nleqslv_global,
+          nleqslv_xscalm = control_selection$nleqslv_xscalm,
           pop_totals = pop_totals[1]
         )$theta_h)
         start_selection <- c(start_h, rep(0, ncol(X) - 1))
@@ -309,6 +312,9 @@ nonprobIPW <- function(selection,
       method_selection = method_selection,
       start = start_selection,
       maxit = maxit,
+      nleqslv_method = control_selection$nleqslv_method,
+      nleqslv_global = control_selection$nleqslv_global,
+      nleqslv_xscalm = control_selection$nleqslv_xscalm,
       pop_totals = pop_totals
     ) # theta_h estimation for h_x == 2 is equal to the main method for theta estimation
 

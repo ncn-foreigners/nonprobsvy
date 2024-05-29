@@ -87,9 +87,12 @@ theta_h_estimation <- function(R,
                                h,
                                method_selection,
                                maxit,
+                               nleqslv_method,
+                               nleqslv_global,
+                               nleqslv_xscalm,
                                start = NULL,
                                pop_totals = NULL,
-                               pop_means = NULL) { # TODO with BERENZ recommendation
+                               pop_means = NULL) {
 
   p <- ncol(X)
   # if (is.null(pop_totals) & is.null(pop_means)) {
@@ -157,7 +160,8 @@ theta_h_estimation <- function(R,
       method = "Newton", # TODO consider the methods
       global = "dbldog", # qline",
       xscalm = "auto",
-      jacobian = TRUE
+      jacobian = TRUE,
+      control = list(maxit = maxit)
     )
   } else {
     root <- nleqslv::nleqslv(
@@ -167,8 +171,8 @@ theta_h_estimation <- function(R,
       global = "dbldog", # qline",
       xscalm = "auto",
       jacobian = TRUE,
-      jac = u_theta_der
-      # control = list(sigma = 0.1, trace = 1)
+      jac = u_theta_der,
+      control = list(maxit = maxit)
     )
   }
   theta_root <- root$x

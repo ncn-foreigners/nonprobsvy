@@ -311,7 +311,10 @@ nonprobDR <- function(selection,
           method_selection = method_selection,
           family = family_nonprobsvy,
           start_selection = start_selection,
-          start_outcome = start_outcome
+          start_outcome = start_outcome,
+          nleqslv_method = control_selection$nleqslv_method,
+          nleqslv_global = control_selection$nleqslv_global,
+          nleqslv_xscalm = control_selection$nleqslv_xscalm,
         )
 
         selection_model <- estimation_model$selection
@@ -557,6 +560,9 @@ nonprobDR <- function(selection,
             method_selection = method_selection,
             start = 0,
             maxit = maxit,
+            nleqslv_method = control_selection$nleqslv_method,
+            nleqslv_global = control_selection$nleqslv_global,
+            nleqslv_xscalm = control_selection$nleqslv_xscalm,
             pop_totals = SelectionModel$pop_totals[1]
           )$theta_h)
           start_selection <- c(start_h, rep(0, ncol(X) - 1))
@@ -572,6 +578,9 @@ nonprobDR <- function(selection,
         method_selection = method_selection,
         start = start_selection,
         maxit = maxit,
+        nleqslv_method = control_selection$nleqslv_method,
+        nleqslv_global = control_selection$nleqslv_global,
+        nleqslv_xscalm = control_selection$nleqslv_xscalm,
         pop_totals = SelectionModel$pop_totals
       )
       theta_hat <- h_object$theta_h
