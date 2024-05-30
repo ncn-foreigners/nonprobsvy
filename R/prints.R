@@ -115,7 +115,7 @@ print.summary_nonprobsvy <- function(x,
 
     cat("-------------------------\n\n")
 
-    cat("Estimation Quality:\n")
+    cat("Estimation balance:\n")
     print(x$est_totals - x$totals)
 
     cat("-------------------------\n\n")
