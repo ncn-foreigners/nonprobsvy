@@ -8,6 +8,8 @@
 #' @importFrom RANN nn2
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms
+#' @importFrom stats reformulate
+#' @importFrom survey svytotal
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
@@ -51,6 +53,11 @@ nonprobMI <- function(outcome,
   }
   if (control_inference$var_method == "bootstrap") {
     stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
+  terms_obj <- terms(outcome)
+  if (is.null(pop_totals) && !is.null(svydesign)) {
+    prob_totals <- svytotal(reformulate(attr(terms_obj, "term.labels")), svydesign)
+    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
   }
 
   for (k in 1:outcomes$l) {
@@ -292,6 +299,7 @@ nonprobMI <- function(outcome,
         X <- X_nons
         pop_totals <- pop_totals[beta_selected + 1]
       }
+      prob_pop_totals <- pop_totals
       #######################
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
@@ -452,6 +460,7 @@ nonprobMI <- function(outcome,
   names(OutcomeList) <- outcomes$f
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+  names(prob_pop_totals) <- colnames(X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     list(stat = stat, comp2 = boot_obj$comp2)
@@ -474,6 +483,7 @@ nonprobMI <- function(outcome,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       boot_sample = boot_sample
     ),

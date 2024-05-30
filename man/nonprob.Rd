@@ -100,6 +100,7 @@ with type \code{list} containing:\cr
 \item{\code{nonprob_size} -- size of non-probability sample}
 \item{\code{prob_size} -- size of probability sample}
 \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
+\item{\code{pop_totals} -- the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.}
 \item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
 \code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set to \code{TRUE}, the estimation is based on
 the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
@@ -132,6 +133,7 @@ In addition, if the variable selection model for the outcome variable is fitting
 \item{\code{aic} --	A version of Akaike's An Information Criterion, minus twice the maximized log-likelihood plus twice the number of parameters.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{prior.weights} -- the weights initially supplied, a vector of 1s if none were.}
+\item{\code{est_totals} -- the estimated total values of auxiliary variables derived from a non-probability sample.}
 \item{\code{formula} -- the formula supplied.}
 \item{\code{df_residual} -- the residual degrees of freedom.}
 \item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NA}.}

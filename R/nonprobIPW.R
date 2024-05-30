@@ -5,6 +5,8 @@
 #' @importFrom stats qnorm
 #' @importFrom stats as.formula
 #' @importFrom stats terms
+#' @importFrom stats reformulate
+#' @importFrom survey svytotal
 #' @importFrom MASS ginv
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
@@ -66,6 +68,8 @@ nonprobIPW <- function(selection,
       data = data,
       svydesign = svydesign
     )
+    prob_totals <- svytotal(selection, svydesign)
+    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
     # y_nons <- model$y_nons
 
     X_nons <- model$X_nons
@@ -275,6 +279,7 @@ nonprobIPW <- function(selection,
       pop_totals <- model$pop_totals[idx]
     }
 
+    prob_pop_totals <- pop_totals
     if (is.null(start_selection)) {
       if (control_selection$start_type == "glm") {
         start_selection <- start_fit(
@@ -535,6 +540,8 @@ nonprobIPW <- function(selection,
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+  est_totals <- colSums(X_nons*as.vector(weights_nons))
+  names(prob_pop_totals) <- colnames(X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     boot_obj$stat
@@ -555,6 +562,7 @@ nonprobIPW <- function(selection,
     aic = selection_model$aic,
     weights = as.vector(weights_nons),
     prior.weights = weights,
+    est_totals = est_totals,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
@@ -581,6 +589,7 @@ nonprobIPW <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_totals = prob_pop_totals,
       selection = SelectionList,
       boot_sample = boot_sample
     ),

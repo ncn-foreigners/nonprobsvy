@@ -6,6 +6,8 @@
 #' @importFrom stats qnorm
 #' @importFrom stats binomial
 #' @importFrom stats terms
+#' @importFrom stats reformulate
+#' @importFrom survey svytotal
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
 #' @import Rcpp
@@ -81,6 +83,8 @@ nonprobDR <- function(selection,
       data = data,
       svydesign = svydesign
     )
+    prob_totals <- svytotal(selection, svydesign)
+    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
     # if (all(svydesign$prob) == 1) { # TODO
     #  if (!is.null(pop_size)) {
     #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
@@ -497,6 +501,7 @@ nonprobDR <- function(selection,
       }
     } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
       # model for outcome formula
+      # TODO add pop_means ? to check
       OutcomeModel <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
       X_nons <- OutcomeModel$X_nons
       X_rand <- OutcomeModel$X_rand
@@ -540,6 +545,7 @@ nonprobDR <- function(selection,
         X_nons <- OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
         SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
       }
+      prob_pop_totals <- SelectionModel$pop_totals
 
       if (is.null(start_selection)) {
         if (control_selection$start_type == "glm") {
@@ -660,7 +666,7 @@ nonprobDR <- function(selection,
     ys[[k]] <- as.numeric(y_nons)
 
     if (se) {
-      if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
+      if (var_method == "analytic") { # TODO add estimator variance with model containing pop_totals to internal_varDR function
         var_obj <- internal_varDR(
           OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
           SelectionModel = SelectionModel,
@@ -809,6 +815,8 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+  est_totals <- colSums(SelectionModel$X_nons*as.vector(weights_nons))
+  names(prob_pop_totals) <- colnames(SelectionModel$X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     stat
@@ -829,6 +837,7 @@ nonprobDR <- function(selection,
     aic = selection_model$aic,
     weights = as.vector(weights_nons),
     prior.weights = weights,
+    est_totals = est_totals,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
@@ -859,6 +868,7 @@ nonprobDR <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       selection = SelectionList,
       boot_sample = boot_sample
