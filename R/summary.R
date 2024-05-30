@@ -102,6 +102,11 @@ summary.nonprobsvy <- function(object,
   } else {
     se_mean <- NULL
   }
+  if (class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw")) {
+    est_totals <- object$selection$est_totals
+  } else {
+    est_totals <- "no value for the selected method"
+  }
   res <- structure(
     list(
       call = object$call,
@@ -126,7 +131,7 @@ summary.nonprobsvy <- function(object,
       likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, "no value for the selected method"),
       df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, "no value for the selected method"),
       weights = summary(object$weights),
-      est_totals = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$est_totals, "no value for the selected method"),
+      est_totals = est_totals,
       coef = cf,
       std_err = se,
       w_val = wald_test_stat,
