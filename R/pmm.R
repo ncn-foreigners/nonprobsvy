@@ -172,8 +172,8 @@ pmm_exact <- function(pi_ij,
                       n_nons,
                       y,
                       pmm_reg_engine,
-                      stats,
-                      glm,
+                      #stats, #why is this here?
+                      #glm,   #why is this here?
                       model_obj,
                       svydesign,
                       predictive_match,

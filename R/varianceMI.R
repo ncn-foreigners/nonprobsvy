@@ -37,6 +37,22 @@ internal_varMI <- function(svydesign,
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps <- n_nons / N
       var_nonprob <- n_rand / N^2 * (1 - est_ps) / est_ps * sigma_hat
+
+      if (pmm_exact_se) {
+        var_nonprob <- nn_exact(
+          pi_ij        = pi_ij,
+          weights_rand = weights_rand,
+          n_nons       = n_nons,
+          y            = y,
+          X_nons       = X_nons,
+          X_rand       = X_rand,
+          k            = k,
+          # TODO:: add control here
+          #control      = control
+          N            = N
+        )
+      }
+
     } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
       beta <- parameters[, 1]

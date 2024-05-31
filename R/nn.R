@@ -91,3 +91,57 @@ nonprobMI_nn <- function(data,
   )
   model_nn
 }
+
+
+nn_exact <- function(pi_ij,
+                     weights_rand,
+                     n_nons,
+                     y,
+                     X_nons,
+                     X_rand,
+                     k,
+                     #control,
+                     N) {
+  # if (isTRUE("ppsmat" %in% class(pi_ij))) {
+  #   pi_ij <- pi_ij$pij
+  # }
+  # # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
+  # #   pi_ij <- svydesign$dcheck[[1]]$dcheck
+  # # }
+  # if (is.null(pi_ij)) {
+  #   pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
+  #     1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
+  #       sum(1 - 1 / weights_rand))
+  # }
+  # # if (!is.matrix(pi_ij)) {
+  # #
+  # # }
+  # add variable for loop size to control
+  loop_size <- 50
+
+  dd <- vector(mode = "numeric", length = loop_size)
+  for (jj in 1:loop_size) {
+
+    boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+    # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
+    y_nons_b <- y[boot_samp]
+    x_nons_b <- X_nons[boot_samp, , drop = FALSE]
+
+    YY <- nonprobMI_nn(
+      data = x_nons_b,
+      query = X_rand,
+      k = k,
+      searchtype = "standard",
+      treetype = "kd"
+      #TODO:: add control options
+      #treetype = control$treetype,
+      #searchtype = control$searchtype
+    )
+
+    dd[jj] <- weighted.mean(
+      apply(YY$nn.idx, 1, FUN = \(x) mean(y_nons_b[x])),
+      weights_rand
+    )
+  }
+  var(dd)
+}
