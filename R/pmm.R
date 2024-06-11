@@ -148,6 +148,49 @@ pmm_nonprobsvy <- function(outcome,
         )
         y_rand_pred <- mean(y_nons[model_rand$nn.idx])
       }
+    },
+    { # 3
+      if (is.null(pop_totals)) {
+        wts_pmm_3 <- 1 / log(log(sqrt(n_nons)))
+        model_rand <- nonprobMI_nn(
+          data = wts_pmm_3 * glm_object$y_nons_pred + y_nons,
+          query = (1 + wts_pmm_3) * glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        y_rand_pred <- apply(model_rand$nn.idx, 1,
+                             FUN = \(x) mean(y_nons[x])
+                             # FUN=\(x) mean(sample_nonprob$short_[x])
+        )
+
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+            )
+          },
+          "prop_dist" = {
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = \(x) weighted.mean(
+                y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprobMI_nn(
+          data = glm_object$y_nons_pred,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
     }
   )
 
@@ -249,6 +292,20 @@ pmm_exact <- function(pi_ij,
             type = "response"
           ),
           query = XX,
+          k = k,
+          searchtype = "standard",
+          treetype = "kd"
+        )
+      },
+      {
+        wts_pmm_3 <- 1 / log(log(sqrt(n_nons)))
+        nonprobMI_nn(
+          data = wts_pmm_3 * y_nons_b + predict(
+            reg_object_boot,
+            newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+            type = "response"
+          ),
+          query = (1 + wts_pmm_3) * XX,
           k = k,
           searchtype = "standard",
           treetype = "kd"
