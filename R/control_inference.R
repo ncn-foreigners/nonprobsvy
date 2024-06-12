@@ -17,9 +17,9 @@
 #' @param cores Number of cores in parallel computing.
 #' @param keep_boot Logical indicating whether statistics from bootstrap should be kept.
 #' By default set to \code{TRUE}
-#' @param pmm_exact_se Logical value indicating whether to compute the exact
-#' standard error estimate for \code{pmm} estimator. The variance estimator for
-#' estimation based on \code{pmm} can be decomposed into three parts, with the
+#' @param nn_exact_se Logical value indicating whether to compute the exact
+#' standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
+#' estimation based on \code{nn} or \code{pmm} can be decomposed into three parts, with the
 #' third being computed using covariance between imputed values for units in
 #' probability sample using predictive matches from non-probability sample.
 #' In most situations this term is negligible and is very computationally
@@ -51,7 +51,7 @@ controlInf <- function(vars_selection = FALSE,
                        alpha = 0.05,
                        cores = 1,
                        keep_boot,
-                       pmm_exact_se = FALSE,
+                       nn_exact_se = FALSE,
                        pi_ij) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
@@ -71,10 +71,10 @@ controlInf <- function(vars_selection = FALSE,
         keep_boot
       }
     },
-    pmm_exact_se = if (!is.logical(pmm_exact_se) & length(pmm_exact_se) == 1) {
-      stop("Argument pmm_exact_se must be a logical scalar")
+    nn_exact_se = if (!is.logical(nn_exact_se) & length(nn_exact_se) == 1) {
+      stop("Argument nn_exact_se must be a logical scalar")
     } else {
-      pmm_exact_se
+      nn_exact_se
     },
     pi_ij = if (missing(pi_ij)) NULL else pi_ij
   )

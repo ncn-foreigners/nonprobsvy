@@ -139,7 +139,7 @@ nonprobMI <- function(outcome,
           pop_totals = pop_totals,
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se,
+          nn_exact_se = control_inference$nn_exact_se,
           pmm_reg_engine = control_outcome$pmm_reg_engine,
           pi_ij = control_inference$pi_ij
         )
@@ -330,8 +330,8 @@ nonprobMI <- function(outcome,
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
 
-    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$pmm_exact_se)) {
-      # if not pmm_exact_se then this can be dropped
+    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$nn_exact_se)) {
+      # if not nn_exact_se then this can be dropped
       model_obj$model$glm_obj <- NULL
     }
 
@@ -356,7 +356,7 @@ nonprobMI <- function(outcome,
           # we should probably just pass full control list
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se,
+          nn_exact_se = control_inference$nn_exact_se,
           pmm_reg_engine = control_outcome$pmm_reg_engine,
           pi_ij = control_inference$pi_ij
         )
