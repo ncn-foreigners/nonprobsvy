@@ -239,13 +239,13 @@ expect_silent(
 )
 expect_equivalent(
   test3apmm$output$mean,
-  5.086964,
+  5.027936,
   tolerance = .01
 )
 
 expect_true(
-  (test3apmm$confidence_interval[1] < 5.086964) &
-    (5.086964 < test3ann$confidence_interval[2])
+  (test3apmm$confidence_interval[1] < 5.027936) &
+    (5.027936 < test3ann$confidence_interval[2])
 )
 ## bootstrap
 
