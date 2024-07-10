@@ -5,9 +5,11 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
     model_Frame <- model.frame(formula, data)
     y_nons <- model.response(model_Frame)
     outcome_name <- names(model_Frame)[1]
-    mt <- attr(model_Frame, "terms")
-    nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
-    ##### Model frame for probability sample #####
+
+    mt <- terms(formula) # attr(model_Frame, "terms")
+    nons_names <- all.vars(as.formula(paste("~", paste(attr(mt, "term.labels"), collapse=" + "))))
+    #nons_names <- attr(mt, "term.labels") # colnames(get_all_vars(formula, data)) names of variables of nonprobability sample terms(formula, data = data)
+     ##### Model frame for probability sample #####
     if (outcome_name %in% colnames(svydesign$variables)) {
       # design_to_frame <- svydesign$variables
       # design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
@@ -19,16 +21,25 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
       design_to_frame <- svydesign$variables
       design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
       names_rand <- all.vars(formula)
-      model_Frame_rand <- design_to_frame[, names_rand]
-
-      nons_names_rand <- attr(attr(model.frame(formula, design_to_frame), "terms"), "term.labels")
-    } else {
-      design_to_frame <- svydesign$variables
-      names_rand <- all.vars(formula[-2])
       model_Frame_rand <- design_to_frame[, names_rand, drop = FALSE]
 
-      nons_names_rand <- attr(attr(model.frame(formula[-2], design_to_frame), "terms"), "term.labels")
+      nons_names_rand <- intersect(names_rand, colnames(design_to_frame))
+    } else {
+      design_to_frame <- svydesign$variables
+      ##
+      terms_object <- terms(formula)
+      #names_rand <- all.vars(terms_object)
+      names_rand <- all.vars(as.formula(paste("~", paste(attr(terms_object, "term.labels"), collapse=" + "))))
+      ##
+      # names_rand <- all.vars(formula[-2]) # old
+      ##
 
+      model_Frame_rand <- design_to_frame[, names_rand, drop = FALSE]
+      nons_names_rand <- intersect(names_rand, colnames(design_to_frame))
+
+      # nons_names_rand <- attr(attr(model.frame(formula[-2], design_to_frame), "terms"), "term.labels") # old
+
+      # old
       # model_Frame_rand <- model.frame(formula[-2], svydesign$variables)
       # mt_rand <- attr(model_Frame_rand, "terms")
       # nons_names_rand <- attr(mt_rand, "term.labels")

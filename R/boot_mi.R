@@ -46,10 +46,9 @@ bootMI <- function(X_rand,
 
 
   predictive_match <- control_outcome$predictive_match
-  pmm_exact_se <- control_inference$pmm_exact_se
+  nn_exact_se <- control_inference$nn_exact_se
   pmm_reg_engine <- control_outcome$pmm_reg_engine
   pi_ij <- control_inference$pi_ij
-  pmm_exact_se <- control_inference$pmm_exact_se
   comp2_stat <- numeric(length = num_boot)
 
   if (is.null(pop_totals)) {
@@ -399,7 +398,7 @@ bootMI <- function(X_rand,
   }
   # mu_hat_boot <- mean(mu_hats)
   if (method == "pmm") {
-    if (pmm_exact_se) {
+    if (nn_exact_se) {
       comp2 <- pmm_exact(pi_ij,
         weights_rand,
         n_nons = n_nons,
