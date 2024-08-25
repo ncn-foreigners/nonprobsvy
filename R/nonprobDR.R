@@ -319,6 +319,7 @@ nonprobDR <- function(selection,
           nleqslv_method = control_selection$nleqslv_method,
           nleqslv_global = control_selection$nleqslv_global,
           nleqslv_xscalm = control_selection$nleqslv_xscalm,
+          maxit = maxit
         )
 
         selection_model <- estimation_model$selection

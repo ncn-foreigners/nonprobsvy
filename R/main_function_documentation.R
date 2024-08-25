@@ -11,8 +11,8 @@ NULL
 #' Yang et al. (2020), Wu (2022) and use the [Lumley 2004](https://CRAN.R-project.org/package=survey) `survey` package for inference.
 #'
 #' It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbor) and
-#' doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators,
-#' variable selection or overlap between probability and non-probability samples.
+#' doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
+#' variable selection.
 #' The package uses `survey` package functionality when a probability sample is available.
 #'
 #'
