@@ -471,9 +471,12 @@ nonprobMI <- function(outcome,
 
   structure(
     list(
+      data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
       R = R,
+      prob = NULL,
+      weights = NULL,
       control = list(
         control_outcome = control_outcome,
         control_inference = control_inference
@@ -486,6 +489,7 @@ nonprobMI <- function(outcome,
       pop_size = pop_size,
       pop_totals = prob_pop_totals,
       outcome = OutcomeList,
+      selection = NULL,
       boot_sample = boot_sample
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")

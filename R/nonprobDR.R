@@ -879,6 +879,7 @@ nonprobDR <- function(selection,
 
   structure(
     list(
+      data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
       R = R,

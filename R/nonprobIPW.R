@@ -575,6 +575,7 @@ nonprobIPW <- function(selection,
 
   structure(
     list(
+      data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
       R = R,
@@ -591,6 +592,7 @@ nonprobIPW <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       pop_totals = prob_pop_totals,
+      outcome = NULL,
       selection = SelectionList,
       boot_sample = boot_sample
     ),
