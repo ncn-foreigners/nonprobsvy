@@ -408,13 +408,26 @@ nonprobDR <- function(selection,
           lambda_outcome <- beta$lambda
           lambda_min_outcome <- beta$lambda.min
 
-          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-          psel <- length(idx)
-          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-          X <- cbind(1, Xsel)
-          colnames(X) <- c("(Intercept)", colnames(Xsel))
-          OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
-          OutcomeModel$X_rand <- SelectionModel$X_rand <- X[loc_rand, ]
+
+          if (control_inference$bias_inf == "union") {
+            idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
+            psel <- length(idx)
+            Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
+            X <- cbind(1, Xsel)
+            colnames(X) <- c("(Intercept)", colnames(Xsel))
+            OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
+            OutcomeModel$X_rand <- SelectionModel$X_rand <- X[loc_rand, ]
+          } else if (control_inference$bias_inf == "div") {
+            X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
+            Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
+            OutcomeModel$X_nons <- cbind(1, X_outcome[loc_nons, ])
+            OutcomeModel$X_rand <- cbind(1, X_outcome[loc_rand, ])
+            colnames(OutcomeModel$X_nons) <- colnames(OutcomeModel$X_rand) <- c("(Intercept)", colnames(X_outcome))
+            SelectionModel$X_nons <- cbind(1, X_selection[loc_nons, ])
+            SelectionModel$X_rand <- cbind(1, X_selection[loc_rand, ])
+            X <- cbind(1, Xsel)
+            colnames(X) <- colnames(SelectionModel$X_nons) <- colnames(SelectionModel$X_rand) <- c("(Intercept)", colnames(Xsel))
+          }
         }
 
         model_sel <- internal_selection(
@@ -538,13 +551,25 @@ nonprobDR <- function(selection,
         # Estimating theta, beta parameters using selected variables
         # beta_selected <- beta_selected[-1] - 1
 
-        idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-        psel <- length(idx)
-        Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-        X <- cbind(1, Xsel)
-        colnames(X) <- c("(Intercept)", colnames(Xsel))
-        X_nons <- OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
-        SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
+        if (control_inference$bias_inf == "union") {
+          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
+          psel <- length(idx)
+          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
+          X <- cbind(1, Xsel)
+          colnames(X) <- c("(Intercept)", colnames(Xsel))
+          OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
+          SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
+        } else if (control_inference$bias_inf == "div") {
+          X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
+          Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
+          OutcomeModel$X_nons <- cbind(1, X_outcome[loc_nons, ])
+          OutcomeModel$X_rand <- cbind(1, X_outcome[loc_rand, ])
+          colnames(OutcomeModel$X_nons) <- colnames(OutcomeModel$X_rand) <- c("(Intercept)", colnames(X_outcome))
+          SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[theta_selected[-1] + 1])
+          SelectionModel$X_nons <- cbind(1, X_selection[loc_nons, ])
+          X <- cbind(1, Xsel)
+          colnames(X) <- colnames(SelectionModel$X_nons) <- c("(Intercept)", colnames(Xsel))
+        }
       }
       prob_pop_totals <- SelectionModel$pop_totals
 
@@ -644,9 +669,9 @@ nonprobDR <- function(selection,
         weights = weights,
         family_outcome = family_outcome,
         start_outcome = start_outcome,
-        X_nons = X_nons,
-        y_nons = y_nons,
-        X_rand = X_rand,
+        X_nons = OutcomeModel$X_nons,
+        y_nons = OutcomeModel$y_nons,
+        X_rand = OutcomeModel$X_rand,
         control = control_outcome,
         n_nons = n_nons,
         n_rand = n_rand,
@@ -856,6 +881,7 @@ nonprobDR <- function(selection,
     list(
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
+      R = R,
       prob = prop_scores,
       weights = as.vector(weights_nons),
       control = list(

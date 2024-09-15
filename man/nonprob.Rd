@@ -91,6 +91,7 @@ with type \code{list} containing:\cr
 \itemize{
 \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
 \item{\code{y}} -- list of vector of outcome variables if specified at a function call.
+\item{\code{R}} -- vector indicating the probablistic (0) or non-probablistic (1) units in the matrix X.
 \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{control} -- list of control functions.}
@@ -154,8 +155,8 @@ The package implements state-of-the-art approaches recently proposed in the lite
 Yang et al. (2020), Wu (2022) and use the \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} \code{survey} package for inference.
 
 It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbor) and
-doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators,
-variable selection or overlap between probability and non-probability samples.
+doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
+variable selection.
 The package uses \code{survey} package functionality when a probability sample is available.
 }
 \details{

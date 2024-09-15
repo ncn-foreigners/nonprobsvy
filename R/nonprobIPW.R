@@ -577,6 +577,7 @@ nonprobIPW <- function(selection,
     list(
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
+      R = R,
       prob = prop_scores,
       weights = as.vector(weights_nons),
       control = list(

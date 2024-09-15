@@ -182,6 +182,7 @@ NULL
 #' \itemize{
 #'  \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
 #'  \item{\code{y}} -- list of vector of outcome variables if specified at a function call.
+#'  \item{\code{R}} -- vector indicating the probablistic (0) or non-probablistic (1) units in the matrix X.
 #'  \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 #'  \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 #'  \item{\code{control} -- list of control functions.}

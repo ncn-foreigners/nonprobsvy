@@ -116,7 +116,7 @@ print.summary_nonprobsvy <- function(x,
     cat("-------------------------\n\n")
 
     cat("Covariate balance:\n")
-    print(x$est_totals - x$totals)
+    print(x$est_totals - x$totals[which(!is.na(x$est_totals))])
 
     cat("-------------------------\n\n")
 

@@ -473,6 +473,7 @@ nonprobMI <- function(outcome,
     list(
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
+      R = R,
       control = list(
         control_outcome = control_outcome,
         control_inference = control_inference
