@@ -1,60 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/404.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/cloglog_model_nonprobsvy.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/confint.nonprobsvy.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlInf.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlOut.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlSel.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/genSimData.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/logit_model_nonprobsvy.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/nonprob.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/pop.size.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/probit_model_nonprobsvy.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/summary.nonprobsvy.html</loc>
-  </url>
-  <url>
-    <loc>https://ncn-foreigners.github.io/nonprobsvy/reference/vcov.nonprobsvy.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/404.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE-text.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/LICENSE.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/authors.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/news/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/cloglog_model_nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/confint.nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlInf.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlOut.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/controlSel.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/genSimData.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/index.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/logit_model_nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/mean.nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/nonprob.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/pop.size.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/probit_model_nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/summary.nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/total.nonprobsvy.html</loc></url>
+<url><loc>https://ncn-foreigners.github.io/nonprobsvy/reference/vcov.nonprobsvy.html</loc></url>
 </urlset>
+
