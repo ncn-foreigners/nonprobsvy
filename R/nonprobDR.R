@@ -521,6 +521,9 @@ nonprobDR <- function(selection,
       X_rand <- OutcomeModel$X_rand
       nons_names <- OutcomeModel$nons_names
       y_nons <- OutcomeModel$y_nons
+      n_nons <- nrow(X_nons)
+      R <- rep(1, n_nons)
+      loc_nons <- which(R == 1)
 
       if (var_selection == TRUE) {
         nlambda <- control_outcome$nlambda
@@ -559,17 +562,19 @@ nonprobDR <- function(selection,
           colnames(X) <- c("(Intercept)", colnames(Xsel))
           OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
           SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
+          pop_totals <- c(pop_totals[1], pop_totals[idx+1])
         } else if (control_inference$bias_inf == "div") {
           X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
           Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
           OutcomeModel$X_nons <- cbind(1, X_outcome[loc_nons, ])
-          OutcomeModel$X_rand <- cbind(1, X_outcome[loc_rand, ])
-          colnames(OutcomeModel$X_nons) <- colnames(OutcomeModel$X_rand) <- c("(Intercept)", colnames(X_outcome))
+          colnames(OutcomeModel$X_nons) <- c("(Intercept)", colnames(X_outcome))
           SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[theta_selected[-1] + 1])
           SelectionModel$X_nons <- cbind(1, X_selection[loc_nons, ])
           X <- cbind(1, Xsel)
           colnames(X) <- colnames(SelectionModel$X_nons) <- c("(Intercept)", colnames(Xsel))
+          pop_totals <- c(pop_totals[1], pop_totals[theta_selected[-1] + 1])
         }
+        SelectionModel$total_names <- names(SelectionModel$pop_totals)
       }
       prob_pop_totals <- SelectionModel$pop_totals
 

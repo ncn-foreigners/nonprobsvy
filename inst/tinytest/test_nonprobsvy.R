@@ -252,7 +252,7 @@ expect_true(
 # These tests are only supposed to be run on developer's machine and
 # package GitHub page not on CRAN (they take too long)
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   expect_silent(
     test1a_bootstrap <- nonprob(selection = ~ x,
@@ -260,8 +260,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -271,8 +270,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -280,9 +278,57 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
     test3a_bootstrap <- nonprob(outcome = y1 ~ x,
                                 data = source_nonprob_p,
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
+
+  expect_silent(
+    test2a_bootstrap_nn <- nonprob(selection = ~ x,
+                                outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                method_outcome = "nn",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+
+  expect_silent(
+    test3a_bootstrap_nn <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "nn",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+  expect_silent(
+    test2a_bootstrap_pmm <- nonprob(selection = ~ x,
+                                outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+
+  expect_silent(
+    test3a_bootstrap_pmm <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                control_outcome = controlOut(predictive_match = 1))
+  )
+
+  expect_silent(
+    test3a_bootstrap_pmm_2 <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                control_outcome = controlOut(predictive_match = 2))
+  )
+
 
 
   expect_equivalent(test1a$output$mean, test1a_bootstrap$output$mean, tolerance = 0.1)
@@ -293,4 +339,4 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
 
   expect_equivalent(test3a$output$mean, test3a_bootstrap$output$mean, tolerance = 0.1)
   expect_equivalent(test3a$output$SE, test3a_bootstrap$output$SE, tolerance = 0.1)
-}
+# }

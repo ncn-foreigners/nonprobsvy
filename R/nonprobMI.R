@@ -268,6 +268,7 @@ nonprobMI <- function(outcome,
       n_rand <- 0
       weights_rand <- NULL
       n_nons <- nrow(X_nons)
+      R <- rep(1, n_nons)
 
       ############## WORKING VERSION
       if (var_selection == TRUE) {
@@ -316,7 +317,7 @@ nonprobMI <- function(outcome,
         control = control_outcome,
         n_nons = n_nons,
         n_rand = n_rand,
-        model_frame = OutcomeModel$model_frame_rand,
+        model_frame = Model$model_frame_rand,
         vars_selection = control_inference$vars_selection,
         pop_totals = pop_totals
       )

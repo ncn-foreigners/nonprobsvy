@@ -151,20 +151,29 @@ get_method <- function(method) {
 }
 
 ff <- function(formula) {
-  fff <- as.character(formula)
-  f <- strsplit(fff[2], "\\s*\\+\\s*")[[1]]
-  outcome_formulas <- list()
-  if (any(duplicated(f))) {
-    warning("No unique names of the outcome variables in formula. The error has been corrected")
-    f <- unique(f)
-  }
-  l <- length(f)
-  for (i in 1:l) {
-    outcome_formulas[[i]] <- as.formula(paste(f[i], fff[3], sep = " ~ "))
+  formula_string <- paste(deparse(formula), collapse = " ")
+  formula_parts <- strsplit(formula_string, "~")[[1]]
+  if (length(formula_parts) != 2) {
+    stop("The formula must contain exactly one '~' operator.")
   }
 
+  lhs <- trimws(formula_parts[1])
+  rhs <- trimws(formula_parts[2])
+
+  dependent_vars <- strsplit(lhs, "\\s*\\+\\s*")[[1]]
+  independent_vars <- strsplit(rhs, "\\s*\\+\\s*")[[1]]
+
+  if (any(duplicated(dependent_vars))) {
+    warning("Duplicate dependent variable names detected. They have been made unique.")
+    dependent_vars <- unique(dependent_vars)
+  }
+  outcome_formulas <- vector("list", length(dependent_vars))
+  l <- length(dependent_vars)
+  for (i in seq_along(dependent_vars)) {
+    outcome_formulas[[i]] <- reformulate(termlabels = independent_vars, response = dependent_vars[i])
+  }
   list(
-    f = f,
+    f = dependent_vars,
     outcomes = outcome_formulas,
     l = l
   )

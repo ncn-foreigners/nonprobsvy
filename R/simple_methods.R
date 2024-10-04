@@ -328,10 +328,10 @@ deviance.nonprobsvy <- function(object,
 #'
 #' @method total nonprobsvy
 #' @return A vector of estimated totals of the given covariates in subgroups
-#' @importFrom formula.tools lhs
-#' @importFrom formula.tools rhs
+#' @importFrom formula.tools lhs.vars
+#' @importFrom formula.tools rhs.vars
+#' @importFrom stats aggregate
 total.nonprobsvy <- function(x, nonprob) {
-  # Rozbijanie formuły
   variables <- lhs.vars(x)
   groups <- rhs.vars(x)
 
@@ -353,8 +353,9 @@ total.nonprobsvy <- function(x, nonprob) {
 #'
 #' @method mean nonprobsvy
 #' @return A vector of estimated means of the given covariates in subgroups
-#' @importFrom formula.tools lhs
-#' @importFrom formula.tools rhs
+#' @importFrom formula.tools lhs.vars
+#' @importFrom formula.tools rhs.vars
+#' @importFrom stats aggregate
 mean.nonprobsvy <- function(x, nonprob) {
   variables <- lhs.vars(x)
   groups <- rhs.vars(x)
@@ -372,58 +373,64 @@ mean.nonprobsvy <- function(x, nonprob) {
   }
   mean_value
 }
-#' @title Median values of covariates in subgroups
-#'
-#' @param x - formula
-#' @param nonprob - object of nonprobsvy class
-#'
-#' @method median nonprobsvy
-#' @return A vector of estimated medians of the given covariates in subgroups
-#' @importFrom formula.tools lhs
-#' @importFrom formula.tools rhs
-median.nonprobsvy <- function(x, nonprob) {
-  variables <- lhs.vars(x)
-  groups <- rhs.vars(x)
-
-  if (is.null(variables)) {
-    data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
-    median_value <- tapply(nonprob$weights[which(nonprob$R == 1)], data, median)
-  } else {
-
-    data <- nonprob$data[which(nonprob$R == 1), c(variables, groups)]
-    weights <- nonprob$weights[which(nonprob$R == 1)]
-
-    median_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
-                              FUN = function(y, w) weighted.median(y, w = w[1:length(y)]),
-                              w = weights)
-  }
-  median_value
-}
-#' @title Quantile values of covariates in subgroups
-#'
-#' @param x - formula
-#' @param nonprob - object of nonprobsvy class
-#' @param probs - probability
-#'
-#' @method quantile nonprobsvy
-#' @return A vector of estimated quantiles if the given covariates in subgroups
-#' @importFrom formula.tools lhs
-#' @importFrom formula.tools rhs
-quantile.nonprobsvy <- function(x, nonprob, probs = 0.5) {
-  variables <- lhs.vars(x)
-  groups <- rhs.vars(x)
-
-  if (is.null(variables)) {
-    data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
-    percentile_value <- tapply(nonprob$weights[which(nonprob$R == 1)], data, function(y) quantile(y, probs = probs))
-  } else {
-
-    data <- nonprob$data[which(nonprob$R == 1), c(variables, groups)]
-    weights <- nonprob$weights[which(nonprob$R == 1)]
-
-    percentile_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
-                                  FUN = function(y, w) weighted.quantile(y, w = w[1:length(y)], probs = probs),
-                                  w = weights)
-  }
-  percentile_value
-}
+# @title Median values of covariates in subgroups
+#
+# @param x - formula
+# @param nonprob - object of nonprobsvy class
+#
+# @method median nonprobsvy
+# @return A vector of estimated medians of the given covariates in subgroups
+# @importFrom formula.tools lhs.vars
+# @importFrom formula.tools rhs.vars
+# @importFrom spatstat weighted.median
+# @importFrom stats aggregate
+# @importFrom stats median
+# median.nonprobsvy <- function(x, nonprob) {
+#   variables <- lhs.vars(x)
+#   groups <- rhs.vars(x)
+#
+#   if (is.null(variables)) {
+#     data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
+#     median_value <- tapply(nonprob$weights[which(nonprob$R == 1)], data, median)
+#   } else {
+#
+#     data <- nonprob$data[which(nonprob$R == 1), c(variables, groups)]
+#     weights <- nonprob$weights[which(nonprob$R == 1)]
+#
+#     median_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
+#                               FUN = function(y, w) weighted.median(y, w = w[1:length(y)]),
+#                               w = weights)
+#   }
+#   median_value
+# }
+# @title Quantile values of covariates in subgroups
+#
+# @param x - formula
+# @param nonprob - object of nonprobsvy class
+# @param probs - probability
+#
+# @method quantile nonprobsvy
+# @return A vector of estimated quantiles if the given covariates in subgroups
+# @importFrom formula.tools lhs.vars
+# @importFrom formula.tools rhs.vars
+# @importFrom spatstat weighted.quantile
+# @importFrom stats aggregate
+# @importFrom stats quantile
+# quantile.nonprobsvy <- function(x, nonprob, probs = 0.5) {
+#   variables <- lhs.vars(x)
+#   groups <- rhs.vars(x)
+#
+#   if (is.null(variables)) {
+#     data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
+#     percentile_value <- tapply(nonprob$weights[which(nonprob$R == 1)], data, function(y) quantile(y, probs = probs))
+#   } else {
+#
+#     data <- nonprob$data[which(nonprob$R == 1), c(variables, groups)]
+#     weights <- nonprob$weights[which(nonprob$R == 1)]
+#
+#     percentile_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
+#                                   FUN = function(y, w) weighted.quantile(y, w = w[1:length(y)], probs = probs),
+#                                   w = weights)
+#   }
+#   percentile_value
+# }
