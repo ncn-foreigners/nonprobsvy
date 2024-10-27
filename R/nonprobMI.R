@@ -244,6 +244,7 @@ nonprobMI <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame_rand
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -326,6 +327,7 @@ nonprobMI <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- Model$model_frame_rand
       mu_hat <- y_rand_pred
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
@@ -491,7 +493,8 @@ nonprobMI <- function(outcome,
       pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       selection = NULL,
-      boot_sample = boot_sample
+      boot_sample = boot_sample,
+      svydesign = if(is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )

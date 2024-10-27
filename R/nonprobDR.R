@@ -453,7 +453,7 @@ nonprobDR <- function(selection,
           method_selection = method_selection
         )
         theta_hat <- selection_model$theta_hat
-        # grad <- est_method_obj$grad
+        grad <- selection_model$grad
         hess <- selection_model$hess
         ps_nons <- selection_model$ps_nons
         est_ps_rand <- selection_model$est_ps_rand
@@ -495,6 +495,7 @@ nonprobDR <- function(selection,
         # beta_statistics <- model_obj$parameters
         sigma <- NULL
         OutcomeList[[k]] <- model_obj$model
+        OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame
         y_nons <- OutcomeModel$y_nons
 
         mu_hat <- mu_hatDR(
@@ -689,6 +690,7 @@ nonprobDR <- function(selection,
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame_rand
 
       mu_hat <- 1 / N_nons * sum((1 / ps_nons) * (weights * (OutcomeModel$y_nons - y_nons_pred))) + y_rand_pred
     } else {
@@ -872,6 +874,12 @@ nonprobDR <- function(selection,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
+    hessian = hess,
+    gradient = grad,
+    method = est_method,
+    prob_der = ps_nons_der,
+    prob_rand = ps_rand,
+    prob_rand_est = est_ps_rand,
     cve = if (control_inference$vars_selection == TRUE) {
       cve_selection
     } else {
@@ -904,7 +912,8 @@ nonprobDR <- function(selection,
       pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       selection = SelectionList,
-      boot_sample = boot_sample
+      boot_sample = boot_sample,
+      svydesign = if(is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )

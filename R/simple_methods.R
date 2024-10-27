@@ -334,7 +334,7 @@ deviance.nonprobsvy <- function(object,
 total.nonprobsvy <- function(x, nonprob) {
   variables <- lhs.vars(x)
   groups <- rhs.vars(x)
-
+  # TODO variance implementation
   if (is.null(variables)) {
     data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
     total <- tapply(nonprob$weights[which(nonprob$R == 1)], data, sum)
@@ -357,21 +357,141 @@ total.nonprobsvy <- function(x, nonprob) {
 #' @importFrom formula.tools rhs.vars
 #' @importFrom stats aggregate
 mean.nonprobsvy <- function(x, nonprob) {
+  # TODO variance for MI
+  # TODO all implementation for DR
   variables <- lhs.vars(x)
   groups <- rhs.vars(x)
-
+  class_nonprob <- class(nonprob)[2]
+  if (!is.null(variables) & class_nonprob != 'nonprobsvy_ipw')
+    stop("DR or MI estimators only for y variable in subgroups. Recommended formula definition
+         is something like ~ x + y where x and y are grouping variables")
   if (is.null(variables)) {
-    data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
-    mean_value <- tapply(nonprob$weights[which(nonprob$R == 1)], data, mean) # to consider
-  } else {
-    data <- nonprob$data[which(nonprob$R == 1), c(variables, groups)]
-    weights <- nonprob$weights[which(nonprob$R == 1)]
+    # data <- nonprob$data[, groups, drop = FALSE]
+    data <- model.matrix(as.formula(paste(x, "- 1")), data = nonprob$data)
+    if (class_nonprob == "nonprobsvy_ipw") {
+      mean_value <- sapply(as.data.frame(data), function(col) weighted.mean(col, nonprob$weights))
+      ys <- data
+    } else {
+      # MI TODO for more than one y
+      if (class_nonprob == "nonprobsvy_mi") {
+        data_nonprob <- split(cbind(nonprob$data, nonprob$outcome[[1]]$fitted.values), x)
+        data_prob <- split(cbind(nonprob$svydesign$variables, nonprob$svydesign$prob), x)
 
-    mean_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
-                            FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
-                            w = weights)
+        # X_nons <- model.matrix(delete.response(terms(nonprob$outcome[[1]]$formula)), data_nonprob)
+        # X_rand <- model.matrix(delete.response(terms(nonprob$outcome[[1]]$formula)), data_prob)
+
+        mean_value <- aggregate(formula(paste("y_hat_MI", x)),
+                                data = nonprob$svydesign$variables,
+                                FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
+                                w = 1 / nonprob$svydesign$prob)
+
+      } else if (class_nonprob == "nonprobsvy_dr") {
+        mean_value <- list()
+        for (i in 1:p) {
+          mean_value[[i]] <- mu_hatDR(
+            y = ,
+            y_nons = ,
+            y_rand = ,
+            weights = , # TODO
+            weights_nons = ,
+            weights_rand = ,
+            N_nons = ,
+            N_rand = )
+        }
+      }
+    }
+  } else {
+    data <- nonprob$data[, c(variables, groups)]
+    weights <- nonprob$weights
+    if (class_nonprob == "nonprobsvy_ipw") {
+      mean_value <- aggregate(data[, variables], by = data[, groups, drop = FALSE],
+                              FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
+                              w = weights)
+    }
   }
-  mean_value
+  p <- length(mean_value)
+  variances <- numeric(length = p)
+
+  for (i in 1:p) {
+    if (class_nonprob == "nonprobsvy_ipw") {
+      yy <- ys[,i]
+      mu <- mean_value[i]
+      var <- internal_varIPW(svydesign = nonprob$svydesign,
+                             X_nons = nonprob$X[nonprob$R == 1, ],
+                             X_rand = nonprob$X[nonprob$R == 0, ],
+                             y_nons = yy,
+                             weights = nonprob$selection$prior.weights,
+                             ps_nons = nonprob$prob[nonprob$R == 1],
+                             mu_hat = mu,
+                             hess = nonprob$selection$hessian,
+                             ps_nons_der = as.vector(nonprob$selection$prob_der),
+                             N = nonprob$pop_size,
+                             est_ps_rand = as.vector(nonprob$selection$prob_rand_est), # TODO
+                             ps_rand = nonprob$svydesign$prob_rand,
+                             est_ps_rand_der = as.vector(nonprob$selection$prob_rand_est_der), # TODO
+                             n_rand = nonprob$prob_size,
+                             pop_size = nonprob$pop_size,
+                             pop_totals = nonprob$selection$pop_totals,
+                             method_selection = nonprob$selection$method_selection,
+                             est_method = nonprob$selection$method,
+                             theta = nonprob$selection$coefficients,
+                             h = nonprob$selection$h_function,
+                             verbose = FALSE,
+                             var_cov1 = nonprob$selection$link$variance_covariance1,
+                             var_cov2 = nonprob$selection$link$variance_covariance2
+                               )
+    } else if (nonprob_class == "nonprobsvy_mi") {
+
+      var <- internal_varMI(svydesign = nonprob$svydesign,
+                            X_nons = nonprob$X[nonprob$R == 1, ], # subset by x formula
+                            X_rand = nonprob$X[nonprob$R == 0, ], # subset by x formula
+                            y = ys_nons[[i]]$single_shift, # TODO y_nons
+                            y_pred = ys_pred_nons[[i]]$single_shift, # TODO
+                            weights_rand = 1 / nonprob$svydesig$prob, # subset by x formula
+                            method = method_outcome,
+                            n_rand = nonprob$prob_size,
+                            n_nons = nonprob$nonprob_size,
+                            N = nonprob$pop_size,
+                            family = nonprob$outcome$family,
+                            model_obj = model_objects, # TODO
+                            pop_totals = nonprob$pop_totals,
+                            # we should probably just pass full control list
+                            k = nonprob$control$control_outcome$k,
+                            predictive_match = nonprob$control$control_outcome$predictive_match,
+                            nn_exact_se = nonprob$control$control_inference$nn_exact_se,
+                            pmm_reg_engine = nonprob$control$control_outcome$pmm_reg_engine,
+                            pi_ij = nonprob$control$control_inference$pi_ij
+                          )
+    } else if (nonprob_class == "nonprobsvy_dr") {
+      var <- internal_varDR(OutcomeModel = OutcomeModel,
+                            SelectionModel = SelectionModel,
+                            y_nons_pred = ys_nons_pred,
+                            weights = 1,
+                            weights_rand = 1 / nonprob$svydesign$prob,
+                            method_selection = method_selection,
+                            control_selection = nonprob$control$control_selection,
+                            ps_nons = nonprob$prob,
+                            theta = nonprob$selection$coefficients,
+                            hess = nonprob$selection$hessian,
+                            ps_nons_der = nonprob$selection$ps_nons_der,
+                            est_ps_rand = nonprob$selection$prob_rand_est,
+                            y_rand_pred = ys_pred,
+                            N_nons = nonprob$pop_size,
+                            est_ps_rand_der = nonprob$selection$prob_rand_est_der,
+                            svydesign = nonprob$svydesign,
+                            est_method = nonprob$selection$method,
+                            h = nonprob$selection$h_function,
+                            pop_totals = nonprob$pop_totals,
+                            sigma = nonprob$outcome$sigma, # TODO
+                            bias_correction = nonprob$control$control_inference$bias_corr,
+                            verbose = FALSE
+      )
+    }
+    variances[i] <- var$var
+  }
+  res <- data.frame(mean = mean_value,
+                    se = sqrt(variances)) # perhaps convert to data.frame
+  res
 }
 # @title Median values of covariates in subgroups
 #
