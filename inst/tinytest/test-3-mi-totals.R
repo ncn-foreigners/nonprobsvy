@@ -43,7 +43,6 @@ expect_silent(
 
 expect_equal(y12_mi_corr_one$output$mean, 7.465879, tolerance = 0.0001)
 expect_equal(y12_mi_corr_one$output$SE, 0.2523682, tolerance = 0.0001)
-# TODO
 # expect_true(y12_mi_corr_one$confidence_interval$lower_bound < mean(Y_12) &
 #               y12_mi_corr_one$confidence_interval$upper_bound > mean(Y_12))
 
@@ -88,7 +87,7 @@ expect_true(y22_mi_corr_one$confidence_interval$lower_bound < mean(Y_22) &
 # For Y_11 with all X variables
 expect_silent(
   y11_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_11', X_formula)),
+    outcome = as.formula(paste('Y_11 ~ ', as.character(X_formula)[2])),
     data = sample_B1,  # Include all X variables
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -104,7 +103,7 @@ expect_true(y11_mi_corr_all$confidence_interval$lower_bound < mean(Y_11) &
 # For Y_12 with all X variables
 expect_silent(
   y12_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_12', X_formula)),
+    outcome = as.formula(paste('Y_12 ~ ', as.character(X_formula)[2])),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -121,7 +120,7 @@ expect_equal(y12_mi_corr_all$output$SE, 0.2454465, tolerance = 0.0001)
 # For Y_21 with all X variables
 expect_silent(
   y21_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_21', X_formula)),
+    outcome = as.formula(paste('Y_21 ~ ', as.character(X_formula)[2])),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -138,7 +137,7 @@ expect_equal(y21_mi_corr_all$output$SE, 0.01992489, tolerance = 0.0001)
 # For Y_22 with all X variables
 expect_silent(
   y22_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_22', X_formula)),
+    outcome = as.formula(paste('Y_22 ~ ', as.character(X_formula)[2])),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",

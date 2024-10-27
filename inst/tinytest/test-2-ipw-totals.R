@@ -1,5 +1,3 @@
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-
   library(sampling)
   library(survey)
 
@@ -505,7 +503,7 @@
   #### variable selection  ------------------------------------------------------------------
   ##### one target variable  ----------------------------------------------------------------
 
-  # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
     ## y_11
     expect_silent(
@@ -625,7 +623,7 @@
     #                             verbose = T)
     # )
 
-  # }
+  }
 
 
   # check probit ----------------------------------------------------------------------------
@@ -811,7 +809,7 @@
                               row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-  # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
     #### variable selection  ------------------------------------------------------------------
     ##### one target variable  ----------------------------------------------------------------
 
@@ -933,7 +931,7 @@
     #                             verbose = T)
     # )
 
-  # }
+  }
 
   ## non-linear case ------------------------------------------------------------------------
   #### correctly specified variables --------------------------------------------------------
@@ -1119,7 +1117,7 @@
                               row.names = c("Y_11", "Y_12", "Y_21", "Y_22")))
 
 
-  # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+  if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
     #### variable selection  ------------------------------------------------------------------
     ##### one target variable  ----------------------------------------------------------------
 
@@ -1241,7 +1239,7 @@
     #                             verbose = T)
     # )
 
-  # }
+  }
 
   # check cloglog -----------------------------------------------------
   ## linear case ----------------------------------------------------------------------------
@@ -1752,4 +1750,3 @@
     # # expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
     # #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
     # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
-# }

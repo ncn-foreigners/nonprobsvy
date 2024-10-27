@@ -8,7 +8,6 @@
     -   add information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
     -   add estimation of exact standard error for k-nearest neighbor estimator.
     -   add breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
-    - add methods for estimation of means and totals in subsets/groups with its variances.
     - implement `div` option when variable selection (more in documentation) for doubly robust estimation.
 
 ## nonprobsvy 0.1.0

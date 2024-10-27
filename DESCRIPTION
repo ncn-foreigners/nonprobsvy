@@ -45,8 +45,7 @@ Imports:
     nleqslv,
     doParallel,
     foreach,
-    parallel,
-    formula.tools
+    parallel
 LinkingTo: 
     Rcpp,
     RcppArmadillo

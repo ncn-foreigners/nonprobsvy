@@ -252,7 +252,7 @@ expect_true(
 # These tests are only supposed to be run on developer's machine and
 # package GitHub page not on CRAN (they take too long)
 
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 
   expect_silent(
     test1a_bootstrap <- nonprob(selection = ~ x,
@@ -339,4 +339,4 @@ expect_true(
 
   expect_equivalent(test3a$output$mean, test3a_bootstrap$output$mean, tolerance = 0.1)
   expect_equivalent(test3a$output$SE, test3a_bootstrap$output$SE, tolerance = 0.1)
-# }
+}
