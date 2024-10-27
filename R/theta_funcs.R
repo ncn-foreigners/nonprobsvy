@@ -93,7 +93,6 @@ theta_h_estimation <- function(R,
                                start = NULL,
                                pop_totals = NULL,
                                pop_means = NULL) {
-
   p <- ncol(X)
   # if (is.null(pop_totals) & is.null(pop_means)) {
   #   if (is.null(start)) {

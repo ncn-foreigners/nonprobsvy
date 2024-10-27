@@ -69,10 +69,11 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        print_level = 0,
                        start_type = c("glm", "naive", "zero"),
                        nleqslv_method = c("Broyden", "Newton"),
-                       nleqslv_global = c("dbldog", "pwldog",
-                                          "cline", "qline", "gline", "hook", "none"),
-                       nleqslv_xscalm = c("fixed","auto")
-                       ) {
+                       nleqslv_global = c(
+                         "dbldog", "pwldog",
+                         "cline", "qline", "gline", "hook", "none"
+                       ),
+                       nleqslv_xscalm = c("fixed", "auto")) {
   list(
     epsilon = epsilon,
     maxit = maxit,

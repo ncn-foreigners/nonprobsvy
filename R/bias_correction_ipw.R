@@ -84,8 +84,10 @@ mm <- function(X,
     global = nleqslv_global,
     xscalm = nleqslv_xscalm,
     jacobian = TRUE,
-    control = list(scalex = rep(1, length(par0)),
-                   maxit = maxit), # TODO algorithm did not converge in maxit iterations for cloglog
+    control = list(
+      scalex = rep(1, length(par0)),
+      maxit = maxit
+    ), # TODO algorithm did not converge in maxit iterations for cloglog
     R = R,
     X = X,
     y = y,

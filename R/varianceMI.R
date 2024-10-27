@@ -48,11 +48,10 @@ internal_varMI <- function(svydesign,
           X_rand       = X_rand,
           k            = k,
           # TODO:: add control here
-          #control      = control
+          # control      = control
           N            = N
         )
       }
-
     } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
       beta <- parameters[, 1]

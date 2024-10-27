@@ -100,7 +100,7 @@ nn_exact <- function(pi_ij,
                      X_nons,
                      X_rand,
                      k,
-                     #control,
+                     # control,
                      N) {
   # if (isTRUE("ppsmat" %in% class(pi_ij))) {
   #   pi_ij <- pi_ij$pij
@@ -121,7 +121,6 @@ nn_exact <- function(pi_ij,
 
   dd <- vector(mode = "numeric", length = loop_size)
   for (jj in 1:loop_size) {
-
     boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
     # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
     y_nons_b <- y[boot_samp]
@@ -133,9 +132,9 @@ nn_exact <- function(pi_ij,
       k = k,
       searchtype = "standard",
       treetype = "kd"
-      #TODO:: add control options
-      #treetype = control$treetype,
-      #searchtype = control$searchtype
+      # TODO:: add control options
+      # treetype = control$treetype,
+      # searchtype = control$searchtype
     )
 
     dd[jj] <- weighted.mean(

@@ -74,7 +74,7 @@ glm_nonprobsvy <- function(outcome,
     formula_str <- paste(outcome_name, "~", paste(predictors, collapse = " + "))
     formula <- as.formula(formula_str)
     model$formula <- formula
-    model$data <- as.data.frame(cbind(y_nons, X_nons[,-1, drop = FALSE]))
+    model$data <- as.data.frame(cbind(y_nons, X_nons[, -1, drop = FALSE]))
     colnames(model$data) <- c(outcome_name, predictors)
 
     model_out <- list(

@@ -78,26 +78,26 @@ pmm_nonprobsvy <- function(outcome,
         )
 
         y_rand_pred <- apply(model_rand$nn.idx, 1,
-                             FUN = \(x) mean(y_nons[x])
-                             # FUN=\(x) mean(sample_nonprob$short_[x])
+          FUN = \(x) mean(y_nons[x])
+          # FUN=\(x) mean(sample_nonprob$short_[x])
         )
 
         switch(control$pmm_weights,
-               "none" = {
-                 y_rand_pred <- apply(model_rand$nn.idx, 1,
-                                      FUN = \(x) mean(y_nons[x])
-                                      # FUN=\(x) mean(sample_nonprob$short_[x])
-                 )
-               },
-               "prop_dist" = {
-                 # TODO:: these weights will need to be saved for variance estimation
-                 y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-                                       FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                                                                w = 1 / model_rand$nn.dist[x, ]
-                                       )
-                                       # FUN=\(x) mean(sample_nonprob$short_[x])
-                 )
-               }
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          },
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          }
         )
       } else {
         # I'm not touching this
@@ -122,21 +122,21 @@ pmm_nonprobsvy <- function(outcome,
         )
 
         switch(control$pmm_weights,
-               "none" = {
-                 y_rand_pred <- apply(model_rand$nn.idx, 1,
-                                      FUN = \(x) mean(y_nons[x])
-                                      # FUN=\(x) mean(sample_nonprob$short_[x])
-                 )
-               },
-               "prop_dist" = {
-                 # TODO:: these weights will need to be saved for variance estimation
-                 y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-                                       FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                                                                w = 1 / model_rand$nn.dist[x, ]
-                                       )
-                                       # FUN=\(x) mean(sample_nonprob$short_[x])
-                 )
-               }
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          },
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          }
         )
       } else {
         # I'm not touching this
@@ -173,8 +173,8 @@ pmm_exact <- function(pi_ij,
                       n_nons,
                       y,
                       pmm_reg_engine,
-                      #stats, #why is this here?
-                      #glm,   #why is this here?
+                      # stats, #why is this here?
+                      # glm,   #why is this here?
                       model_obj,
                       svydesign,
                       predictive_match,

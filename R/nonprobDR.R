@@ -563,7 +563,7 @@ nonprobDR <- function(selection,
           colnames(X) <- c("(Intercept)", colnames(Xsel))
           OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
           SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
-          pop_totals <- c(pop_totals[1], pop_totals[idx+1])
+          pop_totals <- c(pop_totals[1], pop_totals[idx + 1])
         } else if (control_inference$bias_inf == "div") {
           X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
           Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
@@ -848,7 +848,7 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
-  est_totals <- colSums(SelectionModel$X_nons*as.vector(weights_nons))
+  est_totals <- colSums(SelectionModel$X_nons * as.vector(weights_nons))
   names(prob_pop_totals) <- colnames(SelectionModel$X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
@@ -913,7 +913,7 @@ nonprobDR <- function(selection,
       outcome = OutcomeList,
       selection = SelectionList,
       boot_sample = boot_sample,
-      svydesign = if(is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
+      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )

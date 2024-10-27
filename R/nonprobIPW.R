@@ -540,7 +540,7 @@ nonprobIPW <- function(selection,
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
-  est_totals <- colSums(X_nons*as.vector(weights_nons))
+  est_totals <- colSums(X_nons * as.vector(weights_nons))
   names(prob_pop_totals) <- colnames(X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
@@ -605,7 +605,7 @@ nonprobIPW <- function(selection,
       outcome = NULL,
       selection = SelectionList,
       boot_sample = boot_sample,
-      svydesign = if(is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
+      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_ipw")
   )
