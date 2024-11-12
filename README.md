@@ -12,7 +12,11 @@ coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badg
 [![CRAN
 status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project.org/package=nonprobsvy)
 [![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
+[![CRAN
 downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
+[![Mentioned in Awesome Official
+Statistics](https://awesome.re/mentioned-badge.svg)](http://www.awesomeofficialstatistics.org)
 
 <!-- badges: end -->
 
@@ -499,6 +503,11 @@ summary(result_dr)
 #>   1.000   1.071   1.313   1.479   1.798   2.647 
 #> -------------------------
 #> 
+#> Covariate balance:
+#> (Intercept)          x2 
+#>  25062.8473   -517.5862 
+#> -------------------------
+#> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
@@ -603,6 +612,11 @@ summary(result_ipw)
 #> Weights:
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>   1.000   1.071   1.313   1.479   1.798   2.647 
+#> -------------------------
+#> 
+#> Covariate balance:
+#> (Intercept)          x2 
+#>  25062.8473   -517.5862 
 #> -------------------------
 #> 
 #> Residuals:

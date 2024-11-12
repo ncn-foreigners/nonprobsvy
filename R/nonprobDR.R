@@ -6,6 +6,8 @@
 #' @importFrom stats qnorm
 #' @importFrom stats binomial
 #' @importFrom stats terms
+#' @importFrom stats reformulate
+#' @importFrom survey svytotal
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
 #' @import Rcpp
@@ -81,6 +83,8 @@ nonprobDR <- function(selection,
       data = data,
       svydesign = svydesign
     )
+    prob_totals <- svytotal(selection, svydesign)
+    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
     # if (all(svydesign$prob) == 1) { # TODO
     #  if (!is.null(pop_size)) {
     #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
@@ -311,7 +315,11 @@ nonprobDR <- function(selection,
           method_selection = method_selection,
           family = family_nonprobsvy,
           start_selection = start_selection,
-          start_outcome = start_outcome
+          start_outcome = start_outcome,
+          nleqslv_method = control_selection$nleqslv_method,
+          nleqslv_global = control_selection$nleqslv_global,
+          nleqslv_xscalm = control_selection$nleqslv_xscalm,
+          maxit = maxit
         )
 
         selection_model <- estimation_model$selection
@@ -400,13 +408,26 @@ nonprobDR <- function(selection,
           lambda_outcome <- beta$lambda
           lambda_min_outcome <- beta$lambda.min
 
-          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-          psel <- length(idx)
-          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-          X <- cbind(1, Xsel)
-          colnames(X) <- c("(Intercept)", colnames(Xsel))
-          OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
-          OutcomeModel$X_rand <- SelectionModel$X_rand <- X[loc_rand, ]
+
+          if (control_inference$bias_inf == "union") {
+            idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
+            psel <- length(idx)
+            Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
+            X <- cbind(1, Xsel)
+            colnames(X) <- c("(Intercept)", colnames(Xsel))
+            OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
+            OutcomeModel$X_rand <- SelectionModel$X_rand <- X[loc_rand, ]
+          } else if (control_inference$bias_inf == "div") {
+            X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
+            Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
+            OutcomeModel$X_nons <- cbind(1, X_outcome[loc_nons, ])
+            OutcomeModel$X_rand <- cbind(1, X_outcome[loc_rand, ])
+            colnames(OutcomeModel$X_nons) <- colnames(OutcomeModel$X_rand) <- c("(Intercept)", colnames(X_outcome))
+            SelectionModel$X_nons <- cbind(1, X_selection[loc_nons, ])
+            SelectionModel$X_rand <- cbind(1, X_selection[loc_rand, ])
+            X <- cbind(1, Xsel)
+            colnames(X) <- colnames(SelectionModel$X_nons) <- colnames(SelectionModel$X_rand) <- c("(Intercept)", colnames(Xsel))
+          }
         }
 
         model_sel <- internal_selection(
@@ -432,7 +453,7 @@ nonprobDR <- function(selection,
           method_selection = method_selection
         )
         theta_hat <- selection_model$theta_hat
-        # grad <- est_method_obj$grad
+        grad <- selection_model$grad
         hess <- selection_model$hess
         ps_nons <- selection_model$ps_nons
         est_ps_rand <- selection_model$est_ps_rand
@@ -474,6 +495,7 @@ nonprobDR <- function(selection,
         # beta_statistics <- model_obj$parameters
         sigma <- NULL
         OutcomeList[[k]] <- model_obj$model
+        OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame
         y_nons <- OutcomeModel$y_nons
 
         mu_hat <- mu_hatDR(
@@ -494,11 +516,15 @@ nonprobDR <- function(selection,
       }
     } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
       # model for outcome formula
+      # TODO add pop_means ? to check
       OutcomeModel <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
       X_nons <- OutcomeModel$X_nons
       X_rand <- OutcomeModel$X_rand
       nons_names <- OutcomeModel$nons_names
       y_nons <- OutcomeModel$y_nons
+      n_nons <- nrow(X_nons)
+      R <- rep(1, n_nons)
+      loc_nons <- which(R == 1)
 
       if (var_selection == TRUE) {
         nlambda <- control_outcome$nlambda
@@ -529,14 +555,29 @@ nonprobDR <- function(selection,
         # Estimating theta, beta parameters using selected variables
         # beta_selected <- beta_selected[-1] - 1
 
-        idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-        psel <- length(idx)
-        Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-        X <- cbind(1, Xsel)
-        colnames(X) <- c("(Intercept)", colnames(Xsel))
-        X_nons <- OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
-        SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
+        if (control_inference$bias_inf == "union") {
+          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
+          psel <- length(idx)
+          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
+          X <- cbind(1, Xsel)
+          colnames(X) <- c("(Intercept)", colnames(Xsel))
+          OutcomeModel$X_nons <- SelectionModel$X_nons <- X[loc_nons, ]
+          SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[idx + 1])
+          pop_totals <- c(pop_totals[1], pop_totals[idx + 1])
+        } else if (control_inference$bias_inf == "div") {
+          X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
+          Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
+          OutcomeModel$X_nons <- cbind(1, X_outcome[loc_nons, ])
+          colnames(OutcomeModel$X_nons) <- c("(Intercept)", colnames(X_outcome))
+          SelectionModel$pop_totals <- c(SelectionModel$pop_totals[1], SelectionModel$pop_totals[theta_selected[-1] + 1])
+          SelectionModel$X_nons <- cbind(1, X_selection[loc_nons, ])
+          X <- cbind(1, Xsel)
+          colnames(X) <- colnames(SelectionModel$X_nons) <- c("(Intercept)", colnames(Xsel))
+          pop_totals <- c(pop_totals[1], pop_totals[theta_selected[-1] + 1])
+        }
+        SelectionModel$total_names <- names(SelectionModel$pop_totals)
       }
+      prob_pop_totals <- SelectionModel$pop_totals
 
       if (is.null(start_selection)) {
         if (control_selection$start_type == "glm") {
@@ -557,6 +598,9 @@ nonprobDR <- function(selection,
             method_selection = method_selection,
             start = 0,
             maxit = maxit,
+            nleqslv_method = control_selection$nleqslv_method,
+            nleqslv_global = control_selection$nleqslv_global,
+            nleqslv_xscalm = control_selection$nleqslv_xscalm,
             pop_totals = SelectionModel$pop_totals[1]
           )$theta_h)
           start_selection <- c(start_h, rep(0, ncol(X) - 1))
@@ -572,6 +616,9 @@ nonprobDR <- function(selection,
         method_selection = method_selection,
         start = start_selection,
         maxit = maxit,
+        nleqslv_method = control_selection$nleqslv_method,
+        nleqslv_global = control_selection$nleqslv_global,
+        nleqslv_xscalm = control_selection$nleqslv_xscalm,
         pop_totals = SelectionModel$pop_totals
       )
       theta_hat <- h_object$theta_h
@@ -628,9 +675,9 @@ nonprobDR <- function(selection,
         weights = weights,
         family_outcome = family_outcome,
         start_outcome = start_outcome,
-        X_nons = X_nons,
-        y_nons = y_nons,
-        X_rand = X_rand,
+        X_nons = OutcomeModel$X_nons,
+        y_nons = OutcomeModel$y_nons,
+        X_rand = OutcomeModel$X_rand,
         control = control_outcome,
         n_nons = n_nons,
         n_rand = n_rand,
@@ -643,6 +690,7 @@ nonprobDR <- function(selection,
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame_rand
 
       mu_hat <- 1 / N_nons * sum((1 / ps_nons) * (weights * (OutcomeModel$y_nons - y_nons_pred))) + y_rand_pred
     } else {
@@ -651,7 +699,7 @@ nonprobDR <- function(selection,
     ys[[k]] <- as.numeric(y_nons)
 
     if (se) {
-      if (var_method == "analytic") { # TODO add estimator variance with model containg pop_totals to internal_varDR function
+      if (var_method == "analytic") { # TODO add estimator variance with model containing pop_totals to internal_varDR function
         var_obj <- internal_varDR(
           OutcomeModel = OutcomeModel, # consider add selection argument instead of separate arguments for selection objects
           SelectionModel = SelectionModel,
@@ -800,6 +848,8 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+  est_totals <- colSums(SelectionModel$X_nons * as.vector(weights_nons))
+  names(prob_pop_totals) <- colnames(SelectionModel$X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     stat
@@ -820,9 +870,16 @@ nonprobDR <- function(selection,
     aic = selection_model$aic,
     weights = as.vector(weights_nons),
     prior.weights = weights,
+    est_totals = est_totals,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
+    hessian = hess,
+    gradient = grad,
+    method = est_method,
+    prob_der = ps_nons_der,
+    prob_rand = ps_rand,
+    prob_rand_est = est_ps_rand,
     cve = if (control_inference$vars_selection == TRUE) {
       cve_selection
     } else {
@@ -835,8 +892,10 @@ nonprobDR <- function(selection,
 
   structure(
     list(
+      data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
+      R = R,
       prob = prop_scores,
       weights = as.vector(weights_nons),
       control = list(
@@ -850,9 +909,11 @@ nonprobDR <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       selection = SelectionList,
-      boot_sample = boot_sample
+      boot_sample = boot_sample,
+      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )

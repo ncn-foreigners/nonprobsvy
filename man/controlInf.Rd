@@ -15,7 +15,7 @@ controlInf(
   alpha = 0.05,
   cores = 1,
   keep_boot,
-  pmm_exact_se = FALSE,
+  nn_exact_se = FALSE,
   pi_ij
 )
 }
@@ -45,9 +45,9 @@ selection and outcome model.
 \item{keep_boot}{Logical indicating whether statistics from bootstrap should be kept.
 By default set to \code{TRUE}}
 
-\item{pmm_exact_se}{Logical value indicating whether to compute the exact
-standard error estimate for \code{pmm} estimator. The variance estimator for
-estimation based on \code{pmm} can be decomposed into three parts, with the
+\item{nn_exact_se}{Logical value indicating whether to compute the exact
+standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
+estimation based on \code{nn} or \code{pmm} can be decomposed into three parts, with the
 third being computed using covariance between imputed values for units in
 probability sample using predictive matches from non-probability sample.
 In most situations this term is negligible and is very computationally

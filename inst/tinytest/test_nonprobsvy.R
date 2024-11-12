@@ -239,13 +239,13 @@ expect_silent(
 )
 expect_equivalent(
   test3apmm$output$mean,
-  5.086964,
+  5.027936,
   tolerance = .01
 )
 
 expect_true(
-  (test3apmm$confidence_interval[1] < 5.086964) &
-    (5.086964 < test3ann$confidence_interval[2])
+  (test3apmm$confidence_interval[1] < 5.027936) &
+    (5.027936 < test3ann$confidence_interval[2])
 )
 ## bootstrap
 
@@ -260,8 +260,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -271,8 +270,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -280,9 +278,57 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
     test3a_bootstrap <- nonprob(outcome = y1 ~ x,
                                 data = source_nonprob_p,
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                verbose = TRUE)
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
   )
+
+  expect_silent(
+    test2a_bootstrap_nn <- nonprob(selection = ~ x,
+                                outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                method_outcome = "nn",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+
+  expect_silent(
+    test3a_bootstrap_nn <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "nn",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+  expect_silent(
+    test2a_bootstrap_pmm <- nonprob(selection = ~ x,
+                                outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_selection = "logit",
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+  )
+
+
+  expect_silent(
+    test3a_bootstrap_pmm <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                control_outcome = controlOut(predictive_match = 1))
+  )
+
+  expect_silent(
+    test3a_bootstrap_pmm_2 <- nonprob(outcome = y1 ~ x,
+                                data = source_nonprob_p,
+                                method_outcome = "pmm",
+                                svydesign = svy_a,
+                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
+                                control_outcome = controlOut(predictive_match = 2))
+  )
+
 
 
   expect_equivalent(test1a$output$mean, test1a_bootstrap$output$mean, tolerance = 0.1)

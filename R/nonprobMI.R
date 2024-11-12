@@ -8,6 +8,8 @@
 #' @importFrom RANN nn2
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms
+#' @importFrom stats reformulate
+#' @importFrom survey svytotal
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
@@ -51,6 +53,11 @@ nonprobMI <- function(outcome,
   }
   if (control_inference$var_method == "bootstrap") {
     stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+  }
+  terms_obj <- terms(outcome)
+  if (is.null(pop_totals) && !is.null(svydesign)) {
+    prob_totals <- svytotal(reformulate(attr(terms_obj, "term.labels")), svydesign)
+    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
   }
 
   for (k in 1:outcomes$l) {
@@ -132,7 +139,7 @@ nonprobMI <- function(outcome,
           pop_totals = pop_totals,
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se,
+          nn_exact_se = control_inference$nn_exact_se,
           pmm_reg_engine = control_outcome$pmm_reg_engine,
           pi_ij = control_inference$pi_ij
         )
@@ -237,6 +244,7 @@ nonprobMI <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame_rand
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -261,6 +269,7 @@ nonprobMI <- function(outcome,
       n_rand <- 0
       weights_rand <- NULL
       n_nons <- nrow(X_nons)
+      R <- rep(1, n_nons)
 
       ############## WORKING VERSION
       if (var_selection == TRUE) {
@@ -292,6 +301,7 @@ nonprobMI <- function(outcome,
         X <- X_nons
         pop_totals <- pop_totals[beta_selected + 1]
       }
+      prob_pop_totals <- pop_totals
       #######################
 
       method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
@@ -308,7 +318,7 @@ nonprobMI <- function(outcome,
         control = control_outcome,
         n_nons = n_nons,
         n_rand = n_rand,
-        model_frame = OutcomeModel$model_frame_rand,
+        model_frame = Model$model_frame_rand,
         vars_selection = control_inference$vars_selection,
         pop_totals = pop_totals
       )
@@ -317,13 +327,14 @@ nonprobMI <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
       OutcomeList[[k]] <- model_obj$model
+      OutcomeList[[k]]$model_frame <- Model$model_frame_rand
       mu_hat <- y_rand_pred
     } else {
       stop("Please, provide svydesign object or pop_totals/pop_means.")
     }
 
-    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$pmm_exact_se)) {
-      # if not pmm_exact_se then this can be dropped
+    if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$nn_exact_se)) {
+      # if not nn_exact_se then this can be dropped
       model_obj$model$glm_obj <- NULL
     }
 
@@ -348,7 +359,7 @@ nonprobMI <- function(outcome,
           # we should probably just pass full control list
           k = control_outcome$k,
           predictive_match = control_outcome$predictive_match,
-          pmm_exact_se = control_inference$pmm_exact_se,
+          nn_exact_se = control_inference$nn_exact_se,
           pmm_reg_engine = control_outcome$pmm_reg_engine,
           pi_ij = control_inference$pi_ij
         )
@@ -452,6 +463,7 @@ nonprobMI <- function(outcome,
   names(OutcomeList) <- outcomes$f
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
+  names(prob_pop_totals) <- colnames(X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     list(stat = stat, comp2 = boot_obj$comp2)
@@ -462,8 +474,12 @@ nonprobMI <- function(outcome,
 
   structure(
     list(
+      data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
+      R = R,
+      prob = NULL,
+      weights = NULL,
       control = list(
         control_outcome = control_outcome,
         control_inference = control_inference
@@ -474,8 +490,11 @@ nonprobMI <- function(outcome,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_totals = prob_pop_totals,
       outcome = OutcomeList,
-      boot_sample = boot_sample
+      selection = NULL,
+      boot_sample = boot_sample,
+      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
     class = c("nonprobsvy", "nonprobsvy_mi")
   )

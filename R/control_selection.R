@@ -36,6 +36,9 @@
 #' \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
 #' \item if \code{zero} then start is a vector of zeros.
 #' }
+#' @param nleqslv_method The method that will be passed to [nleqslv::nleqslv()] function.
+#' @param nleqslv_global The global strategy that will be passed to [nleqslv::nleqslv()] function.
+#' @param nleqslv_xscalm The type of x scaling that will be passed to [nleqslv::nleqslv()] function.
 #'
 #' @return List with selected parameters.
 #'
@@ -64,7 +67,13 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
                        nlambda = 50,
                        nfolds = 10,
                        print_level = 0,
-                       start_type = c("glm", "naive", "zero")) {
+                       start_type = c("glm", "naive", "zero"),
+                       nleqslv_method = c("Broyden", "Newton"),
+                       nleqslv_global = c(
+                         "dbldog", "pwldog",
+                         "cline", "qline", "gline", "hook", "none"
+                       ),
+                       nleqslv_xscalm = c("fixed", "auto")) {
   list(
     epsilon = epsilon,
     maxit = maxit,
@@ -84,6 +93,9 @@ controlSel <- function(method = "glm.fit", # perhaps another control function fo
     nfolds = nfolds,
     lambda = lambda,
     print_level = print_level,
-    start_type = if (missing(start_type)) "naive" else start_type
+    start_type = if (missing(start_type)) "naive" else start_type,
+    nleqslv_method = if (missing(nleqslv_method)) "Newton" else nleqslv_method,
+    nleqslv_global = if (missing(nleqslv_global)) "dbldog" else nleqslv_global,
+    nleqslv_xscalm = if (missing(nleqslv_xscalm)) "auto" else nleqslv_xscalm
   )
 }

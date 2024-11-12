@@ -65,47 +65,9 @@ pmm_nonprobsvy <- function(outcome,
   # )
 
   # add protection for very low values in weighting
+  # TODO issue #52
   switch(control$predictive_match,
     { # 1
-      if (is.null(pop_totals)) {
-        model_rand <- nonprobMI_nn(
-          data = y_nons,
-          query = glm_object$y_rand_pred,
-          k = control$k,
-          treetype = control$treetype,
-          searchtype = control$searchtype
-        )
-
-        switch(control$pmm_weights,
-          "none" = {
-            y_rand_pred <- apply(model_rand$nn.idx, 1,
-              FUN = \(x) mean(y_nons[x])
-              # FUN=\(x) mean(sample_nonprob$short_[x])
-            )
-          },
-          "prop_dist" = {
-            # TODO:: these weights will need to be saved for variance estimation
-            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                w = 1 / model_rand$nn.dist[x, ]
-              )
-              # FUN=\(x) mean(sample_nonprob$short_[x])
-            )
-          }
-        )
-      } else {
-        # I'm not touching this
-        model_rand <- nonprobMI_nn(
-          data = y_nons,
-          query = glm_object$y_rand_pred,
-          k = control$k,
-          treetype = control$treetype,
-          searchtype = control$searchtype
-        )
-        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
-      }
-    },
-    { # 2
       if (is.null(pop_totals)) {
         model_rand <- nonprobMI_nn(
           data = glm_object$y_nons_pred,
@@ -148,6 +110,45 @@ pmm_nonprobsvy <- function(outcome,
         )
         y_rand_pred <- mean(y_nons[model_rand$nn.idx])
       }
+    },
+    { # 2
+      if (is.null(pop_totals)) {
+        model_rand <- nonprobMI_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = \(x) mean(y_nons[x])
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          },
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = \(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                w = 1 / model_rand$nn.dist[x, ]
+              )
+              # FUN=\(x) mean(sample_nonprob$short_[x])
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprobMI_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
     }
   )
 
@@ -172,8 +173,8 @@ pmm_exact <- function(pi_ij,
                       n_nons,
                       y,
                       pmm_reg_engine,
-                      stats,
-                      glm,
+                      # stats, #why is this here?
+                      # glm,   #why is this here?
                       model_obj,
                       svydesign,
                       predictive_match,
@@ -231,10 +232,15 @@ pmm_exact <- function(pi_ij,
       }
     }
 
+    # TODO issue #52
     YY <- switch(predictive_match,
       {
         nonprobMI_nn(
-          data = y_nons_b,
+          data = predict(
+            reg_object_boot,
+            newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+            type = "response"
+          ),
           query = XX,
           k = k,
           searchtype = "standard",
@@ -243,11 +249,7 @@ pmm_exact <- function(pi_ij,
       },
       {
         nonprobMI_nn(
-          data = predict(
-            reg_object_boot,
-            newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
-            type = "response"
-          ),
+          data = y_nons_b,
           query = XX,
           k = k,
           searchtype = "standard",

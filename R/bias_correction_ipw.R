@@ -1,5 +1,20 @@
 # bias correction
-mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection, family, start_selection, start_outcome, boot = FALSE) {
+mm <- function(X,
+               y,
+               weights,
+               weights_rand,
+               R,
+               n_nons,
+               n_rand,
+               method_selection,
+               family,
+               start_selection,
+               start_outcome,
+               maxit,
+               nleqslv_method,
+               nleqslv_global,
+               nleqslv_xscalm,
+               boot = FALSE) {
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection_function)
   inv_link <- method$make_link_inv
@@ -63,13 +78,16 @@ mm <- function(X, y, weights, weights_rand, R, n_nons, n_rand, method_selection,
   # par_sel <- multiroot$par
   ######### NLESQLV
   multiroot <- nleqslv::nleqslv(
-    x = par0, # TODO add user-specified parameters to control functions
+    x = par0,
     fn = u_theta_beta_dr,
-    method = "Newton", # TODO consider the method Broyden
-    global = "dbldog", # c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
-    xscalm = "auto", # c("fixed","auto")
+    method = nleqslv_method,
+    global = nleqslv_global,
+    xscalm = nleqslv_xscalm,
     jacobian = TRUE,
-    control = list(scalex = rep(1, length(par0))), # TODO algorithm did not converge in maxit iterations for cloglog
+    control = list(
+      scalex = rep(1, length(par0)),
+      maxit = maxit
+    ), # TODO algorithm did not converge in maxit iterations for cloglog
     R = R,
     X = X,
     y = y,

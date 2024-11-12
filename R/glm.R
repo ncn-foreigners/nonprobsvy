@@ -68,6 +68,15 @@ glm_nonprobsvy <- function(outcome,
     y_rand_pred <- family_nonprobsvy$linkinv(eta)
     y_nons_pred <- model$fitted.values
 
+    # artificial formula and data created for pmm_extact_se
+    predictors <- colnames(X_nons)[-1]
+    outcome_name <- names(model_frame)[1]
+    formula_str <- paste(outcome_name, "~", paste(predictors, collapse = " + "))
+    formula <- as.formula(formula_str)
+    model$formula <- formula
+    model$data <- as.data.frame(cbind(y_nons, X_nons[, -1, drop = FALSE]))
+    colnames(model$data) <- c(outcome_name, predictors)
+
     model_out <- list(
       glm = model,
       glm_summary = model_summ

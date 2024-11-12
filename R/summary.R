@@ -15,7 +15,7 @@
 #' \item \code{call} -- A call which created \code{object}.
 #' \item \code{pop_total} -- A list containing information about the estimated population mean, its standard error and confidence interval.
 #' \item \code{sample_size} -- The size of the samples used in the model.
-#' \item \code{population_size} -- The estimated size of the population from which the nonoprobability sample was drawn.
+#' \item \code{population_size} -- The estimated size of the population from which the non--probability sample was drawn.
 #' \item \code{test} -- Type of statistical test performed.
 #' \item \code{control} -- A List of control parameters used in fitting the model.
 #' \item \code{model} -- A descriptive name of the model used, e.g., "Doubly-Robust", "Inverse probability weighted", or "Mass Imputation".
@@ -102,6 +102,11 @@ summary.nonprobsvy <- function(object,
   } else {
     se_mean <- NULL
   }
+  if (class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw")) {
+    est_totals <- object$selection$est_totals
+  } else {
+    est_totals <- "no value for the selected method"
+  }
   res <- structure(
     list(
       call = object$call,
@@ -112,6 +117,7 @@ summary.nonprobsvy <- function(object,
       ),
       sample_size = nobs(object, ...),
       population_size = pop.size(object, ...),
+      totals = object$pop_totals,
       test = test,
       control = object$control,
       model = switch(class(object)[2],
@@ -125,6 +131,7 @@ summary.nonprobsvy <- function(object,
       likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, "no value for the selected method"),
       df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, "no value for the selected method"),
       weights = summary(object$weights),
+      est_totals = est_totals,
       coef = cf,
       std_err = se,
       w_val = wald_test_stat,

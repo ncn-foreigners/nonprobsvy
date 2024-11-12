@@ -1,5 +1,3 @@
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-
   library(sampling)
   library(survey)
 
@@ -1752,4 +1750,3 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
     # # expect_true(y22_corr_scad$confidence_interval$lower_bound < mean(Y_22) &
     # #               y22_corr_scad$confidence_interval$upper_bound > mean(Y_22)) ## conf int
     # expect_true(NROW(y22_corr_scad$selection$coefficients) == 2)
-}

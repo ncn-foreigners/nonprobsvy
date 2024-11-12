@@ -1,4 +1,19 @@
-## version 0.1.0
+# nonprobsvy 0.1.1
+
+-   bugfixes
+    -   bug Fix occuring when estimation was based on auxiliary variable, which led to compression of the data from the frame to the vector.
+    -   bug Fix related to not passing `maxit` argument from `controlSel` function to internally used `nleqslv` function
+    -   bug Fix related to storing `vector` in `model_frame` when predicting `y_hat` in mass imputation `glm` model when X is based in one auxiliary variable only - fix provided converting it to `data.frame` object.
+-   features
+    -   add information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
+    -   add estimation of exact standard error for k-nearest neighbor estimator.
+    -   add breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
+    - implement `div` option when variable selection (more in documentation) for doubly robust estimation.
+    - add more insights to `nonprob` output such as gradient, hessian and jacobian derived from IPW estimation for `mle` and `gee` methods when `IPW` or `DR` model executed.
+    - add estimated inclusion probabilities and its derivatives for probability and non-probability samples to `nonprob` output when `IPW` or `DR` model executed.
+    - add `model_frame` matrix data from probability sample used for mass imputation to `nonprob` when `MI` or `DR` model executed.
+
+## nonprobsvy 0.1.0
 
 ------------------------------------------------------------------------
 

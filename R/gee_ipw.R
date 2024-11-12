@@ -111,6 +111,9 @@ gee <- function(...) {
           h = h,
           method_selection = method_selection,
           maxit = maxit,
+          nleqslv_method = control_selection$nleqslv_method,
+          nleqslv_global = control_selection$nleqslv_global,
+          nleqslv_xscalm = control_selection$nleqslv_xscalm,
           start = 0
         )$theta_h)
         start <- c(start_h, rep(0, ncol(X) - 1))
@@ -127,6 +130,9 @@ gee <- function(...) {
       h = h,
       method_selection = method_selection,
       maxit = maxit,
+      nleqslv_method = control_selection$nleqslv_method,
+      nleqslv_global = control_selection$nleqslv_method,
+      nleqslv_xscalm = control_selection$nleqslv_method,
       start = start
     )
     theta_hat <- h_object$theta_h

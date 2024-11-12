@@ -49,9 +49,9 @@ nonprob(
 
 \item{pop_size}{an optional \code{double} with population size.}
 
-\item{method_selection}{a \code{character} with method for propensity scores estimation}
+\item{method_selection}{a \code{character} with method for propensity scores estimation.}
 
-\item{method_outcome}{a \code{character} with method for response variable estimation}
+\item{method_outcome}{a \code{character} with method for response variable estimation.}
 
 \item{family_outcome}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
@@ -59,21 +59,21 @@ nonprob(
 
 \item{strata}{an optional \code{vector} specifying strata.}
 
-\item{weights}{an optional \code{vector} of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights}
+\item{weights}{an optional \code{vector} of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.}
 
 \item{na_action}{a function which indicates what should happen when the data contain \code{NAs}.}
 
-\item{control_selection}{a \code{list} indicating parameters to use in fitting selection model for propensity scores}
+\item{control_selection}{a \code{list} indicating parameters to use in fitting selection model for propensity scores.}
 
-\item{control_outcome}{a \code{list} indicating parameters to use in fitting model for outcome variable}
+\item{control_outcome}{a \code{list} indicating parameters to use in fitting model for outcome variable.}
 
-\item{control_inference}{a \code{list} indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method}
+\item{control_inference}{a \code{list} indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.}
 
-\item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation}
+\item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation.}
 
-\item{start_outcome}{an optional \code{vector} with starting values for the parameters of the outcome equation}
+\item{start_outcome}{an optional \code{vector} with starting values for the parameters of the outcome equation.}
 
-\item{verbose}{verbose, numeric}
+\item{verbose}{verbose, numeric.}
 
 \item{x}{Logical value indicating whether to return model matrix of covariates as a part of output.}
 
@@ -91,29 +91,32 @@ with type \code{list} containing:\cr
 \itemize{
 \item{\code{X} -- model matrix containing data from probability and non-probability samples if specified at a function call.}
 \item{\code{y}} -- list of vector of outcome variables if specified at a function call.
+\item{\code{R}} -- vector indicating the probablistic (0) or non-probablistic (1) units in the matrix X.
 \item{\code{prob} -- vector of estimated propensity scores for non-probability sample.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{control} -- list of control functions.}
 \item{\code{output} -- output of the model with information on the estimated population mean and standard errors.}
 \item{\code{SE} -- standard error of the estimator of the population mean, divided into errors from probability and non-probability samples.}
-\item{\code{confidence_interval} -- confidence interval of population mean estimator}
-\item{\code{nonprob_size} -- size of non-probability sample}
-\item{\code{prob_size} -- size of probability sample}
-\item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
+\item{\code{confidence_interval} -- confidence interval of population mean estimator.}
+\item{\code{nonprob_size} -- size of non-probability sample.}
+\item{\code{prob_size} -- size of probability sample.}
+\item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
+\item{\code{pop_totals} -- the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.}
 \item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
 \code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set to \code{TRUE}, the estimation is based on
 the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
 \itemize{
-\item{\code{coefficients} -- estimated coefficients of the regression model}
-\item{\code{std_err} -- standard errors of the estimated coefficients}
-\item{\code{residuals} -- The response residuals}
-\item{\code{variance_covariance} -- The variance-covariance matrix of the coefficient estimates}
-\item{\code{df_residual} -- The degrees of freedom for residuals}
-\item{\code{family} -- specifies the error distribution and link function to be used in the model}
-\item{\code{fitted.values} -- The predicted values of the response variable based on the fitted model}
-\item{\code{linear.predictors} -- The linear fit on link scale}
-\item{\code{X} -- The design matrix}
-\item{\code{method} -- set on \code{glm}, since the regression method}
+\item{\code{coefficients} -- estimated coefficients of the regression model.}
+\item{\code{std_err} -- standard errors of the estimated coefficients.}
+\item{\code{residuals} -- The response residuals.}
+\item{\code{variance_covariance} -- The variance-covariance matrix of the coefficient estimates.}
+\item{\code{df_residual} -- The degrees of freedom for residuals.}
+\item{\code{family} -- specifies the error distribution and link function to be used in the model.}
+\item{\code{fitted.values} -- The predicted values of the response variable based on the fitted model.}
+\item{\code{linear.predictors} -- The linear fit on link scale.}
+\item{\code{X} -- The design matrix.}
+\item{\code{method} -- set on \code{glm}, since the regression method.}
+\item{\code{model_frame} -- Matrix of data from probability sample used for mass imputation.}
 }
 }
 In addition, if the variable selection model for the outcome variable is fitting, the list includes the
@@ -122,21 +125,30 @@ In addition, if the variable selection model for the outcome variable is fitting
 }
 \item{\code{selection} -- list containing information about fitting of propensity score model, such as
 \itemize{
-\item{\code{coefficients} -- a named vector of coefficients}
-\item{\code{std_err} -- standard errors of the estimated model coefficients}
-\item{\code{residuals} -- the response residuals}
-\item{\code{variance} -- the root mean square error}
+\item{\code{coefficients} -- a named vector of coefficients.}
+\item{\code{std_err} -- standard errors of the estimated model coefficients.}
+\item{\code{residuals} -- the response residuals.}
+\item{\code{variance} -- the root mean square error.}
 \item{\code{fitted_values} -- the fitted mean values, obtained by transforming the linear predictors by the inverse of the link function.}
 \item{\code{link} -- the \code{link} object used.}
 \item{\code{linear_predictors} -- the linear fit on link scale.}
 \item{\code{aic} --	A version of Akaike's An Information Criterion, minus twice the maximized log-likelihood plus twice the number of parameters.}
 \item{\code{weights} -- vector of estimated weights for non-probability sample.}
 \item{\code{prior.weights} -- the weights initially supplied, a vector of 1s if none were.}
+\item{\code{est_totals} -- the estimated total values of auxiliary variables derived from a non-probability sample}.
 \item{\code{formula} -- the formula supplied.}
 \item{\code{df_residual} -- the residual degrees of freedom.}
 \item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NA}.}
 \item{\code{cve} -- the error for each value of the \code{lambda}, averaged across the cross-validation folds for the variable selection model
 when the propensity score model is fitting. Returned only if selection of variables for the model is used.}
+\item{\code{method_selection} -- Link function, e.g. \code{logit}, \code{cloglog} or \code{probit}.}
+\item{\code{hessian} -- Hessian Gradient of the log-likelihood function from \code{mle} method}.
+\item{\code{gradient} -- Gradient of the log-likelihood function from \code{mle} method.}
+\item{\code{method} -- An estimation method for selection model, e.g. \code{mle} or \code{gee}.}
+\item{\code{prob_der} -- Derivative of the inclusion probability function for units in a non--probability sample.}
+\item{\code{prob_rand} -- Inclusion probabilities for unit from a probabiliy sample from \code{svydesign} object.}
+\item{\code{prob_rand_est} -- Inclusion probabilites to a non--probabiliy sample for unit from probability sample.}
+\item{\code{prob_rand_est_der} -- Derivative of the inclusion probabilites to a non--probabiliy sample for unit from probability sample.}
 }
 }
 \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
@@ -149,11 +161,11 @@ Returned only if a bootstrap method is used to estimate the variance and \code{k
 The function allows you to estimate the population mean with access to a reference probability sample, as well as sums and means of covariates.
 
 The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
-Yang et al. (2020), Wu (2022) and use the \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} \code{survey} package for inference.
+Yang et al. (2020), Wu (2022) and uses the \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} \code{survey} package for inference.
 
-It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbor) and
-doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators,
-variable selection or overlap between probability and non-probability samples.
+It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
+doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
+variable selection.
 The package uses \code{survey} package functionality when a probability sample is available.
 }
 \details{

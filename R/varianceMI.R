@@ -19,7 +19,7 @@ internal_varMI <- function(svydesign,
                            pop_totals,
                            k,
                            predictive_match,
-                           pmm_exact_se,
+                           nn_exact_se,
                            pmm_reg_engine,
                            pi_ij) {
   parameters <- model_obj$parameters
@@ -37,6 +37,21 @@ internal_varMI <- function(svydesign,
       sigma_hat <- mean((y - y_pred)^2) # family_nonprobsvy$variance(mu = y_pred, y  = y)
       est_ps <- n_nons / N
       var_nonprob <- n_rand / N^2 * (1 - est_ps) / est_ps * sigma_hat
+
+      if (nn_exact_se) {
+        var_nonprob <- nn_exact(
+          pi_ij        = pi_ij,
+          weights_rand = weights_rand,
+          n_nons       = n_nons,
+          y            = y,
+          X_nons       = X_nons,
+          X_rand       = X_rand,
+          k            = k,
+          # TODO:: add control here
+          # control      = control
+          N            = N
+        )
+      }
     } else if (method == "glm") { # TODO add variance for count binary outcome variable control_outcome$method
 
       beta <- parameters[, 1]
@@ -60,7 +75,7 @@ internal_varMI <- function(svydesign,
 
       # An option in controlInf controls this
       # Maybe add a warning/message if this computation is omited
-      if (pmm_exact_se) {
+      if (nn_exact_se) {
         var_nonprob <- pmm_exact(
           pi_ij = pi_ij,
           weights_rand = weights_rand,
