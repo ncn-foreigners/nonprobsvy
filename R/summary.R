@@ -15,7 +15,7 @@
 #' \item \code{call} -- A call which created \code{object}.
 #' \item \code{pop_total} -- A list containing information about the estimated population mean, its standard error and confidence interval.
 #' \item \code{sample_size} -- The size of the samples used in the model.
-#' \item \code{population_size} -- The estimated size of the population from which the nonoprobability sample was drawn.
+#' \item \code{population_size} -- The estimated size of the population from which the non--probability sample was drawn.
 #' \item \code{test} -- Type of statistical test performed.
 #' \item \code{control} -- A List of control parameters used in fitting the model.
 #' \item \code{model} -- A descriptive name of the model used, e.g., "Doubly-Robust", "Inverse probability weighted", or "Mass Imputation".
