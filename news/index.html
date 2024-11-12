@@ -29,17 +29,19 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="nonprobsvy-011">nonprobsvy 0.1.1<a class="anchor" aria-label="anchor" href="#nonprobsvy-011"></a></h2>
-<ul><li>bugfixes
+<hr><div class="section level4">
+<h4 id="bugfixes-0-1-1">Bugfixes<a class="anchor" aria-label="anchor" href="#bugfixes-0-1-1"></a></h4>
 <ul><li>bug Fix occuring when estimation was based on auxiliary variable, which led to compression of the data from the frame to the vector.</li>
 <li>bug Fix related to not passing <code>maxit</code> argument from <code>controlSel</code> function to internally used <code>nleqslv</code> function</li>
 <li>bug Fix related to storing <code>vector</code> in <code>model_frame</code> when predicting <code>y_hat</code> in mass imputation <code>glm</code> model when X is based in one auxiliary variable only - fix provided converting it to <code>data.frame</code> object.</li>
-</ul></li>
-<li>features
+</ul></div>
+<div class="section level4">
+<h4 id="features-0-1-1">Features<a class="anchor" aria-label="anchor" href="#features-0-1-1"></a></h4>
 <ul><li>add information to <code>summary</code> about quality of estimation basing on difference between estimated and known total values of auxiliary variables</li>
 <li>add estimation of exact standard error for k-nearest neighbor estimator.</li>
 <li>add breaking change to <code>controlOut</code> function by switching values for <code>predictive_match</code> argument. From now on, the <code>predictive_match = 1</code> means <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\hat{y}-\hat{y}</annotation></semantics></math> in predictive mean matching imputation and <code>predictive_match = 2</code> corresponds to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">\hat{y}-y</annotation></semantics></math> matching.</li>
@@ -47,11 +49,16 @@
 <li>add more insights to <code>nonprob</code> output such as gradient, hessian and jacobian derived from IPW estimation for <code>mle</code> and <code>gee</code> methods when <code>IPW</code> or <code>DR</code> model executed.</li>
 <li>add estimated inclusion probabilities and its derivatives for probability and non-probability samples to <code>nonprob</code> output when <code>IPW</code> or <code>DR</code> model executed.</li>
 <li>add <code>model_frame</code> matrix data from probability sample used for mass imputation to <code>nonprob</code> when <code>MI</code> or <code>DR</code> model executed.</li>
-</ul></li>
-</ul><div class="section level3">
-<h3 id="nonprobsvy-0-1-1">nonprobsvy 0.1.0<a class="anchor" aria-label="anchor" href="#nonprobsvy-0-1-1"></a></h3>
+</ul></div>
+<div class="section level4">
+<h4 id="unit-tests-0-1-1">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-1"></a></h4>
+<ul><li>added unit tests for variable selection models and mi estimation with vector of population totals available</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0" id="nonprobsvy-010">nonprobsvy 0.1.0<a class="anchor" aria-label="anchor" href="#nonprobsvy-010"></a></h2><p class="text-muted">CRAN release: 2024-04-04</p>
 <hr><div class="section level4">
-<h4 id="features-0-1-1">Features<a class="anchor" aria-label="anchor" href="#features-0-1-1"></a></h4>
+<h4 id="features-0-1-0">Features<a class="anchor" aria-label="anchor" href="#features-0-1-0"></a></h4>
 <ul><li>implemented population mean estimation using doubly robust, inverse probability weighting and mass imputation methods</li>
 <li>implemented inverse probability weighting models with Maximum Likelihood Estimation and Generalized Estimating Equations methods with <code>logit</code>, <code>complementary log-log</code> and <code>probit</code> link functions.</li>
 <li>implemented <code>generalized linear models</code>, <code>nearest neighbours</code> and <code>predictive mean matching</code> methods for Mass Imputation</li>
@@ -86,18 +93,17 @@
 </ul></li>
 </ul></div>
 <div class="section level4">
-<h4 id="unit-tests-0-1-1">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-1"></a></h4>
+<h4 id="unit-tests-0-1-0">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-0"></a></h4>
 <ul><li>added unit tests for IPW estimators.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="github-repository-0-1-1">Github repository<a class="anchor" aria-label="anchor" href="#github-repository-0-1-1"></a></h4>
+<h4 id="github-repository-0-1-0">Github repository<a class="anchor" aria-label="anchor" href="#github-repository-0-1-0"></a></h4>
 <ul><li>added automated <code>R-cmd</code> check</li>
 </ul></div>
 <div class="section level4">
-<h4 id="documentation-0-1-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-1"></a></h4>
+<h4 id="documentation-0-1-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-0"></a></h4>
 <ul><li>added documentation for <code>nonprob</code> function.</li>
 </ul></div>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
