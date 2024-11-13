@@ -469,6 +469,6 @@ summary(result_ipw)
 ## Funding
 
 Work on this package is supported by the National Science Centre, OPUS
-22 grant no. 2020/39/B/HS4/00941.
+20 grant no. 2020/39/B/HS4/00941.
 
 ## References (selected)
