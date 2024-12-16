@@ -1,9 +1,14 @@
+# nonprobsvy 0.1.2
+
+### Features
+- added two example datasets: `jvs` (Job Vancy Survey; probability survey) and `admin` (Central Job Offers Database; non-probability survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.
+
 # nonprobsvy 0.1.1
 
 ------------------------------------------------------------------------
 
 ### Bugfixes
-- bug Fix occuring when estimation was based on auxiliary variable, which led to compression of the data from the frame to the vector.
+- bug Fix occurring when estimation was based on auxiliary variable, which led to compression of the data from the frame to the vector.
 - bug Fix related to not passing `maxit` argument from `controlSel` function to internally used `nleqslv` function
 - bug Fix related to storing `vector` in `model_frame` when predicting `y_hat` in mass imputation `glm` model when X is based in one auxiliary variable only - fix provided converting it to `data.frame` object.
     
