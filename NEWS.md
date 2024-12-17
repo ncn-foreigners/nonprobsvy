@@ -1,7 +1,7 @@
 # nonprobsvy 0.1.2
 
 ### Features
-- added two example datasets: `jvs` (Job Vancy Survey; probability survey) and `admin` (Central Job Offers Database; non-probability survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.
+- two additional datasets have been included: `jvs` (Job Vacancy Survey; a probability sample survey) and `admin` (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.
 
 # nonprobsvy 0.1.1
 
