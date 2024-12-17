@@ -6,21 +6,29 @@
 \title{Job Vacancy Survey}
 \format{
 A single data.frame with 6,523 rows and 6 columns
+
+\describe{
+\item{\code{id}}{Identifier of an entity (company: legal or local).}
+\item{\code{private}}{Whether the company is a private (1) or public (0) entity.}
+\item{\code{size}}{The size of the entity: S -- small (to 9 employees), M -- medium (10-49) or L -- large (over 49).}
+\item{\code{nace}}{The main NACE code for a given entity: C, D.E, F, G, H, I, J, K.L, M, N, O, P, Q or R.S (14 levels, 3 combined: D and E, K and L, and R and S).}
+\item{\code{region}}{The region of Poland (16 levels: 02, 04, ..., 32).}
+\item{\code{weight}}{The final (calibrated) weight (w-weight). We do not have access to design weights (d-weights).}
+}
 }
 \usage{
 jvs
 }
 \description{
-A subset of Job Vacancy Survey from Poland containing 6,523 units and 6 columns
+This is a subset of the subset of the Job Vacancy Survey from Poland (for one quarter).
+The data has been subject to slight manipulation, but the relationships in the data have been preserved.
+For further details on the JVS, please refer to the following link:
+\url{https://stat.gov.pl/obszary-tematyczne/rynek-pracy/popyt-na-prace/zeszyt-metodologiczny-popyt-na-prace,3,1.html}.
 }
-\details{
-\itemize{
-\item \code{id} identifier of an entity (company: legal or local).
-\item \code{private} whether the company is a private (1) or public (0) entity.
-\item \code{size} the size of the entity: S -- small (to 9 employees), M -- medium (10-49) or L -- large (over 49).
-\item \code{nace} the main NACE code for a given entity: C, D.E, F, G, H, I, J, K.L, M, N, O, P, Q or R.S (14 levels, 3 combined: D and E, K and L, and R and S).
-\item \code{region} the region of Poland (16 levels: 02, 04, ..., 32).
-\item \code{weight} the final (calibrated) weight (w-weight). We do not have access to design weights (d-weights).
-}
+\examples{
+
+data("jvs")
+head(jvs)
+
 }
 \keyword{datasets}

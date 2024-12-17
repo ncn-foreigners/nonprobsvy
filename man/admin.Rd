@@ -6,21 +6,27 @@
 \title{Admin data (non-probability survey)}
 \format{
 A single data.frame with 9,344 rows and 6 columns
+
+\describe{
+\item{\code{id}}{Identifier of an entity (company: legal or local).}
+\item{\code{private}}{Whether the company is a private (1) or public (0) entity.}
+\item{\code{size}}{The size of the entity: S -- small (to 9 employees), M -- medium (10-49) or L -- large (over 49).}
+\item{\code{nace}}{The main NACE code for a given entity: C, D.E, F, G, H, I, J, K.L, M, N, O, P, Q or R.S (14 levels, 3 combined: D and E, K and L, and R and S).}
+\item{\code{region}}{The region of Poland (16 levels: 02, 04, ..., 32).}
+\item{\code{single_shift}}{Whether an entity seeks employees on a single shift.}
+}
 }
 \usage{
 admin
 }
 \description{
-A subset of Central Job Vacancy Database: a voluntary admin data on
+This is a subset of the Central Job Offers Database, a voluntary administrative data set (non-probability sample).
+The data was slightly manipulated to ensure the relationships were preserved, and then aligned.
+For more information about the CBOP, please refer to: \url{https://oferty.praca.gov.pl/}.
 }
-\details{
-\itemize{
-\item \code{id} identifier of an entity (company: legal or local).
-\item \code{private} whether the company is a private (1) or public (0) entity.
-\item \code{size} the size of the entity: S -- small (to 9 employees), M -- medium (10-49) or L -- large (over 49).
-\item \code{nace} the main NACE code for a given entity: C, D.E, F, G, H, I, J, K.L, M, N, O, P, Q or R.S (14 levels, 3 combined: D and E, K and L, and R and S).
-\item \code{region} the region of Poland (16 levels: 02, 04, ..., 32).
-\item \code{single_shift} whether an entity seeks employees on a single shift.
-}
+\examples{
+
+data("admin")
+head(admin)
 }
 \keyword{datasets}
