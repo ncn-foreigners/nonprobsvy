@@ -4,14 +4,14 @@
 \alias{nonprobsvymean}
 \title{Mean values of covariates in subgroups}
 \usage{
-\method{nonprobsvymean}{nonprobsvy}(x, nonprob, interaction = FALSE)
+nonprobsvymean(x, object, interaction)
 }
 \arguments{
 \item{x}{\itemize{
 \item formula
 }}
 
-\item{nonprob}{\itemize{
+\item{object}{\itemize{
 \item object of nonprobsvy class
 }}
 

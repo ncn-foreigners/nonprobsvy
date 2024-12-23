@@ -4,7 +4,7 @@
 \alias{nonprobsvyby}
 \title{Statistics by groups}
 \usage{
-\method{nonprobsvyby}{nonprobsvy}(y, by, nonprob, FUN)
+nonprobsvyby(y, by, object, FUN)
 }
 \arguments{
 \item{y}{\itemize{
@@ -15,7 +15,7 @@
 \item formula for grouping variables
 }}
 
-\item{nonprob}{\itemize{
+\item{object}{\itemize{
 \item object of nonprobsvy class
 }}
 

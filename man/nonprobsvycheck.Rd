@@ -4,7 +4,7 @@
 \alias{nonprobsvycheck}
 \title{Check the balance between probability and non-probability samples}
 \usage{
-\method{check_balance}{nonprobsvy}(x, object, dig = 10)
+nonprobsvycheck(x, object, dig)
 }
 \arguments{
 \item{x}{Formula specifying variables to check}

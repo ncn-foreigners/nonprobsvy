@@ -4,14 +4,14 @@
 \alias{nonprobsvytotal}
 \title{Total values of covariates in subgroups}
 \usage{
-\method{nonprobsvytotal}{nonprobsvy}(x, nonprob, interaction = FALSE)
+nonprobsvytotal(x, object, interaction)
 }
 \arguments{
 \item{x}{\itemize{
 \item formula
 }}
 
-\item{nonprob}{\itemize{
+\item{object}{\itemize{
 \item object of nonprobsvy class
 }}
 

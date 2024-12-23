@@ -134,8 +134,9 @@ print.summary_nonprobsvy <- function(x,
 
   invisible(x)
 }
-#' @export
-print.nonprobsvy_balance <- function(x, ...) {
+#' @method print nonprobsvycheck
+#' @exportS3Method
+print.nonprobsvycheck <- function(x, ...) {
   cat("Balance check results:\n\n")
 
   # Create a data frame for nice printing
@@ -148,4 +149,5 @@ print.nonprobsvy_balance <- function(x, ...) {
   )
 
   print(results)
+  invisible(x)
 }
