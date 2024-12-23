@@ -102,11 +102,6 @@ summary.nonprobsvy <- function(object,
   } else {
     se_mean <- NULL
   }
-  if (class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw")) {
-    est_totals <- object$selection$est_totals
-  } else {
-    est_totals <- "no value for the selected method"
-  }
   res <- structure(
     list(
       call = object$call,
@@ -131,7 +126,6 @@ summary.nonprobsvy <- function(object,
       likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, "no value for the selected method"),
       df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, "no value for the selected method"),
       weights = summary(object$weights),
-      est_totals = est_totals,
       coef = cf,
       std_err = se,
       w_val = wald_test_stat,
@@ -146,12 +140,12 @@ summary.nonprobsvy <- function(object,
 }
 
 
-# summary helper functions
-# for now just a rough sketch
+#' @keywords internal
 specific_summary_info <- function(object, ...) {
   UseMethod("specific_summary_info")
 }
 
+#' @method specific_summary_info nonprobsvy_ipw
 specific_summary_info.nonprobsvy_ipw <- function(object,
                                                  ...) {
   coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
@@ -174,6 +168,7 @@ specific_summary_info.nonprobsvy_ipw <- function(object,
   res
 }
 
+#' @method specific_summary_info nonprobsvy_mi
 specific_summary_info.nonprobsvy_mi <- function(object,
                                                 ...) {
   if (object$outcome[[1]]$method == "glm") { # TODO for pmm
@@ -203,6 +198,7 @@ specific_summary_info.nonprobsvy_mi <- function(object,
   res
 }
 
+#' @method specific_summary_info nonprobsvy_dr
 specific_summary_info.nonprobsvy_dr <- function(object,
                                                 ...) {
   coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),

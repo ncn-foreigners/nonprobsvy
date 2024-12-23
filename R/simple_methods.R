@@ -321,3 +321,413 @@ deviance.nonprobsvy <- function(object,
   if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
   res
 }
+#' @title Check the balance between probability and non-probability samples
+#'
+#' @param x Formula specifying variables to check
+#' @param object Object of nonprobsvy class
+#' @param dig Number of digits for rounding (default = 10)
+#'
+#' @return List containing nonprobability totals, probability totals, and their differences
+#' @method check_balance nonprobsvy
+#' @importFrom stats aggregate
+#' @importFrom survey svytotal
+#' @exportS3Method
+nonprobsvycheck <- function(x, object, dig = 10) {
+  # Input validation
+  if (!inherits(x, "formula")) {
+    stop("'x' must be a formula")
+  }
+
+  if (missing(object) || is.null(object)) {
+    stop("'object' is required")
+  }
+
+  if (!any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+    stop("No estimated weights available. Only IPW or DR methods are supported.")
+  }
+
+  if (!is.numeric(dig) || dig < 0) {
+    stop("'dig' must be a non-negative number")
+  }
+
+  if (nrow(object$data) == 0) {
+    stop("Empty dataset")
+  }
+
+  if (sum(object$weights) == 0) {
+    stop("Sum of weights is zero")
+  }
+
+  # Extract variables from formula
+  vars <- all.vars(x)
+  if (length(vars) == 0) {
+    stop("No variables specified in formula")
+  }
+
+  # Check if all variables exist in the data
+  missing_vars <- setdiff(vars, names(object$data))
+  if (length(missing_vars) > 0) {
+    stop(sprintf("The following variables are not present in the dataset: %s",
+                 paste(missing_vars, collapse = ", ")))
+  }
+
+  # Function to calculate totals for one variable
+  calculate_totals <- function(var, data) {
+    # Check for NAs
+    if (sum(is.na(data[[var]])) > 0) {
+      warning(sprintf("NA values found in variable %s", var))
+    }
+
+    # For categorical variables, handle each level
+    if (is.factor(data[[var]]) || is.character(data[[var]])) {
+      levels <- unique(data[[var]][!is.na(data[[var]])])
+      totals <- sapply(levels, function(lvl) {
+        data_subset <- data[data[[var]] == lvl, ]
+        if (nrow(data_subset) < 5) {
+          warning(sprintf("Small group size (< 5) for level %s in variable %s", lvl, var))
+        }
+        sum(data_subset$weights)
+      })
+      names(totals) <- paste0(var, levels)
+      return(totals)
+    } else {
+      # For numeric variables
+      return(setNames(sum(data$weights * data[[var]], na.rm = TRUE), var))
+    }
+  }
+
+  # Prepare data
+  data <- object$data
+  data$weights <- object$weights
+
+  # Calculate nonprob totals
+  nonprob_totals <- tryCatch({
+    unlist(lapply(vars, function(var) calculate_totals(var, data)))
+  }, error = function(e) {
+    stop(sprintf("Error calculating nonprobability totals: %s", e$message))
+  })
+
+  # Calculate probability totals
+  if (!is.null(object$svydesign)) {
+    # If svydesign exists
+    prob_totals <- tryCatch({
+      svy_total <- svytotal(x, object$svydesign)
+      svy_totals <- as.vector(svy_total)
+      names(svy_totals) <- names(svy_total)
+      svy_totals
+    }, error = function(e) {
+      stop(sprintf("Error calculating survey totals: %s", e$message))
+    })
+  } else {
+    # Use population totals
+    prob_totals <- object$selection$pop_totals
+    if (is.null(prob_totals)) {
+      stop("No population totals available")
+    }
+  }
+
+  # Calculate and round differences
+  diff <- tryCatch({
+    round(nonprob_totals - prob_totals[names(nonprob_totals)], digits = dig)
+  }, error = function(e) {
+    stop(sprintf("Error calculating differences: %s", e$message))
+  })
+
+  # Return results with meaningful names
+  result <- list(
+    nonprob_totals = nonprob_totals,
+    prob_totals = prob_totals,
+    balance = diff
+  )
+
+  class(result) <- "nonprobsvy_balance"
+  return(result)
+}
+#' @title Total values of covariates in subgroups
+#'
+#' @param x - formula
+#' @param nonprob - object of nonprobsvy class
+#' @param interaction - logical, if TRUE calculate for all combinations of grouping variables
+#'
+#' @method nonprobsvytotal nonprobsvy
+#' @return A data frame with estimated totals of the given covariates in subgroups
+#' @importFrom formula.tools lhs.vars
+#' @importFrom formula.tools rhs.vars
+#' @importFrom stats aggregate
+nonprobsvytotal <- function(x, nonprob, interaction = FALSE) {
+  groups <- rhs.vars(x)
+  var <- lhs.vars(x)
+
+  # Validate inputs
+  if (!is.null(var)) {
+    stop("no dependend variable needed for this method, please remove it and try again")
+  }
+
+  if (nrow(nonprob$data) == 0) {
+    stop("Empty dataset")
+  }
+
+  class_nonprob <- class(nonprob)[2]
+  if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
+    stop("Invalid nonprob object class")
+  }
+
+  # Check if all group variables exist in the dataset
+  missing_vars <- setdiff(groups, names(nonprob$data))
+  if (length(missing_vars) > 0) {
+    stop(sprintf("The following variables are not present in the dataset: %s",
+                 paste(missing_vars, collapse = ", ")))
+  }
+
+  if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
+    if (interaction) {
+      data <- nonprob$data[which(nonprob$R == 1), groups, drop = FALSE]
+      weights <- nonprob$weights[which(nonprob$R == 1)]
+
+      # Check for NAs in grouping variables
+      for (g in groups) {
+        current_mask <- !is.na(data[[g]])
+        if (sum(!current_mask) > 0) {
+          warning(sprintf("NA values found in grouping variable %s", g))
+        }
+      }
+
+      # Create all combinations of group variables
+      group_combinations <- do.call(expand.grid, lapply(data, unique))
+
+      # Calculate totals for each combination
+      result <- data.frame(group_combinations)
+      result$total <- NA
+
+      for (i in 1:nrow(result)) {
+        mask <- rep(TRUE, nrow(data))
+        valid_combination <- TRUE
+
+        for (g in groups) {
+          current_val <- result[[g]][i]
+          if (is.na(current_val)) {
+            valid_combination <- FALSE
+            break
+          }
+          current_mask <- !is.na(data[[g]]) & (data[[g]] == current_val)
+          mask <- mask & current_mask
+        }
+
+        # Check if we have any valid observations for this combination
+        if (valid_combination && sum(mask, na.rm = TRUE) > 0) {
+          result$total[i] <- sum(weights[mask])
+
+          # Warning for small group sizes
+          if (sum(mask) < 5) {
+            warning(sprintf("Small group size (%d) for combination: %s",
+                            sum(mask),
+                            paste(result[i, groups], collapse = ", ")))
+          }
+        }
+      }
+
+      # Remove rows where combination doesn't exist
+      result <- result[!is.na(result$total), ]
+      names(result) <- c(groups, "total")
+
+    } else {
+      data <- model.matrix(as.formula(paste(x, "- 1")), data = nonprob$data)
+      result <- sapply(as.data.frame(data), function(col) sum(col * nonprob$weights))
+      result <- data.frame(
+        variable = names(result),
+        total = unname(result)
+      )
+    }
+  } else {
+    if (interaction) {
+      form <- as.formula(paste("~interaction(", paste(groups, collapse=", "), ")"))
+      result <- svytotal(form, nonprob$svydesign)
+    } else {
+      result <- svytotal(x, nonprob$svydesign)
+    }
+    result <- as.data.frame(result)
+  }
+
+  return(result)
+}
+#' @title Mean values of covariates in subgroups
+#'
+#' @param x - formula
+#' @param nonprob - object of nonprobsvy class
+#' @param interaction - logical, if TRUE calculate for all combinations of grouping variables
+#'
+#' @method nonprobsvymean nonprobsvy
+#' @return A data frame with estimated means of the given covariates in subgroups
+#' @importFrom formula.tools lhs.vars
+#' @importFrom formula.tools rhs.vars
+#' @importFrom stats aggregate
+nonprobsvymean <- function(x, nonprob, interaction = FALSE) {
+  groups <- rhs.vars(x)
+  var <- lhs.vars(x)
+
+  # Validate inputs
+  if (!is.null(var)) {
+    stop("no dependend variable needed for this method, please remove it and try again")
+  }
+
+  if (nrow(nonprob$data) == 0) {
+    stop("Empty dataset")
+  }
+
+  class_nonprob <- class(nonprob)[2]
+  if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
+    stop("Invalid nonprob object class")
+  }
+
+  # Input validation checks
+  missing_vars <- setdiff(groups, names(nonprob$data))
+  if (length(missing_vars) > 0) {
+    stop(sprintf("The following variables are not present in the dataset: %s",
+                 paste(missing_vars, collapse = ", ")))
+  }
+
+  if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
+    if (interaction) {
+      # Get the data for grouping variables
+      group_data <- nonprob$data[, groups, drop = FALSE]
+
+      # Check for NAs in grouping variables
+      for (g in groups) {
+        current_mask <- !is.na(group_data[[g]])
+        if (sum(!current_mask) > 0) {
+          warning(sprintf("NA values found in grouping variable %s", g))
+        }
+      }
+
+      # Calculate weighted means for each combination of groups
+      mean_value <- aggregate(nonprob$weights,
+                              by = group_data,
+                              FUN = function(w) sum(w) / sum(nonprob$weights))
+
+      # Check for small group sizes
+      group_sizes <- aggregate(nonprob$weights,
+                               by = group_data,
+                               FUN = length)
+      small_groups <- group_sizes$x < 5
+      if (any(small_groups)) {
+        warning("Small group sizes (< 5) found in some combinations")
+      }
+
+      # Rename columns
+      names(mean_value) <- c(groups, "mean")
+
+    } else {
+      data <- model.matrix(as.formula(paste(x, "- 1")), data = nonprob$data)
+      mean_value <- sapply(as.data.frame(data), function(col) weighted.mean(col, nonprob$weights))
+      mean_value <- data.frame(
+        variable = names(mean_value),
+        mean = unname(mean_value)
+      )
+    }
+  } else {
+    if (interaction) {
+      form <- as.formula(paste("~interaction(", paste(groups, collapse=", "), ")"))
+      mean_value <- svymean(form, nonprob$svydesign)
+    } else {
+      mean_value <- svymean(x, nonprob$svydesign)
+    }
+    mean_value <- as.data.frame(mean_value)
+  }
+
+  return(mean_value)
+}
+
+#' @title Statistics by groups
+#'
+#' @param y - formula for variable of interest
+#' @param by - formula for grouping variables
+#' @param nonprob - object of nonprobsvy class
+#' @param FUN - string specifying the function to apply ("mean" or "total")
+#'
+#' @method nonprobsvyby nonprobsvy
+#' @return A data frame with estimated statistics of the given covariates by groups
+#' @importFrom formula.tools lhs.vars
+#' @importFrom formula.tools rhs.vars
+#' @importFrom stats aggregate
+nonprobsvyby <- function(y, by, nonprob, FUN) {
+  # TODO DR estimator and variances
+  # Validate FUN parameter
+  if (!FUN %in% c("total", "mean")) {
+    stop("FUN must be either 'total' or 'mean'")
+  }
+
+  if (nrow(nonprob$data) == 0) {
+    stop("Empty dataset")
+  }
+
+  class_nonprob <- class(nonprob)[2]
+  if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
+    stop("Invalid nonprob object class")
+  }
+
+  variables <- rhs.vars(y)
+  groups <- rhs.vars(by)
+
+  # Validate inputs
+  missing_vars <- setdiff(groups, names(nonprob$data))
+  if (length(missing_vars) > 0) {
+    stop(sprintf("The following variables are not present in the dataset: %s",
+                 paste(missing_vars, collapse = ", ")))
+  }
+
+  if (!is.null(variables) && !all(variables %in% names(nonprob$data))) {
+    missing_dep_vars <- setdiff(variables, names(nonprob$y))
+    stop(sprintf("The following dependent variables are not present: %s",
+                 paste(missing_dep_vars, collapse = ", ")))
+  }
+
+  # Check for NAs in grouping variables
+  for (g in groups) {
+    current_mask <- !is.na(nonprob$data[[g]])
+    if (sum(!current_mask) > 0) {
+      warning(sprintf("NA values found in grouping variable %s", g))
+    }
+  }
+
+  # Common data preparation
+  data <- nonprob$data[, c(variables, groups)]
+  weights <- nonprob$weights
+
+  if (FUN == "total") {
+    if (class_nonprob == "nonprobsvy_ipw") {
+      valid_data <- which(nonprob$R == 1)
+      data <- data[valid_data, ]
+      weights <- weights[valid_data]
+
+      res <- aggregate(data[, variables] * weights,
+                       by = data[, groups, drop = FALSE],
+                       sum)
+      names(res)[ncol(res)] <- paste0("total.", variables)
+
+    } else if (class_nonprob == "nonprobsvy_mi") {
+      res <- svyby(formula = ~ y_hat_MI, by = by, design = nonprob$svydesign, svytotal)
+    }
+  } else { # mean
+    if (class_nonprob == "nonprobsvy_ipw") {
+      res <- aggregate(data[, variables, drop = FALSE],
+                       by = data[, groups, drop = FALSE],
+                       FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
+                       w = weights)
+      names(res) <- c(groups, paste0("mean.", variables))
+
+      # Check for small group sizes
+      group_sizes <- aggregate(rep(1, nrow(data)),
+                               by = data[, groups, drop = FALSE],
+                               FUN = sum)
+      small_groups <- group_sizes$x < 5
+      if (any(small_groups)) {
+        warning("Small group sizes (< 5) found in some combinations")
+      }
+
+    } else if (class_nonprob == "nonprobsvy_mi") {
+      res <- svyby(formula = ~ y_hat_MI, by = by, design = nonprob$svydesign, svymean)
+    }
+  }
+
+  return(res)
+}
