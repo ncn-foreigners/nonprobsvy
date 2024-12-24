@@ -430,8 +430,6 @@ nonprobsvycheck.nonprobsvy <- function(x, object, dig = 10) {
     prob_totals = prob_totals,
     balance = diff
   )
-
-  class(result) <- "nonprobsvycheck"
   return(result)
 }
 #' @title Check the balance between probability and non-probability samples
