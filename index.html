@@ -13,6 +13,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Inference Based on Non-Probability Samples">
 <meta name="description" content="Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. Details can be found in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;, Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;, Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
 <meta property="og:description" content="Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. Details can be found in: Wu et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Wu et al. (2023) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;, Kim et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt;, Kim et al. (2020) &lt;doi:10.1111/rssb.12354&gt;.">
+<meta property="og:image" content="https://ncn-foreigners.github.io/nonprobsvy/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -47,9 +48,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="nonprobsvy-an-r-package-for-modern-statistical-inference-methods-based-on-non-probability-samples">
-<code>nonprobsvy</code>: an R package for modern statistical inference methods based on non-probability samples<a class="anchor" aria-label="anchor" href="#nonprobsvy-an-r-package-for-modern-statistical-inference-methods-based-on-non-probability-samples"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="nonprobsvy-an-r-package-for-modern-statistical-inference-methods-based-on-non-probability-samples-">
+<code>nonprobsvy</code>: an R package for modern statistical inference methods based on non-probability samples <a class="anchor" aria-label="anchor" href="#nonprobsvy-an-r-package-for-modern-statistical-inference-methods-based-on-non-probability-samples-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -514,11 +517,6 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;   1.000   1.071   1.313   1.479   1.798   2.647 </span></span>
 <span><span class="co">#&gt; -------------------------</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Covariate balance:</span></span>
-<span><span class="co">#&gt; (Intercept)          x2 </span></span>
-<span><span class="co">#&gt;  25062.8473   -517.5862 </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span></span>
 <span><span class="co">#&gt; -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 </span></span>
@@ -611,11 +609,6 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; Weights:</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;   1.000   1.071   1.313   1.479   1.798   2.647 </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Covariate balance:</span></span>
-<span><span class="co">#&gt; (Intercept)          x2 </span></span>
-<span><span class="co">#&gt;  25062.8473   -517.5862 </span></span>
 <span><span class="co">#&gt; -------------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
