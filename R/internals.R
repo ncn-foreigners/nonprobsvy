@@ -178,3 +178,89 @@ ff <- function(formula) {
     l = l
   )
 }
+
+mu_hatDR <- function(y,
+                     y_nons,
+                     y_rand,
+                     weights,
+                     weights_nons,
+                     weights_rand,
+                     N_nons,
+                     N_rand) {
+  correction_term <- sum(weights * weights_nons * (y - y_nons)) / N_nons
+  probability_estimate <- sum(weights_rand * y_rand) / N_rand
+  correction_term + probability_estimate
+}
+
+mu_hatIPW <- function(y,
+                      weights,
+                      weights_nons,
+                      N) {
+  mu_hat <- sum(weights * weights_nons * y) / N
+  mu_hat
+}
+
+nonprobMI_fit <- function(outcome,
+                          data,
+                          weights,
+                          svydesign = NULL,
+                          family_outcome = "gaussian",
+                          start = NULL,
+                          control_outcome = controlOut(),
+                          verbose = FALSE,
+                          model = TRUE,
+                          x = FALSE,
+                          y = FALSE) {
+  # Process family specification
+  family <- process_family(family_outcome)
+
+  # Process control parameters
+  control_list <- list(
+    epsilon = control_outcome$epsilon,
+    maxit = control_outcome$maxit,
+    trace = control_outcome$trace
+  )
+
+  # Create model environment to avoid modifying original data
+  model_data <- data
+  model_data$weights <- weights
+
+  # Fit the model
+  tryCatch({
+    model_fit <- stats::glm(
+      formula = outcome,
+      data = model_data,
+      weights = weights,
+      family = family,
+      start = start,
+      control = control_list,
+      model = model,
+      x = x,
+      y = y
+    )
+
+    if (verbose) {
+      cat("Model fitting completed:\n")
+      cat("Convergence status:", ifelse(model_fit$converged, "converged", "not converged"), "\n")
+      cat("Number of iterations:", model_fit$iter, "\n")
+    }
+
+    return(model_fit)
+
+  }, error = function(e) {
+    stop("Error in model fitting: ", e$message)
+  })
+}
+
+process_family <- function(family_spec) {
+  if (is.character(family_spec)) {
+    family <- get(family_spec, mode = "function", envir = parent.frame())
+  } else if (is.function(family_spec)) {
+    family <- family_spec()
+  } else if (inherits(family_spec, "family")) {
+    family <- family_spec
+  } else {
+    stop("Invalid family specification")
+  }
+  return(family)
+}

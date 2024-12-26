@@ -603,12 +603,3 @@ nonprobIPW <- function(selection,
     class = c("nonprobsvy", "nonprobsvy_ipw")
   )
 }
-
-
-mu_hatIPW <- function(y,
-                      weights,
-                      weights_nons,
-                      N) {
-  mu_hat <- 1 / N * sum(weights * weights_nons * y)
-  mu_hat
-}

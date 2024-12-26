@@ -58,6 +58,18 @@ nonprob <- function(data,
   if (is.null(selection) & is.null(outcome)) {
     stop("Please provide selection or outcome formula.")
   }
+
+  # Check formula inputs
+  if (!is.null(selection) && !inherits(selection, "formula")) {
+    stop("'selection' must be a formula")
+  }
+  if (!is.null(outcome) && !inherits(outcome, "formula")) {
+    stop("'outcome' must be a formula")
+  }
+  if (!is.null(target) && !inherits(target, "formula")) {
+    stop("'target' must be a formula")
+  }
+
   if (inherits(selection, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
     if (inherits(target, "formula") == FALSE) stop("Please provide target variable")
     model_used <- "P"
@@ -71,7 +83,31 @@ nonprob <- function(data,
     model_used <- "DR"
   }
 
-  ## validate data
+  # Check numeric inputs
+  if (!is.null(pop_size) && !is.numeric(pop_size)) {
+    stop("'pop_size' must be numeric")
+  }
+  if (!is.null(weights) && !is.numeric(weights)) {
+    stop("'weights' must be numeric")
+  }
+
+  # Check weights length
+  if (!is.null(weights) && length(weights) != nrow(data)) {
+    stop("Length of weights must match number of rows in data")
+  }
+
+  if (!is.null(pop_totals) && !is.null(pop_means)) {
+    stop("Cannot specify both pop_totals and pop_means")
+  }
+
+  if (!is.null(pop_size)) {
+    if (pop_size <= 0) {
+      stop("pop_size must be positive")
+    }
+    if (pop_size < nrow(data)) {
+      stop("pop_size cannot be smaller than sample size")
+    }
+  }
 
   ## model estimates
   model_estimates <- switch(model_used,

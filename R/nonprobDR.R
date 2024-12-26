@@ -911,15 +911,3 @@ nonprobDR <- function(selection,
     class = c("nonprobsvy", "nonprobsvy_dr")
   )
 }
-
-mu_hatDR <- function(y,
-                     y_nons,
-                     y_rand,
-                     weights,
-                     weights_nons,
-                     weights_rand,
-                     N_nons,
-                     N_rand) {
-  mu_hat <- 1 / N_nons * sum(weights * weights_nons * (y - y_nons)) + 1 / N_rand * sum(weights_rand * y_rand)
-  mu_hat
-}
