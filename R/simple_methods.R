@@ -430,7 +430,7 @@ nonprobsvycheck.nonprobsvy <- function(x, object, dig = 10) {
     prob_totals = prob_totals,
     balance = diff
   )
-  return(result)
+  result
 }
 #' @title Check the balance between probability and non-probability samples
 #'
@@ -446,38 +446,45 @@ nonprobsvycheck.nonprobsvy <- function(x, object, dig = 10) {
 nonprobsvycheck <- function(x, object, dig) {
   UseMethod("nonprobsvycheck", object)
 }
-#' @method nonprobsvytotal nonprobsvy
-#' @exportS3Method
+# Internal function - not exported in CRAN version
+# Will be exported in future releases after variance estimation is implemented
+#' @keywords internal
 nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
+  # TODO variance - NOT READY FOR CRAN
   groups <- rhs.vars(x)
   var <- lhs.vars(x)
-
   # Validate inputs
   if (!is.null(var)) {
     stop("no dependend variable needed for this method, please remove it and try again")
   }
-
   if (nrow(object$data) == 0) {
     stop("Empty dataset")
   }
-
   class_nonprob <- class(object)[2]
   if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
     stop("Invalid nonprob object class")
   }
-
   # Check if all group variables exist in the dataset
   missing_vars <- setdiff(groups, names(object$data))
   if (length(missing_vars) > 0) {
     stop(sprintf("The following variables are not present in the dataset: %s",
                  paste(missing_vars, collapse = ", ")))
   }
-
   if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
     if (interaction) {
+      # For single categorical variable, use the same approach as non-interaction
+      if (length(groups) == 1) {
+        data <- model.matrix(as.formula(paste(x, "- 1")), data = object$data)
+        result <- sapply(as.data.frame(data), function(col) sum(col * object$weights))
+        result <- data.frame(
+          variable = names(result),
+          total = unname(result)
+        )
+        return(result)
+      }
+
       data <- object$data[which(object$R == 1), groups, drop = FALSE]
       weights <- object$weights[which(object$R == 1)]
-
       # Check for NAs in grouping variables
       for (g in groups) {
         current_mask <- !is.na(data[[g]])
@@ -485,18 +492,14 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
           warning(sprintf("NA values found in grouping variable %s", g))
         }
       }
-
       # Create all combinations of group variables
       group_combinations <- do.call(expand.grid, lapply(data, unique))
-
       # Calculate totals for each combination
       result <- data.frame(group_combinations)
       result$total <- NA
-
       for (i in 1:nrow(result)) {
         mask <- rep(TRUE, nrow(data))
         valid_combination <- TRUE
-
         for (g in groups) {
           current_val <- result[[g]][i]
           if (is.na(current_val)) {
@@ -506,11 +509,9 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
           current_mask <- !is.na(data[[g]]) & (data[[g]] == current_val)
           mask <- mask & current_mask
         }
-
         # Check if we have any valid observations for this combination
         if (valid_combination && sum(mask, na.rm = TRUE) > 0) {
           result$total[i] <- sum(weights[mask])
-
           # Warning for small group sizes
           if (sum(mask) < 5) {
             warning(sprintf("Small group size (%d) for combination: %s",
@@ -519,11 +520,9 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
           }
         }
       }
-
       # Remove rows where combination doesn't exist
       result <- result[!is.na(result$total), ]
       names(result) <- c(groups, "total")
-
     } else {
       data <- model.matrix(as.formula(paste(x, "- 1")), data = object$data)
       result <- sapply(as.data.frame(data), function(col) sum(col * object$weights))
@@ -541,8 +540,7 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
     }
     result <- as.data.frame(result)
   }
-
-  return(result)
+  result
 }
 #' @title Total values of covariates in subgroups
 #'
@@ -555,13 +553,14 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
 #' @importFrom formula.tools rhs.vars
 #' @importFrom stats aggregate
 #' @importFrom survey svytotal
-#' @export
 nonprobsvytotal <- function(x, object, interaction) {
   UseMethod("nonprobsvytotal", object)
 }
-#' @method nonprobsvymean nonprobsvy
-#' @exportS3Method
+# Internal function - not exported in CRAN version
+# Will be exported in future releases after variance estimation is implemented
+#' @keywords internal
 nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
+  # TODO variance - NOT READY FOR CRAN
   groups <- rhs.vars(x)
   var <- lhs.vars(x)
 
@@ -633,8 +632,7 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
     }
     mean_value <- as.data.frame(mean_value)
   }
-
-  return(mean_value)
+  mean_value
 }
 #' @title Mean values of covariates in subgroups
 #'
@@ -647,14 +645,14 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
 #' @importFrom formula.tools rhs.vars
 #' @importFrom stats aggregate
 #' @importFrom survey svymean
-#' @export
 nonprobsvymean <- function(x, object, interaction) {
   UseMethod("nonprobsvymean", object)
 }
-#' @method nonprobsvyby nonprobsvy
-#' @exportS3Method
+# Internal function - not exported in CRAN version
+# Will be exported in future releases after variance estimation is implemented
+#' @keywords internal
 nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
-  # TODO DR estimator and variances
+  # TODO DR estimator and variances - not ready for CRAN
   # Validate FUN parameter
   if (!FUN %in% c("total", "mean")) {
     stop("FUN must be either 'total' or 'mean'")
@@ -732,8 +730,7 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
       res <- svyby(formula = ~ y_hat_MI, by = by, design = object$svydesign, svymean)
     }
   }
-
-  return(res)
+  res
 }
 #' @title Statistics by groups
 #'
@@ -747,7 +744,6 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
 #' @importFrom formula.tools rhs.vars
 #' @importFrom stats aggregate
 #' @importFrom survey svyby
-#' @export
 nonprobsvyby <- function(y, by, object, FUN) {
   UseMethod("nonprobsvyby", object)
 }

@@ -163,12 +163,6 @@ bootMI <- function(X_rand,
             weights_strap <- weights[strap]
             X_nons_strap <- X_nons[strap, , drop = FALSE]
             y_strap <- y[strap]
-
-            # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-            # weights_rand_strap <- weights_rand[strap_rand]
-            # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
-            # N_strap <- sum(weights_rand_strap)
-
             # using svy package
             strap_rand_svy <- which(rep_weights[, k] != 0)
             weights_rand_strap_svy <- rep_weights[, k] * weights_rand
@@ -276,8 +270,6 @@ bootMI <- function(X_rand,
             mu_hat_boot <- as.vector(y_strap_rand)
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
-              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
               setTxtProgressBar(pb, k)
             }
             k <- k + 1
@@ -309,8 +301,6 @@ bootMI <- function(X_rand,
             mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
-              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
               utils::setTxtProgressBar(pb, k)
             }
             k <- k + 1
@@ -367,21 +357,9 @@ bootMI <- function(X_rand,
                 )
               }
             )
-            #
-            # model_rand <- nonprobMI_nn(
-            #   data = y_strap_nons,
-            #   query = y_strap_rand,
-            #   k = control_outcome$k,
-            #   treetype = control_outcome$treetype,
-            #   searchtype = control_outcome$searchtype
-            # )
-
-
             mu_hat_boot <- mean(y_strap[model_rand$nn.idx])
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
-              # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
               utils::setTxtProgressBar(pb, k)
             }
             k <- k + 1
@@ -396,7 +374,6 @@ bootMI <- function(X_rand,
       }
     }
   }
-  # mu_hat_boot <- mean(mu_hats)
   if (method == "pmm") {
     if (nn_exact_se) {
       comp2 <- pmm_exact(pi_ij,
@@ -499,7 +476,6 @@ bootMI_multicore <- function(X_rand,
           strap_rand_svy <- which(rep_weights[, k] != 0)
           weights_rand_strap_svy <- rep_weights[, k] * weights_rand
           N_strap <- sum(weights_rand_strap_svy)
-          # X_rand_strap <- X_rand[which(rep_weights[,k] != 0),]
 
           model_strap <- stats::glm.fit(
             x = X_nons_strap,
@@ -525,11 +501,6 @@ bootMI_multicore <- function(X_rand,
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
-          # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-          # weights_rand_strap <- weights_rand[strap_rand]
-          # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
-          # N_strap <- sum(weights_rand_strap)
-
           # using svy package
           strap_rand_svy <- which(rep_weights[, k] != 0)
           weights_rand_strap_svy <- rep_weights[, k] * weights_rand
@@ -546,7 +517,6 @@ bootMI_multicore <- function(X_rand,
           )
           y_rand_strap <- apply(model_rand$nn.idx, 1,
             FUN = \(x) mean(y_strap[x])
-            # FUN=\(x) mean(sample_nonprob$short_[x])
           )
           weighted.mean(x = y_rand_strap, w = weights_strap_rand)
         }
@@ -560,11 +530,6 @@ bootMI_multicore <- function(X_rand,
           weights_strap <- weights[strap]
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
-
-          # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
-          # weights_rand_strap <- weights_rand[strap_rand]
-          # X_rand_strap <- X_rand[strap_rand, , drop = FALSE]
-          # N_strap <- sum(weights_rand_strap)
 
           # using svy package
           strap_rand_svy <- which(rep_weights[, k] != 0)
@@ -612,7 +577,6 @@ bootMI_multicore <- function(X_rand,
 
           y_rand_strap <- apply(model_rand$nn.idx, 1,
             FUN = \(x) mean(y_strap[x])
-            # FUN=\(x) mean(sample_nonprob$short_[x])
           )
           weighted.mean(x = y_rand_strap, w = weights_strap_rand)
         }
@@ -640,8 +604,6 @@ bootMI_multicore <- function(X_rand,
           beta <- model_strap$coefficients
           eta <- pop_totals %*% beta / N
           y_strap_rand <- family_nonprobsvy$linkinv(eta)
-
-          # mu_hat_boot <- mu_hatMI(ystrap_rand, weights_rand_strap_svy, N_strap)
           as.vector(y_strap_rand)
         }
       )

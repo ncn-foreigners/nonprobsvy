@@ -84,9 +84,10 @@ setup_lambda <- function(X,
                          pop_totals,
                          alpha = 1,
                          log_lambda = FALSE,
-                         ...) { # consider penalty factor here # TO consider for pop_totals/pop_means
-
-  # fit <- glm.fit(x = X, y = y, weights = weights, family = binomial(link = method_selection))
+                         ...) {
+  # TODO
+  # consider penalty factor here
+  # consider for pop_totals/pop_means
   if (is.null(pop_totals)) {
     fit <- stats::glm(y ~ 1,
       weights = weights,

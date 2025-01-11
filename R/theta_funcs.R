@@ -27,8 +27,8 @@ u_theta <- function(R,
     # "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
     if (is.null(pop_totals)) {
       eq <- switch(h,
-        "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
-        "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
+                   "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+                   "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
       )
     } else {
       eq <- c(apply(X0 * R / ps * weights, 2, sum)) - pop_totals
@@ -36,7 +36,6 @@ u_theta <- function(R,
     eq
   }
 }
-
 
 # derivative of score equation for theta, used in variable selection
 u_theta_der <- function(R,
@@ -71,14 +70,13 @@ u_theta_der <- function(R,
       mxDer <- t(R * X0 * weights * inv_link_rev(eta)) %*% X0
     } else {
       mxDer <- switch(h,
-        "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
-        "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
+                      "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
+                      "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
       )
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
   }
 }
-
 
 theta_h_estimation <- function(R,
                                X,
@@ -94,30 +92,6 @@ theta_h_estimation <- function(R,
                                pop_totals = NULL,
                                pop_means = NULL) {
   p <- ncol(X)
-  # if (is.null(pop_totals) & is.null(pop_means)) {
-  #   if (is.null(start)) {
-  #     start0 <- start_fit(X = X, # <--- does not work with pop_totals
-  #                         R = R,
-  #                         weights = weights,
-  #                         weights_rand = weights_rand,
-  #                         method_selection = method_selection)
-  #   } else {
-  #     start0 <- start
-  #   }
-  # } else { # TODO customize start point for fitting with population totals
-  #   # start0 <- rep(.8, ncol(X))
-  #   # X_pop <- rbind(X, pop_totals)
-  #   # weights_randd <- 1
-  #   if (is.null(start)) {
-  #     start0 <- start_fit(X = X, # <--- does not work with pop_totals
-  #                         R = R,
-  #                         weights = weights,
-  #                         weights_rand = weights_rand,
-  #                         method_selection = method_selection)
-  #   } else {
-  #     start0 <- start
-  #   }
-  # }
   u_theta <- u_theta(
     R = R,
     X = X,
@@ -135,22 +109,6 @@ theta_h_estimation <- function(R,
     method_selection = method_selection,
     pop_totals = pop_totals
   )
-  # print(start)
-  # ######### BB
-  # if (method_selection == "cloglog") {
-  #   root <- BB::dfsane(
-  #     par = start,
-  #     fn = u_theta,
-  #   )
-  # } else {
-  #   root <- BB::dfsane(
-  #     par = start,
-  #     fn = u_theta
-  #     # control = list(sigma = 0.1, trace = 1)
-  #   )
-  # }
-  # theta_root <- root$par
-  # print(theta_root)
   ######### NLESQLV
   if (method_selection == "cloglog") {
     root <- nleqslv::nleqslv(
@@ -175,7 +133,6 @@ theta_h_estimation <- function(R,
     )
   }
   theta_root <- root$x
-  # stop("123")
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
       "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
@@ -201,8 +158,6 @@ theta_h_estimation <- function(R,
     grad = grad
   )
 }
-
-
 
 # joint score equation for theta and beta, used in estimation when variable selections
 u_theta_beta_dr <- function(par,
@@ -243,7 +198,6 @@ u_theta_beta_dr <- function(par,
   utb
 }
 
-
 u_theta_ipw <- function(par,
                         R,
                         X,
@@ -267,9 +221,7 @@ u_theta_ipw <- function(par,
   n <- length(R)
   y_mean <- mean(y[loc_nons])
 
-  # UTB <- apply(X0 * (R * as.vector(inv_link(eta_pi)) - y), 2, sum)/n # TODO
   UTB <- apply(X * (R / as.vector(inv_link(eta_pi)) * y - mean(y)) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
-
   UTB
 }
 

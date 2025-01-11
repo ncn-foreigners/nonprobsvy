@@ -111,6 +111,7 @@ internal_varMI <- function(svydesign,
       var_nonprob <- 1 / n_nons^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2
       var_nonprob <- as.vector(var_nonprob)
     } else if (method == "pmm") {
+      # TODO
       # beta <- parameters[,1]
       # eta_nons <- X_nons %*% beta
       #
@@ -129,7 +130,6 @@ internal_varMI <- function(svydesign,
     }
     var_prob <- 0
   }
-
   list(
     var_prob = var_prob,
     var_nonprob = var_nonprob

@@ -35,8 +35,6 @@ glm_nonprobsvy <- function(outcome,
     parameters <- model_out$glm_summary$coefficients
 
     if (is.null(pop_totals)) {
-      # print(head(model_frame))
-      # stop("123")
       y_rand_pred <- stats::predict.glm(model_out$glm, newdata = model_frame, type = "response")
     } else {
       eta <- pop_totals %*% model_nons_coefs / pop_totals[1]

@@ -32,50 +32,6 @@ mm <- function(X,
     par0 <- start
   }
   prior_weights <- c(weights_rand, weights)
-
-  # MI - bias correction #########
-  # multiroot <- nleqslv::nleqslv( # TODO to fix "Jacobian is completely unusable (all zero entries?)"
-  #   x = rep(0, p), # TODO add user-specified parameters to control functions
-  #   fn = u_beta_mi,# TODO algorithm did not converge in maxit iterations for cloglog
-  #   R = R,
-  #   X = X,
-  #   y = y,
-  #   weights = prior_weights,
-  #   family_nonprobsvy = family
-  # )
-  # print(multiroot$x)
-  ##########
-
-  # IPW - bias correction #########
-  # multiroot <- nleqslv::nleqslv(
-  #   x = rep(0, p), # TODO add user-specified parameters to control functions
-  #   fn = u_theta_ipw,
-  #   method = "Newton", # TODO consider the method Broyden
-  #   global = "qline", # c("dbldog", "pwldog", cline", "qline", "gline", "hook", "none")
-  #   xscalm = "fixed", # c("fixed","auto")
-  #   jacobian = TRUE,
-  #   control = list(scalex = rep(1, length(rep(0, p)))), # TODO algorithm did not converge in maxit iterations for cloglog
-  #   R = R,
-  #   X = X,
-  #   y = y,
-  #   weights = weights,
-  #   method_selection = method_selection
-  # )
-  # print(multiroot$x)
-  ##########
-
-  ######### BB
-  # multiroot <- nleqslv::nleqslv(
-  #   par = par0, # TODO add user-specified parameters to control functions
-  #   fn = u_theta_beta_dr,
-  #   R = R,
-  #   X = X,
-  #   y = y,
-  #   weights = prior_weights,
-  #   method_selection = method_selection,
-  #   family_nonprobsvy = family
-  # )
-  # par_sel <- multiroot$par
   ######### NLESQLV
   multiroot <- nleqslv::nleqslv(
     x = par0,
