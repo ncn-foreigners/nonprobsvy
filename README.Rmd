@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# `nonprobsvy`: an R package for modern statistical inference methods based on non-probability samples
+# `nonprobsvy`: an R package for modern statistical inference methods based on non-probability samples <img src="man/figures/logo.png" align="right" width="150"/>
 
 <!-- badges: start -->
 
@@ -31,8 +31,8 @@ status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project
 downloads](https://cranlogs.r-pkg.org/badges/grand-total/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
 [![CRAN
 downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
-[![Mentioned in Awesome Official
-Statistics](https://awesome.re/mentioned-badge.svg)](http://www.awesomeofficialstatistics.org)
+[![Mentioned in Awesome Official Statistics](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software)
+
 
 <!-- badges: end -->
 

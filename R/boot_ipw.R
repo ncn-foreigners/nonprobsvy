@@ -280,14 +280,6 @@ bootIPW_multicore <- function(X_rand,
         ps_nons <- est_method_obj$ps_nons
         weights_nons <- 1 / ps_nons
         N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
-
-        # mu_hat_boot <- mu_hatIPW(
-        #   y = y[strap_nons],
-        #   weights = weights[strap_nons],
-        #   weights_nons = weights_nons,
-        #   N = N_est_nons
-        # ) # IPW estimator
-
         mu_hats_this_boot <- numeric(mu_len)
 
         for (l in 1:mu_len) {
@@ -321,13 +313,6 @@ bootIPW_multicore <- function(X_rand,
 
         weights_nons <- 1 / ps_nons
         N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
-
-        # mu_hat_boot <- mu_hatIPW(
-        #   y = y[strap],
-        #   weights = weights_strap,
-        #   weights_nons = weights_nons,
-        #   N = N_est_nons
-        # ) # IPW estimator
         for (l in 1:mu_len) {
           mu_hats_boot[k, l] <- mu_hatIPW(
             y = ys[[l]][strap],
@@ -341,8 +326,6 @@ bootIPW_multicore <- function(X_rand,
     }
   )
   mu_hats_boot <- matrix(mu_hats_boot, nrow = num_boot, ncol = mu_len, byrow = TRUE)
-  # mu_hats_boot_means <- colMeans(mu_hats_boot)
-  # boot_var <- 1 / (num_boot - 1) * sum((mu_hats - mu_hat_boot)^2)
   for (l in 1:mu_len) {
     boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[, l] - mu_hats[l])^2)
   }

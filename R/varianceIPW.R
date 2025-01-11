@@ -78,8 +78,6 @@ internal_varIPW <- function(svydesign,
   var_nonprob <- as.vector(V_mx_nonprob[1, 1])
   var_prob <- as.vector(V_mx_prob[1, 1])
   var <- as.vector(V_mx[1, 1])
-  # vector of variances for theta_hat
-  # theta_hat_var <- diag(as.matrix(V_mx[2:ncol(V_mx), 2:ncol(V_mx)]))
 
   list(
     var_nonprob = var_nonprob,

@@ -1,3 +1,8 @@
+# These tests are only supposed to be run on developer's machine and
+# package GitHub page not on CRAN (they take too long)
+
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+
 # Load necessary libraries
 library(sampling)
 library(survey)
@@ -87,7 +92,7 @@ expect_true(y22_mi_corr_one$confidence_interval$lower_bound < mean(Y_22) &
 # For Y_11 with all X variables
 expect_silent(
   y11_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_11 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_11', as.character(X_formula))),
     data = sample_B1,  # Include all X variables
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -103,7 +108,7 @@ expect_true(y11_mi_corr_all$confidence_interval$lower_bound < mean(Y_11) &
 # For Y_12 with all X variables
 expect_silent(
   y12_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_12 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_12', as.character(X_formula))),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -120,7 +125,7 @@ expect_equal(y12_mi_corr_all$output$SE, 0.2454465, tolerance = 0.0001)
 # For Y_21 with all X variables
 expect_silent(
   y21_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_21 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_21', as.character(X_formula))),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -137,7 +142,7 @@ expect_equal(y21_mi_corr_all$output$SE, 0.01992489, tolerance = 0.0001)
 # For Y_22 with all X variables
 expect_silent(
   y22_mi_corr_all <- nonprob(
-    outcome = as.formula(paste('Y_22 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_22', as.character(X_formula))),
     data = sample_B1,
     pop_totals = X_totals,
     method_outcome = "glm",
@@ -235,3 +240,4 @@ expect_equal(y22_mi_scad$output$SE, 0.01550724, tolerance = 0.0001)
 # expect_true(y22_mi_scad$confidence_interval$lower_bound < mean(Y_22) &
 #               y22_mi_scad$confidence_interval$upper_bound > mean(Y_22))
 expect_true(NROW(y22_mi_scad$outcome$coefficients) < 11)
+}

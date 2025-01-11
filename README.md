@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `nonprobsvy`: an R package for modern statistical inference methods based on non-probability samples
+# `nonprobsvy`: an R package for modern statistical inference methods based on non-probability samples <img src="man/figures/logo.png" align="right" width="150"/>
 
 <!-- badges: start -->
 
@@ -16,7 +16,7 @@ downloads](https://cranlogs.r-pkg.org/badges/grand-total/nonprobsvy)](https://cr
 [![CRAN
 downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
 [![Mentioned in Awesome Official
-Statistics](https://awesome.re/mentioned-badge.svg)](http://www.awesomeofficialstatistics.org)
+Statistics](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software)
 
 <!-- badges: end -->
 
@@ -503,11 +503,6 @@ summary(result_dr)
 #>   1.000   1.071   1.313   1.479   1.798   2.647 
 #> -------------------------
 #> 
-#> Covariate balance:
-#> (Intercept)          x2 
-#>  25062.8473   -517.5862 
-#> -------------------------
-#> 
 #> Residuals:
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 #> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
@@ -612,11 +607,6 @@ summary(result_ipw)
 #> Weights:
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>   1.000   1.071   1.313   1.479   1.798   2.647 
-#> -------------------------
-#> 
-#> Covariate balance:
-#> (Intercept)          x2 
-#>  25062.8473   -517.5862 
 #> -------------------------
 #> 
 #> Residuals:

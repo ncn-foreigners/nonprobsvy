@@ -39,20 +39,32 @@ gee <- function(...) {
   }
 
   make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
+    # common calculations
+    mean_nons <- sum(weights * y_nons) / N
+    Xb <- X %*% t(as.matrix(b))
+
+    # choose formula based on h
     if (h == 1) {
-      t <- X %*% t(as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
+      t <- Xb + y_rand - mean_nons
     } else if (h == 2) {
-      t <- as.vector(ps) * X %*% t(as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
+      t <- as.vector(ps) * Xb + y_rand - mean_nons
     }
     t
   }
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
-    if (!is.null(pop_totals)) h <- 1 # perhaps to remove, just check if appropriate var is calculated
+    # force h=1 if pop_totals available
+    if (!is.null(pop_totals)) h <- 1
+
+    # common terms
+    resid <- weights * (y - y_pred - h_n)
+    model_adj <- b %*% t(X)
+
+    # variance calculation based on h
     if (h == 2) {
-      var_nonprob <- 1 / N^2 * sum((1 - ps) * ((weights * (y - y_pred - h_n) / ps) - b %*% t(X))^2)
+      var_nonprob <- 1 / N^2 * sum((1 - ps) * (resid/ps - model_adj)^2)
     } else if (h == 1) {
-      var_nonprob <- 1 / N^2 * sum((1 - ps) * ((weights * (y - y_pred - h_n) - b %*% t(X)) / ps)^2)
+      var_nonprob <- 1 / N^2 * sum((1 - ps) * ((resid - model_adj)/ps)^2)
     }
     as.numeric(var_nonprob)
   }
@@ -79,13 +91,6 @@ gee <- function(...) {
 
     if (is.null(start)) {
       if (control_selection$start_type == "glm") {
-        # start <- start_fit(X = X, # <--- does not work with pop_totals
-        #                     R = R,
-        #                     weights = weights,
-        #                     weights_rand = weights_rand,
-        #                     method_selection = method_selection)
-
-        # TODO to test
         start_to_gee <- start_fit(
           X = X, # <--- does not work with pop_totals
           R = R,

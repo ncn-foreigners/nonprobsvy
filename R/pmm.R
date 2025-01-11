@@ -51,21 +51,7 @@ pmm_nonprobsvy <- function(outcome,
       )
     }
   )
-
-  # This is commented now because it is not needed
-  # model_nons <- nonprobMI_nn(data = glm_object$y_nons_pred,
-  #                            query = glm_object$y_nons_pred,
-  #                            k = control$k,
-  #                            treetype = control$treetype,
-  #                            searchtype = control$searchtype)
-  #
-  # y_nons_pred <- apply(model_nons$nn.idx, 1,
-  #                      FUN=\(x) mean(y_nons[x])
-  #                      #FUN=\(x) mean(sample_nonprob$short_[x])
-  # )
-
   # add protection for very low values in weighting
-  # TODO issue #52
   switch(control$predictive_match,
     { # 1
       if (is.null(pop_totals)) {
@@ -225,14 +211,10 @@ pmm_exact <- function(pi_ij,
         newdata = svydesign$variables,
         type = "response"
       )
-      # XX <- reg_object_boot$family$mu.eta(X_rand %*% reg_object_boot$coefficients)
-
       if (any(!is.finite(XX))) {
         reg_object_boot <- NULL
       }
     }
-
-    # TODO issue #52
     YY <- switch(predictive_match,
       {
         nonprobMI_nn(

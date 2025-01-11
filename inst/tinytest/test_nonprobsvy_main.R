@@ -1,5 +1,5 @@
 # Definition of data
-#library(survey)
+# library(survey)
 # library(dplyr)
 # data <- read.csv("test_data.csv")
 # data |>
@@ -21,6 +21,8 @@
 # write.csv(cbop_df, "cbop_df.csv")
 # write.csv(popyt_df, "popyt_df.csv")
 
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+
 popyt_df <- read.csv("popyt_df.csv")
 cbop_df <- read.csv("cbop_df.csv")
 
@@ -29,7 +31,7 @@ popyt_svy <- svydesign(ids=~1, strata = ~klasa_pr+sek+woj, weights = ~waga*wolne
                        data = popyt_df)
 cbop_df_long <- cbop_df[rep(1:nrow(cbop_df),cbop_df$wolne_miejsca_cbop), ]
 
-# IPW
+# # IPW
 expect_silent(
   test_ipw_1 <- nonprob(selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                       target = ~ jedna_zmiana ,
@@ -45,7 +47,7 @@ expect_equivalent(test_ipw_1$output$mean,
 expect_true(
   (test_ipw_1$confidence_interval[1] < 0.621989) & (0.621989 < test_ipw_1$confidence_interval[2])
 )
-
+#
 expect_silent(
   test_ipw_2 <- nonprob(selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                       target = ~ jedna_zmiana,
@@ -62,7 +64,7 @@ expect_true(
   (test_ipw_2$confidence_interval[1] < 0.621989) & (0.621989 < test_ipw_2$confidence_interval[2])
 )
 
-# SCAD
+# # SCAD
 expect_silent(
   test_ipw_1_scad <- nonprob(selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                         target = ~ jedna_zmiana ,
@@ -81,7 +83,7 @@ expect_true(
   (test_ipw_1_scad$confidence_interval[1] < 0.6219899) & (0.6219899 < test_ipw_1_scad$confidence_interval[2])
 )
 
-# LASSO
+# # LASSO
 expect_silent(
   test_ipw_1_lasso <- nonprob(selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                         target = ~ jedna_zmiana ,
@@ -167,7 +169,7 @@ expect_true(
   (test_dr_1_pmm$confidence_interval[1] < 0.6490007) &
     (0.6490007< test_dr_1_pmm$confidence_interval[2])
 )
-# NN
+# # NN
 test_dr_1_nn <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                      selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                      data = cbop_df_long,
@@ -201,7 +203,7 @@ expect_true(
     (0.6064716 < test_dr_1_bm$confidence_interval[2])
 )
 
-# SCAD
+# # SCAD
 expect_silent(
   test_dr_1_scad <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                        selection = ~ klasa_pr + sek + zawod_kod2 + woj,
@@ -428,3 +430,5 @@ expect_true(
   (test_mi_1_mcp$confidence_interval[1] < 0.6107926) &
     (0.6107926 < test_mi_1_mcp$confidence_interval[2])
 )
+
+}

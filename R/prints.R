@@ -115,11 +115,6 @@ print.summary_nonprobsvy <- function(x,
 
     cat("-------------------------\n\n")
 
-    cat("Covariate balance:\n")
-    print(x$est_totals - x$totals[which(!is.na(x$est_totals))])
-
-    cat("-------------------------\n\n")
-
     cat("Residuals:\n")
     print(summary(x$residuals$selection))
 
@@ -137,5 +132,22 @@ print.summary_nonprobsvy <- function(x,
 
   # cat("\nRegression diagnostics:") #TODO
 
+  invisible(x)
+}
+#' @method print nonprobsvycheck
+#' @exportS3Method
+print.nonprobsvycheck <- function(x, ...) {
+  cat("Balance check results:\n\n")
+
+  # Create a data frame for nice printing
+  results <- data.frame(
+    Variable = names(x$balance),
+    NonProb_Total = x$nonprob_totals,
+    Prob_Total = x$prob_totals[names(x$balance)],
+    Difference = x$balance,
+    row.names = NULL
+  )
+
+  print(results)
   invisible(x)
 }

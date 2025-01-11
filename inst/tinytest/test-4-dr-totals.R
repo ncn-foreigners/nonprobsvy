@@ -1,3 +1,4 @@
+if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
 # Load necessary libraries
 library(sampling)
 library(survey)
@@ -97,7 +98,7 @@ expect_true(y22_dr_corr_one$confidence_interval$lower_bound < mean(Y_22) &
 expect_silent(
   y11_dr_corr_all <- nonprob(
     selection = X_formula,
-    outcome = as.formula(paste('Y_11 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_11', as.character(X_formula))),,
     data = sample_B1,
     pop_totals = X_totals,
     method_selection = "logit",
@@ -115,7 +116,7 @@ expect_true(y11_dr_corr_all$confidence_interval$lower_bound < mean(Y_11) &
 expect_silent(
   y12_dr_corr_all <- nonprob(
     selection = X_formula,
-    outcome = as.formula(paste('Y_12 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_12', as.character(X_formula))),,
     data = sample_B1,
     pop_totals = X_totals,
     method_selection = "logit",
@@ -133,7 +134,7 @@ expect_true(y12_dr_corr_all$confidence_interval$lower_bound < mean(Y_12) &
 expect_silent(
   y21_dr_corr_all <- nonprob(
     selection = X_formula,
-    outcome = as.formula(paste('Y_21 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_21', as.character(X_formula))),,
     data = sample_B1,
     pop_totals = X_totals,
     method_selection = "logit",
@@ -152,7 +153,7 @@ expect_equal(y21_dr_corr_all$output$SE, 0.0192478, tolerance = 0.0001)
 expect_silent(
   y22_dr_corr_all <- nonprob(
     selection = X_formula,
-    outcome = as.formula(paste('Y_22 ~ ', as.character(X_formula)[2])),
+    outcome = as.formula(paste('Y_22', as.character(X_formula))),,
     data = sample_B1,
     pop_totals = X_totals,
     method_selection = "logit",
@@ -267,3 +268,4 @@ expect_equal(y22_dr_scad$output$SE, 0.01492712, tolerance = 0.0001)
 #               y22_dr_scad$confidence_interval$upper_bound > mean(Y_22))
 expect_true(NROW(y22_dr_scad$selection$coefficients) < 11)
 expect_true(NROW(y22_dr_scad$outcome$coefficients) < 11)
+}

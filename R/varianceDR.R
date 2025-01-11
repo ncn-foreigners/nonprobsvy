@@ -41,7 +41,6 @@ internal_varDR <- function(OutcomeModel,
     method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
     method <- get_method(method_selection)
     est_method <- get_method(est_method)
-    # psd <- method$make_link_inv_der(eta)
 
     b <- method$b_vec_dr(
       X = SelectionModel$X_nons,
@@ -72,7 +71,6 @@ internal_varDR <- function(OutcomeModel,
       pop_totals = pop_totals
     )
 
-
     if (is.null(pop_totals)) {
       t <- est_method$make_t(
         X = SelectionModel$X_rand,
@@ -96,7 +94,6 @@ internal_varDR <- function(OutcomeModel,
       var_prob <- 0
     }
   }
-
   list(
     var_prob = var_prob,
     var_nonprob = var_nonprob

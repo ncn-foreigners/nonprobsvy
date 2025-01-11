@@ -8,59 +8,6 @@ using namespace arma;
 using namespace std;
 //using namespace Eigen;
 
-// inline double loss_theta(const vec& par,
-//                          const vec& R,
-//                          const mat& X,
-//                          const vec& weights,
-//                          const std::string& method_selection,
-//                          const int& h,
-//                          const uvec& idx,
-//                          Nullable<arma::vec> pop_totals) { // TODO add weights
-//
-//   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-//
-//   Rcpp::Function get_method = nonprobsvy_env["get_method"];
-//   std::string method_selection_function = method_selection + "_model_nonprobsvy";
-//   List method = get_method(method_selection_function);
-//
-//   Function inv_link = method["make_link_inv"];
-//
-//   vec eta_pi = X * par;
-//   vec ps = as<vec>(inv_link(eta_pi));
-//   vec R_rand = 1 - R;
-//   arma::uvec loc_nons = find(R == 1);
-//   arma::uvec loc_rand = find(R == 0);
-//
-//   // Preallocate temporary matrix
-//   mat temp;
-//
-//   double N_nons = sum(1/ps);
-//   double N_rand = sum(weights);
-//
-//   // Calculate the loss using the appropriate method
-//   double loss;
-//   if (pop_totals.isNull()) {
-//     if (h == 1) {
-//       temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
-//       loss = dot(temp, temp);
-//     } else if (h == 2) {
-//       temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
-//       loss = dot(temp, temp);
-//     } else {
-//       loss = 0;
-//     }
-//   } else {
-//     // Create submatrices of X for each group
-//     mat X_nons = X(span(loc_nons), span::all);
-//     mat X_rand = X(span(loc_rand), span::all);
-//
-//     temp = X_nons.each_col() % (R(loc_nons) % weights(loc_nons) / ps(loc_nons) / N_nons);
-//     vec diff = sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_rand;
-//     loss = dot(diff, diff);
-//   }
-//   return loss;
-// }
-
 inline double loss_theta(const vec& par,
                          const vec& R,
                          const mat& X,
@@ -163,74 +110,6 @@ inline arma::vec u_theta(const arma::vec& par,
   return eq;
 }
 
-// arma::mat u_theta_der(const arma::vec& par,
-//                       const arma::vec& R,
-//                       const arma::mat& X,
-//                       const arma::vec& weights,
-//                       const std::string& method_selection,
-//                       const int& h,
-//                       Nullable<arma::vec> pop_totals,
-//                       Nullable<int> N = R_NilValue) { // TODO add weights
-//
-//   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-//
-//   Rcpp::Function get_method = nonprobsvy_env["get_method"];
-//   std::string method_selection_function = method_selection + "_model_nonprobsvy";
-//   List method = get_method(method_selection_function);
-//
-//   Function inv_link = method["make_link_inv"];
-//   Function inv_link_der = method["make_link_inv_der"];
-//
-//   //int p = X0.n_cols;
-//   arma::vec eta_pi = X * par;
-//   arma::vec ps = as<arma::vec>(inv_link(eta_pi));
-//   arma::vec R_rand = 1 - R;
-//   arma::vec psd;
-//
-//   if (method_selection == "probit") {
-//     inv_link_der = method["make_link_inv_der"];
-//     psd = as<arma::vec>(inv_link_der(eta_pi));
-//   }
-//
-//   //int n = X.n_rows;
-//   int p = X.n_cols;
-//   arma::mat mxDer(p, p, arma::fill::zeros);
-//   double N_nons = arma::accu(1/ps);
-//
-//   arma::mat temp;
-//   if (h == 1 || !pop_totals.isNull()) {
-//     if (method_selection == "logit") {
-//       temp = R * weights % (1-ps) / ps;
-//       mxDer = X.t() * (X.each_col() % temp);
-//     } else if (method_selection == "cloglog") {
-//       temp = R * weights % (1-ps) % exp(eta_pi) / pow(ps, 2);
-//       mxDer = X.t() * (X.each_col() % temp);
-//     } else if (method_selection == "probit") {
-//       temp = R * weights % psd / pow(ps, 2);
-//       mxDer = X.t() * (X.each_col() % temp);
-//     }
-//   } else if (h == 2) {
-//     if (method_selection == "logit") {
-//       temp = R_rand * weights % ps / (exp(eta_pi) + 1);
-//       mxDer = X.t() * (X.each_col() % temp);
-//     } else if (method_selection == "cloglog") {
-//       temp = R_rand * weights % (1-ps) % exp(eta_pi);
-//       mxDer = X.t() * (X.each_col() % temp);
-//     } else if (method_selection == "probit") {
-//       temp = R_rand * weights % psd;
-//       mxDer = X.t() * (X.each_col() % temp);
-//     }
-//     else {
-//       Rcpp::stop("Unknown method selection");
-//     }
-//   } else {
-//     Rcpp::stop("Unknown h selection");
-//   }
-//
-//   return mxDer / N_nons;
-//
-// }
-
 arma::mat u_theta_der(const arma::vec& par,
                       const arma::vec& R,
                       const arma::mat& X,
@@ -317,7 +196,6 @@ arma::mat u_theta_der(const arma::vec& par,
   }
 
   return mxDer / N_nons;
-
 }
 
 arma::vec q_lambda_cpp(const arma::vec& par,
@@ -367,33 +245,6 @@ arma::vec q_lambda_cpp(const arma::vec& par,
   }
   return penaltyd;
 }
-
-// works with lasso only
-// arma::vec q_lambda_cpp(const arma::vec& par, double lambda, const std::string& penalty, double a) {
-//   arma::vec penaltyd(par.size(), arma::fill::zeros);
-//
-//   if (penalty == "SCAD") {
-//     arma::uvec idx = arma::find(arma::abs(par) > 0);
-//     arma::vec abs_par_i = arma::abs(par(idx));
-//     arma::vec tmp = ((a * lambda) - abs_par_i) / (a - 1);
-//     arma::vec tmp2 = tmp % (tmp > 0);
-//     penaltyd(idx) = arma::join_cols(lambda * arma::ones<arma::vec>(idx.n_elem), tmp2);
-//   } else if (penalty == "lasso") {
-//     penaltyd = lambda * arma::sign(par);
-//   } else if (penalty == "MCP") {
-//     arma::uvec idx = arma::find(arma::abs(par) > 0);
-//     arma::vec abs_par_i = arma::abs(par(idx));
-//     arma::vec tmp = lambda - abs_par_i / a;
-//     arma::vec tmp2 = tmp % (tmp > 0);
-//     penaltyd(idx) = arma::join_cols(lambda * arma::ones<arma::vec>(idx.n_elem), tmp2);
-//   }
-//
-//   // No penalty on the intercept
-//   //penaltyd[0] = 0;
-//
-//   return penaltyd;
-// }
-
 
 // HybridNonLinearSolver (?)
 // pass by reference where possible to avoid unnecessary copying

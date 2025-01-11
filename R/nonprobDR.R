@@ -83,8 +83,6 @@ nonprobDR <- function(selection,
       data = data,
       svydesign = svydesign
     )
-    prob_totals <- svytotal(selection, svydesign)
-    prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
     # if (all(svydesign$prob) == 1) { # TODO
     #  if (!is.null(pop_size)) {
     #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
@@ -577,7 +575,6 @@ nonprobDR <- function(selection,
         }
         SelectionModel$total_names <- names(SelectionModel$pop_totals)
       }
-      prob_pop_totals <- SelectionModel$pop_totals
 
       if (is.null(start_selection)) {
         if (control_selection$start_type == "glm") {
@@ -848,8 +845,6 @@ nonprobDR <- function(selection,
   if (is.null(pop_size)) pop_size <- N_nons
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
-  est_totals <- colSums(SelectionModel$X_nons * as.vector(weights_nons))
-  names(prob_pop_totals) <- colnames(SelectionModel$X_nons)
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     stat
@@ -870,7 +865,6 @@ nonprobDR <- function(selection,
     aic = selection_model$aic,
     weights = as.vector(weights_nons),
     prior.weights = weights,
-    est_totals = est_totals,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
@@ -909,7 +903,6 @@ nonprobDR <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
-      pop_totals = prob_pop_totals,
       outcome = OutcomeList,
       selection = SelectionList,
       boot_sample = boot_sample,
@@ -917,16 +910,4 @@ nonprobDR <- function(selection,
     ),
     class = c("nonprobsvy", "nonprobsvy_dr")
   )
-}
-
-mu_hatDR <- function(y,
-                     y_nons,
-                     y_rand,
-                     weights,
-                     weights_nons,
-                     weights_rand,
-                     N_nons,
-                     N_rand) {
-  mu_hat <- 1 / N_nons * sum(weights * weights_nons * (y - y_nons)) + 1 / N_rand * sum(weights_rand * y_rand)
-  mu_hat
 }
