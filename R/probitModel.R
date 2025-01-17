@@ -15,6 +15,7 @@
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @keywords internal
 #' @export
 # must be exported to be visible in c++ script, to consider any other option
 probit_model_nonprobsvy <- function(...) {

@@ -1,6 +1,8 @@
 #' @title Control parameters for inference
-#' @description \code{controlInf} constructs a list with all necessary control parameters
+#'
+#' @description \code{control_inf} constructs a list with all necessary control parameters
 #' for statistical inference.
+#'
 #' @param vars_selection If `TRUE`, then variables selection model is used.
 #' @param var_method variance method.
 #' @param rep_type replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
@@ -36,7 +38,7 @@
 #'
 #' @export
 
-controlInf <- function(vars_selection = FALSE,
+control_inf <- function(vars_selection = FALSE,
                        var_method = c(
                          "analytic",
                          "bootstrap"

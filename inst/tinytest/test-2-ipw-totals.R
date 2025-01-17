@@ -208,8 +208,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -225,8 +225,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
@@ -242,8 +242,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
@@ -259,8 +259,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
@@ -278,8 +278,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                            data = sample_B1,
   #                            pop_totals = X_totals[1:11],
   #                            method_selection = "logit",
-  #                            control_inference = controlInf(vars_selection = TRUE),
-  #                            control_selection = controlSel(penalty = "lasso"))
+  #                            control_inference = control_inf(vars_selection = TRUE),
+  #                            control_selection = control_sel(penalty = "lasso"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -296,8 +296,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "logit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "MCP"))
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "MCP"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -314,8 +314,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "logit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "SCAD", nfolds = 5),
   #                             verbose = T)
   # )
 
@@ -517,8 +517,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
@@ -534,8 +534,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y12_corr_scad$output$mean, 5.796713, tolerance = 0.0001) ## true value for this sim
@@ -551,8 +551,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y21_corr_scad$output$mean, 0.6060074, tolerance = 0.0001) ## true value for this sim
@@ -568,8 +568,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "logit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y22_corr_scad$output$mean, 0.64707641, tolerance = 0.0001) ## true value for this sim
@@ -587,8 +587,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                            data = sample_B1,
   #                            pop_totals = X_totals[1:11],
   #                            method_selection = "logit",
-  #                            control_inference = controlInf(vars_selection = TRUE),
-  #                            control_selection = controlSel(penalty = "lasso"))
+  #                            control_inference = control_inf(vars_selection = TRUE),
+  #                            control_selection = control_sel(penalty = "lasso"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -605,8 +605,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "logit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "MCP"))
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "MCP"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -623,8 +623,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "logit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "SCAD", nfolds = 5),
   #                             verbose = T)
   # )
 
@@ -825,8 +825,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y11_corr_scad$output$mean, 3.0633399, tolerance = 0.0001) ## true value for this sim
@@ -842,8 +842,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y12_corr_scad$output$mean, 6.9420676, tolerance = 0.0001) ## true value for this sim
@@ -859,8 +859,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y21_corr_scad$output$mean, 0.78324543, tolerance = 0.0001) ## true value for this sim
@@ -876,8 +876,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y22_corr_scad$output$mean, 0.57672297, tolerance = 0.0001) ## true value for this sim
@@ -895,8 +895,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                            data = sample_B1,
   #                            pop_totals = X_totals[1:11],
   #                            method_selection = "probit",
-  #                            control_inference = controlInf(vars_selection = TRUE),
-  #                            control_selection = controlSel(penalty = "lasso"))
+  #                            control_inference = control_inf(vars_selection = TRUE),
+  #                            control_selection = control_sel(penalty = "lasso"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -913,8 +913,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "probit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "MCP"))
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "MCP"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -931,8 +931,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "probit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "SCAD", nfolds = 5),
   #                             verbose = T)
   # )
 
@@ -1133,8 +1133,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y11_corr_scad$output$mean, 1.8810431, tolerance = 0.0001) ## true value for this sim
@@ -1150,8 +1150,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y12_corr_scad$output$mean, 5.7967136, tolerance = 0.0001) ## true value for this sim
@@ -1167,8 +1167,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y21_corr_scad$output$mean, 0.60600756, tolerance = 0.0001) ## true value for this sim
@@ -1184,8 +1184,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "probit",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   expect_equal(y22_corr_scad$output$mean, 0.64707626, tolerance = 0.0001) ## true value for this sim
@@ -1203,8 +1203,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                            data = sample_B1,
   #                            pop_totals = X_totals[1:11],
   #                            method_selection = "probit",
-  #                            control_inference = controlInf(vars_selection = TRUE),
-  #                            control_selection = controlSel(penalty = "lasso"))
+  #                            control_inference = control_inf(vars_selection = TRUE),
+  #                            control_selection = control_sel(penalty = "lasso"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -1221,8 +1221,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "probit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "MCP"))
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "MCP"))
   # )
   #
   # expect_equal(y11_corr_lasso$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -1239,8 +1239,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
   #                             data = sample_B1,
   #                             pop_totals = X_totals[1:11],
   #                             method_selection = "probit",
-  #                             control_inference = controlInf(vars_selection = TRUE),
-  #                             control_selection = controlSel(penalty = "SCAD", nfolds = 5),
+  #                             control_inference = control_inf(vars_selection = TRUE),
+  #                             control_selection = control_sel(penalty = "SCAD", nfolds = 5),
   #                             verbose = T)
   # )
 
@@ -1439,8 +1439,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   # expect_equal(y11_corr_scad$output$mean, 3.063926, tolerance = 0.0001) ## true value for this sim
@@ -1456,8 +1456,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   # expect_equal(y12_corr_scad$output$mean, 6.9530644, tolerance = 0.0001) ## true value for this sim
@@ -1473,8 +1473,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   # expect_equal(y21_corr_scad$output$mean, 0.78264707, tolerance = 0.0001) ## true value for this sim
@@ -1490,8 +1490,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                              data = sample_B1,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
 
   # expect_equal(y22_corr_scad$output$mean, 0.57680653, tolerance = 0.0001) ## true value for this sim
@@ -1694,8 +1694,8 @@ expect_silent(
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
   #
   # expect_equal(y11_corr_scad$output$mean, 1.992688, tolerance = 0.0001) ## true value for this sim
@@ -1711,8 +1711,8 @@ expect_silent(
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
   #
   # expect_equal(y12_corr_scad$output$mean, 5.712705, tolerance = 0.0001) ## true value for this sim
@@ -1728,8 +1728,8 @@ expect_silent(
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
   #
   # expect_equal(y21_corr_scad$output$mean, 0.5955036, tolerance = 0.0001) ## true value for this sim
@@ -1745,8 +1745,8 @@ expect_silent(
                              data = sample_B2,
                              pop_totals = X_totals[1:11],
                              method_selection = "cloglog",
-                             control_inference = controlInf(vars_selection = TRUE),
-                             control_selection = controlSel(penalty = "SCAD", nfolds = 5))
+                             control_inference = control_inf(vars_selection = TRUE),
+                             control_selection = control_sel(penalty = "SCAD", nfolds = 5))
   )
   #
   # expect_equal(y22_corr_scad$output$mean, 0.621987, tolerance = 0.0001) ## true value for this sim

@@ -1,8 +1,6 @@
 #' @title Control parameters for selection model
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#' \loadmathjax
 #'
-#' @description \code{controlSel} constructs a list with all necessary control parameters
+#' @description \code{control_sel} constructs a list with all necessary control parameters
 #' for selection model.
 #'
 #'
@@ -48,7 +46,7 @@
 #'
 #' @export
 
-controlSel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
+control_sel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
                        epsilon = 1e-4,
                        maxit = 500,
                        trace = FALSE,

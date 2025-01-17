@@ -124,7 +124,7 @@ start_fit <- function(X,
                       weights,
                       weights_rand,
                       method_selection,
-                      control_selection = controlSel()) {
+                      control_selection = control_sel()) {
   weights_to_glm <- c(weights_rand, weights)
   start_model <- stats::glm.fit(
     x = X, # glm model for initial values in propensity score estimation
@@ -207,7 +207,7 @@ nonprobMI_fit <- function(outcome,
                           svydesign = NULL,
                           family_outcome = "gaussian",
                           start = NULL,
-                          control_outcome = controlOut(),
+                          control_outcome = control_out(),
                           verbose = FALSE,
                           model = TRUE,
                           x = FALSE,

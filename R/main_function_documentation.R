@@ -27,10 +27,10 @@ NULL
 #' @param method_selection a `character` with method for propensity scores estimation.
 #' @param method_outcome a `character` with method for response variable estimation.
 #' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
-#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process.
-#' @param strata an optional `vector` specifying strata.
+#' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process - not yet supported.
+#' @param strata an optional `vector` specifying strata - not yet supported.
 #' @param weights an optional `vector` of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.
-#' @param na_action a function which indicates what should happen when the data contain `NAs`.
+#' @param na_action a function which indicates what should happen when the data contain `NAs` - not yet supported.
 #' @param control_selection a `list` indicating parameters to use in fitting selection model for propensity scores.
 #' @param control_outcome a `list` indicating parameters to use in fitting model for outcome variable.
 #' @param control_inference a `list` indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.
@@ -153,7 +153,7 @@ NULL
 #'   }
 #'   where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
 #'   Details of penalization functions and techniques for solving this type of equation can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html).
-#'   To use the variable selection model, set the `vars_selection` parameter in the [controlInf()] function to `TRUE`. In addition, in the other control functions such as [controlSel()] and [controlOut()]
+#'   To use the variable selection model, set the `vars_selection` parameter in the [control_inf()] function to `TRUE`. In addition, in the other control functions such as [control_sel()] and [control_out()]
 #'   you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 #'   in the documentation of the control functions for `nonprob`.
 #'
@@ -194,7 +194,7 @@ NULL
 #'  \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
 #'  \item{\code{pop_totals} -- the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.}
 #'  \item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
-#'  [stats::glm()], in the case of the nearest neighbour imputation the object containing list returned by [RANN::nn2()]. If `bias_correction` in [controlInf()] is set to `TRUE`, the estimation is based on
+#'  [stats::glm()], in the case of the nearest neighbour imputation the object containing list returned by [RANN::nn2()]. If `bias_correction` in [control_inf()] is set to `TRUE`, the estimation is based on
 #'  the joint estimating equations for the `selection` and `outcome` model and therefore, the list is different from the one returned by the [stats::glm()] function and contains elements such as
 #'  \itemize{
 #'  \item{\code{coefficients} -- estimated coefficients of the regression model.}
@@ -244,7 +244,7 @@ NULL
 #'  }
 #'  \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
 #'                       Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
-#'                       [controlInf()] is set on `TRUE`.}
+#'                       [control_inf()] is set on `TRUE`.}
 #' }
 #' @seealso
 #' [stats::optim()] -- For more information on the \code{optim} function used in the
@@ -263,11 +263,11 @@ NULL
 #'
 #' [RANN::nn2()] -- For more information about the nearest neighbour algorithm used during mass imputation process.
 #'
-#' [controlSel()] -- For the control parameters related to selection model.
+#' [control_sel()] -- For the control parameters related to selection model.
 #'
-#' [controlOut()] -- For the control parameters related to outcome model.
+#' [control_out()] -- For the control parameters related to outcome model.
 #'
-#' [controlInf()] -- For the control parameters related to statistical inference.
+#' [control_inf()] -- For the control parameters related to statistical inference.
 
 #' @examples
 #' \donttest{

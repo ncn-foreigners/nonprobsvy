@@ -20,9 +20,9 @@ nonprob(
   strata = NULL,
   weights = NULL,
   na_action = NULL,
-  control_selection = controlSel(),
-  control_outcome = controlOut(),
-  control_inference = controlInf(),
+  control_selection = control_sel(),
+  control_outcome = control_out(),
+  control_inference = control_inf(),
   start_selection = NULL,
   start_outcome = NULL,
   verbose = FALSE,
@@ -55,13 +55,13 @@ nonprob(
 
 \item{family_outcome}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
 
-\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process.}
+\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process - not yet supported.}
 
-\item{strata}{an optional \code{vector} specifying strata.}
+\item{strata}{an optional \code{vector} specifying strata - not yet supported.}
 
 \item{weights}{an optional \code{vector} of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.}
 
-\item{na_action}{a function which indicates what should happen when the data contain \code{NAs}.}
+\item{na_action}{a function which indicates what should happen when the data contain \code{NAs} - not yet supported.}
 
 \item{control_selection}{a \code{list} indicating parameters to use in fitting selection model for propensity scores.}
 
@@ -103,7 +103,7 @@ with type \code{list} containing:\cr
 \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
 \item{\code{pop_totals} -- the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.}
 \item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
-\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set to \code{TRUE}, the estimation is based on
+\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=control_inf]{control_inf()}} is set to \code{TRUE}, the estimation is based on
 the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
 \itemize{
 \item{\code{coefficients} -- estimated coefficients of the regression model.}
@@ -153,7 +153,7 @@ when the propensity score model is fitting. Returned only if selection of variab
 }
 \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
 Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
-\code{\link[=controlInf]{controlInf()}} is set on \code{TRUE}.}
+\code{\link[=control_inf]{control_inf()}} is set on \code{TRUE}.}
 }
 }
 \description{
@@ -281,7 +281,7 @@ penalized estimating functions as
   }
 where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
 Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
-To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=controlInf]{controlInf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=controlSel]{controlSel()}} and \code{\link[=controlOut]{controlOut()}}
+To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=control_inf]{control_inf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=control_sel]{control_sel()}} and \code{\link[=control_out]{control_out()}}
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 in the documentation of the control functions for \code{nonprob}.
 }
@@ -393,11 +393,11 @@ estimation process of the bias minimization approach.
 
 \code{\link[RANN:nn2]{RANN::nn2()}} -- For more information about the nearest neighbour algorithm used during mass imputation process.
 
-\code{\link[=controlSel]{controlSel()}} -- For the control parameters related to selection model.
+\code{\link[=control_sel]{control_sel()}} -- For the control parameters related to selection model.
 
-\code{\link[=controlOut]{controlOut()}} -- For the control parameters related to outcome model.
+\code{\link[=control_out]{control_out()}} -- For the control parameters related to outcome model.
 
-\code{\link[=controlInf]{controlInf()}} -- For the control parameters related to statistical inference.
+\code{\link[=control_inf]{control_inf()}} -- For the control parameters related to statistical inference.
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz

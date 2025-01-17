@@ -260,7 +260,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -270,7 +270,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_selection = "logit",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -278,7 +278,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
     test3a_bootstrap <- nonprob(outcome = y1 ~ x,
                                 data = source_nonprob_p,
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
   expect_silent(
@@ -288,7 +288,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 method_selection = "logit",
                                 method_outcome = "nn",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -297,7 +297,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_outcome = "nn",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
   expect_silent(
@@ -307,7 +307,7 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 method_selection = "logit",
                                 method_outcome = "pmm",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1))
   )
 
 
@@ -316,8 +316,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_outcome = "pmm",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                control_outcome = controlOut(predictive_match = 1))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1),
+                                control_outcome = control_out(predictive_match = 1))
   )
 
   expect_silent(
@@ -325,8 +325,8 @@ if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")
                                 data = source_nonprob_p,
                                 method_outcome = "pmm",
                                 svydesign = svy_a,
-                                control_inference = controlInf(var_method = "bootstrap", cores = 1),
-                                control_outcome = controlOut(predictive_match = 2))
+                                control_inference = control_inf(var_method = "bootstrap", cores = 1),
+                                control_outcome = control_out(predictive_match = 2))
   )
 
 

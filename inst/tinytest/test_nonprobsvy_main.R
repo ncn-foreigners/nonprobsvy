@@ -71,8 +71,8 @@ expect_silent(
                         data = cbop_df_long,
                         svydesign = popyt_svy,
                         method_selection = "logit",
-                        control_inference = controlInf(vars_selection = TRUE),
-                        control_selection = controlSel(penalty = "SCAD"))
+                        control_inference = control_inf(vars_selection = TRUE),
+                        control_selection = control_sel(penalty = "SCAD"))
 )
 
 expect_equivalent(test_ipw_1_scad$output$mean,
@@ -90,8 +90,8 @@ expect_silent(
                         data = cbop_df_long,
                         svydesign = popyt_svy,
                         method_selection = "logit",
-                        control_inference = controlInf(vars_selection = TRUE),
-                        control_selection = controlSel(penalty = "lasso"))
+                        control_inference = control_inf(vars_selection = TRUE),
+                        control_selection = control_sel(penalty = "lasso"))
   )
 
   expect_equivalent(test_ipw_1_lasso$output$mean,
@@ -109,8 +109,8 @@ expect_silent(
                         data = cbop_df_long,
                         svydesign = popyt_svy,
                         method_selection = "logit",
-                        control_inference = controlInf(vars_selection = TRUE),
-                        control_selection = controlSel(penalty = "MCP"))
+                        control_inference = control_inf(vars_selection = TRUE),
+                        control_selection = control_sel(penalty = "MCP"))
 )
 
 expect_equivalent(test_ipw_1_mcp$output$mean,
@@ -143,7 +143,7 @@ test_dr_2 <- nonprob(selection = ~ klasa_pr,
                     outcome = jedna_zmiana ~ klasa_pr,
                     data = cbop_df,
                     pop_totals = pop_totals,
-                    control_inference = controlInf(var_method = "analytic")) # TODO warning to connected to algorithm convergence
+                    control_inference = control_inf(var_method = "analytic")) # TODO warning to connected to algorithm convergence
 
 expect_equivalent(test_dr_2$output$mean,
                   0.6747754,
@@ -191,7 +191,7 @@ expect_silent(
                        selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
-                       control_inference = controlInf(bias_correction = TRUE))
+                       control_inference = control_inf(bias_correction = TRUE))
 )
 
 expect_equivalent(test_dr_1_bm$output$mean,
@@ -209,9 +209,9 @@ expect_silent(
                        selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_selection = controlSel(penalty = "SCAD"),
-                       control_outcome = controlOut(penalty = "SCAD"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_selection = control_sel(penalty = "SCAD"),
+                       control_outcome = control_out(penalty = "SCAD"))
 )
 
 expect_equivalent(test_dr_1_scad$output$mean,
@@ -229,9 +229,9 @@ expect_silent(
                        selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_selection = controlSel(penalty = "lasso"),
-                       control_outcome = controlOut(penalty = "lasso"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_selection = control_sel(penalty = "lasso"),
+                       control_outcome = control_out(penalty = "lasso"))
 )
 
 expect_equivalent(test_dr_1_lasso$output$mean,
@@ -249,9 +249,9 @@ expect_silent(
                        selection = ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_selection = controlSel(penalty = "MCP"),
-                       control_outcome = controlOut(penalty = "MCP"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_selection = control_sel(penalty = "MCP"),
+                       control_outcome = control_out(penalty = "MCP"))
 )
 
 expect_equivalent(test_dr_1_mcp$output$mean,
@@ -334,14 +334,14 @@ test_mi_1_pmm_2 <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 
                      data = cbop_df_long,
                      svydesign = popyt_svy,
                      method_outcome = "pmm",
-                     control_outcome = controlOut(predictive_match = 2))
+                     control_outcome = control_out(predictive_match = 2))
 
 expect_silent(
   test_mi_1_pmm_2 <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
                        method_outcome = "pmm",
-                       control_outcome = controlOut(predictive_match = 2))
+                       control_outcome = control_out(predictive_match = 2))
 )
 
 expect_equivalent(test_mi_1_pmm_2$output$mean,
@@ -358,16 +358,16 @@ test_mi_1_scad <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 +
                      data = cbop_df_long,
                      svydesign = popyt_svy,
                      method_outcome = "glm",
-                     control_inference = controlInf(vars_selection = TRUE),
-                     control_outcome = controlOut(penalty = "SCAD"))
+                     control_inference = control_inf(vars_selection = TRUE),
+                     control_outcome = control_out(penalty = "SCAD"))
 
 expect_silent(
   test_mi_1_scad <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
                        method_outcome = "glm",
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_outcome = controlOut(penalty = "SCAD"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_outcome = control_out(penalty = "SCAD"))
 )
 
 expect_equivalent(test_mi_1_scad$output$mean,
@@ -384,16 +384,16 @@ test_mi_1_lasso <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 
                      data = cbop_df_long,
                      svydesign = popyt_svy,
                      method_outcome = "glm",
-                     control_inference = controlInf(vars_selection = TRUE),
-                     control_outcome = controlOut(penalty = "lasso"))
+                     control_inference = control_inf(vars_selection = TRUE),
+                     control_outcome = control_out(penalty = "lasso"))
 
 expect_silent(
   test_mi_1_lasso <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
                        method_outcome = "glm",
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_outcome = controlOut(penalty = "lasso"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_outcome = control_out(penalty = "lasso"))
 )
 
 expect_equivalent(test_mi_1_lasso$output$mean,
@@ -410,16 +410,16 @@ test_mi_1_mcp <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + 
                      data = cbop_df_long,
                      svydesign = popyt_svy,
                      method_outcome = "glm",
-                     control_inference = controlInf(vars_selection = TRUE),
-                     control_outcome = controlOut(penalty = "MCP"))
+                     control_inference = control_inf(vars_selection = TRUE),
+                     control_outcome = control_out(penalty = "MCP"))
 
 expect_silent(
   test_mi_1_mcp <- nonprob(outcome = jedna_zmiana ~ klasa_pr + sek + zawod_kod2 + woj,
                        data = cbop_df_long,
                        svydesign = popyt_svy,
                        method_outcome = "glm",
-                       control_inference = controlInf(vars_selection = TRUE),
-                       control_outcome = controlOut(penalty = "MCP"))
+                       control_inference = control_inf(vars_selection = TRUE),
+                       control_outcome = control_out(penalty = "MCP"))
 )
 
 expect_equivalent(test_mi_1_mcp$output$mean,

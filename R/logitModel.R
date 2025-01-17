@@ -18,6 +18,7 @@
 #' @importFrom stats qlogis
 #'
 #'
+#' @keywords internal
 #' @export
 # must be exported to be visible in c++ script, to consider any other option
 logit_model_nonprobsvy <- function(...) {

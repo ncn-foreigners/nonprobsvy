@@ -1,6 +1,8 @@
 #' @title Control parameters for outcome model
-#' @description \code{controlOut} constructs a list with all necessary control parameters
+#'
+#' @description \code{control_out} constructs a list with all necessary control parameters
 #' for outcome model.
+#'
 #' @param epsilon Tolerance for fitting algorithms. Default is \code{1e-6}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.
@@ -44,7 +46,7 @@
 #'
 #' @export
 
-controlOut <- function(epsilon = 1e-4,
+control_out <- function(epsilon = 1e-4,
                        maxit = 100,
                        trace = FALSE,
                        k = 1,
