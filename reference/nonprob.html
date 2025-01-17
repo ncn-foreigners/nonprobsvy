@@ -42,7 +42,7 @@ The package uses survey package functionality when a probability sample is avail
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Inference with the non-probability survey samples</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/main_function_documentation.R" class="external-link"><code>R/main_function_documentation.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/main_function_documentation.R" class="external-link"><code>R/main_function_documentation.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a></small>
       <div class="d-none name"><code>nonprob.Rd</code></div>
     </div>
 
@@ -75,9 +75,9 @@ The package uses <code>survey</code> package functionality when a probability sa
 <span>  strata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  na_action <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  control_selection <span class="op">=</span> <span class="fu"><a href="controlSel.html">controlSel</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  control_outcome <span class="op">=</span> <span class="fu"><a href="controlOut.html">controlOut</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="controlInf.html">controlInf</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  control_selection <span class="op">=</span> <span class="fu"><a href="control_sel.html">control_sel</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  control_outcome <span class="op">=</span> <span class="fu"><a href="control_out.html">control_out</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  control_inference <span class="op">=</span> <span class="fu"><a href="control_inf.html">control_inf</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  start_selection <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  start_outcome <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -137,11 +137,11 @@ The package uses <code>survey</code> package functionality when a probability sa
 
 
 <dt id="arg-subset">subset<a class="anchor" aria-label="anchor" href="#arg-subset"></a></dt>
-<dd><p>an optional <code>vector</code> specifying a subset of observations to be used in the fitting process.</p></dd>
+<dd><p>an optional <code>vector</code> specifying a subset of observations to be used in the fitting process - not yet supported.</p></dd>
 
 
 <dt id="arg-strata">strata<a class="anchor" aria-label="anchor" href="#arg-strata"></a></dt>
-<dd><p>an optional <code>vector</code> specifying strata.</p></dd>
+<dd><p>an optional <code>vector</code> specifying strata - not yet supported.</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
@@ -149,7 +149,7 @@ The package uses <code>survey</code> package functionality when a probability sa
 
 
 <dt id="arg-na-action">na_action<a class="anchor" aria-label="anchor" href="#arg-na-action"></a></dt>
-<dd><p>a function which indicates what should happen when the data contain <code>NAs</code>.</p></dd>
+<dd><p>a function which indicates what should happen when the data contain <code>NAs</code> - not yet supported.</p></dd>
 
 
 <dt id="arg-control-selection">control_selection<a class="anchor" aria-label="anchor" href="#arg-control-selection"></a></dt>
@@ -211,7 +211,7 @@ with type <code>list</code> containing:<br></p><ul><li><p><code>X</code> – mod
 <li><p><code>pop_size</code> – estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).</p></li>
 <li><p><code>pop_totals</code> – the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.</p></li>
 <li><p><code>outcome</code> – list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
-<code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code>, in the case of the nearest neighbour imputation the object containing list returned by <code><a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2()</a></code>. If <code>bias_correction</code> in <code><a href="controlInf.html">controlInf()</a></code> is set to <code>TRUE</code>, the estimation is based on
+<code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code>, in the case of the nearest neighbour imputation the object containing list returned by <code><a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2()</a></code>. If <code>bias_correction</code> in <code><a href="control_inf.html">control_inf()</a></code> is set to <code>TRUE</code>, the estimation is based on
 the joint estimating equations for the <code>selection</code> and <code>outcome</code> model and therefore, the list is different from the one returned by the <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code> function and contains elements such as
 </p><ul><li><p><code>coefficients</code> – estimated coefficients of the regression model.</p></li>
 <li><p><code>std_err</code> – standard errors of the estimated coefficients.</p></li>
@@ -256,7 +256,7 @@ when the propensity score model is fitting. Returned only if selection of variab
 </ul></li>
 <li><p><code>stat</code> – matrix of the estimated population means in each bootstrap iteration.
 Returned only if a bootstrap method is used to estimate the variance and <code>keep_boot</code> in
-<code><a href="controlInf.html">controlInf()</a></code> is set on <code>TRUE</code>.</p></li>
+<code><a href="control_inf.html">control_inf()</a></code> is set on <code>TRUE</code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -360,7 +360,7 @@ penalized estimating functions as
 
 where _ and q__ are some smooth functions. We let q_ (x) =  p_ x, where p_ is some penalization function.
 Details of penalization functions and techniques for solving this type of equation can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html">here</a>.
-To use the variable selection model, set the <code>vars_selection</code> parameter in the <code><a href="controlInf.html">controlInf()</a></code> function to <code>TRUE</code>. In addition, in the other control functions such as <code><a href="controlSel.html">controlSel()</a></code> and <code><a href="controlOut.html">controlOut()</a></code>
+To use the variable selection model, set the <code>vars_selection</code> parameter in the <code><a href="control_inf.html">control_inf()</a></code> function to <code>TRUE</code>. In addition, in the other control functions such as <code><a href="control_sel.html">control_sel()</a></code> and <code><a href="control_out.html">control_out()</a></code>
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 in the documentation of the control functions for <code>nonprob</code>.</p>
     </div>
@@ -390,9 +390,9 @@ variable selection for the outcome model.</p>
 estimation process of the bias minimization approach.</p>
 <p><code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">stats::glm()</a></code> – For more information about the generalised linear models used during mass imputation process.</p>
 <p><code><a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2()</a></code> – For more information about the nearest neighbour algorithm used during mass imputation process.</p>
-<p><code><a href="controlSel.html">controlSel()</a></code> – For the control parameters related to selection model.</p>
-<p><code><a href="controlOut.html">controlOut()</a></code> – For the control parameters related to outcome model.</p>
-<p><code><a href="controlInf.html">controlInf()</a></code> – For the control parameters related to statistical inference.</p></div>
+<p><code><a href="control_sel.html">control_sel()</a></code> – For the control parameters related to selection model.</p>
+<p><code><a href="control_out.html">control_out()</a></code> – For the control parameters related to outcome model.</p>
+<p><code><a href="control_inf.html">control_inf()</a></code> – For the control parameters related to statistical inference.</p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

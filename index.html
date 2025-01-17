@@ -237,7 +237,7 @@ Inverse probability weighting with calibration constraint
 <span>                 <span class="va">...</span>, </span>
 <span>                 xk <span class="op">=</span> <span class="va">tau_xk</span><span class="op">)</span>, </span>
 <span>  method_selection <span class="op">=</span> <span class="st">"logit"</span>, </span>
-<span>  control_selection <span class="op">=</span> <span class="fu"><a href="reference/controlSel.html">controlSel</a></span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  control_selection <span class="op">=</span> <span class="fu">controlSel</span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </td>
 </tr>
@@ -338,8 +338,8 @@ Mass imputation based on regression imputation with variable selection (LASSO)
 <span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
 <span>  method_outcome <span class="op">=</span> <span class="st">"pmm"</span>, </span>
 <span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_outcome <span class="op">=</span> <span class="fu"><a href="reference/controlOut.html">controlOut</a></span><span class="op">(</span>penalty <span class="op">=</span> <span class="st">"lasso"</span><span class="op">)</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  control_outcome <span class="op">=</span> <span class="fu">controlOut</span><span class="op">(</span>penalty <span class="op">=</span> <span class="st">"lasso"</span><span class="op">)</span>, </span>
+<span>  control_inference <span class="op">=</span> <span class="fu">controlInf</span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </td>
 </tr>
@@ -372,7 +372,7 @@ Inverse probability weighting with calibration constraint
 <span>  data <span class="op">=</span> <span class="va">nonprob</span>, </span>
 <span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
 <span>  method_selection <span class="op">=</span> <span class="st">"logit"</span>, </span>
-<span>  control_selection <span class="op">=</span> <span class="fu"><a href="reference/controlSel.html">controlSel</a></span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>  control_selection <span class="op">=</span> <span class="fu">controlSel</span><span class="op">(</span>est_method_sel <span class="op">=</span> <span class="st">"gee"</span>, h <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </td>
 </tr>
@@ -390,7 +390,7 @@ Inverse probability weighting with calibration constraint with variable selectio
 <span>  svydesign <span class="op">=</span> <span class="va">prob</span>, </span>
 <span>  method_outcome <span class="op">=</span> <span class="st">"pmm"</span>, </span>
 <span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  control_inference <span class="op">=</span> <span class="fu">controlInf</span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </td>
 </tr>
@@ -425,7 +425,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span>  svydesign <span class="op">=</span> <span class="va">prob</span>,</span>
 <span>  method_outcome <span class="op">=</span> <span class="st">"glm"</span>, </span>
 <span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>, </span>
-<span>  control_inference <span class="op">=</span> <span class="fu"><a href="reference/controlInf.html">controlInf</a></span><span class="op">(</span></span>
+<span>  control_inference <span class="op">=</span> <span class="fu">controlInf</span><span class="op">(</span></span>
 <span>    vars_selection <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>    bias_correction <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span>

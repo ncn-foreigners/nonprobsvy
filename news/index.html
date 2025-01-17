@@ -28,7 +28,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
@@ -37,10 +37,15 @@
 <h4 id="features-0-1-2">Features<a class="anchor" aria-label="anchor" href="#features-0-1-2"></a></h4>
 <ul><li>two additional datasets have been included: <code>jvs</code> (Job Vacancy Survey; a probability sample survey) and <code>admin</code> (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.</li>
 <li>a <code>nonprobsvycheck</code> function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.</li>
+<li>Important - the functions <code>controlSel</code>, <code>controlOut</code> and <code>controlInf</code> have been replaced by their counterparts <code>control_sel</code>, <code>control_out</code> and <code>control_inf</code>.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="bugfixes-0-1-2">Bugfixes<a class="anchor" aria-label="anchor" href="#bugfixes-0-1-2"></a></h4>
 <ul><li>basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="documentation-0-1-2">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-2"></a></h4>
+<ul><li>annotation has been added that arguments such as <code>strata</code>, <code>subset</code> and <code>na_action</code> are not supported for the time being.</li>
 </ul></div>
 </div>
     <div class="section level2">
