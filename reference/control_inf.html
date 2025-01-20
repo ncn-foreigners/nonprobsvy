@@ -62,59 +62,59 @@ for statistical inference.</p>
 
 
 <dl><dt id="arg-vars-selection">vars_selection<a class="anchor" aria-label="anchor" href="#arg-vars-selection"></a></dt>
-<dd><p>If <code>TRUE</code>, then variables selection model is used.</p></dd>
+<dd><p>If <code>TRUE</code>, then the variables selection model is used.</p></dd>
 
 
 <dt id="arg-var-method">var_method<a class="anchor" aria-label="anchor" href="#arg-var-method"></a></dt>
-<dd><p>variance method.</p></dd>
+<dd><p>the variance method.</p></dd>
 
 
 <dt id="arg-rep-type">rep_type<a class="anchor" aria-label="anchor" href="#arg-rep-type"></a></dt>
-<dd><p>replication type for weights in the bootstrap method for variance estimation passed to <code><a href="https://rdrr.io/pkg/survey/man/as.svrepdesign.html" class="external-link">survey::as.svrepdesign()</a></code>.
+<dd><p>the replication type for weights in the bootstrap method for variance estimation passed to <code><a href="https://rdrr.io/pkg/survey/man/as.svrepdesign.html" class="external-link">survey::as.svrepdesign()</a></code>.
 Default is <code>subbootstrap</code>.</p></dd>
 
 
 <dt id="arg-bias-inf">bias_inf<a class="anchor" aria-label="anchor" href="#arg-bias-inf"></a></dt>
-<dd><p>inference method in the bias minimization.</p><ul><li><p>if <code>union</code> then final model is fitting on union of selected variables for selection and outcome models</p></li>
-<li><p>if <code>div</code> then final model is fitting separately on division of selected variables into relevant ones for
+<dd><p>the inference method in the bias minimization.</p><ul><li><p>if <code>union</code>, then the final model is fitted on the union of selected variables for selection and outcome models</p></li>
+<li><p>if <code>div</code>, then the final model is fitted separately on division of selected variables into relevant ones for
 selection and outcome model.</p></li>
 </ul></dd>
 
 
 <dt id="arg-num-boot">num_boot<a class="anchor" aria-label="anchor" href="#arg-num-boot"></a></dt>
-<dd><p>number of iteration for bootstrap algorithms.</p></dd>
+<dd><p>the number of iteration for bootstrap algorithms.</p></dd>
 
 
 <dt id="arg-bias-correction">bias_correction<a class="anchor" aria-label="anchor" href="#arg-bias-correction"></a></dt>
-<dd><p>if <code>TRUE</code>, then bias minimization estimation used during fitting the model.</p></dd>
+<dd><p>if <code>TRUE</code>, then the bias minimization estimation used during model fitting.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>Significance level, Default is 0.05.</p></dd>
+<dd><p>significance level, 0.05 by defult.</p></dd>
 
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
-<dd><p>Number of cores in parallel computing.</p></dd>
+<dd><p>the number of cores in parallel computing.</p></dd>
 
 
 <dt id="arg-keep-boot">keep_boot<a class="anchor" aria-label="anchor" href="#arg-keep-boot"></a></dt>
-<dd><p>Logical indicating whether statistics from bootstrap should be kept.
+<dd><p>a logical value indicating whether statistics from bootstrap should be kept.
 By default set to <code>TRUE</code></p></dd>
 
 
 <dt id="arg-nn-exact-se">nn_exact_se<a class="anchor" aria-label="anchor" href="#arg-nn-exact-se"></a></dt>
-<dd><p>Logical value indicating whether to compute the exact
+<dd><p>a logical value indicating whether to compute the exact
 standard error estimate for <code>nn</code> or <code>pmm</code> estimator. The variance estimator for
 estimation based on <code>nn</code> or <code>pmm</code> can be decomposed into three parts, with the
-third being computed using covariance between imputed values for units in
-probability sample using predictive matches from non-probability sample.
+third computed using covariance between imputed values for units in
+the probability sample using predictive matches from the non-probability sample.
 In most situations this term is negligible and is very computationally
-expensive so by default this is set to <code>FALSE</code>, but it is recommended to
-set this value to <code>TRUE</code> before submitting final results.</p></dd>
+expensive so by default it is set to <code>FALSE</code>, but the recommended option is to
+set this value to <code>TRUE</code> before submitting the final results.</p></dd>
 
 
 <dt id="arg-pi-ij">pi_ij<a class="anchor" aria-label="anchor" href="#arg-pi-ij"></a></dt>
-<dd><p>TODO, either matrix or <code>ppsmat</code> class object.</p></dd>
+<dd><p>TODO, either a matrix or a <code>ppsmat</code> class object.</p></dd>
 
 </dl></div>
     <div class="section level2">
