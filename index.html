@@ -62,7 +62,7 @@
 <p>The goal of this package is to provide R users access to modern methods for non-probability samples when auxiliary information from the population or probability sample is available:</p>
 <ul>
 <li>inverse probability weighting estimators with possible calibration constraints (<a href="#ref-chen2020">Chen, Li, and Wu 2020</a>),</li>
-<li>mass imputation estimators based in nearest neighbours (<a href="#ref-yang2021">Yang, Kim, and Hwang 2021</a>), predictive mean matching and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
+<li>mass imputation estimators based on nearest neighbours (<a href="#ref-yang2021">Yang, Kim, and Hwang 2021</a>), predictive mean matching and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
 <li>doubly robust estimators with bias minimization Yang, Kim, and Song (<a href="#ref-yang2020">2020</a>).</li>
 </ul>
 <p>The package allows for:</p>
@@ -72,10 +72,10 @@
 <li>integration with the <code>survey</code> package when probability sample is available Lumley (<a href="#ref-Lumley2023">2023</a>),</li>
 <li>different links for selection (<code>logit</code>, <code>probit</code> and <code>cloglog</code>) and outcome (<code>gaussian</code>, <code>binomial</code> and <code>poisson</code>) variables.</li>
 </ul>
-<p>Details on use of the package be found:</p>
+<p>Details on the use of the package can be found:</p>
 <ul>
-<li>on the draft (and not proofread) version the book <a href="https://ncn-foreigners.github.io/nonprobsvy-book/">Modern inference methods for non-probability samples with R</a>,</li>
-<li>example codes that reproduce papers are available at github in the repository <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link">software tutorials</a>.</li>
+<li>in the draft (and not proofread) version of the book <a href="https://ncn-foreigners.github.io/nonprobsvy-book/">Modern inference methods for non-probability samples with R</a>,</li>
+<li>in example codes that reproduce papers available on github in the repository <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link">software tutorials</a>.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -581,13 +581,13 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;     target = ~y1, svydesign = sample_prob)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; Estimated population mean: 2.925 with overall std.err of: 0.05</span></span>
+<span><span class="co">#&gt; Estimated population mean: 2.925 with overall std.err of: 0.04999</span></span>
 <span><span class="co">#&gt; And std.err for nonprobability and probability samples being respectively:</span></span>
-<span><span class="co">#&gt; 0.001586 and 0.04997</span></span>
+<span><span class="co">#&gt; 0.001325 and 0.04997</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; 95% Confidence inverval for popualtion mean:</span></span>
 <span><span class="co">#&gt;    lower_bound upper_bound</span></span>
-<span><span class="co">#&gt; y1     2.82679    3.022776</span></span>
+<span><span class="co">#&gt; y1    2.826805    3.022761</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Based on: Inverse probability weighted method</span></span>

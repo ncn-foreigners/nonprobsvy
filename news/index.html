@@ -58,13 +58,13 @@
 </ul></div>
 <div class="section level4">
 <h4 id="features-0-1-1">Features<a class="anchor" aria-label="anchor" href="#features-0-1-1"></a></h4>
-<ul><li>add information to <code>summary</code> about quality of estimation basing on difference between estimated and known total values of auxiliary variables</li>
-<li>add estimation of exact standard error for k-nearest neighbor estimator.</li>
-<li>add breaking change to <code>controlOut</code> function by switching values for <code>predictive_match</code> argument. From now on, the <code>predictive_match = 1</code> means <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\hat{y}-\hat{y}</annotation></semantics></math> in predictive mean matching imputation and <code>predictive_match = 2</code> corresponds to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">\hat{y}-y</annotation></semantics></math> matching.</li>
-<li>implement <code>div</code> option when variable selection (more in documentation) for doubly robust estimation.</li>
-<li>add more insights to <code>nonprob</code> output such as gradient, hessian and jacobian derived from IPW estimation for <code>mle</code> and <code>gee</code> methods when <code>IPW</code> or <code>DR</code> model executed.</li>
-<li>add estimated inclusion probabilities and its derivatives for probability and non-probability samples to <code>nonprob</code> output when <code>IPW</code> or <code>DR</code> model executed.</li>
-<li>add <code>model_frame</code> matrix data from probability sample used for mass imputation to <code>nonprob</code> when <code>MI</code> or <code>DR</code> model executed.</li>
+<ul><li>added information to <code>summary</code> about quality of estimation basing on difference between estimated and known total values of auxiliary variables</li>
+<li>added estimation of exact standard error for k-nearest neighbor estimator.</li>
+<li>added breaking change to <code>controlOut</code> function by switching values for <code>predictive_match</code> argument. From now on, the <code>predictive_match = 1</code> means <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\hat{y}-\hat{y}</annotation></semantics></math> in predictive mean matching imputation and <code>predictive_match = 2</code> corresponds to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">\hat{y}-y</annotation></semantics></math> matching.</li>
+<li>implemented <code>div</code> option when variable selection (more in documentation) for doubly robust estimation.</li>
+<li>added more insights to <code>nonprob</code> output such as gradient, hessian and jacobian derived from IPW estimation for <code>mle</code> and <code>gee</code> methods when <code>IPW</code> or <code>DR</code> model executed.</li>
+<li>added estimated inclusion probabilities and its derivatives for probability and non-probability samples to <code>nonprob</code> output when <code>IPW</code> or <code>DR</code> model executed.</li>
+<li>added <code>model_frame</code> matrix data from probability sample used for mass imputation to <code>nonprob</code> when <code>MI</code> or <code>DR</code> model executed.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="unit-tests-0-1-1">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-1"></a></h4>
