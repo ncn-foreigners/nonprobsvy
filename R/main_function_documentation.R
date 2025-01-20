@@ -104,7 +104,7 @@ NULL
 #'    Using the imputed values for the probability sample and the (known) design weights,
 #'    we can build a population mean estimator of the form:
 #'    \mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
-#'    It opens the the door to a very flexible method for imputation models. The package uses generalized linear models from [stats::glm()],
+#'    It opens the door to a very flexible method for imputation models. The package uses generalized linear models from [stats::glm()],
 #'    the nearest neighbour algorithm using [RANN::nn2()] and predictive mean matching.
 #'
 #' 3. Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.

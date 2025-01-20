@@ -57,10 +57,10 @@ mm <- function(X,
       "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
       "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable new point when fitting selection model by nleqslv."),
       "4" = warning("Iteration limit exceeded when fitting selection model by nleqslv."),
-      "5" = warning("ill-conditioned Jacobian when fitting selection model by nleqslv."),
+      "5" = warning("Ill-conditioned Jacobian when fitting selection model by nleqslv."),
       "6" = warning("Jacobian is singular when fitting selection model by nleqslv."),
       "7" = warning("Jacobian is unusable when fitting selection model by nleqslv."),
-      "-10" = warning("user specified Jacobian is incorrect when fitting selection model by nleqslv.")
+      "-10" = warning("User specified Jacobian is incorrect when fitting selection model by nleqslv.")
     )
   }
 

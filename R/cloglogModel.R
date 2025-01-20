@@ -154,9 +154,9 @@ cloglog_model_nonprobsvy <- function(...) {
       if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
         switch(as.character(maxLik_an$convergence),
           "1" = warning("Warning in fitting selection model with optim: the iteration limit maxit had been reached."),
-          "10" = warning("degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
-          "51" = warning("warning from the L BFGS B when fitting by optim."), # TODO -
-          "52" = stop("indicates an error from the L-BFGS-B method when fitting by optim.")
+          "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
+          "51" = warning("Warning from the L BFGS B when fitting by optim."), # TODO -
+          "52" = stop("Indicates an error from the L-BFGS-B method when fitting by optim.")
         )
       }
       theta <- maxLik_an$par

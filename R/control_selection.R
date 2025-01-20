@@ -20,7 +20,7 @@
 #'   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
 #'   \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
 #'   }
-#' @param penalty The penanlization function used during variables selection.
+#' @param penalty The penalization function used during variables selection.
 #' @param a_SCAD The tuning parameter of the SCAD penalty for selection model. Default is 3.7.
 #' @param a_MCP The tuning parameter of the MCP penalty for selection model. Default is 3.
 #' @param lambda A user-specified \mjseqn{\lambda} value during variable selection model fitting.

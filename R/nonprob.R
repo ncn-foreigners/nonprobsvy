@@ -51,7 +51,7 @@ nonprob <- function(data,
   if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
   if (!is.null(control_selection$key)) {
     if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
-      stop("key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
+      stop("Key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
     }
   }
 

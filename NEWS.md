@@ -24,13 +24,13 @@
 - bug Fix related to storing `vector` in `model_frame` when predicting `y_hat` in mass imputation `glm` model when X is based in one auxiliary variable only - fix provided converting it to `data.frame` object.
     
 ### Features
-- add information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
-- add estimation of exact standard error for k-nearest neighbor estimator.
-- add breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
-- implement `div` option when variable selection (more in documentation) for doubly robust estimation.
-- add more insights to `nonprob` output such as gradient, hessian and jacobian derived from IPW estimation for `mle` and `gee` methods when `IPW` or `DR` model executed.
-- add estimated inclusion probabilities and its derivatives for probability and non-probability samples to `nonprob` output when `IPW` or `DR` model executed.
-- add `model_frame` matrix data from probability sample used for mass imputation to `nonprob` when `MI` or `DR` model executed.
+- added information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
+- added estimation of exact standard error for k-nearest neighbor estimator.
+- added breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
+- implemented `div` option when variable selection (more in documentation) for doubly robust estimation.
+- added more insights to `nonprob` output such as gradient, hessian and jacobian derived from IPW estimation for `mle` and `gee` methods when `IPW` or `DR` model executed.
+- added estimated inclusion probabilities and its derivatives for probability and non-probability samples to `nonprob` output when `IPW` or `DR` model executed.
+- added `model_frame` matrix data from probability sample used for mass imputation to `nonprob` when `MI` or `DR` model executed.
 
 ### Unit tests
 - added unit tests for variable selection models and mi estimation with vector of population totals available
