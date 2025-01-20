@@ -1,10 +1,10 @@
 #' @import mathjaxr
 NULL
-#' @title Inference with the non-probability survey samples
+#' @title Inference with non-probability survey samples
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
 #' \loadmathjax
-#' @description \code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
+#' @description \code{nonprob} fits a model for inference based on non-probability surveys (including big data) using various methods.
 #' The function allows you to estimate the population mean with access to a reference probability sample, as well as sums and means of covariates.
 #'
 #' The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
@@ -13,32 +13,32 @@ NULL
 #' It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
 #' doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
 #' variable selection.
-#' The package uses `survey` package functionality when a probability sample is available.
+#' The package uses the `survey` package functionality when a probability sample is available.
 #'
 #'
-#' @param data `data.frame` with data from the non-probability sample.
-#' @param selection `formula`, the selection (propensity) equation.
-#' @param outcome `formula`, the outcome equation.
-#' @param target `formula` with target variables.
-#' @param svydesign an optional `svydesign` object (from the survey package) containing probability sample and design weights.
+#' @param data a `data.frame` with data from the non-probability sample.
+#' @param selection a `formula`, the selection (propensity) equation.
+#' @param outcome a `formula`, the outcome equation.
+#' @param target a `formula` with target variables.
+#' @param svydesign an optional `svydesign` object (from the survey package) containing a probability sample and design weights.
 #' @param pop_totals an optional `named vector` with population totals of the covariates.
 #' @param pop_means an optional `named vector` with population means of the covariates.
-#' @param pop_size an optional `double` with population size.
-#' @param method_selection a `character` with method for propensity scores estimation.
-#' @param method_outcome a `character` with method for response variable estimation.
-#' @param family_outcome a `character` string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.
+#' @param pop_size an optional `double` value with population size.
+#' @param method_selection a `character` indicating the method for propensity scores estimation.
+#' @param method_outcome a `character` indicating the method for response variable estimation.
+#' @param family_outcome a `character` string describing the error distribution and the link function to be used in the model, set to `gaussian` by default. Currently supports: gaussian with identity link, poisson and binomial.
 #' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process - not yet supported.
 #' @param strata an optional `vector` specifying strata - not yet supported.
 #' @param weights an optional `vector` of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.
 #' @param na_action a function which indicates what should happen when the data contain `NAs` - not yet supported.
-#' @param control_selection a `list` indicating parameters to use in fitting selection model for propensity scores.
-#' @param control_outcome a `list` indicating parameters to use in fitting model for outcome variable.
-#' @param control_inference a `list` indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.
+#' @param control_selection a `list` indicating parameters to be used when fitting the selection model for propensity scores.
+#' @param control_outcome a `list` indicating parameters to be used when fitting the model for the outcome variable.
+#' @param control_inference a `list` indicating parameters to be used for inference based on probability and non-probability samples, contains parameters such as the estimation method or the variance method.
 #' @param start_selection an optional `vector` with starting values for the parameters of the selection equation.
 #' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation.
 #' @param verbose verbose, numeric.
-#' @param x Logical value indicating whether to return model matrix of covariates as a part of output.
-#' @param y Logical value indicating whether to return vector of outcome variable as a part of output.
+#' @param x a logical value indicating whether to return model matrix of covariates as a part of the output.
+#' @param y a logical value indicating whether to return vector of the outcome variable as a part of the output.
 #' @param se Logical value indicating whether to calculate and return standard error of estimated mean.
 #' @param ... Additional, optional arguments.
 #'

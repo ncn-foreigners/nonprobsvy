@@ -3,31 +3,31 @@
 #' @description \code{control_inf} constructs a list with all necessary control parameters
 #' for statistical inference.
 #'
-#' @param vars_selection If `TRUE`, then variables selection model is used.
-#' @param var_method variance method.
-#' @param rep_type replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
+#' @param vars_selection If `TRUE`, then the variables selection model is used.
+#' @param var_method the variance method.
+#' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `subbootstrap`.
-#' @param bias_inf inference method in the bias minimization.
+#' @param bias_inf the inference method in the bias minimization.
 #' \itemize{
-#'   \item if \code{union} then final model is fitting on union of selected variables for selection and outcome models
-#'   \item if \code{div} then final model is fitting separately on division of selected variables into relevant ones for
+#'   \item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
+#'   \item if \code{div}, then the final model is fitted separately on division of selected variables into relevant ones for
 #'   selection and outcome model.
 #'   }
-#' @param bias_correction if `TRUE`, then bias minimization estimation used during fitting the model.
-#' @param num_boot number of iteration for bootstrap algorithms.
-#' @param alpha Significance level, Default is 0.05.
-#' @param cores Number of cores in parallel computing.
-#' @param keep_boot Logical indicating whether statistics from bootstrap should be kept.
+#' @param bias_correction if `TRUE`, then the bias minimization estimation used during model fitting.
+#' @param num_boot the number of iteration for bootstrap algorithms.
+#' @param alpha significance level, 0.05 by defult.
+#' @param cores the number of cores in parallel computing.
+#' @param keep_boot a logical value indicating whether statistics from bootstrap should be kept.
 #' By default set to \code{TRUE}
-#' @param nn_exact_se Logical value indicating whether to compute the exact
+#' @param nn_exact_se a logical value indicating whether to compute the exact
 #' standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
 #' estimation based on \code{nn} or \code{pmm} can be decomposed into three parts, with the
-#' third being computed using covariance between imputed values for units in
-#' probability sample using predictive matches from non-probability sample.
+#' third computed using covariance between imputed values for units in
+#' the probability sample using predictive matches from the non-probability sample.
 #' In most situations this term is negligible and is very computationally
-#' expensive so by default this is set to \code{FALSE}, but it is recommended to
-#' set this value to \code{TRUE} before submitting final results.
-#' @param pi_ij TODO, either matrix or \code{ppsmat} class object.
+#' expensive so by default it is set to \code{FALSE}, but the recommended option is to
+#' set this value to \code{TRUE} before submitting the final results.
+#' @param pi_ij TODO, either a matrix or a \code{ppsmat} class object.
 #'
 #'
 #' @return List with selected parameters.

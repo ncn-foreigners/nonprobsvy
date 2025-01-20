@@ -60,7 +60,7 @@ control_sel(
 \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
 }}
 
-\item{penalty}{The penanlization function used during variables selection.}
+\item{penalty}{The penalization function used during variables selection.}
 
 \item{a_SCAD}{The tuning parameter of the SCAD penalty for selection model. Default is 3.7.}
 

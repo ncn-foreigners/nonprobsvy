@@ -2,7 +2,7 @@
 % Please edit documentation in R/main_function_documentation.R, R/nonprob.R
 \name{nonprob}
 \alias{nonprob}
-\title{Inference with the non-probability survey samples}
+\title{Inference with non-probability survey samples}
 \usage{
 nonprob(
   data,
@@ -33,27 +33,27 @@ nonprob(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} with data from the non-probability sample.}
+\item{data}{a \code{data.frame} with data from the non-probability sample.}
 
-\item{selection}{\code{formula}, the selection (propensity) equation.}
+\item{selection}{a \code{formula}, the selection (propensity) equation.}
 
-\item{outcome}{\code{formula}, the outcome equation.}
+\item{outcome}{a \code{formula}, the outcome equation.}
 
-\item{target}{\code{formula} with target variables.}
+\item{target}{a \code{formula} with target variables.}
 
-\item{svydesign}{an optional \code{svydesign} object (from the survey package) containing probability sample and design weights.}
+\item{svydesign}{an optional \code{svydesign} object (from the survey package) containing a probability sample and design weights.}
 
 \item{pop_totals}{an optional \verb{named vector} with population totals of the covariates.}
 
 \item{pop_means}{an optional \verb{named vector} with population means of the covariates.}
 
-\item{pop_size}{an optional \code{double} with population size.}
+\item{pop_size}{an optional \code{double} value with population size.}
 
-\item{method_selection}{a \code{character} with method for propensity scores estimation.}
+\item{method_selection}{a \code{character} indicating the method for propensity scores estimation.}
 
-\item{method_outcome}{a \code{character} with method for response variable estimation.}
+\item{method_outcome}{a \code{character} indicating the method for response variable estimation.}
 
-\item{family_outcome}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{a \code{character} string describing the error distribution and the link function to be used in the model, set to \code{gaussian} by default. Currently supports: gaussian with identity link, poisson and binomial.}
 
 \item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process - not yet supported.}
 
@@ -63,11 +63,11 @@ nonprob(
 
 \item{na_action}{a function which indicates what should happen when the data contain \code{NAs} - not yet supported.}
 
-\item{control_selection}{a \code{list} indicating parameters to use in fitting selection model for propensity scores.}
+\item{control_selection}{a \code{list} indicating parameters to be used when fitting the selection model for propensity scores.}
 
-\item{control_outcome}{a \code{list} indicating parameters to use in fitting model for outcome variable.}
+\item{control_outcome}{a \code{list} indicating parameters to be used when fitting the model for the outcome variable.}
 
-\item{control_inference}{a \code{list} indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.}
+\item{control_inference}{a \code{list} indicating parameters to be used for inference based on probability and non-probability samples, contains parameters such as the estimation method or the variance method.}
 
 \item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation.}
 
@@ -75,9 +75,9 @@ nonprob(
 
 \item{verbose}{verbose, numeric.}
 
-\item{x}{Logical value indicating whether to return model matrix of covariates as a part of output.}
+\item{x}{a logical value indicating whether to return model matrix of covariates as a part of the output.}
 
-\item{y}{Logical value indicating whether to return vector of outcome variable as a part of output.}
+\item{y}{a logical value indicating whether to return vector of the outcome variable as a part of the output.}
 
 \item{se}{Logical value indicating whether to calculate and return standard error of estimated mean.}
 
@@ -157,7 +157,7 @@ Returned only if a bootstrap method is used to estimate the variance and \code{k
 }
 }
 \description{
-\code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
+\code{nonprob} fits a model for inference based on non-probability surveys (including big data) using various methods.
 The function allows you to estimate the population mean with access to a reference probability sample, as well as sums and means of covariates.
 
 The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
@@ -166,7 +166,7 @@ Yang et al. (2020), Wu (2022) and uses the \href{https://CRAN.R-project.org/pack
 It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
 doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
 variable selection.
-The package uses \code{survey} package functionality when a probability sample is available.
+The package uses the \code{survey} package functionality when a probability sample is available.
 }
 \details{
 Let \mjseqn{y} be the response variable for which we want to estimate the population mean,
@@ -232,7 +232,7 @@ Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right
 Using the imputed values for the probability sample and the (known) design weights,
 we can build a population mean estimator of the form:
 \mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
-It opens the the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
+It opens the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
 the nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.
 To this end, so-called doubly robust methods are presented that take these problems into account.

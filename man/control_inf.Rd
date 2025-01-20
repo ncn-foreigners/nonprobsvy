@@ -20,41 +20,41 @@ control_inf(
 )
 }
 \arguments{
-\item{vars_selection}{If \code{TRUE}, then variables selection model is used.}
+\item{vars_selection}{If \code{TRUE}, then the variables selection model is used.}
 
-\item{var_method}{variance method.}
+\item{var_method}{the variance method.}
 
-\item{rep_type}{replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
+\item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{subbootstrap}.}
 
-\item{bias_inf}{inference method in the bias minimization.
+\item{bias_inf}{the inference method in the bias minimization.
 \itemize{
-\item if \code{union} then final model is fitting on union of selected variables for selection and outcome models
-\item if \code{div} then final model is fitting separately on division of selected variables into relevant ones for
+\item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
+\item if \code{div}, then the final model is fitted separately on division of selected variables into relevant ones for
 selection and outcome model.
 }}
 
-\item{num_boot}{number of iteration for bootstrap algorithms.}
+\item{num_boot}{the number of iteration for bootstrap algorithms.}
 
-\item{bias_correction}{if \code{TRUE}, then bias minimization estimation used during fitting the model.}
+\item{bias_correction}{if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
-\item{alpha}{Significance level, Default is 0.05.}
+\item{alpha}{significance level, 0.05 by defult.}
 
-\item{cores}{Number of cores in parallel computing.}
+\item{cores}{the number of cores in parallel computing.}
 
-\item{keep_boot}{Logical indicating whether statistics from bootstrap should be kept.
+\item{keep_boot}{a logical value indicating whether statistics from bootstrap should be kept.
 By default set to \code{TRUE}}
 
-\item{nn_exact_se}{Logical value indicating whether to compute the exact
+\item{nn_exact_se}{a logical value indicating whether to compute the exact
 standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
 estimation based on \code{nn} or \code{pmm} can be decomposed into three parts, with the
-third being computed using covariance between imputed values for units in
-probability sample using predictive matches from non-probability sample.
+third computed using covariance between imputed values for units in
+the probability sample using predictive matches from the non-probability sample.
 In most situations this term is negligible and is very computationally
-expensive so by default this is set to \code{FALSE}, but it is recommended to
-set this value to \code{TRUE} before submitting final results.}
+expensive so by default it is set to \code{FALSE}, but the recommended option is to
+set this value to \code{TRUE} before submitting the final results.}
 
-\item{pi_ij}{TODO, either matrix or \code{ppsmat} class object.}
+\item{pi_ij}{TODO, either a matrix or a \code{ppsmat} class object.}
 }
 \value{
 List with selected parameters.
