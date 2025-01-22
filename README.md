@@ -28,7 +28,7 @@ population or probability sample is available:
 
 - inverse probability weighting estimators with possible calibration
   constraints ([Chen, Li, and Wu 2020](#ref-chen2020)),
-- mass imputation estimators based in nearest neighbours ([Yang, Kim,
+- mass imputation estimators based on nearest neighbours ([Yang, Kim,
   and Hwang 2021](#ref-yang2021)), predictive mean matching and
   regression imputation ([Kim et al. 2021](#ref-kim2021)),
 - doubly robust estimators with bias minimization Yang, Kim, and Song
@@ -46,12 +46,12 @@ The package allows for:
 - different links for selection (`logit`, `probit` and `cloglog`) and
   outcome (`gaussian`, `binomial` and `poisson`) variables.
 
-Details on use of the package be found:
+Details on the use of the package can be found:
 
-- on the draft (and not proofread) version the book [Modern inference
+- in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
   R](https://ncn-foreigners.github.io/nonprobsvy-book/),
-- example codes that reproduce papers are available at github in the
+- in example codes that reproduce papers available on github in the
   repository [software
   tutorials](https://github.com/ncn-foreigners/software-tutorials).
 
@@ -579,13 +579,13 @@ summary(result_ipw)
 #>     target = ~y1, svydesign = sample_prob)
 #> 
 #> -------------------------
-#> Estimated population mean: 2.925 with overall std.err of: 0.05
+#> Estimated population mean: 2.925 with overall std.err of: 0.04999
 #> And std.err for nonprobability and probability samples being respectively:
-#> 0.001586 and 0.04997
+#> 0.001325 and 0.04997
 #> 
 #> 95% Confidence inverval for popualtion mean:
 #>    lower_bound upper_bound
-#> y1     2.82679    3.022776
+#> y1    2.826805    3.022761
 #> 
 #> 
 #> Based on: Inverse probability weighted method

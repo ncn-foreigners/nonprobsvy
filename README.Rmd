@@ -44,7 +44,7 @@ population or probability sample is available:
 
 -   inverse probability weighting estimators with possible calibration
     constraints [@chen2020],
--   mass imputation estimators based in nearest neighbours [@yang2021],
+-   mass imputation estimators based on nearest neighbours [@yang2021],
     predictive mean matching and regression imputation [@kim2021],
 -   doubly robust estimators with bias minimization [@chen2020,
     @yang2020].
@@ -61,12 +61,12 @@ The package allows for:
 -   different links for selection (`logit`, `probit` and `cloglog`) and
     outcome (`gaussian`, `binomial` and `poisson`) variables.
 
-Details on use of the package be found:
+Details on the use of the package can be found:
 
--   on the draft (and not proofread) version the book [Modern inference
+-   in the draft (and not proofread) version of the book [Modern inference
     methods for non-probability samples with
     R](https://ncn-foreigners.github.io/nonprobsvy-book/),
--   example codes that reproduce papers are available at github in the
+-   in example codes that reproduce papers available on github in the
     repository [software
     tutorials](https://github.com/ncn-foreigners/software-tutorials).
 

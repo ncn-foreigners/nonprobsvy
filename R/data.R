@@ -1,7 +1,7 @@
 #' Job Vacancy Survey
 #'
 #' @description
-#' This is a subset of the subset of the Job Vacancy Survey from Poland (for one quarter).
+#' This is a subset of the Job Vacancy Survey from Poland (for one quarter).
 #' The data has been subject to slight manipulation, but the relationships in the data have been preserved.
 #' For further details on the JVS, please refer to the following link:
 #' \url{https://stat.gov.pl/obszary-tematyczne/rynek-pracy/popyt-na-prace/zeszyt-metodologiczny-popyt-na-prace,3,1.html}.

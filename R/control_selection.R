@@ -1,8 +1,6 @@
 #' @title Control parameters for selection model
-#' @author Łukasz Chrostowski, Maciej Beręsewicz
-#' \loadmathjax
 #'
-#' @description \code{controlSel} constructs a list with all necessary control parameters
+#' @description \code{control_sel} constructs a list with all necessary control parameters
 #' for selection model.
 #'
 #'
@@ -22,7 +20,7 @@
 #'   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
 #'   \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
 #'   }
-#' @param penalty The penanlization function used during variables selection.
+#' @param penalty The penalization function used during variables selection.
 #' @param a_SCAD The tuning parameter of the SCAD penalty for selection model. Default is 3.7.
 #' @param a_MCP The tuning parameter of the MCP penalty for selection model. Default is 3.
 #' @param lambda A user-specified \mjseqn{\lambda} value during variable selection model fitting.
@@ -48,7 +46,7 @@
 #'
 #' @export
 
-controlSel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
+control_sel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
                        epsilon = 1e-4,
                        maxit = 500,
                        trace = FALSE,

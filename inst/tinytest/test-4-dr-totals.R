@@ -185,9 +185,9 @@ expect_silent(
     method_selection = "logit",
     method_outcome = "glm",
     family_outcome = "gaussian",
-    control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_selection = control_sel(penalty = "SCAD", nfolds = 5),
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -208,9 +208,9 @@ expect_silent(
     method_selection = "logit",
     method_outcome = "glm",
     family_outcome = "gaussian",
-    control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_selection = control_sel(penalty = "SCAD", nfolds = 5),
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -231,9 +231,9 @@ expect_silent(
     method_selection = "logit",
     method_outcome = "glm",
     family_outcome = "binomial",
-    control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_selection = control_sel(penalty = "SCAD", nfolds = 5),
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -255,9 +255,9 @@ expect_silent(
     method_selection = "logit",
     method_outcome = "glm",
     family_outcome = "binomial",
-    control_selection = controlSel(penalty = "SCAD", nfolds = 5),
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_selection = control_sel(penalty = "SCAD", nfolds = 5),
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 

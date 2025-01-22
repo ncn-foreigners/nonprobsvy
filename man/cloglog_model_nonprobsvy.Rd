@@ -21,3 +21,4 @@ List with selected methods/objects/functions.
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz
 }
+\keyword{internal}

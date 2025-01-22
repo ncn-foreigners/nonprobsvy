@@ -170,8 +170,8 @@ expect_silent(
     pop_totals = X_totals[1:11],
     method_outcome = "glm",
     family_outcome = "gaussian",
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -189,8 +189,8 @@ expect_silent(
     pop_totals = X_totals[1:11],
     method_outcome = "glm",
     family_outcome = "gaussian",
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -209,8 +209,8 @@ expect_silent(
     pop_totals = X_totals[1:11],
     method_outcome = "glm",
     family_outcome = "binomial",
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 
@@ -229,8 +229,8 @@ expect_silent(
     pop_totals = X_totals[1:11],
     method_outcome = "glm",
     family_outcome = "binomial",
-    control_outcome = controlOut(penalty = "SCAD", nfolds = 5),
-    control_inference = controlInf(vars_selection = TRUE)
+    control_outcome = control_out(penalty = "SCAD", nfolds = 5),
+    control_inference = control_inf(vars_selection = TRUE)
   )
 )
 

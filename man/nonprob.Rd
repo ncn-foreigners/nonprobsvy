@@ -2,7 +2,7 @@
 % Please edit documentation in R/main_function_documentation.R, R/nonprob.R
 \name{nonprob}
 \alias{nonprob}
-\title{Inference with the non-probability survey samples}
+\title{Inference with non-probability survey samples}
 \usage{
 nonprob(
   data,
@@ -20,9 +20,9 @@ nonprob(
   strata = NULL,
   weights = NULL,
   na_action = NULL,
-  control_selection = controlSel(),
-  control_outcome = controlOut(),
-  control_inference = controlInf(),
+  control_selection = control_sel(),
+  control_outcome = control_out(),
+  control_inference = control_inf(),
   start_selection = NULL,
   start_outcome = NULL,
   verbose = FALSE,
@@ -33,41 +33,41 @@ nonprob(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} with data from the non-probability sample.}
+\item{data}{a \code{data.frame} with data from the non-probability sample.}
 
-\item{selection}{\code{formula}, the selection (propensity) equation.}
+\item{selection}{a \code{formula}, the selection (propensity) equation.}
 
-\item{outcome}{\code{formula}, the outcome equation.}
+\item{outcome}{a \code{formula}, the outcome equation.}
 
-\item{target}{\code{formula} with target variables.}
+\item{target}{a \code{formula} with target variables.}
 
-\item{svydesign}{an optional \code{svydesign} object (from the survey package) containing probability sample and design weights.}
+\item{svydesign}{an optional \code{svydesign} object (from the survey package) containing a probability sample and design weights.}
 
 \item{pop_totals}{an optional \verb{named vector} with population totals of the covariates.}
 
 \item{pop_means}{an optional \verb{named vector} with population means of the covariates.}
 
-\item{pop_size}{an optional \code{double} with population size.}
+\item{pop_size}{an optional \code{double} value with population size.}
 
-\item{method_selection}{a \code{character} with method for propensity scores estimation.}
+\item{method_selection}{a \code{character} indicating the method for propensity scores estimation.}
 
-\item{method_outcome}{a \code{character} with method for response variable estimation.}
+\item{method_outcome}{a \code{character} indicating the method for response variable estimation.}
 
-\item{family_outcome}{a \code{character} string describing the error distribution and link function to be used in the model. Default is "gaussian". Currently supports: gaussian with identity link, poisson and binomial.}
+\item{family_outcome}{a \code{character} string describing the error distribution and the link function to be used in the model, set to \code{gaussian} by default. Currently supports: gaussian with identity link, poisson and binomial.}
 
-\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process.}
+\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process - not yet supported.}
 
-\item{strata}{an optional \code{vector} specifying strata.}
+\item{strata}{an optional \code{vector} specifying strata - not yet supported.}
 
 \item{weights}{an optional \code{vector} of prior weights to be used in the fitting process. Should be NULL or a numeric vector. It is assumed that this vector contains frequency or analytic weights.}
 
-\item{na_action}{a function which indicates what should happen when the data contain \code{NAs}.}
+\item{na_action}{a function which indicates what should happen when the data contain \code{NAs} - not yet supported.}
 
-\item{control_selection}{a \code{list} indicating parameters to use in fitting selection model for propensity scores.}
+\item{control_selection}{a \code{list} indicating parameters to be used when fitting the selection model for propensity scores.}
 
-\item{control_outcome}{a \code{list} indicating parameters to use in fitting model for outcome variable.}
+\item{control_outcome}{a \code{list} indicating parameters to be used when fitting the model for the outcome variable.}
 
-\item{control_inference}{a \code{list} indicating parameters to use in inference based on probability and non-probability samples, contains parameters such as estimation method or variance method.}
+\item{control_inference}{a \code{list} indicating parameters to be used for inference based on probability and non-probability samples, contains parameters such as the estimation method or the variance method.}
 
 \item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation.}
 
@@ -75,9 +75,9 @@ nonprob(
 
 \item{verbose}{verbose, numeric.}
 
-\item{x}{Logical value indicating whether to return model matrix of covariates as a part of output.}
+\item{x}{a logical value indicating whether to return model matrix of covariates as a part of the output.}
 
-\item{y}{Logical value indicating whether to return vector of outcome variable as a part of output.}
+\item{y}{a logical value indicating whether to return vector of the outcome variable as a part of the output.}
 
 \item{se}{Logical value indicating whether to calculate and return standard error of estimated mean.}
 
@@ -103,7 +103,7 @@ with type \code{list} containing:\cr
 \item{\code{pop_size} -- estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
 \item{\code{pop_totals} -- the total values of the auxiliary variables derived from a probability sample or vector of total/mean values.}
 \item{\code{outcome} -- list containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
-\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=controlInf]{controlInf()}} is set to \code{TRUE}, the estimation is based on
+\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=control_inf]{control_inf()}} is set to \code{TRUE}, the estimation is based on
 the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
 \itemize{
 \item{\code{coefficients} -- estimated coefficients of the regression model.}
@@ -153,11 +153,11 @@ when the propensity score model is fitting. Returned only if selection of variab
 }
 \item{\code{stat} -- matrix of the estimated population means in each bootstrap iteration.
 Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
-\code{\link[=controlInf]{controlInf()}} is set on \code{TRUE}.}
+\code{\link[=control_inf]{control_inf()}} is set on \code{TRUE}.}
 }
 }
 \description{
-\code{nonprob} fits model for inference based on non-probability surveys (including big data) using various methods.
+\code{nonprob} fits a model for inference based on non-probability surveys (including big data) using various methods.
 The function allows you to estimate the population mean with access to a reference probability sample, as well as sums and means of covariates.
 
 The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
@@ -166,7 +166,7 @@ Yang et al. (2020), Wu (2022) and uses the \href{https://CRAN.R-project.org/pack
 It provides propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour) and
 doubly robust estimators that take into account minimisation of the asymptotic bias of the population mean estimators or
 variable selection.
-The package uses \code{survey} package functionality when a probability sample is available.
+The package uses the \code{survey} package functionality when a probability sample is available.
 }
 \details{
 Let \mjseqn{y} be the response variable for which we want to estimate the population mean,
@@ -232,7 +232,7 @@ Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right
 Using the imputed values for the probability sample and the (known) design weights,
 we can build a population mean estimator of the form:
 \mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
-It opens the the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
+It opens the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
 the nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.
 To this end, so-called doubly robust methods are presented that take these problems into account.
@@ -281,7 +281,7 @@ penalized estimating functions as
   }
 where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
 Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
-To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=controlInf]{controlInf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=controlSel]{controlSel()}} and \code{\link[=controlOut]{controlOut()}}
+To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=control_inf]{control_inf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=control_sel]{control_sel()}} and \code{\link[=control_out]{control_out()}}
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 in the documentation of the control functions for \code{nonprob}.
 }
@@ -393,11 +393,11 @@ estimation process of the bias minimization approach.
 
 \code{\link[RANN:nn2]{RANN::nn2()}} -- For more information about the nearest neighbour algorithm used during mass imputation process.
 
-\code{\link[=controlSel]{controlSel()}} -- For the control parameters related to selection model.
+\code{\link[=control_sel]{control_sel()}} -- For the control parameters related to selection model.
 
-\code{\link[=controlOut]{controlOut()}} -- For the control parameters related to outcome model.
+\code{\link[=control_out]{control_out()}} -- For the control parameters related to outcome model.
 
-\code{\link[=controlInf]{controlInf()}} -- For the control parameters related to statistical inference.
+\code{\link[=control_inf]{control_inf()}} -- For the control parameters related to statistical inference.
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz

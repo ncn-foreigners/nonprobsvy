@@ -15,6 +15,7 @@
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
+#' @keywords internal
 #' @export
 # must be exported to be visible in c++ script, to consider any other option
 probit_model_nonprobsvy <- function(...) {
@@ -115,7 +116,7 @@ probit_model_nonprobsvy <- function(...) {
 
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch(as.character(maxLik_an$code),
-          "3" = warning("warning in fitting selection model with maxLik: probably not converged."),
+          "3" = warning("Warning in fitting selection model with maxLik: probably not converged."),
           "4" = warning("Maxiteration limit reached in fitting selection model by maxLik."),
           "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
           "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
@@ -143,10 +144,10 @@ probit_model_nonprobsvy <- function(...) {
       )
       if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
         switch(as.character(maxLik_an$convergence),
-          "1" = warning("warning in fitting selection model with optim: the iteration limit maxit had been reached."),
-          "10" = warning("degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
-          "51" = warning("warning from the L BFGS B when fitting by optim."), # TODO -
-          "52" = stop("indicates an error from the L-BFGS-B method when fitting by optim.")
+          "1" = warning("Warning in fitting selection model with optim: the iteration limit maxit had been reached."),
+          "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
+          "51" = warning("Warning from the L BFGS B when fitting by optim."), # TODO -
+          "52" = stop("Indicates an error from the L-BFGS-B method when fitting by optim.")
         )
       }
 

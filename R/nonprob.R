@@ -15,9 +15,9 @@ nonprob <- function(data,
                     strata = NULL,
                     weights = NULL,
                     na_action = NULL,
-                    control_selection = controlSel(),
-                    control_outcome = controlOut(),
-                    control_inference = controlInf(),
+                    control_selection = control_sel(),
+                    control_outcome = control_out(),
+                    control_inference = control_inf(),
                     start_selection = NULL,
                     start_outcome = NULL,
                     verbose = FALSE,
@@ -38,7 +38,8 @@ nonprob <- function(data,
   if (missing(method_outcome)) method_outcome <- "glm"
   if (!(method_outcome %in% c("glm", "nn", "pmm"))) stop("Invalid method for outcome variable.")
   if (!is.null(svydesign)) {
-    if (class(svydesign)[2] != "survey.design") stop("svydesign must be a survey.design object.")
+    if ("svyrep.design" %in% class(svydesign)) stop("We do not currently support the `svyrep.design` class. Provide the survey data in the `survey.design2` class.")
+    if ("pps" %in% class(svydesign)) stop("The `as.svrepdesign` function does not allow `pps` designs. For more details, see the `survey` package.")
   }
   if (!is.null(pop_totals)) {
     if (!is.vector(pop_totals)) stop("pop_totals must be a vector.")
@@ -50,7 +51,7 @@ nonprob <- function(data,
   if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
   if (!is.null(control_selection$key)) {
     if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
-      stop("key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
+      stop("Key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
     }
   }
 

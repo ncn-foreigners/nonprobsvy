@@ -5,9 +5,14 @@
 ### Features
 - two additional datasets have been included: `jvs` (Job Vacancy Survey; a probability sample survey) and `admin` (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.
 - a `nonprobsvycheck` function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.
+- Important - the functions `controlSel`, `controlOut` and `controlInf` have been replaced by their counterparts `control_sel`, `control_out` and `control_inf`.
 
 ### Bugfixes
 - basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.
+
+### Documentation
+
+- annotation has been added that arguments such as `strata`, `subset` and `na_action` are not supported for the time being.
 
 # nonprobsvy 0.1.1
 
@@ -19,13 +24,13 @@
 - bug Fix related to storing `vector` in `model_frame` when predicting `y_hat` in mass imputation `glm` model when X is based in one auxiliary variable only - fix provided converting it to `data.frame` object.
     
 ### Features
-- add information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
-- add estimation of exact standard error for k-nearest neighbor estimator.
-- add breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
-- implement `div` option when variable selection (more in documentation) for doubly robust estimation.
-- add more insights to `nonprob` output such as gradient, hessian and jacobian derived from IPW estimation for `mle` and `gee` methods when `IPW` or `DR` model executed.
-- add estimated inclusion probabilities and its derivatives for probability and non-probability samples to `nonprob` output when `IPW` or `DR` model executed.
-- add `model_frame` matrix data from probability sample used for mass imputation to `nonprob` when `MI` or `DR` model executed.
+- added information to `summary` about quality of estimation basing on difference between estimated and known total values of auxiliary variables
+- added estimation of exact standard error for k-nearest neighbor estimator.
+- added breaking change to `controlOut` function by switching values for `predictive_match` argument. From now on, the `predictive_match = 1` means $\hat{y}-\hat{y}$ in predictive mean matching imputation and `predictive_match = 2` corresponds to $\hat{y}-y$ matching.
+- implemented `div` option when variable selection (more in documentation) for doubly robust estimation.
+- added more insights to `nonprob` output such as gradient, hessian and jacobian derived from IPW estimation for `mle` and `gee` methods when `IPW` or `DR` model executed.
+- added estimated inclusion probabilities and its derivatives for probability and non-probability samples to `nonprob` output when `IPW` or `DR` model executed.
+- added `model_frame` matrix data from probability sample used for mass imputation to `nonprob` when `MI` or `DR` model executed.
 
 ### Unit tests
 - added unit tests for variable selection models and mi estimation with vector of population totals available

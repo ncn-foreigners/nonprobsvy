@@ -7,9 +7,9 @@ nobs.nonprobsvy <- function(object,
                             ...) {
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
-#' @method pop.size nonprobsvy
+#' @method pop_size nonprobsvy
 #' @exportS3Method
-pop.size.nonprobsvy <- function(object,
+pop_size.nonprobsvy <- function(object,
                                 ...) {
   object$pop_size
 }
@@ -19,8 +19,8 @@ pop.size.nonprobsvy <- function(object,
 #' @param ... additional parameters
 #' @return Vector returning the value of the estimated population size.
 #' @export
-pop.size <- function(object, ...) {
-  UseMethod("pop.size")
+pop_size <- function(object, ...) {
+  UseMethod("pop_size")
 }
 #' @method residuals nonprobsvy
 #' @importFrom stats residuals
@@ -321,9 +321,9 @@ deviance.nonprobsvy <- function(object,
   if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
   res
 }
-#' @method nonprobsvycheck nonprobsvy
+#' @method check_balance nonprobsvy
 #' @exportS3Method
-nonprobsvycheck.nonprobsvy <- function(x, object, dig = 10) {
+check_balance.nonprobsvy <- function(x, object, dig = 10) {
   # Input validation
   if (!inherits(x, "formula")) {
     stop("'x' must be a formula")
@@ -443,8 +443,8 @@ nonprobsvycheck.nonprobsvy <- function(x, object, dig = 10) {
 #' @importFrom survey svytotal
 #' @importFrom stats setNames
 #' @export
-nonprobsvycheck <- function(x, object, dig) {
-  UseMethod("nonprobsvycheck", object)
+check_balance <- function(x, object, dig) {
+  UseMethod("check_balance", object)
 }
 # Internal function - not exported in CRAN version
 # Will be exported in future releases after variance estimation is implemented
