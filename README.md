@@ -31,8 +31,8 @@ population or probability sample is available:
 - mass imputation estimators based on nearest neighbours ([Yang, Kim,
   and Hwang 2021](#ref-yang2021)), predictive mean matching and
   regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators with bias minimization Yang, Kim, and Song
-  ([2020](#ref-yang2020)).
+- doubly robust estimators ([Chen, Li, and Wu 2020](#ref-chen2020)) with
+  bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
 
 The package allows for:
 
@@ -85,14 +85,14 @@ where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
 
-| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
-|-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
-| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|----|---:|:--:|:--:|:--:|
+| $S_A$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
+|  | … | $\checkmark$ | $\checkmark$ | ? |
+|  | $n_A$ | $\checkmark$ | $\checkmark$ | ? |
+| $S_B$ (probability) | $n_A+1$ | $\checkmark$ | ? | $\checkmark$ |
+|  | … | $\checkmark$ | ? | $\checkmark$ |
+|  | $n_A+n_B$ | $\checkmark$ | ? | $\checkmark$ |
 
 ## Basic functionalities
 
@@ -189,7 +189,7 @@ nonprob(
                  ..., 
                  xk = tau_xk), 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method_sel = "gee", h = 1)
 )
 ```
 
@@ -262,7 +262,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "nn", 
   family_outcome = "gaussian", 
-  control_outcome = controlOutcome(k = 2)
+  control_outcome = control_outcome(k = 2)
 )
 ```
 
@@ -300,8 +300,8 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_outcome = controlOut(penalty = "lasso"), 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_outcome = control_out(penalty = "lasso"), 
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 
@@ -338,7 +338,7 @@ nonprob(
   data = nonprob, 
   svydesign = prob, 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method_sel = "gee", h = 1)
 )
 ```
 
@@ -359,7 +359,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 
@@ -399,7 +399,7 @@ nonprob(
   svydesign = prob,
   method_outcome = "glm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(
+  control_inference = control_inf(
     vars_selection = TRUE, 
     bias_correction = TRUE
   )
@@ -418,6 +418,7 @@ International Statistical Review 87 (2019): S177-S191 \[section 5.2\]
 
 ``` r
 library(survey)
+#> Warning: package 'survival' was built under R version 4.3.3
 library(nonprobsvy)
 
 set.seed(1234567890)
@@ -625,7 +626,8 @@ Work on this package is supported by the National Science Centre, OPUS
 
 ## References (selected)
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-chen2020" class="csl-entry">
 
