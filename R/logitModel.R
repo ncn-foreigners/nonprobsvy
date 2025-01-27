@@ -97,7 +97,7 @@ logit_model_nonprobsvy <- function(...) {
         logLik = log_like,
         grad = gradient,
         hess = hessian,
-        method = control$maxLik_method,
+        method = control$maxlik_method,
         start = start,
         printLevel = control$print_level
       )
@@ -108,12 +108,12 @@ logit_model_nonprobsvy <- function(...) {
       log_likelihood <- log_like(theta)
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch(as.character(maxLik_an$code),
-          "3" = warning("Warning in fitting selection model with maxLik: probably not converged."),
-          "4" = warning("Max iteration limit reached in fitting selection model by maxLik."),
-          "5" = stop("Inifinite value of log_like in fitting selection model by maxLik, error code 5"),
-          "6" = stop("Inifinite value of gradient in fitting selection model by maxLik, error code 6"),
-          "7" = stop("Inifinite value of hessian in fitting selection model by maxLik, error code 7"),
-          "100" = stop("Error in fitting selection model with maxLik, error code 100:: Bad start."),
+          "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
+          "4" = warning("Max iteration limit reached in fitting selection model by the `maxLik` package."),
+          "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
+          "6" = stop("Infinite value of gradient in fitting selection model by the `maxLik` package, error code 6."),
+          "7" = stop("Infinite value of hessian in fitting selection model by the `maxLik` package, error code 7."),
+          "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
         )
       }
     } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
@@ -132,10 +132,10 @@ logit_model_nonprobsvy <- function(...) {
       )
       if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
         switch(as.character(maxLik_an$convergence),
-          "1" = warning("Warning in fitting selection model with optim: the iteration limit maxit had been reached."),
-          "10" = warning("degeneracy of the Nelder Mead simplex in fitting selection model by optim."), # TODO -
-          "51" = warning("Warning from the L BFGS B when fitting by optim."), # TODO -
-          "52" = stop("Indicates an error from the L BFGS B method when fitting by optim.")
+          "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
+          "10" = warning("degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
+          "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
+          "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
         )
       }
 
@@ -144,7 +144,7 @@ logit_model_nonprobsvy <- function(...) {
       grad <- gradient(theta)
       hess <- hessian(theta)
     } else {
-      stop("Provided invalid optimizer.")
+      stop("Provide valid optimizer (`optim` or `maxLik`).")
     }
 
     list(

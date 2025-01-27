@@ -10,7 +10,7 @@ control_sel(
   maxit = 500,
   trace = FALSE,
   optimizer = c("maxLik", "optim"),
-  maxLik_method = "NR",
+  maxlik_method = "NR",
   optim_method = "BFGS",
   dependence = FALSE,
   key = NULL,
@@ -43,7 +43,7 @@ control_sel(
 \item optimization function for maximum likelihood estimation.
 }}
 
-\item{maxLik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
+\item{maxlik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
 
 \item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 

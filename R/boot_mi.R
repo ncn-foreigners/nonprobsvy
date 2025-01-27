@@ -57,7 +57,7 @@ bootMI <- function(X_rand,
     if (class(svydesign)[1] != "pps") {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
     } else {
-      stop("pps bootstrap variance in development")
+      stop("The pps bootstrap variance estimator is under development")
     }
     if (method == "glm") {
       while (k <= num_boot) {
@@ -444,7 +444,7 @@ bootMI_multicore <- function(X_rand,
     family_nonprobsvy <- family_nonprobsvy()
   }
 
-  if (verbose) message("Multicores bootstrap in progress..")
+  if (verbose) message("Multicores bootstrap in progress...")
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
@@ -460,7 +460,7 @@ bootMI_multicore <- function(X_rand,
     if (class(svydesign)[1] != "pps") {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
     } else {
-      stop("pps bootstrap variance in development")
+      stop("The pps bootstrap variance estimator is under development.")
     }
     if (method == "glm") {
       k <- 1:num_boot

@@ -326,39 +326,39 @@ deviance.nonprobsvy <- function(object,
 check_balance.nonprobsvy <- function(x, object, dig = 10) {
   # Input validation
   if (!inherits(x, "formula")) {
-    stop("'x' must be a formula")
+    stop("The `x` argument must be a formula.")
   }
 
   if (missing(object) || is.null(object)) {
-    stop("'object' is required")
+    stop("The `object` argument is required.")
   }
 
   if (!any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
-    stop("No estimated weights available. Only IPW or DR methods are supported.")
+    stop("No estimated weights available. Only the IPW or the DR methods are supported.")
   }
 
   if (!is.numeric(dig) || dig < 0) {
-    stop("'dig' must be a non-negative number")
+    stop("The `dig` argument must be a non-negative number")
   }
 
   if (nrow(object$data) == 0) {
-    stop("Empty dataset")
+    stop("An empty dataset detected (zero rows).")
   }
 
   if (sum(object$weights) == 0) {
-    stop("Sum of weights is zero")
+    stop("The sum of weights is zero.")
   }
 
   # Extract variables from formula
   vars <- all.vars(x)
   if (length(vars) == 0) {
-    stop("No variables specified in formula")
+    stop("No variables specified in the `formula` argument")
   }
 
   # Check if all variables exist in the data
   missing_vars <- setdiff(vars, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s",
+    stop(sprintf("The following variables are not present in the dataset: %s.",
                  paste(missing_vars, collapse = ", ")))
   }
 
@@ -366,7 +366,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   calculate_totals <- function(var, data) {
     # Check for NAs
     if (sum(is.na(data[[var]])) > 0) {
-      warning(sprintf("NA values found in variable %s", var))
+      warning(sprintf("NA values found in variable %s.", var))
     }
 
     # For categorical variables, handle each level
@@ -375,7 +375,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
       totals <- sapply(levels, function(lvl) {
         data_subset <- data[data[[var]] == lvl, ]
         if (nrow(data_subset) < 5) {
-          warning(sprintf("Small group size (< 5) for level %s in variable %s", lvl, var))
+          warning(sprintf("Small group size (< 5) for level %s in variable %s.", lvl, var))
         }
         sum(data_subset$weights)
       })
@@ -395,7 +395,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   nonprob_totals <- tryCatch({
     unlist(lapply(vars, function(var) calculate_totals(var, data)))
   }, error = function(e) {
-    stop(sprintf("Error calculating nonprobability totals: %s", e$message))
+    stop(sprintf("Error calculating nonprobability totals: %s.", e$message))
   })
 
   # Calculate probability totals
@@ -407,13 +407,13 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
       names(svy_totals) <- names(svy_total)
       svy_totals
     }, error = function(e) {
-      stop(sprintf("Error calculating survey totals: %s", e$message))
+      stop(sprintf("Error calculating survey totals: %s.", e$message))
     })
   } else {
     # Use population totals
     prob_totals <- object$selection$pop_totals
     if (is.null(prob_totals)) {
-      stop("No population totals available")
+      stop("The `pop_totals` argument is null.")
     }
   }
 
@@ -421,7 +421,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   diff <- tryCatch({
     round(nonprob_totals - prob_totals[names(nonprob_totals)], digits = dig)
   }, error = function(e) {
-    stop(sprintf("Error calculating differences: %s", e$message))
+    stop(sprintf("Error calculating differences: %s.", e$message))
   })
 
   # Return results with meaningful names
@@ -455,10 +455,10 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
   var <- lhs.vars(x)
   # Validate inputs
   if (!is.null(var)) {
-    stop("no dependend variable needed for this method, please remove it and try again")
+    stop("No dependend variable needed for this method, please remove it and try again.")
   }
   if (nrow(object$data) == 0) {
-    stop("Empty dataset")
+    stop("An empty dataset detected (zero rows).")
   }
   class_nonprob <- class(object)[2]
   if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
@@ -570,7 +570,7 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
   }
 
   if (nrow(object$data) == 0) {
-    stop("Empty dataset")
+    stop("An empty dataset detected (zero rows).")
   }
 
   class_nonprob <- class(object)[2]
@@ -659,12 +659,12 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
   }
 
   if (nrow(object$data) == 0) {
-    stop("Empty dataset")
+    stop("An empty dataset detected (zero rows).")
   }
 
   class_nonprob <- class(object)[2]
   if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
-    stop("Invalid nonprob object class")
+    stop("An invalid `nonprob` object class.")
   }
 
   variables <- rhs.vars(y)
@@ -673,13 +673,13 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
   # Validate inputs
   missing_vars <- setdiff(groups, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s",
+    stop(sprintf("The following variables are not present in the dataset: %s.",
                  paste(missing_vars, collapse = ", ")))
   }
 
   if (!is.null(variables) && !all(variables %in% names(object$data))) {
     missing_dep_vars <- setdiff(variables, names(object$y))
-    stop(sprintf("The following dependent variables are not present: %s",
+    stop(sprintf("The following dependent variables are not present: %s.",
                  paste(missing_dep_vars, collapse = ", ")))
   }
 

@@ -10,7 +10,7 @@
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
 #' @param optimizer - optimization function for maximum likelihood estimation.
 #' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
-#' @param maxLik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
+#' @param maxlik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param dependence logical value - `TRUE` if samples are dependent.
 #' @param key binary key variable
 #' @param est_method_sel Method of estimation for propensity score model.
@@ -51,7 +51,7 @@ control_sel <- function(method = "glm.fit", # perhaps another control function f
                        maxit = 500,
                        trace = FALSE,
                        optimizer = c("maxLik", "optim"),
-                       maxLik_method = "NR",
+                       maxlik_method = "NR",
                        optim_method = "BFGS",
                        dependence = FALSE,
                        key = NULL,
@@ -77,7 +77,7 @@ control_sel <- function(method = "glm.fit", # perhaps another control function f
     maxit = maxit,
     trace = trace,
     optimizer = if (missing(optimizer)) "optim" else optimizer,
-    maxLik_method = maxLik_method,
+    maxlik_method = maxlik_method,
     optim_method = optim_method,
     dependence = dependence,
     key = key,

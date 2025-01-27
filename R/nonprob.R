@@ -36,43 +36,43 @@ nonprob <- function(data,
   if (missing(method_selection)) method_selection <- "logit"
   if (missing(family_outcome)) family_outcome <- "gaussian"
   if (missing(method_outcome)) method_outcome <- "glm"
-  if (!(method_outcome %in% c("glm", "nn", "pmm"))) stop("Invalid method for outcome variable.")
+  if (!(method_outcome %in% c("glm", "nn", "pmm"))) stop("Invalid method for the `outcome` variable.")
   if (!is.null(svydesign)) {
     if ("svyrep.design" %in% class(svydesign)) stop("We do not currently support the `svyrep.design` class. Provide the survey data in the `survey.design2` class.")
     if ("pps" %in% class(svydesign)) stop("The `as.svrepdesign` function does not allow `pps` designs. For more details, see the `survey` package.")
   }
   if (!is.null(pop_totals)) {
-    if (!is.vector(pop_totals)) stop("pop_totals must be a vector.")
+    if (!is.vector(pop_totals)) stop("The `pop_totals` argument must be a vector.")
   }
   if (!is.null(pop_means)) {
-    if (!is.vector(pop_means)) stop("pop_means must be a vector.")
+    if (!is.vector(pop_means)) stop("The `pop_means` argument must be a vector.")
   }
-  if (!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for selection formula.")
-  if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for outcome formula.")
+  if (!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for the `selection` formula.")
+  if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for the `outcome` formula.")
   if (!is.null(control_selection$key)) {
     if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
-      stop("Key variable for overlapping units must be defined with this same name in prob and nonprob sample.")
+      stop("Key variable for overlapping units must be defined with the same name in prob and nonprob sample.")
     }
   }
 
   ## basic checkers
   if (is.null(selection) & is.null(outcome)) {
-    stop("Please provide selection or outcome formula.")
+    stop("Please provide thw `selection` or `outcome` argument.")
   }
 
   # Check formula inputs
   if (!is.null(selection) && !inherits(selection, "formula")) {
-    stop("'selection' must be a formula")
+    stop("The `selection` argument must be a formula.")
   }
   if (!is.null(outcome) && !inherits(outcome, "formula")) {
-    stop("'outcome' must be a formula")
+    stop("The `outcome` argument must be a formula.")
   }
   if (!is.null(target) && !inherits(target, "formula")) {
-    stop("'target' must be a formula")
+    stop("The `target` argument must be a formula.")
   }
 
   if (inherits(selection, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
-    if (inherits(target, "formula") == FALSE) stop("Please provide target variable")
+    if (inherits(target, "formula") == FALSE) stop("Please provide the `target` argument.")
     model_used <- "P"
   }
 
@@ -86,27 +86,27 @@ nonprob <- function(data,
 
   # Check numeric inputs
   if (!is.null(pop_size) && !is.numeric(pop_size)) {
-    stop("'pop_size' must be numeric")
+    stop("The `pop_size` argument must be numeric scalar.")
   }
   if (!is.null(weights) && !is.numeric(weights)) {
-    stop("'weights' must be numeric")
+    stop("The `weights` argument must be a numeric vector.")
   }
 
   # Check weights length
   if (!is.null(weights) && length(weights) != nrow(data)) {
-    stop("Length of weights must match number of rows in data")
+    stop("Length of the `weights` argument must match the number of rows in data.")
   }
 
   if (!is.null(pop_totals) && !is.null(pop_means)) {
-    stop("Cannot specify both pop_totals and pop_means")
+    stop("Specify one of the `pop_totals' or `pop_means' arguments, not both.")
   }
 
   if (!is.null(pop_size)) {
     if (pop_size <= 0) {
-      stop("pop_size must be positive")
+      stop("The `pop_size` argument must be positive.")
     }
     if (pop_size < nrow(data)) {
-      stop("pop_size cannot be smaller than sample size")
+      stop("The `pop_size` argument cannot be smaller than sample size.")
     }
   }
 

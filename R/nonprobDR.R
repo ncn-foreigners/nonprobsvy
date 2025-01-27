@@ -177,7 +177,7 @@ nonprobDR <- function(selection,
         pop_totals <- c(pop_size, pop_size * pop_means)
         names(pop_totals) <- c("(Intercept)", names(pop_means))
       } else {
-        stop("pop_size must be defined when estimating with pop_means.")
+        stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
       }
     }
 
@@ -232,7 +232,7 @@ nonprobDR <- function(selection,
     }
     ############
   } else {
-    stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
+    stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
   }
   for (k in 1:outcomes$l) {
     outcome <- outcomes$outcome[[k]]
@@ -691,7 +691,7 @@ nonprobDR <- function(selection,
 
       mu_hat <- 1 / N_nons * sum((1 / ps_nons) * (weights * (OutcomeModel$y_nons - y_nons_pred))) + y_rand_pred
     } else {
-      stop("Please, provide only one of svydesign object or pop_totals/pop_means.")
+      stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
     }
     ys[[k]] <- as.numeric(y_nons)
 
@@ -803,7 +803,7 @@ nonprobDR <- function(selection,
         stat[, k] <- boot_obj$stat
         # mu_hat <- boot_obj$mu
       } else {
-        stop("Invalid method for variance estimation.")
+        stop("Invalid `var_method` argument for the variance estimation.")
       }
       SE <- sqrt(var)
       alpha <- control_inference$alpha

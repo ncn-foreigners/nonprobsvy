@@ -258,7 +258,7 @@ nonprobMI <- function(outcome,
           pop_totals <- c(pop_size, pop_size * pop_means)
           names(pop_totals) <- c("(Intercept)", names(pop_means))
         } else {
-          stop("pop_size must be defined when estimating with pop_means.")
+          stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
         }
       }
       Model <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
@@ -330,7 +330,7 @@ nonprobMI <- function(outcome,
       OutcomeList[[k]]$model_frame <- Model$model_frame_rand
       mu_hat <- y_rand_pred
     } else {
-      stop("Please, provide svydesign object or pop_totals/pop_means.")
+      stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
     }
 
     if (isTRUE(attr(model_obj$model, "method") == "pmm") & !(control_inference$nn_exact_se)) {
@@ -425,7 +425,7 @@ nonprobMI <- function(outcome,
           prob = NA
         ))))
       } else {
-        stop("Invalid method for variance estimation.")
+        stop("Invalid `var_method` for the variance estimation.")
       }
       SE <- sqrt(var)
       alpha <- control_inference$alpha

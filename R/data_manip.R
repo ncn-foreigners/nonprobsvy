@@ -52,7 +52,7 @@ model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_tot
       #  X_rand <- model.matrix(formula, svydesign$variables[, nons_names])# matrix of probability sample with intercept
       #  }
     } else {
-      stop("Variable names in data and svydesign do not match")
+      stop("The names of the variables in the data and in svydesign do not match.")
     }
 
     list(

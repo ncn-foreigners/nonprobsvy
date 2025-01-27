@@ -5,6 +5,8 @@
 ### Breaking changes
 
 - functions `pop.size`, `controlSel`, `controlOut` and `controlInf` were renamed to `pop_size`, `control_sel`, `control_out` and `control_inf` respectively.
+- function `genSimData` removed completely as it is not used anywhere in the package.
+- argument `maxLik_method` renamed to `maxlik_method` in the `control_sel` function.
 
 ### Features
 
@@ -14,6 +16,9 @@
 
 ### Bugfixes
 - basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.
+
+### Other
+- more informative error messages added.
 
 ### Documentation
 

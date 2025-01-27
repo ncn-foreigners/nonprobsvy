@@ -44,7 +44,7 @@ nonprobIPW <- function(selection,
   nfolds <- control_selection$nfolds
   eps <- control_selection$epsilon
   rep_type <- control_inference$rep_type
-  if (!(target[3] == "NULL()")) stop("ill-defined formula for the target")
+  if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
   outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
@@ -194,7 +194,7 @@ nonprobIPW <- function(selection,
         pop_totals <- c(pop_size, pop_size * pop_means)
         names(pop_totals) <- c("(Intercept)", names(pop_means))
       } else {
-        stop("pop_size must be defined when estimating with pop_means.")
+        stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
       }
     }
 
@@ -360,7 +360,7 @@ nonprobIPW <- function(selection,
     )
     #######################################
   } else {
-    stop("Please, provide svydesign object or pop_totals/pop_means.")
+    stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
   }
   mu_hats <- numeric(length = outcomes$l)
   for (k in 1:outcomes$l) {
@@ -494,7 +494,7 @@ nonprobIPW <- function(selection,
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
       }
     } else {
-      stop("Invalid method for variance estimation.")
+      stop("Invalid `var_method` for the variance estimation.")
     }
     SE <- sqrt(var)
     alpha <- control_inference$alpha

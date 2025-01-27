@@ -155,7 +155,7 @@ ff <- function(formula) {
   formula_string <- paste(deparse(formula), collapse = " ")
   formula_parts <- strsplit(formula_string, "~")[[1]]
   if (length(formula_parts) != 2) {
-    stop("The formula must contain exactly one '~' operator.")
+    stop("The `formula` must contain exactly one '~' operator.")
   }
 
   lhs <- trimws(formula_parts[1])
@@ -165,7 +165,7 @@ ff <- function(formula) {
   independent_vars <- strsplit(rhs, "\\s*\\+\\s*")[[1]]
 
   if (any(duplicated(dependent_vars))) {
-    warning("Duplicate dependent variable names detected. They have been made unique.")
+    warning("Duplicate dependent variable names have been detected. They have been made unique.")
     dependent_vars <- unique(dependent_vars)
   }
   outcome_formulas <- vector("list", length(dependent_vars))
@@ -261,7 +261,7 @@ process_family <- function(family_spec) {
   } else if (inherits(family_spec, "family")) {
     family <- family_spec
   } else {
-    stop("Invalid family specification")
+    stop("Invalid family specification.")
   }
   return(family)
 }

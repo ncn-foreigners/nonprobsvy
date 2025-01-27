@@ -68,13 +68,13 @@ control_inf <- function(vars_selection = FALSE,
       TRUE
     } else {
       if (!is.logical(keep_boot)) {
-        stop("keep_boot argument for controlInf must be logical")
+        stop("The `keep_boot` argument for `control_inf` function must be logical.")
       } else {
         keep_boot
       }
     },
     nn_exact_se = if (!is.logical(nn_exact_se) & length(nn_exact_se) == 1) {
-      stop("Argument nn_exact_se must be a logical scalar")
+      stop("The `nn_exact_se` argument must be a logical scalar.")
     } else {
       nn_exact_se
     },
