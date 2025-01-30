@@ -1,4 +1,4 @@
-bootDR <- function(outcome,
+boot_dr <- function(outcome,
                    data,
                    svydesign,
                    SelectionModel,
@@ -52,7 +52,7 @@ bootDR <- function(outcome,
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
     y <- c(y_rand, OutcomeModel$y_nons) # outcome variable for joint model
-    var_obj <- bootDR_sel(
+    var_obj <- boot_dr_sel(
       X = X,
       R = R,
       y = y,
@@ -261,7 +261,7 @@ bootDR <- function(outcome,
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
 #' @importFrom doParallel registerDoParallel
-bootDR_multicore <- function(outcome,
+boot_dr_multicore <- function(outcome,
                              data,
                              svydesign,
                              SelectionModel,
@@ -316,7 +316,7 @@ bootDR_multicore <- function(outcome,
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
     y <- c(y_rand, OutcomeModel$y_nons) # outcome variable for joint model
-    var_obj <- bootDR_sel_multicore(
+    var_obj <- boot_dr_sel_multicore(
       X = X,
       R = R,
       y = y,
@@ -346,9 +346,9 @@ bootDR_multicore <- function(outcome,
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl = cl, varlist = c(
-      "internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "theta_h_estimation",
+      "internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "control_sel", "theta_h_estimation",
       "mle", "mu_hatDR", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
-      "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy", "nonprobMI_fit", "controlOut"
+      "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy", "nonprob_mi_fit", "control_out"
     ))
     if (is.null(pop_totals)) {
       N <- sum(weights_rand)

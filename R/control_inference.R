@@ -1,6 +1,6 @@
 #' @title Control parameters for inference
 #'
-#' @description \code{control_inf} constructs a list with all necessary control parameters
+#' @description \code{control_inf} constructs a `list` with all necessary control parameters
 #' for statistical inference.
 #'
 #' @param vars_selection If `TRUE`, then the variables selection model is used.

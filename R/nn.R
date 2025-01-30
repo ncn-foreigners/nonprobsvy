@@ -13,7 +13,7 @@ nn_nonprobsvy <- function(outcome,
                           model_frame = NULL,
                           start_outcome = NULL) { # TODO consider add data standardization before modelling
 
-  model_nons <- nonprobMI_nn(
+  model_nons <- nonprob_mi_nn(
     data = X_nons,
     query = X_nons,
     k = control$k,
@@ -21,7 +21,7 @@ nn_nonprobsvy <- function(outcome,
     searchtype = control$searchtype
   )
   if (is.null(pop_totals)) {
-    model_rand <- nonprobMI_nn(
+    model_rand <- nonprob_mi_nn(
       data = X_nons,
       query = X_rand,
       k = control$k,
@@ -42,7 +42,7 @@ nn_nonprobsvy <- function(outcome,
       # FUN=\(x) mean(sample_nonprob$short_[x])
     )
   } else {
-    model_rand <- nonprobMI_nn(
+    model_rand <- nonprob_mi_nn(
       data = X_nons,
       query = t(as.matrix(pop_totals / pop_totals[1])),
       k = control$k,
@@ -73,7 +73,7 @@ nn_nonprobsvy <- function(outcome,
 }
 
 
-nonprobMI_nn <- function(data,
+nonprob_mi_nn <- function(data,
                          query,
                          k,
                          treetype,
@@ -126,7 +126,7 @@ nn_exact <- function(pi_ij,
     y_nons_b <- y[boot_samp]
     x_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
-    YY <- nonprobMI_nn(
+    YY <- nonprob_mi_nn(
       data = x_nons_b,
       query = X_rand,
       k = k,

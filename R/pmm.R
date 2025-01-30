@@ -55,7 +55,7 @@ pmm_nonprobsvy <- function(outcome,
   switch(control$predictive_match,
     { # 1
       if (is.null(pop_totals)) {
-        model_rand <- nonprobMI_nn(
+        model_rand <- nonprob_mi_nn(
           data = glm_object$y_nons_pred,
           query = glm_object$y_rand_pred,
           k = control$k,
@@ -87,7 +87,7 @@ pmm_nonprobsvy <- function(outcome,
         )
       } else {
         # I'm not touching this
-        model_rand <- nonprobMI_nn(
+        model_rand <- nonprob_mi_nn(
           data = glm_object$y_nons_pred,
           query = glm_object$y_rand_pred,
           k = control$k,
@@ -99,7 +99,7 @@ pmm_nonprobsvy <- function(outcome,
     },
     { # 2
       if (is.null(pop_totals)) {
-        model_rand <- nonprobMI_nn(
+        model_rand <- nonprob_mi_nn(
           data = y_nons,
           query = glm_object$y_rand_pred,
           k = control$k,
@@ -126,7 +126,7 @@ pmm_nonprobsvy <- function(outcome,
         )
       } else {
         # I'm not touching this
-        model_rand <- nonprobMI_nn(
+        model_rand <- nonprob_mi_nn(
           data = y_nons,
           query = glm_object$y_rand_pred,
           k = control$k,
@@ -217,7 +217,7 @@ pmm_exact <- function(pi_ij,
     }
     YY <- switch(predictive_match,
       {
-        nonprobMI_nn(
+        nonprob_mi_nn(
           data = predict(
             reg_object_boot,
             newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
@@ -230,7 +230,7 @@ pmm_exact <- function(pi_ij,
         )
       },
       {
-        nonprobMI_nn(
+        nonprob_mi_nn(
           data = y_nons_b,
           query = XX,
           k = k,

@@ -13,7 +13,7 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
-nonprobDR <- function(selection,
+nonprob_dr <- function(selection,
                       outcome,
                       data,
                       svydesign,
@@ -731,7 +731,7 @@ nonprobDR <- function(selection,
         SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
       } else if (var_method == "bootstrap") {
         if (control_inference$cores > 1) {
-          boot_obj <- bootDR_multicore(
+          boot_obj <- boot_dr_multicore(
             outcome = outcome,
             data = data,
             svydesign = svydesign,
@@ -765,7 +765,7 @@ nonprobDR <- function(selection,
             verbose = verbose
           )
         } else {
-          boot_obj <- bootDR(
+          boot_obj <- boot_dr(
             outcome = outcome,
             data = data,
             svydesign = svydesign,

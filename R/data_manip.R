@@ -1,5 +1,11 @@
 # create an object with model frames and matrices to preprocess
-model_frame <- function(formula, data, weights = NULL, svydesign = NULL, pop_totals = NULL, pop_size = NULL, flag = TRUE) {
+model_frame <- function(formula,
+                        data,
+                        weights = NULL,
+                        svydesign = NULL,
+                        pop_totals = NULL,
+                        pop_size = NULL,
+                        flag = TRUE) {
   if (!is.null(svydesign)) {
     ##### Model frame for nonprobability sample #####
     model_Frame <- model.frame(formula, data)

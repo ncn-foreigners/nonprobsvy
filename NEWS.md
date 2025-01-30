@@ -1,6 +1,6 @@
 # nonprobsvy News and Updates
 
-# nonprobsvy 0.2
+## nonprobsvy 0.2
 
 ------------------------------------------------------------------------
 
@@ -12,8 +12,8 @@
 -   function `genSimData` removed completely as it is not used anywhere
     in the package.
 -   argument `maxLik_method` renamed to `maxlik_method` in the
-    `control_sel` function.
-
+    `control_sel` function. 
+    
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
@@ -35,13 +35,15 @@
 ### Other
 
 -   more informative error messages added.
+-   documentation improved.
+-   switching completely to snake_case.
 
 ### Documentation
 
 -   annotation has been added that arguments such as `strata`, `subset`
     and `na_action` are not supported for the time being.
 
-# nonprobsvy 0.1.1
+## nonprobsvy 0.1.1
 
 ------------------------------------------------------------------------
 
@@ -84,7 +86,7 @@
 -   added unit tests for variable selection models and mi estimation
     with vector of population totals available
 
-# nonprobsvy 0.1.0
+## nonprobsvy 0.1.0
 
 ------------------------------------------------------------------------
 

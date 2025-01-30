@@ -1,4 +1,4 @@
-bootDR_sel <- function(X,
+boot_dr_sel <- function(X,
                        R,
                        y,
                        svydesign,
@@ -114,7 +114,7 @@ bootDR_sel <- function(X,
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
 #' @importFrom doParallel registerDoParallel
-bootDR_sel_multicore <- function(X,
+boot_dr_sel_multicore <- function(X,
                                  svydesign,
                                  R,
                                  y,
@@ -147,7 +147,7 @@ bootDR_sel_multicore <- function(X,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel", "mle",
+    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "control_sel", "mle",
     "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "mm", "u_theta_beta_dr",
     "mu_hatDR"
   ))

@@ -60,7 +60,7 @@ set this value to \code{TRUE} before submitting the final results.}
 List with selected parameters.
 }
 \description{
-\code{control_inf} constructs a list with all necessary control parameters
+\code{control_inf} constructs a \code{list} with all necessary control parameters
 for statistical inference.
 }
 \seealso{

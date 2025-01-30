@@ -13,7 +13,7 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
-nonprobMI <- function(outcome,
+nonprob_mi <- function(outcome,
                       data,
                       svydesign,
                       pop_totals,
@@ -375,7 +375,7 @@ nonprobMI <- function(outcome,
       } else if (control_inference$var_method == "bootstrap") { # TODO for pop_totals
         # bootstrap variance
         if (control_inference$cores > 1) {
-          boot_obj <- bootMI_multicore(
+          boot_obj <- boot_mi_multicore(
             X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,
@@ -396,7 +396,7 @@ nonprobMI <- function(outcome,
             verbose = verbose
           )
         } else {
-          boot_obj <- bootMI(
+          boot_obj <- boot_mi(
             X_rand = X_rand,
             X_nons = X_nons,
             weights = weights,

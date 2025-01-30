@@ -4,7 +4,7 @@
 #' @importFrom utils setTxtProgressBar
 #' @importFrom utils txtProgressBar
 
-bootMI <- function(X_rand,
+boot_mi <- function(X_rand,
                    X_nons,
                    weights,
                    y,
@@ -125,7 +125,7 @@ bootMI <- function(X_rand,
             X_rand_strap <- X_rand[which(rep_weights[, k] != 0), ]
             weights_rand_strap <- weights_rand_strap_svy[strap_rand_svy]
 
-            model_rand <- nonprobMI_nn(
+            model_rand <- nonprob_mi_nn(
               data = X_nons_strap,
               query = X_rand_strap,
               k = control_outcome$k,
@@ -187,7 +187,7 @@ bootMI <- function(X_rand,
 
             model_rand <- switch(control_outcome$predictive_match,
               { # 1
-                nonprobMI_nn(
+                nonprob_mi_nn(
                   data = y_strap,
                   query = y_rand_strap,
                   k = control_outcome$k,
@@ -196,7 +196,7 @@ bootMI <- function(X_rand,
                 )
               },
               { # 2
-                nonprobMI_nn(
+                nonprob_mi_nn(
                   data = y_nons_strap,
                   query = y_rand_strap,
                   k = control_outcome$k,
@@ -291,7 +291,7 @@ bootMI <- function(X_rand,
             X_nons_strap <- X_nons[strap, , drop = FALSE]
             y_strap <- y[strap]
 
-            model_rand <- nonprobMI_nn(
+            model_rand <- nonprob_mi_nn(
               data = X_nons_strap,
               query = t(pop_totals / N),
               k = control_outcome$k,
@@ -339,7 +339,7 @@ bootMI <- function(X_rand,
 
             model_rand <- switch(control_outcome$predictive_match,
               { # 1
-                nonprobMI_nn(
+                nonprob_mi_nn(
                   data = y_strap,
                   query = y_strap_rand,
                   k = control_outcome$k,
@@ -348,7 +348,7 @@ bootMI <- function(X_rand,
                 )
               },
               { # 2
-                nonprobMI_nn(
+                nonprob_mi_nn(
                   data = y_strap_nons,
                   query = y_strap_rand,
                   k = control_outcome$k,
@@ -410,7 +410,7 @@ bootMI <- function(X_rand,
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
 #' @importFrom doParallel registerDoParallel
-bootMI_multicore <- function(X_rand,
+boot_mi_multicore <- function(X_rand,
                              X_nons,
                              weights,
                              y,
@@ -450,8 +450,8 @@ bootMI_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
-    "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "nonprobMI_nn"
+    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "control_sel",
+    "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "nonprob_mi_nn"
   ))
 
   if (is.null(pop_totals)) {
@@ -508,7 +508,7 @@ bootMI_multicore <- function(X_rand,
           X_rand_strap <- X_rand[strap_rand_svy, , drop = FALSE]
           weights_strap_rand <- weights_rand_strap_svy[strap_rand_svy]
 
-          model_rand <- nonprobMI_nn(
+          model_rand <- nonprob_mi_nn(
             data = X_nons_strap,
             query = X_rand_strap,
             k = control_outcome$k,
@@ -556,7 +556,7 @@ bootMI_multicore <- function(X_rand,
 
           model_rand <- switch(control_outcome$predictive_match,
             { # 1
-              nonprobMI_nn(
+              nonprob_mi_nn(
                 data = y_strap,
                 query = y_rand_strap,
                 k = control_outcome$k,
@@ -565,7 +565,7 @@ bootMI_multicore <- function(X_rand,
               )
             },
             { # 2
-              nonprobMI_nn(
+              nonprob_mi_nn(
                 data = y_nons_strap,
                 query = y_rand_strap,
                 k = control_outcome$k,
@@ -616,7 +616,7 @@ bootMI_multicore <- function(X_rand,
           X_nons_strap <- X_nons[strap, , drop = FALSE]
           y_strap <- y[strap]
 
-          model_rand <- nonprobMI_nn(
+          model_rand <- nonprob_mi_nn(
             data = X_nons_strap,
             query = t(pop_totals / N),
             k = control_outcome$k,
@@ -650,7 +650,7 @@ bootMI_multicore <- function(X_rand,
           y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
 
 
-          model_rand <- nonprobMI_nn(
+          model_rand <- nonprob_mi_nn(
             data = y_strap_nons,
             query = y_strap_rand,
             k = control_outcome$k,

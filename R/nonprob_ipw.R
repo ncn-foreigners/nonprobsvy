@@ -11,7 +11,7 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 
-nonprobIPW <- function(selection,
+nonprob_ipw <- function(selection,
                        target,
                        data,
                        svydesign,
@@ -435,7 +435,7 @@ nonprobIPW <- function(selection,
       }
     } else if (var_method == "bootstrap") { # TODO add ys, mu_hats instead of y_nons,
       if (control_inference$cores > 1) {
-        boot_obj <- bootIPW_multicore(
+        boot_obj <- boot_ipw_multicore(
           X_rand = X_rand,
           X_nons = X_nons,
           svydesign = svydesign,
@@ -462,7 +462,7 @@ nonprobIPW <- function(selection,
           verbose = verbose
         )
       } else {
-        boot_obj <- bootIPW(
+        boot_obj <- boot_ipw(
           X_rand = X_rand,
           X_nons = X_nons,
           svydesign = svydesign,

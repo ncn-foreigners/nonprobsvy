@@ -1,4 +1,4 @@
-bootIPW <- function(X_rand,
+boot_ipw <- function(X_rand,
                     X_nons,
                     svydesign,
                     weights,
@@ -183,7 +183,7 @@ bootIPW <- function(X_rand,
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
 #' @importFrom doParallel registerDoParallel
-bootIPW_multicore <- function(X_rand,
+boot_ipw_multicore <- function(X_rand,
                               X_nons,
                               svydesign,
                               weights,
@@ -225,7 +225,7 @@ bootIPW_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "controlSel",
+    "internal_selection", "logit_model_nonprobsvy", "start_fit", "get_method", "control_sel",
     "mle", "mu_hatIPW", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "theta_h_estimation"
   ))
 

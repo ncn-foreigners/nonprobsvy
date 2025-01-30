@@ -59,7 +59,7 @@ internal_outcome <- function(outcome,
                              family_outcome,
                              start_outcome) {
   # estimation
-  model_nons <- nonprobMI_fit(
+  model_nons <- nonprob_mi_fit(
     outcome = outcome,
     data = data,
     weights = weights,
@@ -201,7 +201,7 @@ mu_hatIPW <- function(y,
   mu_hat
 }
 
-nonprobMI_fit <- function(outcome,
+nonprob_mi_fit <- function(outcome,
                           data,
                           weights,
                           svydesign = NULL,

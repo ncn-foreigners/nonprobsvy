@@ -114,18 +114,18 @@ nonprob <- function(data,
       if (!inherits(target, "formula")) {
         stop("Please provide the `target` argument as a formula.")
       }
-      model_used <- "IPW"
+      model_used <- "ipw"
     } else {
-      model_used <- "DR"
+      model_used <- "dr"
     }
   } else if (inherits(outcome, "formula")) {
-    model_used <- "MI"
+    model_used <- "mi"
   }
 
 
   ## model estimates
   model_estimates <- switch(model_used,
-    IPW = nonprobIPW(
+    ipw = nonprob_ipw(
       selection = selection,
       target = target,
       data = data,
@@ -147,7 +147,7 @@ nonprob <- function(data,
       se = se,
       ...
     ),
-    MI = nonprobMI(
+    mi = nonprob_mi(
       outcome = outcome,
       data = data,
       svydesign = svydesign,
@@ -169,7 +169,7 @@ nonprob <- function(data,
       se = se,
       ...
     ),
-    DR = nonprobDR(
+    dr = nonprob_dr(
       selection = selection,
       outcome = outcome,
       data = data,

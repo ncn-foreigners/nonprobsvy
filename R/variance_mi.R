@@ -73,7 +73,7 @@ internal_varMI <- function(svydesign,
       # not computed, but it should be computed in serious publications
       var_nonprob <- 0
 
-      # An option in controlInf controls this
+      # An option in control_inf controls this
       # Maybe add a warning/message if this computation is omited
       if (nn_exact_se) {
         var_nonprob <- pmm_exact(
