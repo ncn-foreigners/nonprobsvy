@@ -134,8 +134,8 @@ boot_mi <- function(X_rand,
             )
 
             y_rand_strap <- apply(model_rand$nn.idx, 1,
-              FUN = \(x) mean(y_strap[x])
-              # FUN=\(x) mean(sample_nonprob$short_[x])
+              FUN = function(x) mean(y_strap[x])
+              # FUN=function(x) mean(sample_nonprob$short_[x])
             )
 
             mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
@@ -207,8 +207,8 @@ boot_mi <- function(X_rand,
             )
 
             y_rand_strap <- apply(model_rand$nn.idx, 1,
-              FUN = \(x) mean(y_strap[x])
-              # FUN=\(x) mean(sample_nonprob$short_[x])
+              FUN = function(x) mean(y_strap[x])
+              # FUN=function(x) mean(sample_nonprob$short_[x])
             )
 
             mu_hat_boot <- weighted.mean(x = y_rand_strap, w = weights_rand_strap)
@@ -516,7 +516,7 @@ boot_mi_multicore <- function(X_rand,
             searchtype = control_outcome$searchtype
           )
           y_rand_strap <- apply(model_rand$nn.idx, 1,
-            FUN = \(x) mean(y_strap[x])
+            FUN = function(x) mean(y_strap[x])
           )
           weighted.mean(x = y_rand_strap, w = weights_strap_rand)
         }
@@ -576,7 +576,7 @@ boot_mi_multicore <- function(X_rand,
           )
 
           y_rand_strap <- apply(model_rand$nn.idx, 1,
-            FUN = \(x) mean(y_strap[x])
+            FUN = function(x) mean(y_strap[x])
           )
           weighted.mean(x = y_rand_strap, w = weights_strap_rand)
         }

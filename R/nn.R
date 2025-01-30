@@ -33,13 +33,13 @@ nn_nonprobsvy <- function(outcome,
     parameters <- "Non-parametric method for outcome model"
 
     y_rand_pred <- apply(model_rand$nn.idx, 1,
-      FUN = \(x) mean(y_nons[x])
-      # FUN=\(x) mean(sample_nonprob$short_[x])
+      FUN = function(x) mean(y_nons[x])
+      # FUN=function(x) mean(sample_nonprob$short_[x])
     )
 
     y_nons_pred <- apply(model_nons$nn.idx, 1,
-      FUN = \(x) mean(y_nons[x])
-      # FUN=\(x) mean(sample_nonprob$short_[x])
+      FUN = function(x) mean(y_nons[x])
+      # FUN=function(x) mean(sample_nonprob$short_[x])
     )
   } else {
     model_rand <- nonprob_mi_nn(
@@ -55,8 +55,8 @@ nn_nonprobsvy <- function(outcome,
 
     y_rand_pred <- mean(y_nons[model_rand$nn.idx])
     y_nons_pred <- apply(model_nons$nn.idx, 1,
-      FUN = \(x) mean(y_nons[x])
-      # FUN=\(x) mean(sample_nonprob$short_[x])
+      FUN = function(x) mean(y_nons[x])
+      # FUN=function(x) mean(sample_nonprob$short_[x])
     )
   }
 
@@ -138,7 +138,7 @@ nn_exact <- function(pi_ij,
     )
 
     dd[jj] <- weighted.mean(
-      apply(YY$nn.idx, 1, FUN = \(x) mean(y_nons_b[x])),
+      apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons_b[x])),
       weights_rand
     )
   }
