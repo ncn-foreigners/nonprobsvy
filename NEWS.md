@@ -1,6 +1,6 @@
 # nonprobsvy News and Updates
 
-## nonprobsvy 0.2
+## nonprobsvy 0.2.0
 
 ------------------------------------------------------------------------
 
