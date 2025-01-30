@@ -1,6 +1,6 @@
-# nonprobsvy News and Updates
+nonprobsvy News and Updates
 
-## nonprobsvy 0.2.0
+# nonprobsvy 0.2.0
 
 ------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@
 -   annotation has been added that arguments such as `strata`, `subset`
     and `na_action` are not supported for the time being.
 
-## nonprobsvy 0.1.1
+# nonprobsvy 0.1.1
 
 ------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@
 -   added unit tests for variable selection models and mi estimation
     with vector of population totals available
 
-## nonprobsvy 0.1.0
+# nonprobsvy 0.1.0
 
 ------------------------------------------------------------------------
 
