@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nonprobsvy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,108 +31,7 @@
       <small>Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2" id="nonprobsvy-02">nonprobsvy 0.2<a class="anchor" aria-label="anchor" href="#nonprobsvy-02"></a></h2>
-<hr><div class="section level4">
-<h4 id="breaking-changes-0-2">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2"></a></h4>
-<ul><li>functions <code>pop.size</code>, <code>controlSel</code>, <code>controlOut</code> and <code>controlInf</code> were renamed to <code>pop_size</code>, <code>control_sel</code>, <code>control_out</code> and <code>control_inf</code> respectively.</li>
-<li>function <code>genSimData</code> removed completely as it is not used anywhere in the package.</li>
-<li>argument <code>maxLik_method</code> renamed to <code>maxlik_method</code> in the <code>control_sel</code> function.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="features-0-2">Features<a class="anchor" aria-label="anchor" href="#features-0-2"></a></h4>
-<ul><li>two additional datasets have been included: <code>jvs</code> (Job Vacancy Survey; a probability sample survey) and <code>admin</code> (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.</li>
-<li>a <code>nonprobsvycheck</code> function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.</li>
-<li>citation file added.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="bugfixes-0-2">Bugfixes<a class="anchor" aria-label="anchor" href="#bugfixes-0-2"></a></h4>
-<ul><li>basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="other-0-2">Other<a class="anchor" aria-label="anchor" href="#other-0-2"></a></h4>
-<ul><li>more informative error messages added.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="documentation-0-2">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2"></a></h4>
-<ul><li>annotation has been added that arguments such as <code>strata</code>, <code>subset</code> and <code>na_action</code> are not supported for the time being.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.1" id="nonprobsvy-011">nonprobsvy 0.1.1<a class="anchor" aria-label="anchor" href="#nonprobsvy-011"></a></h2><p class="text-muted">CRAN release: 2024-11-14</p>
-<hr><div class="section level4">
-<h4 id="bugfixes-0-1-1">Bugfixes<a class="anchor" aria-label="anchor" href="#bugfixes-0-1-1"></a></h4>
-<ul><li>bug Fix occurring when estimation was based on auxiliary variable, which led to compression of the data from the frame to the vector.</li>
-<li>bug Fix related to not passing <code>maxit</code> argument from <code>controlSel</code> function to internally used <code>nleqslv</code> function</li>
-<li>bug Fix related to storing <code>vector</code> in <code>model_frame</code> when predicting <code>y_hat</code> in mass imputation <code>glm</code> model when X is based in one auxiliary variable only - fix provided converting it to <code>data.frame</code> object.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="features-0-1-1">Features<a class="anchor" aria-label="anchor" href="#features-0-1-1"></a></h4>
-<ul><li>added information to <code>summary</code> about quality of estimation basing on difference between estimated and known total values of auxiliary variables</li>
-<li>added estimation of exact standard error for k-nearest neighbor estimator.</li>
-<li>added breaking change to <code>controlOut</code> function by switching values for <code>predictive_match</code> argument. From now on, the <code>predictive_match = 1</code> means <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">\hat{y}-\hat{y}</annotation></semantics></math> in predictive mean matching imputation and <code>predictive_match = 2</code> corresponds to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">\hat{y}-y</annotation></semantics></math> matching.</li>
-<li>implemented <code>div</code> option when variable selection (more in documentation) for doubly robust estimation.</li>
-<li>added more insights to <code>nonprob</code> output such as gradient, hessian and jacobian derived from IPW estimation for <code>mle</code> and <code>gee</code> methods when <code>IPW</code> or <code>DR</code> model executed.</li>
-<li>added estimated inclusion probabilities and its derivatives for probability and non-probability samples to <code>nonprob</code> output when <code>IPW</code> or <code>DR</code> model executed.</li>
-<li>added <code>model_frame</code> matrix data from probability sample used for mass imputation to <code>nonprob</code> when <code>MI</code> or <code>DR</code> model executed.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="unit-tests-0-1-1">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-1"></a></h4>
-<ul><li>added unit tests for variable selection models and mi estimation with vector of population totals available</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0" id="nonprobsvy-010">nonprobsvy 0.1.0<a class="anchor" aria-label="anchor" href="#nonprobsvy-010"></a></h2><p class="text-muted">CRAN release: 2024-04-04</p>
-<hr><div class="section level4">
-<h4 id="features-0-1-0">Features<a class="anchor" aria-label="anchor" href="#features-0-1-0"></a></h4>
-<ul><li>implemented population mean estimation using doubly robust, inverse probability weighting and mass imputation methods</li>
-<li>implemented inverse probability weighting models with Maximum Likelihood Estimation and Generalized Estimating Equations methods with <code>logit</code>, <code>complementary log-log</code> and <code>probit</code> link functions.</li>
-<li>implemented <code>generalized linear models</code>, <code>nearest neighbours</code> and <code>predictive mean matching</code> methods for Mass Imputation</li>
-<li>implemented bias correction estimators for doubly-robust approach</li>
-<li>implemented estimation methods when vector of population means/totals is available</li>
-<li>implemented variables selection with <code>SCAD</code>, <code>LASSO</code> and <code>MCP</code> penalization equations</li>
-<li>implemented <code>analytic</code> and <code>bootstrap</code> (with parallel computation - <code>doSNOW</code> package) variance for described estimators</li>
-<li>added control parameters for models</li>
-<li>added S3 methods for object of <code>nonprob</code> class such as
-<ul><li>
-<code>nobs</code> for samples size</li>
-<li>
-<code>pop.size</code> for population size estimation</li>
-<li>
-<code>residuals</code> for residuals of the inverse probability weighting model</li>
-<li>
-<code>cooks.distance</code> for identifying influential observations that have a significant impact on the parameter estimates</li>
-<li>
-<code>hatvalues</code> for measuring the leverage of individual observations</li>
-<li>
-<code>logLik</code> for computing the log-likelihood of the model,</li>
-<li>
-<code>AIC</code> (Akaike Information Criterion) for evaluating the model based on the trade-off between goodness of fit and complexity, helping in model selection</li>
-<li>
-<code>BIC</code> (Bayesian Information Criterion) for a similar purpose as AIC but with a stronger penalty for model complexity</li>
-<li>
-<code>confint</code> for calculating confidence intervals around parameter estimates</li>
-<li>
-<code>vcov</code> for obtaining the variance-covariance matrix of the parameter estimates</li>
-<li>
-<code>deviance</code> for assessing the goodness of fit of the model</li>
-</ul></li>
-</ul></div>
-<div class="section level4">
-<h4 id="unit-tests-0-1-0">Unit tests<a class="anchor" aria-label="anchor" href="#unit-tests-0-1-0"></a></h4>
-<ul><li>added unit tests for IPW estimators.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="github-repository-0-1-0">Github repository<a class="anchor" aria-label="anchor" href="#github-repository-0-1-0"></a></h4>
-<ul><li>added automated <code>R-cmd</code> check</li>
-</ul></div>
-<div class="section level4">
-<h4 id="documentation-0-1-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-1-0"></a></h4>
-<ul><li>added documentation for <code>nonprob</code> function.</li>
-</ul></div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside></div>
+  </main></div>
 
 
     <footer><div class="pkgdown-footer-left">
