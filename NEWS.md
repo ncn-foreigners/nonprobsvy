@@ -1,4 +1,4 @@
-# nonprobsvy 0.1.2
+# nonprobsvy 0.2
 
 ------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 
 - two additional datasets have been included: `jvs` (Job Vacancy Survey; a probability sample survey) and `admin` (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.
 - a `nonprobsvycheck` function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.
-
+- citation file added.
 
 ### Bugfixes
 - basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.

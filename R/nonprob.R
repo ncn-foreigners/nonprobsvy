@@ -25,42 +25,31 @@ nonprob <- function(data,
                     y = TRUE,
                     se = TRUE,
                     ...) {
+
   call <- match.call()
+  data <- if (!is.data.frame(data)) data.frame(data) else data
+  weights <- if (is.null(weights)) rep(1, nrow(data)) else weights
 
-  if (!is.data.frame(data)) {
-    data <- data.frame(data)
-  }
+  # Method defaults
+  method_selection <- if (missing(method_selection)) "logit" else method_selection
+  family_outcome <- if (missing(family_outcome)) "gaussian" else family_outcome
+  method_outcome <- if (missing(method_outcome)) "glm" else method_outcome
 
-  if (is.null(weights)) weights <- rep(1, nrow(data))
 
-  if (missing(method_selection)) method_selection <- "logit"
-  if (missing(family_outcome)) family_outcome <- "gaussian"
-  if (missing(method_outcome)) method_outcome <- "glm"
-  if (!(method_outcome %in% c("glm", "nn", "pmm"))) stop("Invalid method for the `outcome` variable.")
-  if (!is.null(svydesign)) {
-    if ("svyrep.design" %in% class(svydesign)) stop("We do not currently support the `svyrep.design` class. Provide the survey data in the `survey.design2` class.")
-    if ("pps" %in% class(svydesign)) stop("The `as.svrepdesign` function does not allow `pps` designs. For more details, see the `survey` package.")
-  }
-  if (!is.null(pop_totals)) {
-    if (!is.vector(pop_totals)) stop("The `pop_totals` argument must be a vector.")
-  }
-  if (!is.null(pop_means)) {
-    if (!is.vector(pop_means)) stop("The `pop_means` argument must be a vector.")
-  }
-  if (!(method_selection %in% c("logit", "cloglog", "probit"))) stop("Invalid method for the `selection` formula.")
-  if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) stop("Invalid family for the `outcome` formula.")
-  if (!is.null(control_selection$key)) {
-    if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
-      stop("Key variable for overlapping units must be defined with the same name in prob and nonprob sample.")
-    }
+  # Validation checks for methods
+  if (!(method_outcome %in% c("glm", "nn", "pmm"))) {
+    stop("Invalid method for the `outcome` variable. Choose from 'glm', 'nn', 'pmm'.")
   }
 
-  ## basic checkers
-  if (is.null(selection) & is.null(outcome)) {
-    stop("Please provide thw `selection` or `outcome` argument.")
+  if (!(method_selection %in% c("logit", "cloglog", "probit"))) {
+    stop("Invalid method for the `selection` formula. Choose from 'logit', 'cloglog', 'probit'.")
   }
 
-  # Check formula inputs
+  if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) {
+    stop("Invalid family for the `outcome` formula. Choose from 'gaussian', 'binomial', 'poisson'.")
+  }
+
+  # Validation checks for formulas
   if (!is.null(selection) && !inherits(selection, "formula")) {
     stop("The `selection` argument must be a formula.")
   }
@@ -71,48 +60,72 @@ nonprob <- function(data,
     stop("The `target` argument must be a formula.")
   }
 
-  if (inherits(selection, "formula") && (is.null(outcome) || inherits(outcome, "formula") == FALSE)) {
-    if (inherits(target, "formula") == FALSE) stop("Please provide the `target` argument.")
-    model_used <- "P"
+  # Validation checks for totals and means
+  if (!is.null(pop_totals) && !is.vector(pop_totals)) {
+    stop("The `pop_totals` argument must be a vector.")
+  }
+  if (!is.null(pop_means) && !is.vector(pop_means)) {
+    stop("The `pop_means` argument must be a vector.")
   }
 
-  if (inherits(outcome, "formula") && (is.null(selection) || inherits(selection, "formula") == FALSE)) {
-    model_used <- "M"
+  if (!is.null(pop_size) && (!is.numeric(pop_size) || pop_size <= 0)) {
+    stop("The `pop_size` argument must be a positive numeric scalar.")
   }
 
-  if (inherits(selection, "formula") && inherits(outcome, "formula")) {
-    model_used <- "DR"
+  if (!is.null(pop_totals) && !is.null(pop_means)) {
+    stop("Specify one of the `pop_totals` or `pop_means` arguments, not both.")
+  }
+  if (!is.null(pop_size) && pop_size < nrow(data)) {
+    stop("The `pop_size` argument cannot be smaller than sample size.")
   }
 
-  # Check numeric inputs
-  if (!is.null(pop_size) && !is.numeric(pop_size)) {
-    stop("The `pop_size` argument must be numeric scalar.")
-  }
+  ## for weights
   if (!is.null(weights) && !is.numeric(weights)) {
     stop("The `weights` argument must be a numeric vector.")
   }
-
-  # Check weights length
   if (!is.null(weights) && length(weights) != nrow(data)) {
     stop("Length of the `weights` argument must match the number of rows in data.")
   }
 
-  if (!is.null(pop_totals) && !is.null(pop_means)) {
-    stop("Specify one of the `pop_totals' or `pop_means' arguments, not both.")
+  ## selection and outcome should be specified
+  if (is.null(selection) && is.null(outcome)) {
+    stop("Please provide the `selection` or `outcome` argument.")
   }
 
-  if (!is.null(pop_size)) {
-    if (pop_size <= 0) {
-      stop("The `pop_size` argument must be positive.")
+  if (!is.null(svydesign)) {
+    if ("svyrep.design" %in% class(svydesign)) {
+      stop("We do not currently support the `svyrep.design` class. Provide the survey data in the `survey.design2` class.")
     }
-    if (pop_size < nrow(data)) {
-      stop("The `pop_size` argument cannot be smaller than sample size.")
+    if ("pps" %in% class(svydesign)) {
+      stop("The `as.svrepdesign` function does not allow `pps` designs. For more details, see the `survey` package.")
     }
   }
+
+  ## this check is for future development
+  if (!is.null(control_selection$key)) {
+    if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
+      stop("Key variable for overlapping units must be defined with the same name in prob and nonprob sample.")
+    }
+  }
+
+  ## specification of the methods
+  if (inherits(selection, "formula")) {
+    if (is.null(outcome) || !inherits(outcome, "formula")) {
+      if (!inherits(target, "formula")) {
+        stop("Please provide the `target` argument as a formula.")
+      }
+      model_used <- "IPW"
+    } else {
+      model_used <- "DR"
+    }
+  } else if (inherits(outcome, "formula")) {
+    model_used <- "MI"
+  }
+
 
   ## model estimates
   model_estimates <- switch(model_used,
-    P = nonprobIPW(
+    IPW = nonprobIPW(
       selection = selection,
       target = target,
       data = data,
@@ -134,7 +147,7 @@ nonprob <- function(data,
       se = se,
       ...
     ),
-    M = nonprobMI(
+    MI = nonprobMI(
       outcome = outcome,
       data = data,
       svydesign = svydesign,
