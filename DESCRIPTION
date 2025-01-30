@@ -11,12 +11,14 @@ Authors@R:
              family = "Beręsewicz",
              role = c("aut", "ctb"),
              email = "maciej.beresewicz@ue.poznan.pl",
-             comment = c(ORCID = "0000-0002-8281-4301")),
+             comment = c(ORCID = "0000-0002-8281-4301",
+                         ROR = "0532c1x92")),
       person(given = "Piotr",
              family = "Chlebicki",
              role = c("aut", "ctb"),
              email = "piotrek.pecet@gmail.com",
-             comment = c(ORCID = "0009-0006-4867-7434")))
+             comment = c(ORCID = "0009-0006-4867-7434",
+                         ROR = "05f0yaq80")))
 Description: Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. The package implements various methods such as inverse probability (propensity score) weighting, mass imputation and doubly robust approach. Details can be found in: Wu et al. (2020) <doi:10.1080/01621459.2019.1677241>, Kim et al. (2021) <doi:10.1111/rssa.12696>, Wu et al. (2023) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>, Kim et al. (2021) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>, Kim et al. (2020) <doi:10.1111/rssb.12354>.
 License: MIT + file LICENSE
 Encoding: UTF-8
