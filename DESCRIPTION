@@ -6,7 +6,7 @@ Authors@R:
     c(person(given = "Łukasz",
              family = "Chrostowski",
              role = c("aut", "cre"),
-             email = "lukchr@st.amu.edu.pl"),
+             email = "lukaszchrostowski6@gmail.com"),
       person(given = "Maciej",
              family = "Beręsewicz",
              role = c("aut", "ctb"),
@@ -19,7 +19,7 @@ Authors@R:
              email = "piotrek.pecet@gmail.com",
              comment = c(ORCID = "0009-0006-4867-7434",
                          ROR = "05f0yaq80")))
-Description: Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. The package implements various methods such as inverse probability (propensity score) weighting, mass imputation and doubly robust approach. Details can be found in: Wu et al. (2020) <doi:10.1080/01621459.2019.1677241>, Kim et al. (2021) <doi:10.1111/rssa.12696>, Wu et al. (2023) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>, Kim et al. (2021) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>, Kim et al. (2020) <doi:10.1111/rssb.12354>.
+Description: Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. The package implements various methods such as inverse probability (propensity score) weighting, mass imputation and doubly robust approach. Details can be found in: Chen et al. (2020) <doi:10.1080/01621459.2019.1677241>, Yang et al. (2020) <doi:10.1111/rssb.12354>, Kim et al. (2021) <doi:10.1111/rssa.12696>, Yang et al. (2021) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm> and Wu (2022) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -28,11 +28,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://github.com/ncn-foreigners/nonprobsvy, https://ncn-foreigners.github.io/nonprobsvy/
 BugReports: https://github.com/ncn-foreigners/nonprobsvy/issues
-Suggests: 
-    tinytest,
-    covr,
-    sampling,
-    spelling
 Depends:
   R (>= 4.0.0),
   survey
@@ -50,6 +45,11 @@ Imports:
     foreach,
     parallel,
     formula.tools
+Suggests: 
+    tinytest,
+    covr,
+    sampling,
+    spelling
 LinkingTo: 
     Rcpp,
     RcppArmadillo
