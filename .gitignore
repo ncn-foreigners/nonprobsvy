@@ -12,3 +12,5 @@ src/*.so
 src/Makevars
 srs/*.dll
 docs
+inst/doc
+**/.quarto/
