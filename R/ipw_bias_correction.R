@@ -1,4 +1,61 @@
-# bias correction
+#' Bias Correction Model for Non-probability Surveys
+#'
+#' @description
+#' Fits a bias correction model for non-probability surveys using maximum likelihood estimation.
+#'
+#' @param X Matrix of covariates for both selection and outcome models
+#' @param y Vector of outcome variables
+#' @param weights Numeric vector of survey weights for non-probability sample
+#' @param weights_rand Numeric vector of survey weights for probability sample
+#' @param R Binary vector indicating sample membership (1 for non-probability, 0 for probability sample)
+#' @param n_nons Integer, size of non-probability sample
+#' @param n_rand Integer, size of probability sample
+#' @param method_selection Character, specifies the selection model type
+#' @param family Family object specifying the error distribution and link function
+#' @param start_selection Numeric vector of starting values for selection model parameters
+#' @param start_outcome Numeric vector of starting values for outcome model parameters
+#' @param maxit Integer, maximum number of iterations for the optimization
+#' @param nleqslv_method Character, method to be used in nleqslv optimization
+#' @param nleqslv_global Character, global strategy for nleqslv
+#' @param nleqslv_xscalm Character, scaling method for nleqslv
+#' @param boot Logical, whether the function is being called for bootstrap (default FALSE)
+#'
+#' @return A list containing two components:
+#' \itemize{
+#'   \item selection: List of selection model results including:
+#'     \itemize{
+#'       \item theta_hat: Estimated selection model coefficients
+#'       \item ps_nons: Estimated selection probabilities for non-probability sample
+#'       \item variance_covariance: Variance-covariance matrix (if boot=FALSE)
+#'       \item other diagnostic information
+#'     }
+#'   \item outcome: List of outcome model results including:
+#'     \itemize{
+#'       \item coefficients: Estimated outcome model coefficients
+#'       \item std_err: Standard errors (if boot=FALSE)
+#'       \item fitted.values: Fitted values for non-probability sample
+#'       \item other model diagnostics
+#'     }
+#' }
+#'
+#' @details
+#' The function implements a bias correction method for non-probability surveys
+#' using both probability and non-probability samples. It fits both selection
+#' and outcome models using maximum likelihood estimation via the nleqslv package.
+#'
+#' @note
+#' The function may produce warnings if the optimization algorithm doesn't converge
+#' or encounters numerical issues.
+#'
+#' @importFrom nleqslv nleqslv
+#' @importFrom Matrix Diagonal
+#'
+#' @examples
+#' \dontrun{
+#' # Example code to be added
+#' }
+#'
+#' @keywords models survey
 mm <- function(X,
                y,
                weights,
