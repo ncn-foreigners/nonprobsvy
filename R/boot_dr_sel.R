@@ -1,19 +1,19 @@
 boot_dr_sel <- function(X,
-                       R,
-                       y,
-                       svydesign,
-                       weights,
-                       weights_rand,
-                       method_selection,
-                       family_nonprobsvy,
-                       mu_hat,
-                       n_nons,
-                       n_rand,
-                       num_boot,
-                       rep_type,
-                       start_selection,
-                       start_outcome,
-                       verbose) { # TODO function to test
+                        R,
+                        y,
+                        svydesign,
+                        weights,
+                        weights_rand,
+                        method_selection,
+                        family_nonprobsvy,
+                        mu_hat,
+                        n_nons,
+                        n_rand,
+                        num_boot,
+                        rep_type,
+                        start_selection,
+                        start_outcome,
+                        verbose) { # TODO function to test
   mu_hats <- vector(mode = "numeric", length = num_boot)
   k <- 1
   loc_nons <- which(R == 1)
@@ -107,7 +107,6 @@ boot_dr_sel <- function(X,
   )
 }
 
-
 # multicore
 #' @importFrom foreach %dopar%
 #' @importFrom foreach foreach
@@ -115,22 +114,22 @@ boot_dr_sel <- function(X,
 #' @importFrom parallel stopCluster
 #' @importFrom doParallel registerDoParallel
 boot_dr_sel_multicore <- function(X,
-                                 svydesign,
-                                 R,
-                                 y,
-                                 weights,
-                                 weights_rand,
-                                 method_selection,
-                                 family_nonprobsvy,
-                                 mu_hat,
-                                 n_nons,
-                                 n_rand,
-                                 num_boot,
-                                 rep_type,
-                                 start_selection,
-                                 start_outcome,
-                                 cores,
-                                 verbose) {
+                                  svydesign,
+                                  R,
+                                  y,
+                                  weights,
+                                  weights_rand,
+                                  method_selection,
+                                  family_nonprobsvy,
+                                  mu_hat,
+                                  n_nons,
+                                  n_rand,
+                                  num_boot,
+                                  rep_type,
+                                  start_selection,
+                                  start_outcome,
+                                  cores,
+                                  verbose) {
   mu_hats <- vector(mode = "numeric", length = num_boot)
   loc_nons <- which(R == 1)
   loc_rand <- which(R == 0)

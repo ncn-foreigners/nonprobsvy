@@ -25,7 +25,6 @@ nonprob <- function(data,
                     y = TRUE,
                     se = TRUE,
                     ...) {
-
   call <- match.call()
   data <- if (!is.data.frame(data)) data.frame(data) else data
   weights <- if (is.null(weights)) rep(1, nrow(data)) else weights

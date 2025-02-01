@@ -74,12 +74,12 @@ nn_nonprobsvy <- function(outcome,
 
 
 nonprob_mi_nn <- function(data,
-                         query,
-                         k,
-                         treetype,
-                         searchtype,
-                         radius = 0,
-                         eps = 0) {
+                          query,
+                          k,
+                          treetype,
+                          searchtype,
+                          radius = 0,
+                          eps = 0) {
   model_nn <- RANN::nn2(
     data = data,
     query = query,

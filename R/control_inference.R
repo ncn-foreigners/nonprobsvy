@@ -39,22 +39,22 @@
 #' @export
 
 control_inf <- function(vars_selection = FALSE,
-                       var_method = c(
-                         "analytic",
-                         "bootstrap"
-                       ),
-                       rep_type = c(
-                         "auto", "JK1", "JKn", "BRR", "bootstrap",
-                         "subbootstrap", "mrbbootstrap", "Fay"
-                       ),
-                       bias_inf = c("union", "div"),
-                       num_boot = 500,
-                       bias_correction = FALSE,
-                       alpha = 0.05,
-                       cores = 1,
-                       keep_boot,
-                       nn_exact_se = FALSE,
-                       pi_ij) {
+                        var_method = c(
+                          "analytic",
+                          "bootstrap"
+                        ),
+                        rep_type = c(
+                          "auto", "JK1", "JKn", "BRR", "bootstrap",
+                          "subbootstrap", "mrbbootstrap", "Fay"
+                        ),
+                        bias_inf = c("union", "div"),
+                        num_boot = 500,
+                        bias_correction = FALSE,
+                        alpha = 0.05,
+                        cores = 1,
+                        keep_boot,
+                        nn_exact_se = FALSE,
+                        pi_ij) {
   list(
     vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
     var_method = if (missing(var_method)) "analytic" else var_method,

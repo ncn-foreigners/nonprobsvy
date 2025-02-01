@@ -47,31 +47,31 @@
 #' @export
 
 control_sel <- function(method = "glm.fit", # perhaps another control function for model with variables selection
-                       epsilon = 1e-4,
-                       maxit = 500,
-                       trace = FALSE,
-                       optimizer = c("maxLik", "optim"),
-                       maxlik_method = "NR",
-                       optim_method = "BFGS",
-                       dependence = FALSE,
-                       key = NULL,
-                       est_method_sel = c("mle", "gee"),
-                       h = c(1, 2),
-                       penalty = c("SCAD", "lasso", "MCP"),
-                       a_SCAD = 3.7,
-                       a_MCP = 3,
-                       lambda = -1,
-                       lambda_min = .001,
-                       nlambda = 50,
-                       nfolds = 10,
-                       print_level = 0,
-                       start_type = c("glm", "naive", "zero"),
-                       nleqslv_method = c("Broyden", "Newton"),
-                       nleqslv_global = c(
-                         "dbldog", "pwldog",
-                         "cline", "qline", "gline", "hook", "none"
-                       ),
-                       nleqslv_xscalm = c("fixed", "auto")) {
+                        epsilon = 1e-4,
+                        maxit = 500,
+                        trace = FALSE,
+                        optimizer = c("maxLik", "optim"),
+                        maxlik_method = "NR",
+                        optim_method = "BFGS",
+                        dependence = FALSE,
+                        key = NULL,
+                        est_method_sel = c("mle", "gee"),
+                        h = c(1, 2),
+                        penalty = c("SCAD", "lasso", "MCP"),
+                        a_SCAD = 3.7,
+                        a_MCP = 3,
+                        lambda = -1,
+                        lambda_min = .001,
+                        nlambda = 50,
+                        nfolds = 10,
+                        print_level = 0,
+                        start_type = c("glm", "naive", "zero"),
+                        nleqslv_method = c("Broyden", "Newton"),
+                        nleqslv_global = c(
+                          "dbldog", "pwldog",
+                          "cline", "qline", "gline", "hook", "none"
+                        ),
+                        nleqslv_xscalm = c("fixed", "auto")) {
   list(
     epsilon = epsilon,
     maxit = maxit,

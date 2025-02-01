@@ -72,7 +72,6 @@ mm <- function(X,
                nleqslv_global,
                nleqslv_xscalm,
                boot = FALSE) {
-
   method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection_function)
   inv_link <- method$make_link_inv

@@ -78,9 +78,11 @@ pmm_nonprobsvy <- function(outcome,
           "prop_dist" = {
             # TODO:: these weights will need to be saved for variance estimation
             y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-              FUN = function(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                w = 1 / model_rand$nn.dist[x, ]
-              )
+              FUN = function(x) {
+                weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                  w = 1 / model_rand$nn.dist[x, ]
+                )
+              }
               # FUN=function(x) mean(sample_nonprob$short_[x])
             )
           }
@@ -117,9 +119,11 @@ pmm_nonprobsvy <- function(outcome,
           "prop_dist" = {
             # TODO:: these weights will need to be saved for variance estimation
             y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
-              FUN = function(x) weighted.mean(y_nons[model_rand$nn.idx[x, ]],
-                w = 1 / model_rand$nn.dist[x, ]
-              )
+              FUN = function(x) {
+                weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                  w = 1 / model_rand$nn.dist[x, ]
+                )
+              }
               # FUN=function(x) mean(sample_nonprob$short_[x])
             )
           }

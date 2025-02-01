@@ -62,9 +62,9 @@ gee <- function(...) {
 
     # variance calculation based on h
     if (h == 2) {
-      var_nonprob <- 1 / N^2 * sum((1 - ps) * (resid/ps - model_adj)^2)
+      var_nonprob <- 1 / N^2 * sum((1 - ps) * (resid / ps - model_adj)^2)
     } else if (h == 1) {
-      var_nonprob <- 1 / N^2 * sum((1 - ps) * ((resid - model_adj)/ps)^2)
+      var_nonprob <- 1 / N^2 * sum((1 - ps) * ((resid - model_adj) / ps)^2)
     }
     as.numeric(var_nonprob)
   }

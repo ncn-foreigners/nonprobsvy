@@ -358,8 +358,10 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   # Check if all variables exist in the data
   missing_vars <- setdiff(vars, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s.",
-                 paste(missing_vars, collapse = ", ")))
+    stop(sprintf(
+      "The following variables are not present in the dataset: %s.",
+      paste(missing_vars, collapse = ", ")
+    ))
   }
 
   # Function to calculate totals for one variable
@@ -392,23 +394,29 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   data$weights <- object$weights
 
   # Calculate nonprob totals
-  nonprob_totals <- tryCatch({
-    unlist(lapply(vars, function(var) calculate_totals(var, data)))
-  }, error = function(e) {
-    stop(sprintf("Error calculating nonprobability totals: %s.", e$message))
-  })
+  nonprob_totals <- tryCatch(
+    {
+      unlist(lapply(vars, function(var) calculate_totals(var, data)))
+    },
+    error = function(e) {
+      stop(sprintf("Error calculating nonprobability totals: %s.", e$message))
+    }
+  )
 
   # Calculate probability totals
   if (!is.null(object$svydesign)) {
     # If svydesign exists
-    prob_totals <- tryCatch({
-      svy_total <- svytotal(x, object$svydesign)
-      svy_totals <- as.vector(svy_total)
-      names(svy_totals) <- names(svy_total)
-      svy_totals
-    }, error = function(e) {
-      stop(sprintf("Error calculating survey totals: %s.", e$message))
-    })
+    prob_totals <- tryCatch(
+      {
+        svy_total <- svytotal(x, object$svydesign)
+        svy_totals <- as.vector(svy_total)
+        names(svy_totals) <- names(svy_total)
+        svy_totals
+      },
+      error = function(e) {
+        stop(sprintf("Error calculating survey totals: %s.", e$message))
+      }
+    )
   } else {
     # Use population totals
     prob_totals <- object$selection$pop_totals
@@ -418,11 +426,14 @@ check_balance.nonprobsvy <- function(x, object, dig = 10) {
   }
 
   # Calculate and round differences
-  diff <- tryCatch({
-    round(nonprob_totals - prob_totals[names(nonprob_totals)], digits = dig)
-  }, error = function(e) {
-    stop(sprintf("Error calculating differences: %s.", e$message))
-  })
+  diff <- tryCatch(
+    {
+      round(nonprob_totals - prob_totals[names(nonprob_totals)], digits = dig)
+    },
+    error = function(e) {
+      stop(sprintf("Error calculating differences: %s.", e$message))
+    }
+  )
 
   # Return results with meaningful names
   result <- list(
@@ -467,8 +478,10 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
   # Check if all group variables exist in the dataset
   missing_vars <- setdiff(groups, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s",
-                 paste(missing_vars, collapse = ", ")))
+    stop(sprintf(
+      "The following variables are not present in the dataset: %s",
+      paste(missing_vars, collapse = ", ")
+    ))
   }
   if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
     if (interaction) {
@@ -514,9 +527,11 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
           result$total[i] <- sum(weights[mask])
           # Warning for small group sizes
           if (sum(mask) < 5) {
-            warning(sprintf("Small group size (%d) for combination: %s",
-                            sum(mask),
-                            paste(result[i, groups], collapse = ", ")))
+            warning(sprintf(
+              "Small group size (%d) for combination: %s",
+              sum(mask),
+              paste(result[i, groups], collapse = ", ")
+            ))
           }
         }
       }
@@ -533,7 +548,7 @@ nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
     }
   } else {
     if (interaction) {
-      form <- as.formula(paste("~interaction(", paste(groups, collapse=", "), ")"))
+      form <- as.formula(paste("~interaction(", paste(groups, collapse = ", "), ")"))
       result <- svytotal(form, object$svydesign)
     } else {
       result <- svytotal(x, object$svydesign)
@@ -581,8 +596,10 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
   # Input validation checks
   missing_vars <- setdiff(groups, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s",
-                 paste(missing_vars, collapse = ", ")))
+    stop(sprintf(
+      "The following variables are not present in the dataset: %s",
+      paste(missing_vars, collapse = ", ")
+    ))
   }
 
   if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
@@ -600,13 +617,15 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
 
       # Calculate weighted means for each combination of groups
       mean_value <- aggregate(object$weights,
-                              by = group_data,
-                              FUN = function(w) sum(w) / sum(object$weights))
+        by = group_data,
+        FUN = function(w) sum(w) / sum(object$weights)
+      )
 
       # Check for small group sizes
       group_sizes <- aggregate(object$weights,
-                               by = group_data,
-                               FUN = length)
+        by = group_data,
+        FUN = length
+      )
       small_groups <- group_sizes$x < 5
       if (any(small_groups)) {
         warning("Small group sizes (< 5) found in some combinations")
@@ -614,7 +633,6 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
 
       # Rename columns
       names(mean_value) <- c(groups, "mean")
-
     } else {
       data <- model.matrix(as.formula(paste(x, "- 1")), data = object$data)
       mean_value <- sapply(as.data.frame(data), function(col) weighted.mean(col, object$weights))
@@ -625,7 +643,7 @@ nonprobsvymean.nonprobsvy <- function(x, object, interaction = FALSE) {
     }
   } else {
     if (interaction) {
-      form <- as.formula(paste("~interaction(", paste(groups, collapse=", "), ")"))
+      form <- as.formula(paste("~interaction(", paste(groups, collapse = ", "), ")"))
       mean_value <- svymean(form, object$svydesign)
     } else {
       mean_value <- svymean(x, object$svydesign)
@@ -673,14 +691,18 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
   # Validate inputs
   missing_vars <- setdiff(groups, names(object$data))
   if (length(missing_vars) > 0) {
-    stop(sprintf("The following variables are not present in the dataset: %s.",
-                 paste(missing_vars, collapse = ", ")))
+    stop(sprintf(
+      "The following variables are not present in the dataset: %s.",
+      paste(missing_vars, collapse = ", ")
+    ))
   }
 
   if (!is.null(variables) && !all(variables %in% names(object$data))) {
     missing_dep_vars <- setdiff(variables, names(object$y))
-    stop(sprintf("The following dependent variables are not present: %s.",
-                 paste(missing_dep_vars, collapse = ", ")))
+    stop(sprintf(
+      "The following dependent variables are not present: %s.",
+      paste(missing_dep_vars, collapse = ", ")
+    ))
   }
 
   # Check for NAs in grouping variables
@@ -702,32 +724,33 @@ nonprobsvyby.nonprobsvy <- function(y, by, object, FUN) {
       weights <- weights[valid_data]
 
       res <- aggregate(data[, variables] * weights,
-                       by = data[, groups, drop = FALSE],
-                       sum)
+        by = data[, groups, drop = FALSE],
+        sum
+      )
       names(res)[ncol(res)] <- paste0("total.", variables)
-
     } else if (class_nonprob == "nonprobsvy_mi") {
-      res <- svyby(formula = ~ y_hat_MI, by = by, design = object$svydesign, svytotal)
+      res <- svyby(formula = ~y_hat_MI, by = by, design = object$svydesign, svytotal)
     }
   } else { # mean
     if (class_nonprob == "nonprobsvy_ipw") {
       res <- aggregate(data[, variables, drop = FALSE],
-                       by = data[, groups, drop = FALSE],
-                       FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
-                       w = weights)
+        by = data[, groups, drop = FALSE],
+        FUN = function(y, w) weighted.mean(y, w = w[1:length(y)]),
+        w = weights
+      )
       names(res) <- c(groups, paste0("mean.", variables))
 
       # Check for small group sizes
       group_sizes <- aggregate(rep(1, nrow(data)),
-                               by = data[, groups, drop = FALSE],
-                               FUN = sum)
+        by = data[, groups, drop = FALSE],
+        FUN = sum
+      )
       small_groups <- group_sizes$x < 5
       if (any(small_groups)) {
         warning("Small group sizes (< 5) found in some combinations")
       }
-
     } else if (class_nonprob == "nonprobsvy_mi") {
-      res <- svyby(formula = ~ y_hat_MI, by = by, design = object$svydesign, svymean)
+      res <- svyby(formula = ~y_hat_MI, by = by, design = object$svydesign, svymean)
     }
   }
   res

@@ -156,11 +156,11 @@ logit_model_nonprobsvy <- function(...) {
   }
 
   variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
-    N <- if(is.null(pop_size)) sum(1/ps) else pop_size
+    N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
     n <- ifelse(is.null(dim(X)), length(X), nrow(X))
 
     # get y values based on N and mu
-    if(is.null(pop_size)) {
+    if (is.null(pop_size)) {
       y_adj <- weights * (y - mu)
       y_sq <- y_adj^2
     } else {
@@ -169,7 +169,7 @@ logit_model_nonprobsvy <- function(...) {
     }
 
     # get weights based on method
-    w1 <- if(est_method == "gee" && h == 1 || !is.null(pop_totals)) {
+    w1 <- if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
       (1 - ps) / ps^2
     } else {
       (1 - ps) / ps
@@ -177,11 +177,11 @@ logit_model_nonprobsvy <- function(...) {
 
     # calc v11 and v1_
     v11 <- sum(w1 * y_sq) / N^2
-    v1_ <- (w1 * y_adj) %*% X / N^2      # use standard matrix mult instead of crossprod
+    v1_ <- (w1 * y_adj) %*% X / N^2 # use standard matrix mult instead of crossprod
     v_1 <- t(v1_)
 
     # calc v_2
-    w2 <- if(est_method == "gee" && h == 1 || !is.null(pop_totals)) {
+    w2 <- if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
       (1 - ps) / ps
     } else {
       (1 - ps)
@@ -189,8 +189,8 @@ logit_model_nonprobsvy <- function(...) {
 
     # calc v_2 with explicit loop instead of lapply
     v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-    for(i in 1:n) {
-      v_2 <- v_2 + w2[i] * (X[i,] %*% t(X[i,]))
+    for (i in 1:n) {
+      v_2 <- v_2 + w2[i] * (X[i, ] %*% t(X[i, ]))
     }
     v_2 <- v_2 / N^2
 
@@ -247,11 +247,11 @@ logit_model_nonprobsvy <- function(...) {
 
     # prep the weights and adjusted y
     w <- (1 - ps) / ps * weights
-    y_adj <- if(is.null(pop_size)) y - mu else y
+    y_adj <- if (is.null(pop_size)) y - mu else y
 
     # main calculation (explicit steps for debugging)
-    weighted_y <- w * y_adj                       # element-wise mult
-    b <- -(weighted_y %*% X) %*% hess_inv_neg    # matrix mult step by step
+    weighted_y <- w * y_adj # element-wise mult
+    b <- -(weighted_y %*% X) %*% hess_inv_neg # matrix mult step by step
 
     list(b = b)
   }
@@ -279,9 +279,9 @@ logit_model_nonprobsvy <- function(...) {
     mean_nons <- sum(weights * y_nons) / N
 
     # matrix mult and scaling
-    Xb <- X %*% t(as.matrix(b))     # ensure b is matrix
-    ps_vec <- as.vector(ps)         # ensure ps is vector
-    Xb_scaled <- ps_vec * Xb        # element-wise mult
+    Xb <- X %*% t(as.matrix(b)) # ensure b is matrix
+    ps_vec <- as.vector(ps) # ensure ps is vector
+    Xb_scaled <- ps_vec * Xb # element-wise mult
 
     # final calculation
     drop(Xb_scaled + y_rand - mean_nons)

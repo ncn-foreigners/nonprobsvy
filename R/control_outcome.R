@@ -47,21 +47,21 @@
 #' @export
 
 control_out <- function(epsilon = 1e-4,
-                       maxit = 100,
-                       trace = FALSE,
-                       k = 1,
-                       penalty = c("SCAD", "lasso", "MCP"),
-                       a_SCAD = 3.7,
-                       a_MCP = 3,
-                       lambda_min = .001,
-                       nlambda = 100,
-                       nfolds = 10,
-                       treetype = "kd",
-                       searchtype = "standard",
-                       predictive_match = 1:2,
-                       pmm_weights = c("none", "prop_dist"),
-                       pmm_k_choice = c("none", "min_var"),
-                       pmm_reg_engine = c("glm", "loess")) {
+                        maxit = 100,
+                        trace = FALSE,
+                        k = 1,
+                        penalty = c("SCAD", "lasso", "MCP"),
+                        a_SCAD = 3.7,
+                        a_MCP = 3,
+                        lambda_min = .001,
+                        nlambda = 100,
+                        nfolds = 10,
+                        treetype = "kd",
+                        searchtype = "standard",
+                        predictive_match = 1:2,
+                        pmm_weights = c("none", "prop_dist"),
+                        pmm_k_choice = c("none", "min_var"),
+                        pmm_reg_engine = c("glm", "loess")) {
   if (missing(predictive_match)) {
     predictive_match <- 1
   }

@@ -202,16 +202,16 @@ mu_hatIPW <- function(y,
 }
 
 nonprob_mi_fit <- function(outcome,
-                          data,
-                          weights,
-                          svydesign = NULL,
-                          family_outcome = "gaussian",
-                          start = NULL,
-                          control_outcome = control_out(),
-                          verbose = FALSE,
-                          model = TRUE,
-                          x = FALSE,
-                          y = FALSE) {
+                           data,
+                           weights,
+                           svydesign = NULL,
+                           family_outcome = "gaussian",
+                           start = NULL,
+                           control_outcome = control_out(),
+                           verbose = FALSE,
+                           model = TRUE,
+                           x = FALSE,
+                           y = FALSE) {
   # Process family specification
   family <- process_family(family_outcome)
 
@@ -227,30 +227,32 @@ nonprob_mi_fit <- function(outcome,
   model_data$weights <- weights
 
   # Fit the model
-  tryCatch({
-    model_fit <- stats::glm(
-      formula = outcome,
-      data = model_data,
-      weights = weights,
-      family = family,
-      start = start,
-      control = control_list,
-      model = model,
-      x = x,
-      y = y
-    )
+  tryCatch(
+    {
+      model_fit <- stats::glm(
+        formula = outcome,
+        data = model_data,
+        weights = weights,
+        family = family,
+        start = start,
+        control = control_list,
+        model = model,
+        x = x,
+        y = y
+      )
 
-    if (verbose) {
-      cat("Model fitting completed:\n")
-      cat("Convergence status:", ifelse(model_fit$converged, "converged", "not converged"), "\n")
-      cat("Number of iterations:", model_fit$iter, "\n")
+      if (verbose) {
+        cat("Model fitting completed:\n")
+        cat("Convergence status:", ifelse(model_fit$converged, "converged", "not converged"), "\n")
+        cat("Number of iterations:", model_fit$iter, "\n")
+      }
+
+      return(model_fit)
+    },
+    error = function(e) {
+      stop("Error in model fitting: ", e$message)
     }
-
-    return(model_fit)
-
-  }, error = function(e) {
-    stop("Error in model fitting: ", e$message)
-  })
+  )
 }
 
 process_family <- function(family_spec) {

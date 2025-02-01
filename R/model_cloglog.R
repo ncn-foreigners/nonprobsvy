@@ -179,10 +179,10 @@ cloglog_model_nonprobsvy <- function(...) {
     # ensure matrix format and get dimensions
     X <- as.matrix(X)
     n <- nrow(X)
-    N <- if(is.null(pop_size)) sum(1/ps) else pop_size
+    N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
 
     # get y values based on pop_size
-    y_adj <- if(is.null(pop_size)) {
+    y_adj <- if (is.null(pop_size)) {
       weights * (y - mu)
     } else {
       weights * y
@@ -194,18 +194,17 @@ cloglog_model_nonprobsvy <- function(...) {
 
     if (est_method == "mle" && is.null(pop_totals)) {
       # MLE specific calculations
-      log_ps <- log1p(-ps)  # more stable than log(1-ps)
+      log_ps <- log1p(-ps) # more stable than log(1-ps)
       v11 <- sum(w1 * y_sq) / N^2
-      v1_ <- -((w1 * log_ps * y_adj) %*% X) / N^2  # TODO: check sign
+      v1_ <- -((w1 * log_ps * y_adj) %*% X) / N^2 # TODO: check sign
 
       # matrix calculations with standard ops
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- (w1[i] * log_ps[i]^2) * (X[i,] %*% t(X[i,]))
+        v_2i <- (w1[i] * log_ps[i]^2) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-
     } else if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
       # GEE h=1 or pop_totals case
       v11 <- sum(w1 * y_sq) / N^2
@@ -213,11 +212,10 @@ cloglog_model_nonprobsvy <- function(...) {
 
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- ((1 - ps[i]) / ps[i]) * (X[i,] %*% t(X[i,]))
+        v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-
     } else if (est_method == "gee" && h == 2) {
       # GEE h=2 case
       v11 <- sum(w1 * y_sq) / N^2
@@ -225,7 +223,7 @@ cloglog_model_nonprobsvy <- function(...) {
 
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- (1 - ps[i]) * (X[i,] %*% t(X[i,]))
+        v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
@@ -250,7 +248,7 @@ cloglog_model_nonprobsvy <- function(...) {
     } else {
       # adjust probabilities based on method
       if (est_method == "mle") {
-        svydesign$prob <- svydesign$prob * log1p(-eps)  # more stable than log(1-eps)
+        svydesign$prob <- svydesign$prob * log1p(-eps) # more stable than log(1-eps)
       } else if (est_method == "gee" && h == 2) {
         svydesign$prob <- svydesign$prob * eps
       }
@@ -289,10 +287,10 @@ cloglog_model_nonprobsvy <- function(...) {
     # prepare common terms
     X <- as.matrix(X)
     w <- (1 - ps) / ps^2 * exp(eta) * weights
-    y_adj <- if(is.null(pop_size)) y - mu else y
+    y_adj <- if (is.null(pop_size)) y - mu else y
 
     # compute b vector
-    b <- -(w * y_adj) %*% X %*% hess_inv_neg  # TODO opposite sign here (?)
+    b <- -(w * y_adj) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
 
     list(b = b)
   }

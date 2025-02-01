@@ -116,12 +116,12 @@ probit_model_nonprobsvy <- function(...) {
 
       if (maxLik_an$code %in% c(3:7, 100)) {
         switch(as.character(maxLik_an$code),
-               "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
-               "4" = warning("Maxiteration limit reached in fitting selection model by the `maxLik` package."),
-               "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
-               "6" = stop("Infinite value of gradient in fitting selection model by the `maxLik` package, error code 6."),
-               "7" = stop("Infinite value of hessian in fitting selection model by the `maxLik` package, error code 7."),
-               "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
+          "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
+          "4" = warning("Maxiteration limit reached in fitting selection model by the `maxLik` package."),
+          "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
+          "6" = stop("Infinite value of gradient in fitting selection model by the `maxLik` package, error code 6."),
+          "7" = stop("Infinite value of hessian in fitting selection model by the `maxLik` package, error code 7."),
+          "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
         )
       }
 
@@ -144,10 +144,10 @@ probit_model_nonprobsvy <- function(...) {
       )
       if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
         switch(as.character(maxLik_an$convergence),
-               "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
-               "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
-               "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
-               "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
+          "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
+          "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
+          "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
+          "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
         )
       }
 
@@ -170,10 +170,10 @@ probit_model_nonprobsvy <- function(...) {
     # ensure matrix format and get dimensions
     X <- as.matrix(X)
     n <- nrow(X)
-    N <- if(is.null(pop_size)) sum(1/ps) else pop_size
+    N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
 
     # get y values based on pop_size
-    y_adj <- if(is.null(pop_size)) {
+    y_adj <- if (is.null(pop_size)) {
       weights * (y - mu)
     } else {
       weights * y
@@ -191,11 +191,10 @@ probit_model_nonprobsvy <- function(...) {
       # matrix calculations
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- (psd[i] / (ps[i]^2 * (1 - ps[i]))) * (X[i,] %*% t(X[i,]))
+        v_2i <- (psd[i] / (ps[i]^2 * (1 - ps[i]))) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-
     } else if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
       # GEE h=1 or pop_totals case
       v11 <- sum(w1 * y_sq) / N^2
@@ -203,11 +202,10 @@ probit_model_nonprobsvy <- function(...) {
 
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- ((1 - ps[i]) / ps[i]) * (X[i,] %*% t(X[i,]))
+        v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-
     } else if (est_method == "gee" && h == 2) {
       # GEE h=2 case
       v11 <- sum(w1 * y_sq) / N^2
@@ -215,7 +213,7 @@ probit_model_nonprobsvy <- function(...) {
 
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2i <- (1 - ps[i]) * (X[i,] %*% t(X[i,]))
+        v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
@@ -278,10 +276,10 @@ probit_model_nonprobsvy <- function(...) {
     # prepare common terms
     X <- as.matrix(X)
     w <- psd / ps^2 * weights
-    y_adj <- if(is.null(pop_size)) y - mu else y - mu + 1
+    y_adj <- if (is.null(pop_size)) y - mu else y - mu + 1
 
     # compute b vector with standard matrix mult
-    b <- -(w * y_adj) %*% X %*% hess_inv_neg  # TODO opposite sign here (?)
+    b <- -(w * y_adj) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
 
     list(b = b)
   }

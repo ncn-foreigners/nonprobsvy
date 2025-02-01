@@ -27,8 +27,8 @@ u_theta <- function(R,
     # "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
     if (is.null(pop_totals)) {
       eq <- switch(h,
-                   "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
-                   "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
+        "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
+        "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
       )
     } else {
       eq <- c(apply(X0 * R / ps * weights, 2, sum)) - pop_totals
@@ -70,8 +70,8 @@ u_theta_der <- function(R,
       mxDer <- t(R * X0 * weights * inv_link_rev(eta)) %*% X0
     } else {
       mxDer <- switch(h,
-                      "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
-                      "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
+        "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
+        "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
       )
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
