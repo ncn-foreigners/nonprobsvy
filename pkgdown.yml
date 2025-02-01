@@ -1,8 +1,9 @@
 pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
-articles: {}
-last_built: 2025-01-31T10:10Z
+articles:
+  nonprobsvy-getting-started: nonprobsvy-getting-started.html
+last_built: 2025-02-01T09:50Z
 urls:
   reference: https://ncn-foreigners.github.io/nonprobsvy/reference
   article: https://ncn-foreigners.github.io/nonprobsvy/articles
