@@ -1,4 +1,4 @@
-#' Bias Correction Model for Non-probability Surveys
+#' An internal function for bias correction Model for Non-probability Surveys
 #'
 #' @description
 #' Fits a bias correction model for non-probability surveys using maximum likelihood estimation.
@@ -56,6 +56,7 @@
 #' }
 #'
 #' @keywords models survey
+#' @noRd
 mm <- function(X,
                y,
                weights,

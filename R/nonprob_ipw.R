@@ -10,7 +10,8 @@
 #' @importFrom MASS ginv
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
-
+#' @rdname nonprob
+#' @export
 nonprob_ipw <- function(selection,
                         target,
                         data,
@@ -48,7 +49,7 @@ nonprob_ipw <- function(selection,
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
   outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
-  outcomes <- ff(outcome)
+  outcomes <- make_outcomes(outcome)
   output <- list()
   ys <- list()
   if (se) {
@@ -142,6 +143,7 @@ nonprob_ipw <- function(selection,
       X_nons <- X[loc_nons, , drop = FALSE]
       X_rand <- X[loc_rand, , drop = FALSE]
     }
+    ## maybe this should be replaced
     model_sel <- internal_selection(
       X = X,
       X_nons = X_nons,
@@ -324,7 +326,7 @@ nonprob_ipw <- function(selection,
     grad <- h_object$grad
     names(theta_hat) <- colnames(X)
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-    method <- get_method(method_selection_function)
+    method <- get_method(method_selection_function) ## ipw or gee
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der
     eta_nons <- theta_hat %*% t(X_nons)
@@ -546,7 +548,7 @@ nonprob_ipw <- function(selection,
   if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
 
-  SelectionList <- list(
+  selection_list <- list(
     coefficients = selection_model$theta_hat,
     std_err = theta_standard_errors,
     residuals = selection_model$residuals,
@@ -596,7 +598,7 @@ nonprob_ipw <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       outcome = NULL,
-      selection = SelectionList,
+      selection = selection_list,
       boot_sample = boot_sample,
       svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),

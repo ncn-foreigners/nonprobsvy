@@ -1,4 +1,6 @@
 # family
+## functions for the glm
+## for extending existing functions
 
 poisson_nonprobsvy <- function(link = "log") {
   x <- stats::poisson(link = link)

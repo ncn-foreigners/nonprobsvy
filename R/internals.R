@@ -12,7 +12,7 @@
 #' @importFrom stats var
 #' @importFrom stats predict
 
-# Selection model object
+# Selection model object (this is for the IPW estimator) -- maybe it can be removed
 internal_selection <- function(X,
                                X_nons,
                                X_rand,
@@ -52,7 +52,7 @@ internal_selection <- function(X,
   )
 }
 
-# Outcome model object
+# Outcome model object (this is for the MI estimator) -- maybe it can be removed
 internal_outcome <- function(outcome,
                              data,
                              weights,
@@ -74,7 +74,9 @@ internal_outcome <- function(outcome,
   )
 }
 
-# code for the function comes from the ncvreg package
+##' @title Setup lambda parameter for the {ncvreg} package
+##'
+##' @noRd
 setup_lambda <- function(X,
                          y,
                          weights,
@@ -119,6 +121,7 @@ setup_lambda <- function(X,
   lambda
 }
 
+## start fit for the MI GLM estimator
 start_fit <- function(X,
                       R,
                       weights,
@@ -151,7 +154,15 @@ get_method <- function(method) {
   method
 }
 
-ff <- function(formula) {
+##' @title Function that create formulas for multiple outcomes
+##'
+##' @param formula a formula specifying the outcome ~ auxiliary variables (e.g. `y1 + y2 ~ x1 + x2`).
+##'
+##' @description
+##' The function takes an outcome formula such as `y1 + y2 ~ x1 + x2` and creates
+##' separate models i.e. `y1 ~ x1 + x2` and `y2 ~ x1 + x2`
+##' @noRd
+make_outcomes <- function(formula) {
   formula_string <- paste(deparse(formula), collapse = " ")
   formula_parts <- strsplit(formula_string, "~")[[1]]
   if (length(formula_parts) != 2) {
@@ -193,6 +204,7 @@ mu_hatDR <- function(y,
   correction_term + probability_estimate
 }
 
+## replace with weighted.mean -- maybe it can be removed
 mu_hatIPW <- function(y,
                       weights,
                       weights_nons,
@@ -201,6 +213,7 @@ mu_hatIPW <- function(y,
   mu_hat
 }
 
+## estimation for the GLM MI estimator -- maybe it can be removed
 nonprob_mi_fit <- function(outcome,
                            data,
                            weights,
@@ -255,6 +268,7 @@ nonprob_mi_fit <- function(outcome,
   )
 }
 
+## function used only in the -- nonprob_mi_fit
 process_family <- function(family_spec) {
   if (is.character(family_spec)) {
     family <- get(family_spec, mode = "function", envir = parent.frame())

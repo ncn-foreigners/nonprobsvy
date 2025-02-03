@@ -1,3 +1,4 @@
+# functions for the IPW GEE
 # score equation for theta, used in variable selection
 u_theta <- function(R,
                     X,

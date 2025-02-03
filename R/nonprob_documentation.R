@@ -193,6 +193,7 @@ NULL
 #'  \item{\code{prob_size} -- a scalar `numeric vector` denoting the size of probability sample.}
 #'  \item{\code{pop_size} -- a scalar `numeric vector` estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
 #'  \item{\code{pop_totals} -- a `numeric vector` with the total values of the auxiliary variables derived from a probability sample or a `numeric vector` of the total/mean values.}
+#'  \item{\code{estimator} -- a `character vector` with information what type of estimator was selected (one of `c("ipw", "mi", "dr")`).}
 #'  \item{\code{outcome} -- a `list` containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
 #'  [stats::glm()], in the case of the nearest neighbour imputation the object containing list returned by [RANN::nn2()]. If `bias_correction` in [control_inf()] is set to `TRUE`, the estimation is based on
 #'  the joint estimating equations for the `selection` and `outcome` model and therefore, the list is different from the one returned by the [stats::glm()] function and contains elements such as

@@ -1,7 +1,7 @@
 #'
 #' Internal function to create an object with model frames and matrices to preprocess
 #'
-#' @param formula formula for the model
+#' @param formula a formula for the model
 #' @param data data frame
 #' @param weights weights for the data
 #' @param svydesign survey design object
@@ -10,6 +10,7 @@
 #' @param flag logical value indicating whether to check if the names of the variables in the data and in svydesign match
 #'
 #' @return list with model frames and matrices to preprocess
+#' @noRd
 model_frame <- function(formula,
                         data,
                         weights = NULL,
@@ -18,12 +19,14 @@ model_frame <- function(formula,
                         pop_size = NULL,
                         flag = TRUE) {
   if (!is.null(svydesign)) {
-    ##### Model frame for nonprobability sample #####
-    model_Frame <- model.frame(formula, data)
-    y_nons <- model.response(model_Frame)
-    outcome_name <- names(model_Frame)[1]
 
-    mt <- terms(formula) # attr(model_Frame, "terms")
+    ##### Model frame for non-probability sample #####
+
+    model_frame_nons <- model.frame(formula, data)
+    y_nons <- model.response(model_frame_nons)
+    outcome_name <- names(model_frame_nons)[1]
+
+    mt <- terms(formula) # attr(model_frame_nons, "terms")
     nons_names <- all.vars(as.formula(paste("~", paste(attr(mt, "term.labels"), collapse = " + "))))
     ##### Model frame for probability sample #####
     if (outcome_name %in% colnames(svydesign$variables)) {
@@ -31,20 +34,20 @@ model_frame <- function(formula,
       design_to_frame <- svydesign$variables
       design_to_frame[, outcome_name][is.na(design_to_frame[, outcome_name])] <- 0 # replace NA in dependent outcome with 0
       names_rand <- all.vars(formula)
-      model_Frame_rand <- design_to_frame[, names_rand, drop = FALSE]
+      model_frame_nons_rand <- design_to_frame[, names_rand, drop = FALSE]
 
-      nons_names_rand <- intersect(names_rand, colnames(design_to_frame))
+      model_frame_rand <- intersect(names_rand, colnames(design_to_frame))
     } else {
       design_to_frame <- svydesign$variables
       ##
       terms_object <- terms(formula)
       names_rand <- all.vars(as.formula(paste("~", paste(attr(terms_object, "term.labels"), collapse = " + "))))
 
-      model_Frame_rand <- design_to_frame[, names_rand, drop = FALSE]
-      nons_names_rand <- intersect(names_rand, colnames(design_to_frame))
+      model_frame_nons_rand <- design_to_frame[, names_rand, drop = FALSE]
+      model_frame_rand <- intersect(names_rand, colnames(design_to_frame))
     }
     # TODO think out this condition
-    if (all(nons_names %in% nons_names_rand)) { # colnames(svydesign$variables)
+    if (all(nons_names %in% model_frame_rand)) { # colnames(svydesign$variables)
       dot_check <- sapply(formula, FUN = function(x) {
         x == "."
       })
@@ -78,22 +81,22 @@ model_frame <- function(formula,
       nons_names = nons_names,
       y_nons = y_nons,
       outcome_name = outcome_name,
-      model_frame_rand = model_Frame_rand
+      model_frame_rand = model_frame_nons_rand
     )
   } else if (!is.null(pop_totals)) {
-    model_Frame <- model.frame(formula, data)
-    X_nons <- model.matrix(model_Frame, data)
-    mt <- attr(model_Frame, "terms")
+    model_frame_nons <- model.frame(formula, data)
+    X_nons <- model.matrix(model_frame_nons, data)
+    mt <- attr(model_frame_nons, "terms")
     total_names <- colnames(X_nons)
     if (flag) {
-      if (all(total_names %in% names(pop_totals))) { # TODO verify whether this warming works well.. pop_totals, pop_means defined such as in `calibrate` function
+      if (all(total_names %in% names(pop_totals))) { # TODO verify whether this warning works well.. pop_totals, pop_means defined such as in `calibrate` function
         pop_totals <- pop_totals[total_names]
       } else {
         warning("Selection and population totals have different names.")
       }
     }
-    y_nons <- model.response(model_Frame)
-    outcome_name <- names(model_Frame)[1]
+    y_nons <- model.response(model_frame_nons)
+    outcome_name <- names(model_frame_nons)[1]
 
     list(
       X_nons = X_nons,

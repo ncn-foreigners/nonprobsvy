@@ -12,7 +12,8 @@
 #' @importFrom survey svytotal
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
-
+#' @rdname nonprob
+#' @export
 nonprob_mi <- function(outcome,
                        data,
                        svydesign,
@@ -35,10 +36,10 @@ nonprob_mi <- function(outcome,
                        ...) {
   var_selection <- control_inference$vars_selection
   outcome_init <- outcome
-  outcomes <- ff(outcome)
+  outcomes <- make_outcomes(outcome)
   output <- list()
   ys <- list()
-  OutcomeList <- list()
+  outcome_list <- list()
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -115,7 +116,7 @@ nonprob_mi <- function(outcome,
         y_rand_pred <- model_obj$y_rand_pred
         y_nons_pred <- model_obj$y_nons_pred
         # parameters <- model_obj$parameters
-        OutcomeList[[k]] <- model_obj$model
+        outcome_list[[k]] <- model_obj$model
 
         # updating probability sample by adding y_hat variable
         svydesign1 <- stats::update(svydesign,
@@ -243,8 +244,8 @@ nonprob_mi <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
-      OutcomeList[[k]] <- model_obj$model
-      OutcomeList[[k]]$model_frame <- OutcomeModel$model_frame_rand
+      outcome_list[[k]] <- model_obj$model
+      outcome_list[[k]]$model_frame <- OutcomeModel$model_frame_rand
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
@@ -326,8 +327,8 @@ nonprob_mi <- function(outcome,
       y_rand_pred <- model_obj$y_rand_pred
       y_nons_pred <- model_obj$y_nons_pred
       parameters <- model_obj$parameters
-      OutcomeList[[k]] <- model_obj$model
-      OutcomeList[[k]]$model_frame <- Model$model_frame_rand
+      outcome_list[[k]] <- model_obj$model
+      outcome_list[[k]]$model_frame <- Model$model_frame_rand
       mu_hat <- y_rand_pred
     } else {
       stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
@@ -449,9 +450,9 @@ nonprob_mi <- function(outcome,
     pop_size <- N_est_rand # estimated pop_size
 
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
-    OutcomeList[[k]]$method <- method_outcome
+    outcome_list[[k]]$method <- method_outcome
     if (control_inference$vars_selection == TRUE) {
-      OutcomeList[[k]]$cve <- cve_outcome
+      outcome_list[[k]]$cve <- cve_outcome
     } else {
       NULL
     }
@@ -460,7 +461,7 @@ nonprob_mi <- function(outcome,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  names(OutcomeList) <- outcomes$f
+  names(outcome_list) <- outcomes$f
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
   names(prob_pop_totals) <- colnames(X_nons)
@@ -491,7 +492,7 @@ nonprob_mi <- function(outcome,
       prob_size = n_rand,
       pop_size = pop_size,
       pop_totals = prob_pop_totals,
-      outcome = OutcomeList,
+      outcome = outcome_list,
       selection = NULL,
       boot_sample = boot_sample,
       svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only

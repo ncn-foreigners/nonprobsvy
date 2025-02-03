@@ -33,7 +33,7 @@ residuals.nonprobsvy <- function(object,
                                    "response",
                                    "pearsonSTD"
                                  ),
-                                 ...) { # TODO for pop_totals
+                                 ...) { # TODO for pop_totals (only for non-prob part)
 
   if (length(type) > 1) {
     type <- "response"

@@ -1,4 +1,3 @@
-Acknowledgements
 Bugfixes
 CBOP
 CMD
@@ -15,7 +14,6 @@ Jae
 Kwang
 Lumley
 MCP
-MRP
 NACE
 Nonprobability
 Pengfei
@@ -29,17 +27,14 @@ Youngdeok
 Zhonglei
 al
 boldsymbol
-characterised
 checkmark
 cloglog
-debiased
 defult
 doi
 et
 generalised
 github
 glm
-ignorable
 jacobian
 maximisation
 minimisation
@@ -47,11 +42,13 @@ misspecified
 modelling
 neighbour
 neighbours
+nleqslv
 nonprobability
+nons
 penalizations
-qp
-reweighting
+preprocess
+ps
 rssa
 rssb
-svrep
+svydesign
 utilising

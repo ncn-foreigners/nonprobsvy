@@ -1,8 +1,8 @@
 boot_dr <- function(outcome,
                     data,
                     svydesign,
-                    SelectionModel,
-                    OutcomeModel,
+                    selection_model,
+                    outcome_model,
                     family_outcome,
                     method_outcome,
                     start_outcome,
@@ -48,10 +48,10 @@ boot_dr <- function(outcome,
   MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
 
   if (bias_correction == TRUE) {
-    X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
+    X <- rbind(selection_model$X_rand, selection_model$X_nons)
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
-    y <- c(y_rand, OutcomeModel$y_nons) # outcome variable for joint model
+    y <- c(y_rand, outcome_model$y_nons) # outcome variable for joint model
     var_obj <- boot_dr_sel(
       X = X,
       R = R,
@@ -99,13 +99,13 @@ boot_dr <- function(outcome,
               weights = weights[strap_nons],
               family_outcome = family_outcome,
               start_outcome = start_outcome,
-              X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
-              y_nons = OutcomeModel$y_nons[strap_nons],
-              X_rand = OutcomeModel$X_rand[strap_rand_svy, , drop = FALSE],
+              X_nons = outcome_model$X_nons[strap_nons, , drop = FALSE],
+              y_nons = outcome_model$y_nons[strap_nons],
+              X_rand = outcome_model$X_rand[strap_rand_svy, , drop = FALSE],
               control = control_outcome,
               n_nons = n_nons,
               n_rand = n_rand,
-              model_frame = OutcomeModel$model_frame_rand[strap_rand_svy, ],
+              model_frame = outcome_model$model_frame_rand[strap_rand_svy, ],
               vars_selection = control_inference$vars_selection,
               pop_totals = pop_totals
             )
@@ -115,10 +115,10 @@ boot_dr <- function(outcome,
             y_nons_pred <- model_obj$y_nons_pred
 
             X_sel <- rbind(
-              SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
-              SelectionModel$X_nons[strap_nons, , drop = FALSE]
+              selection_model$X_rand[strap_rand_svy, , drop = FALSE],
+              selection_model$X_nons[strap_nons, , drop = FALSE]
             )
-            n_rand_strap <- nrow(SelectionModel$X_rand[strap_rand_svy, , drop = FALSE])
+            n_rand_strap <- nrow(selection_model$X_rand[strap_rand_svy, , drop = FALSE])
 
             R_nons <- rep(1, n_nons)
             R_rand <- rep(0, n_rand_strap)
@@ -126,8 +126,8 @@ boot_dr <- function(outcome,
 
             model_sel <- internal_selection(
               X = X_sel,
-              X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
-              X_rand = SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
+              X_nons = selection_model$X_nons[strap_nons, , drop = FALSE],
+              X_rand = selection_model$X_rand[strap_rand_svy, , drop = FALSE],
               weights = weights[strap_nons],
               weights_rand = weights_strap_rand,
               R = R,
@@ -150,7 +150,7 @@ boot_dr <- function(outcome,
             N_est_rand <- sum(weights_strap_rand)
 
             mu_hat_boot <- mu_hatDR(
-              y = OutcomeModel$y_nons[strap_nons],
+              y = outcome_model$y_nons[strap_nons],
               y_nons = y_nons_pred,
               y_rand = y_rand_pred,
               weights = weights[strap_nons],
@@ -180,8 +180,8 @@ boot_dr <- function(outcome,
         tryCatch(
           {
             strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
-            X_strap_nons <- SelectionModel$X_nons[strap, , drop = FALSE]
-            y_strap <- OutcomeModel$y_nons[strap]
+            X_strap_nons <- selection_model$X_nons[strap, , drop = FALSE]
+            y_strap <- outcome_model$y_nons[strap]
             R_strap <- rep(1, n_nons)
             weights_strap <- weights[strap]
             n_rand <- 0
@@ -220,7 +220,7 @@ boot_dr <- function(outcome,
               control = control_outcome,
               n_nons = n_nons,
               n_rand = n_rand,
-              model_frame = OutcomeModel$model_frame_rand,
+              model_frame = outcome_model$model_frame_rand,
               vars_selection = control_inference$vars_selection,
               pop_totals = pop_totals
             )
@@ -264,8 +264,8 @@ boot_dr <- function(outcome,
 boot_dr_multicore <- function(outcome,
                               data,
                               svydesign,
-                              SelectionModel,
-                              OutcomeModel,
+                              selection_model,
+                              outcome_model,
                               family_outcome,
                               method_outcome,
                               start_outcome,
@@ -312,10 +312,10 @@ boot_dr_multicore <- function(outcome,
   MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
 
   if (bias_correction == TRUE) {
-    X <- rbind(SelectionModel$X_rand, SelectionModel$X_nons)
+    X <- rbind(selection_model$X_rand, selection_model$X_nons)
     p <- ncol(X)
     y_rand <- vector(mode = "numeric", length = n_rand)
-    y <- c(y_rand, OutcomeModel$y_nons) # outcome variable for joint model
+    y <- c(y_rand, outcome_model$y_nons) # outcome variable for joint model
     var_obj <- boot_dr_sel_multicore(
       X = X,
       R = R,
@@ -374,13 +374,13 @@ boot_dr_multicore <- function(outcome,
             weights = weights[strap_nons],
             family_outcome = family_outcome,
             start_outcome = start_outcome,
-            X_nons = OutcomeModel$X_nons[strap_nons, , drop = FALSE],
-            y_nons = OutcomeModel$y_nons[strap_nons],
-            X_rand = OutcomeModel$X_rand[strap_rand_svy, , drop = FALSE],
+            X_nons = outcome_model$X_nons[strap_nons, , drop = FALSE],
+            y_nons = outcome_model$y_nons[strap_nons],
+            X_rand = outcome_model$X_rand[strap_rand_svy, , drop = FALSE],
             control = control_outcome,
             n_nons = n_nons,
             n_rand = n_rand,
-            model_frame = OutcomeModel$model_frame_rand[strap_rand_svy, ],
+            model_frame = outcome_model$model_frame_rand[strap_rand_svy, ],
             vars_selection = control_inference$vars_selection,
             pop_totals = pop_totals
           )
@@ -390,10 +390,10 @@ boot_dr_multicore <- function(outcome,
           y_nons_pred <- model_obj$y_nons_pred
 
           X_sel <- rbind(
-            SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
-            SelectionModel$X_nons[strap_nons, , drop = FALSE]
+            selection_model$X_rand[strap_rand_svy, , drop = FALSE],
+            selection_model$X_nons[strap_nons, , drop = FALSE]
           )
-          n_rand_strap <- nrow(SelectionModel$X_rand[strap_rand_svy, , drop = FALSE])
+          n_rand_strap <- nrow(selection_model$X_rand[strap_rand_svy, , drop = FALSE])
 
           R_nons <- rep(1, n_nons)
           R_rand <- rep(0, n_rand_strap)
@@ -401,8 +401,8 @@ boot_dr_multicore <- function(outcome,
 
           model_sel <- internal_selection(
             X = X_sel,
-            X_nons = SelectionModel$X_nons[strap_nons, , drop = FALSE],
-            X_rand = SelectionModel$X_rand[strap_rand_svy, , drop = FALSE],
+            X_nons = selection_model$X_nons[strap_nons, , drop = FALSE],
+            X_rand = selection_model$X_rand[strap_rand_svy, , drop = FALSE],
             weights = weights[strap_nons],
             weights_rand = weights_strap_rand,
             R = R,
@@ -425,7 +425,7 @@ boot_dr_multicore <- function(outcome,
           N_est_rand <- sum(weights_strap_rand)
 
           mu_hatDR(
-            y = OutcomeModel$y_nons[strap_nons],
+            y = outcome_model$y_nons[strap_nons],
             y_nons = y_nons_pred,
             y_rand = y_rand_pred,
             weights = weights[strap_nons],
@@ -442,8 +442,8 @@ boot_dr_multicore <- function(outcome,
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
-          X_nons_strap <- SelectionModel$X_nons[strap, , drop = FALSE]
-          y_strap <- OutcomeModel$y_nons[strap]
+          X_nons_strap <- selection_model$X_nons[strap, , drop = FALSE]
+          y_strap <- outcome_model$y_nons[strap]
           R_strap <- rep(1, n_nons)
           weights_strap <- weights[strap]
           X_rand_strap <- NULL
@@ -481,7 +481,7 @@ boot_dr_multicore <- function(outcome,
             control = control_outcome,
             n_nons = n_nons,
             n_rand = n_rand,
-            model_frame = OutcomeModel$model_frame_rand,
+            model_frame = outcome_model$model_frame_rand,
             vars_selection = control_inference$vars_selection,
             pop_totals = pop_totals
           )

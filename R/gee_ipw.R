@@ -189,6 +189,6 @@ gee <- function(...) {
       make_var_nonprob = make_var_nonprob,
       model_selection = model_selection
     ),
-    class = "method"
+    class = "method" ## this can be removed
   )
 }

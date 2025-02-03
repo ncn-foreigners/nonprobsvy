@@ -47,9 +47,9 @@ control_sel(
 
 \item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
-\item{dependence}{logical value - \code{TRUE} if samples are dependent.}
+\item{dependence}{logical value - \code{TRUE} if samples overlap (NOT YET IMPLEMENTED)}
 
-\item{key}{binary key variable}
+\item{key}{binary key variable (NOT YET IMPLEMENTED)}
 
 \item{est_method_sel}{Method of estimation for propensity score model.}
 

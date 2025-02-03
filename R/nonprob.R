@@ -25,6 +25,7 @@ nonprob <- function(data,
                     y = TRUE,
                     se = TRUE,
                     ...) {
+
   call <- match.call()
   data <- if (!is.data.frame(data)) data.frame(data) else data
   weights <- if (is.null(weights)) rep(1, nrow(data)) else weights
@@ -198,5 +199,7 @@ nonprob <- function(data,
   names <- names(model_estimates)
   res <- append(model_estimates, call, after = 0)
   names(res) <- c("call", names)
+  ## add information about the approach (this is only used in s3methods)
+  res$estimator <- model_used
   structure(res, class = class(model_estimates))
 }

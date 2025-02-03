@@ -1,7 +1,7 @@
 # Variance for doubly robust estimator
 # TODO add nn and pmm
-internal_varDR <- function(OutcomeModel,
-                           SelectionModel,
+internal_varDR <- function(outcome_model,
+                           selection_model,
                            y_nons_pred,
                            weights,
                            weights_rand,
@@ -24,8 +24,8 @@ internal_varDR <- function(OutcomeModel,
                            verbose) {
   ######### mm
   if (bias_correction == TRUE) {
-    infl1 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons^2
-    infl2 <- (weights * (OutcomeModel$y_nons - y_nons_pred))^2 / ps_nons
+    infl1 <- (weights * (outcome_model$y_nons - y_nons_pred))^2 / ps_nons^2
+    infl2 <- (weights * (outcome_model$y_nons - y_nons_pred))^2 / ps_nons
 
     # Variance estimators ####
     svydesign <- stats::update(svydesign,
@@ -36,17 +36,17 @@ internal_varDR <- function(OutcomeModel,
     var_prob <- as.vector(attr(svydesign_mean, "var")) # based on survey package, probability component
     var_nonprob <- (sum((infl1) - 2 * infl2) + sum(weights_rand * sigma)) / N_nons^2 # TODO potential bug here nonprobability component
   } else {
-    eta <- as.vector(SelectionModel$X_nons %*% as.matrix(theta))
-    h_n <- 1 / N_nons * sum(OutcomeModel$y_nons - y_nons_pred) # TODO add weights # errors mean
+    eta <- as.vector(selection_model$X_nons %*% as.matrix(theta))
+    h_n <- 1 / N_nons * sum(outcome_model$y_nons - y_nons_pred) # TODO add weights # errors mean
     method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
     method <- get_method(method_selection)
     est_method <- get_method(est_method)
 
     b <- method$b_vec_dr(
-      X = SelectionModel$X_nons,
+      X = selection_model$X_nons,
       ps = ps_nons,
       psd = ps_nons_der,
-      y = OutcomeModel$y_nons,
+      y = outcome_model$y_nons,
       hess = hess,
       eta = eta,
       h_n = h_n,
@@ -59,10 +59,10 @@ internal_varDR <- function(OutcomeModel,
     var_nonprob <- est_method$make_var_nonprob(
       ps = ps_nons,
       psd = ps_nons_der,
-      y = OutcomeModel$y_nons,
+      y = outcome_model$y_nons,
       y_pred = y_nons_pred,
       h_n = h_n,
-      X = SelectionModel$X_nons,
+      X = selection_model$X_nons,
       b = b,
       N = N_nons,
       h = h,
@@ -73,7 +73,7 @@ internal_varDR <- function(OutcomeModel,
 
     if (is.null(pop_totals)) {
       t <- est_method$make_t(
-        X = SelectionModel$X_rand,
+        X = selection_model$X_rand,
         ps = est_ps_rand,
         psd = est_ps_rand_der,
         b = b,

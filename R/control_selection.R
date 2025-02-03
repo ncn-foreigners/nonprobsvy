@@ -11,8 +11,8 @@
 #' @param optimizer - optimization function for maximum likelihood estimation.
 #' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
 #' @param maxlik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
-#' @param dependence logical value - `TRUE` if samples are dependent.
-#' @param key binary key variable
+#' @param dependence logical value - `TRUE` if samples overlap (NOT YET IMPLEMENTED)
+#' @param key binary key variable (NOT YET IMPLEMENTED)
 #' @param est_method_sel Method of estimation for propensity score model.
 #' @param h Smooth function for the generalized estimating equations methods taking the following values
 #' \itemize{
