@@ -254,20 +254,20 @@ nonprob_dr <- function(selection,
         combined_terms <- union(terms_out, terms_sel)
         combined_formula <- as.formula(paste(outcome[2], paste(combined_terms, collapse = " + "), sep = " ~ "))
 
-        Model <- model_frame(
+        outcome_model_data <- model_frame(
           formula = combined_formula,
           data = data,
           svydesign = svydesign
         )
-        outcome_model_data <- selection_model_data <- Model
-        n_nons <- nrow(Model$X_nons)
-        n_rand <- nrow(Model$X_rand)
-        R_nons <- rep(1, nrow(Model$X_nons))
-        R_rand <- rep(0, nrow(Model$X_rand))
+        outcome_model_data <- selection_model_data <- outcome_model_data
+        n_nons <- nrow(outcome_model_data$X_nons)
+        n_rand <- nrow(outcome_model_data$X_rand)
+        R_nons <- rep(1, nrow(outcome_model_data$X_nons))
+        R_rand <- rep(0, nrow(outcome_model_data$X_rand))
         R <- c(R_rand, R_nons)
         y_rand <- vector(mode = "numeric", length = n_rand)
-        y <- c(y_rand, Model$y_nons) # outcome variable for joint model
-        X <- rbind(Model$X_rand, Model$X_nons)
+        y <- c(y_rand, outcome_model_data$y_nons) # outcome variable for joint model
+        X <- rbind(outcome_model_data$X_rand, outcome_model_data$X_nons)
 
         ############ working version
         if (var_selection == TRUE) {
@@ -277,7 +277,7 @@ nonprob_dr <- function(selection,
           }
           beta <- ncvreg::cv.ncvreg(
             X = X[loc_nons, -1],
-            y = Model$y_nons,
+            y = outcome_model_data$y_nons,
             penalty = control_outcome$penalty,
             family = family_outcome,
             nlambda = nlambda,
@@ -301,8 +301,8 @@ nonprob_dr <- function(selection,
           Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
           X <- cbind(1, Xsel)
           colnames(X) <- c("(Intercept)", colnames(Xsel))
-          Model$X_rand <- X[loc_rand, ]
-          Model$X_nons <- X[loc_nons, ]
+          outcome_model_data$X_rand <- X[loc_rand, ]
+          outcome_model_data$X_nons <- X[loc_nons, ]
         }
         estimation_model <- mm(
           X = X,
@@ -347,11 +347,11 @@ nonprob_dr <- function(selection,
         weights_nons <- 1 / ps_nons
         N_nons <- sum(weights * weights_nons)
         N_rand <- sum(weights_rand)
-        y_nons <- Model$y_nons
+        y_nons <- outcome_model_data$y_nons
 
         if (is.null(pop_size)) pop_size <- N_nons
         mu_hat <- mu_hatDR(
-          y = Model$y_nons,
+          y = outcome_model_data$y_nons,
           y_nons = y_nons_pred,
           y_rand = y_rand_pred,
           weights = weights,

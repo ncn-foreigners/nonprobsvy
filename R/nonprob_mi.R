@@ -71,11 +71,11 @@ nonprob_mi <- function(outcome,
       cond <- TRUE
       kk <- control_outcome$k - 1
       while (cond) {
-        OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
-        X_nons <- OutcomeModel$X_nons
-        X_rand <- OutcomeModel$X_rand
-        nons_names <- OutcomeModel$nons_names
-        y_nons <- OutcomeModel$y_nons
+        outcome_model_data <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+        X_nons <- outcome_model_data$X_nons
+        X_rand <- outcome_model_data$X_rand
+        nons_names <- outcome_model_data$nons_names
+        y_nons <- outcome_model_data$y_nons
 
         R_nons <- rep(1, nrow(X_nons))
         R_rand <- rep(0, nrow(X_rand))
@@ -109,7 +109,7 @@ nonprob_mi <- function(outcome,
           control = control_outcome,
           n_nons = n_nons,
           n_rand = n_rand,
-          model_frame = OutcomeModel$model_frame_rand,
+          model_frame = outcome_model_data$model_frame_rand,
           vars_selection = control_inference$vars_selection,
           pop_totals = pop_totals
         )
@@ -165,11 +165,11 @@ nonprob_mi <- function(outcome,
       outcome <- outcomes$outcome[[k]]
 
       # model for outcome formula
-      OutcomeModel <- model_frame(formula = outcome, data = data, svydesign = svydesign)
-      X_nons <- OutcomeModel$X_nons
-      X_rand <- OutcomeModel$X_rand
-      nons_names <- OutcomeModel$nons_names
-      y_nons <- OutcomeModel$y_nons
+      outcome_model_data <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+      X_nons <- outcome_model_data$X_nons
+      X_rand <- outcome_model_data$X_rand
+      nons_names <- outcome_model_data$nons_names
+      y_nons <- outcome_model_data$y_nons
 
       R_nons <- rep(1, nrow(X_nons))
       R_rand <- rep(0, nrow(X_rand))
@@ -237,7 +237,7 @@ nonprob_mi <- function(outcome,
         control = control_outcome,
         n_nons = n_nons,
         n_rand = n_rand,
-        model_frame = OutcomeModel$model_frame_rand,
+        model_frame = outcome_model_data$model_frame_rand,
         vars_selection = control_inference$vars_selection,
         pop_totals = pop_totals
       )
@@ -245,7 +245,7 @@ nonprob_mi <- function(outcome,
       y_nons_pred <- model_obj$y_nons_pred
       # parameters <- model_obj$parameters
       outcome_list[[k]] <- model_obj$model
-      outcome_list[[k]]$model_frame <- OutcomeModel$model_frame_rand
+      outcome_list[[k]]$model_frame <- outcome_model_data$model_frame_rand
 
       # updating probability sample by adding y_hat variable
       svydesign <- stats::update(svydesign,
