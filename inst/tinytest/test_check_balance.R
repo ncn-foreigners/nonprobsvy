@@ -3,45 +3,46 @@ data(admin)
 data(jvs)
 
 
-# create objects ----------------------------------------------------------
+# Create objects ----------------------------------------------------------
 
 # Create survey design object
-jvs_svy <- svydesign(
+expect_silent(
+  jvs_svy <- svydesign(
   ids = ~1,
   weights = ~weight,
   strata = ~size + nace + region,
   data = jvs
-)
+))
 
 # Create standard IPW estimator
-ipw_est1 <- nonprob(
+expect_silent(ipw_est1 <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,
   data = admin,
   method_selection = "logit"
-)
+))
 
 # Create calibrated IPW estimator
-ipw_est2 <- nonprob(
+expect_silent(ipw_est2 <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,
   data = admin,
   method_selection = "logit",
   control_selection = control_sel(h = 1, est_method_sel = "gee")
-)
+))
 
 
 # Test basic functionality with size variable for standard IPW
-result1 <- check_balance(~size, ipw_est1)
-result2 <- check_balance(~size, ipw_est2)
+expect_silent(result1 <- check_balance(~size, ipw_est1))
+expect_silent(result2 <- check_balance(~size, ipw_est2))
 
 
 # general checks ----------------------------------------------------------
 
-result_dig2 <- check_balance(~size, ipw_est1, dig = 2)
-result_dig4 <- check_balance(~size, ipw_est1, dig = 4)
+expect_silent(result_dig2 <- check_balance(~size, ipw_est1, dig = 2))
+expect_silent(result_dig4 <- check_balance(~size, ipw_est1, dig = 4))
 
 # Should be a list
 

@@ -35,6 +35,10 @@ nonprob <- function(data,
   family_outcome <- if (missing(family_outcome)) "gaussian" else family_outcome
   method_outcome <- if (missing(method_outcome)) "glm" else method_outcome
 
+  # Check data
+  if (is.data.frame(data) && ncol(data) == 0) {
+    stop("The `data` argument cannot be an empty data frame.")
+  }
 
   # Validation checks for methods
   if (!(method_outcome %in% c("glm", "nn", "pmm"))) {
@@ -108,17 +112,33 @@ nonprob <- function(data,
     }
   }
 
-  ## specification of the methods
+  ## specification of the methods and validation
   if (inherits(selection, "formula")) {
     if (is.null(outcome) || !inherits(outcome, "formula")) {
+      # Case: IPW method
       if (!inherits(target, "formula")) {
         stop("Please provide the `target` argument as a formula.")
       }
+
+      # Extract variables from target and selection formulas
+      target_vars <- all.vars(target)
+      selection_vars <- all.vars(selection)
+
+      # Check for overlapping variables
+      common_vars <- intersect(target_vars, selection_vars)
+      if (length(common_vars) > 0) {
+        stop(sprintf(
+          "The following variables in target should not be present in selection: %s",
+          paste(common_vars, collapse = ", ")
+        ))
+      }
       model_used <- "ipw"
     } else {
+      # Case: DR method
       model_used <- "dr"
     }
   } else if (inherits(outcome, "formula")) {
+    # Case: MI method
     model_used <- "mi"
   }
 

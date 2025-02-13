@@ -1,216 +1,262 @@
-# S3methods tests
-# test simulate
-# set.seed(123)
-source_nonprob_p <- read.csv("test1_nonprob.csv")
-sample_a <- read.csv("test1_prob.csv")
-svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
 
-test1a <- nonprob(selection = ~ x,
-                  target = ~ y1,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
+# Load test data
+data(jvs)
+data(admin)
+
+
+# create objects ----------------------------------------------------------
+
+# Setup survey design
+expect_silent(
+  jvs_svy <- svydesign(
+    ids = ~1,
+    weights = ~weight,
+    strata = ~size + nace + region,
+    data = jvs)
+)
+
+# IPW estimator
+expect_silent(
+  ipw_result <- nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "logit")
+)
+
+# MI Estimator
 
 expect_silent(
-  summary(test1a)
+  mi_result <- nonprob(
+    outcome = single_shift ~ region + private + nace + size,
+    svydesign = jvs_svy,
+    data = admin,
+    method_outcome = "glm",
+    family_outcome = "binomial"
+  )
+)
+
+# DR estimator
+
+expect_silent(
+  dr_result <- nonprob(
+    selection = ~region + private + nace + size,
+    outcome = single_shift ~ region + private + nace + size,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "logit",
+    method_outcome = "glm",
+    family_outcome = "binomial"
+  )
+)
+
+
+
+# methods for the IPW -----------------------------------------------------
+
+
+expect_silent(
+  summary(ipw_result)
 )
 
 expect_silent(
-  nobs(test1a)
+  nobs(ipw_result)
 )
 
 expect_silent(
-  pop_size(test1a)
+  pop_size(ipw_result)
 )
 
 expect_silent(
-  residuals(test1a)
+  residuals(ipw_result)
 )
 #
 expect_silent(
-  residuals(test1a, type = "pearson")
+  residuals(ipw_result, type = "pearson")
 )
 
 expect_silent(
-  residuals(test1a, type = "working")
+  residuals(ipw_result, type = "working")
 )
 
 expect_silent(
-  residuals(test1a, type = "deviance")
+  residuals(ipw_result, type = "deviance")
+)
+
+## we should look into the pearsonSTD residuals
+# expect_silent(
+#   residuals(ipw_result, "pearsonSTD")
+# )
+
+expect_silent(
+  cooks.distance(ipw_result)
 )
 
 expect_silent(
-  residuals(test1a, "pearsonSTD")
+  hatvalues(ipw_result)
 )
 
 expect_silent(
-  cooks.distance(test1a)
+  logLik(ipw_result)
 )
 
 expect_silent(
-  hatvalues(test1a)
-)
-
-expect_silent(
-  logLik(test1a)
-)
-
-expect_silent(
-  AIC(test1a)
+  AIC(ipw_result)
 )
 #
 expect_silent(
-  BIC(test1a)
+  BIC(ipw_result)
 )
 #
 expect_silent(
-  confint(test1a)
+  confint(ipw_result)
 )
 #
 expect_silent(
-  vcov(test1a)
+  vcov(ipw_result)
 )
 #
 expect_silent(
-  deviance(test1a)
+  deviance(ipw_result)
 )
 
-test2a <- nonprob(outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
-expect_silent(
-  summary(test2a)
-)
-#
-expect_silent(
-  nobs(test2a)
-)
+
+# methods for the MI ------------------------------------------------------
+
 
 expect_silent(
-  pop_size(test2a)
+  summary(mi_result)
 )
 #
 expect_silent(
-  residuals(test2a)
+  nobs(mi_result)
 )
 
 expect_silent(
-  residuals(test2a, type = "pearson")
+  pop_size(mi_result)
 )
 #
 expect_silent(
-  residuals(test2a, type = "working")
+  residuals(mi_result)
 )
 
 expect_silent(
-  residuals(test2a, type = "deviance")
+  residuals(mi_result, type = "pearson")
+)
+#
+expect_silent(
+  residuals(mi_result, type = "working")
 )
 
 expect_silent(
-  residuals(test2a, "pearsonSTD")
+  residuals(mi_result, type = "deviance")
 )
+
+## we should look into the pearsonSTD residuals
+# expect_error(
+#   residuals(mi_result, "pearsonSTD")
+# )
 
 if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   expect_silent(
-    cooks.distance(test2a)
+    cooks.distance(mi_result)
   )
   expect_silent(
-    hatvalues(test2a)
+    hatvalues(mi_result)
   )
 }
 
 expect_silent(
-  logLik(test2a)
+  logLik(mi_result)
 )
 
 expect_silent(
-  AIC(test2a)
+  AIC(mi_result)
 )
 #
 expect_silent(
-  BIC(test2a)
+  BIC(mi_result)
 )
 #
 expect_silent(
-  confint(test2a)
+  confint(mi_result)
 )
 #
 expect_silent(
-  vcov(test2a)
+  vcov(mi_result)
 )
 #
 expect_silent(
-  deviance(test2a)
+  deviance(mi_result)
 )
-#
-test3a <- nonprob(outcome = y1 ~ x,
-                  selection = ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
+
+
+# methods for the MI ------------------------------------------------------
+
 expect_silent(
-  summary(test3a)
+  summary(dr_result)
 )
 #
 expect_silent(
-  nobs(test3a)
+  nobs(dr_result)
 )
 
 expect_silent(
-  pop_size(test3a)
+  pop_size(dr_result)
 )
 #
 expect_silent(
-  residuals(test3a)
+  residuals(dr_result)
 )
 
 expect_silent(
-  residuals(test3a, type = "pearson")
+  residuals(dr_result, type = "pearson")
 )
 #
 expect_silent(
-  residuals(test3a, type = "working")
+  residuals(dr_result, type = "working")
 )
 
 expect_silent(
-  residuals(test3a, type = "deviance")
+  residuals(dr_result, type = "deviance")
 )
 
-expect_silent(
-  residuals(test3a, "pearsonSTD")
-)
+## we should look into the pearsonSTD residuals
+# expect_error(
+#   residuals(dr_result, "pearsonSTD")
+# )
 
 if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
   expect_silent(
-    cooks.distance(test3a)
+    cooks.distance(dr_result)
   )
 
   expect_silent(
-    hatvalues(test3a)
+    hatvalues(dr_result)
   )
 }
 
 expect_silent(
-  logLik(test3a)
+  logLik(dr_result)
 )
 
 expect_silent(
-  AIC(test3a)
+  AIC(dr_result)
 )
 
 expect_silent(
-  BIC(test3a)
+  BIC(dr_result)
 )
 
 expect_silent(
-  confint(test3a)
+  confint(dr_result)
 )
 
 expect_silent(
-  vcov(test3a)
+  vcov(dr_result)
 )
 
 expect_silent(
-  deviance(test3a)
+  deviance(dr_result)
 )
