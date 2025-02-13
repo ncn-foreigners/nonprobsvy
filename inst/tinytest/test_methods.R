@@ -3,7 +3,6 @@
 data(jvs)
 data(admin)
 
-
 # create objects ----------------------------------------------------------
 
 # Setup survey design
@@ -260,3 +259,17 @@ expect_silent(
 expect_silent(
   deviance(dr_result)
 )
+
+
+# methods not implemented -------------------------------------------------
+
+expect_error(
+  anova(ipw_result),
+  "The `anova` method is not implemented for the `nonprobsvy` class"
+)
+
+expect_error(
+  plot(ipw_result),
+  "We do not provide tools for visual assessment of the results"
+)
+
