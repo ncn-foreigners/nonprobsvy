@@ -418,7 +418,6 @@ International Statistical Review 87 (2019): S177-S191 \[section 5.2\]
 
 ``` r
 library(survey)
-#> Warning: package 'survival' was built under R version 4.3.3
 library(nonprobsvy)
 
 set.seed(1234567890)
