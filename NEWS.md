@@ -13,7 +13,8 @@ nonprobsvy News and Updates
     in the package.
 -   argument `maxLik_method` renamed to `maxlik_method` in the
     `control_sel` function. 
-    
+- 
+
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
