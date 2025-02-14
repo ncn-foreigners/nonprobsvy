@@ -17,9 +17,9 @@ reference:
 - title: Other functions
 - contents:
   - check_balance
-  - vcov
-  - pop_size
-  - confint
+  - vcov.nonprobsvy
+  - pop_size.nonprobsvy
+  - confint.nonprobsvy
 - title: Datasets
 - contents:
   - jvs
