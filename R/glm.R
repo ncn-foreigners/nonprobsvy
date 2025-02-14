@@ -16,6 +16,7 @@ glm_nonprobsvy <- function(outcome,
                            model_frame,
                            vars_selection,
                            pop_totals) {
+
   if (is.character(family_outcome)) {
     family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
     family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())

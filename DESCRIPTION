@@ -5,11 +5,11 @@ Version: 0.2.0
 Authors@R:
     c(person(given = "Łukasz",
              family = "Chrostowski",
-             role = c("aut", "cre"),
+             role = c("aut", "ctb"),
              email = "lukaszchrostowski6@gmail.com"),
       person(given = "Maciej",
              family = "Beręsewicz",
-             role = c("aut", "ctb"),
+             role = c("aut", "cre"),
              email = "maciej.beresewicz@ue.poznan.pl",
              comment = c(ORCID = "0000-0002-8281-4301")),
       person(given = "Piotr",

@@ -1,3 +1,26 @@
 url: https://ncn-foreigners.github.io/nonprobsvy/
 template:
   bootstrap: 5
+reference:
+- title: Estimate population characteristics
+- contents:
+  - nonprob
+  - nonprob_mi
+  - nonprob_ipw
+  - nonprob_dr
+  - summary.nonprobsvy
+- title: Controling estimation process
+- contents:
+  - control_out
+  - control_sel
+  - control_inf
+- title: Other functions
+- contents:
+  - check_balance
+  - vcov
+  - pop_size
+  - confint
+- title: Datasets
+- contents:
+  - jvs
+  - admin

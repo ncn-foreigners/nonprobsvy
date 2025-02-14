@@ -37,6 +37,7 @@ nonprobsvy News and Updates
 -   more informative error messages added.
 -   documentation improved.
 -   switching completely to snake_case.
+-   extensive cleaning of the code.
 
 ### Documentation
 

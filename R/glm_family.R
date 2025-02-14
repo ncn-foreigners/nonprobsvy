@@ -1,7 +1,5 @@
-# family
-## functions for the glm
-## for extending existing functions
-
+#' Internal family functions for the MI estimators
+#' @noRd
 poisson_nonprobsvy <- function(link = "log") {
   x <- stats::poisson(link = link)
   # x$mu_der <- function(mu) mu # first derivative
