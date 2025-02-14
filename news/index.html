@@ -39,7 +39,14 @@
 <li>function <code>genSimData</code> removed completely as it is not used anywhere in the package.</li>
 <li>argument <code>maxLik_method</code> renamed to <code>maxlik_method</code> in the <code>control_sel</code> function.</li>
 <li>
-</li></ul></div>
+<code>control_out</code> function:
+<ul><li>
+<code>predictive_match</code> renamed to <code>pmm_match_type</code> to align with the PMM (Predictive Mean Matching) estimator naming convention, where all related parameters start with <code>pmm_</code>
+</li>
+</ul></li>
+<li>
+<code>control_sel</code> function: + argument <code>method</code> removed as it was not used + <code>est_method_sel</code> renamed to <code>est_method</code> + <code>h</code> renamed to <code>gee_h_fun</code> to make this more readable to the user</li>
+</ul></div>
 <div class="section level4">
 <h4 id="features-0-2-0">Features<a class="anchor" aria-label="anchor" href="#features-0-2-0"></a></h4>
 <ul><li>two additional datasets have been included: <code>jvs</code> (Job Vacancy Survey; a probability sample survey) and <code>admin</code> (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.</li>

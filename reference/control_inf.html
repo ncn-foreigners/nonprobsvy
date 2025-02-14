@@ -46,14 +46,14 @@ for statistical inference.</p>
 <span>  var_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"analytic"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
 <span>  rep_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"JK1"</span>, <span class="st">"JKn"</span>, <span class="st">"BRR"</span>, <span class="st">"bootstrap"</span>, <span class="st">"subbootstrap"</span>, <span class="st">"mrbbootstrap"</span>,</span>
 <span>    <span class="st">"Fay"</span><span class="op">)</span>,</span>
+<span>  bias_correction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bias_inf <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"union"</span>, <span class="st">"div"</span><span class="op">)</span>,</span>
 <span>  num_boot <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  bias_correction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  <span class="va">keep_boot</span>,</span>
+<span>  keep_boot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  nn_exact_se <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  <span class="va">pi_ij</span></span>
+<span>  pi_ij <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -62,16 +62,20 @@ for statistical inference.</p>
 
 
 <dl><dt id="arg-vars-selection">vars_selection<a class="anchor" aria-label="anchor" href="#arg-vars-selection"></a></dt>
-<dd><p>If <code>TRUE</code>, then the variables selection model is used.</p></dd>
+<dd><p>default <code>FALSE</code>; if <code>TRUE</code>, then the variables selection model is used.</p></dd>
 
 
 <dt id="arg-var-method">var_method<a class="anchor" aria-label="anchor" href="#arg-var-method"></a></dt>
-<dd><p>the variance method.</p></dd>
+<dd><p>the variance method (default <code>"analytic"</code>).</p></dd>
 
 
 <dt id="arg-rep-type">rep_type<a class="anchor" aria-label="anchor" href="#arg-rep-type"></a></dt>
 <dd><p>the replication type for weights in the bootstrap method for variance estimation passed to <code><a href="https://rdrr.io/pkg/survey/man/as.svrepdesign.html" class="external-link">survey::as.svrepdesign()</a></code>.
-Default is <code>subbootstrap</code>.</p></dd>
+Default is <code>"subbootstrap"</code>.</p></dd>
+
+
+<dt id="arg-bias-correction">bias_correction<a class="anchor" aria-label="anchor" href="#arg-bias-correction"></a></dt>
+<dd><p>default <code>FALSE</code>; if <code>TRUE</code>, then the bias minimization estimation used during model fitting.</p></dd>
 
 
 <dt id="arg-bias-inf">bias_inf<a class="anchor" aria-label="anchor" href="#arg-bias-inf"></a></dt>
@@ -85,21 +89,16 @@ selection and outcome model.</p></li>
 <dd><p>the number of iteration for bootstrap algorithms.</p></dd>
 
 
-<dt id="arg-bias-correction">bias_correction<a class="anchor" aria-label="anchor" href="#arg-bias-correction"></a></dt>
-<dd><p>if <code>TRUE</code>, then the bias minimization estimation used during model fitting.</p></dd>
-
-
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>significance level, 0.05 by defult.</p></dd>
+<dd><p>significance level (default 0.05).</p></dd>
 
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
-<dd><p>the number of cores in parallel computing.</p></dd>
+<dd><p>the number of cores in parallel computing (default 1).</p></dd>
 
 
 <dt id="arg-keep-boot">keep_boot<a class="anchor" aria-label="anchor" href="#arg-keep-boot"></a></dt>
-<dd><p>a logical value indicating whether statistics from bootstrap should be kept.
-By default set to <code>TRUE</code></p></dd>
+<dd><p>a logical value indicating whether statistics from bootstrap should be kept (default <code>TRUE</code>)</p></dd>
 
 
 <dt id="arg-nn-exact-se">nn_exact_se<a class="anchor" aria-label="anchor" href="#arg-nn-exact-se"></a></dt>
@@ -114,12 +113,12 @@ set this value to <code>TRUE</code> before submitting the final results.</p></dd
 
 
 <dt id="arg-pi-ij">pi_ij<a class="anchor" aria-label="anchor" href="#arg-pi-ij"></a></dt>
-<dd><p>TODO, either a matrix or a <code>ppsmat</code> class object.</p></dd>
+<dd><p>either a matrix or a <code>ppsmat</code> class object (default <code>NULL</code>).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>List with selected parameters.</p>
+    <p>A <code>list</code> with selected parameters.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
