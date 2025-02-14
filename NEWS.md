@@ -12,13 +12,16 @@ nonprobsvy News and Updates
 -   function `genSimData` removed completely as it is not used anywhere
     in the package.
 -   argument `maxLik_method` renamed to `maxlik_method` in the
-    `control_sel` function. 
+    `control_sel` function.
 -   `control_out` function:
-      + `predictive_match` renamed to `pmm_match_type` to align with the PMM (Predictive Mean Matching) estimator naming convention, where all related parameters start with `pmm_`
+    -   `predictive_match` renamed to `pmm_match_type` to align with the
+        PMM (Predictive Mean Matching) estimator naming convention,
+        where all related parameters start with `pmm_`
 -   `control_sel` function:
-        + argument `method` removed as it was not used
-        + `est_method_sel` renamed to `est_method` 
-        + `h` renamed to `gee_h_fun` to make this more readable to the user
+    -   argument `method` removed as it was not used
+    -   argument `est_method_sel` renamed to `est_method`
+    -   argument `h` renamed to `gee_h_fun` to make this more readable
+        to the user
 
 ### Features
 

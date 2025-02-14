@@ -1,7 +1,7 @@
 Package: nonprobsvy
 Type: Package
 Title: Inference Based on Non-Probability Samples
-Version: 0.2.0
+Version: 0.1.1.9001
 Authors@R:
     c(person(given = "Łukasz",
              family = "Chrostowski",
