@@ -9,14 +9,14 @@ control_inf(
   var_method = c("analytic", "bootstrap"),
   rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
     "Fay"),
+  bias_correction = FALSE,
   bias_inf = c("union", "div"),
   num_boot = 500,
-  bias_correction = FALSE,
   alpha = 0.05,
   cores = 1,
-  keep_boot,
+  keep_boot = TRUE,
   nn_exact_se = FALSE,
-  pi_ij
+  pi_ij = NULL
 )
 }
 \arguments{
@@ -27,6 +27,8 @@ control_inf(
 \item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{subbootstrap}.}
 
+\item{bias_correction}{if \code{TRUE}, then the bias minimization estimation used during model fitting.}
+
 \item{bias_inf}{the inference method in the bias minimization.
 \itemize{
 \item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
@@ -35,8 +37,6 @@ selection and outcome model.
 }}
 
 \item{num_boot}{the number of iteration for bootstrap algorithms.}
-
-\item{bias_correction}{if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
 \item{alpha}{significance level, 0.05 by defult.}
 
@@ -54,7 +54,7 @@ In most situations this term is negligible and is very computationally
 expensive so by default it is set to \code{FALSE}, but the recommended option is to
 set this value to \code{TRUE} before submitting the final results.}
 
-\item{pi_ij}{TODO, either a matrix or a \code{ppsmat} class object.}
+\item{pi_ij}{either a matrix or a \code{ppsmat} class object (default \code{NULL}).}
 }
 \value{
 List with selected parameters.

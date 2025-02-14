@@ -3,22 +3,21 @@
 #' @description \code{control_inf} constructs a `list` with all necessary control parameters
 #' for statistical inference.
 #'
-#' @param vars_selection If `TRUE`, then the variables selection model is used.
-#' @param var_method the variance method.
+#' @param vars_selection default `FALSE`; if `TRUE`, then the variables selection model is used.
+#' @param var_method the variance method (default `"analytic"`).
 #' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
-#'  Default is `subbootstrap`.
+#'  Default is `"subbootstrap"`.
+#' @param bias_correction default `FALSE`; if `TRUE`, then the bias minimization estimation used during model fitting.
 #' @param bias_inf the inference method in the bias minimization.
 #' \itemize{
 #'   \item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
 #'   \item if \code{div}, then the final model is fitted separately on division of selected variables into relevant ones for
 #'   selection and outcome model.
 #'   }
-#' @param bias_correction if `TRUE`, then the bias minimization estimation used during model fitting.
 #' @param num_boot the number of iteration for bootstrap algorithms.
-#' @param alpha significance level, 0.05 by defult.
-#' @param cores the number of cores in parallel computing.
-#' @param keep_boot a logical value indicating whether statistics from bootstrap should be kept.
-#' By default set to \code{TRUE}
+#' @param alpha significance level (default 0.05).
+#' @param cores the number of cores in parallel computing (default 1).
+#' @param keep_boot a logical value indicating whether statistics from bootstrap should be kept (default `TRUE`)
 #' @param nn_exact_se a logical value indicating whether to compute the exact
 #' standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
 #' estimation based on \code{nn} or \code{pmm} can be decomposed into three parts, with the
@@ -27,10 +26,10 @@
 #' In most situations this term is negligible and is very computationally
 #' expensive so by default it is set to \code{FALSE}, but the recommended option is to
 #' set this value to \code{TRUE} before submitting the final results.
-#' @param pi_ij TODO, either a matrix or a \code{ppsmat} class object.
+#' @param pi_ij either a matrix or a \code{ppsmat} class object (default `NULL`).
 #'
 #'
-#' @return List with selected parameters.
+#' @return A `list` with selected parameters.
 #'
 #' @seealso
 #'
@@ -39,45 +38,54 @@
 #' @export
 
 control_inf <- function(vars_selection = FALSE,
-                        var_method = c(
-                          "analytic",
-                          "bootstrap"
-                        ),
-                        rep_type = c(
-                          "auto", "JK1", "JKn", "BRR", "bootstrap",
-                          "subbootstrap", "mrbbootstrap", "Fay"
-                        ),
+                        var_method = c("analytic", "bootstrap"),
+                        rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap",
+                                     "subbootstrap", "mrbbootstrap", "Fay"),
+                        bias_correction = FALSE,
                         bias_inf = c("union", "div"),
                         num_boot = 500,
-                        bias_correction = FALSE,
                         alpha = 0.05,
                         cores = 1,
-                        keep_boot,
+                        keep_boot = TRUE,
                         nn_exact_se = FALSE,
-                        pi_ij) {
+                        pi_ij = NULL) {
+
+  # Input validation
+  var_method <- match.arg(var_method)
+  rep_type <- match.arg(rep_type)
+  bias_inf <- match.arg(bias_inf)
+
+  if (!is.logical(keep_boot) || length(keep_boot) != 1) {
+    stop("'keep_boot' must be a logical scalar")
+  }
+
+  if (!is.logical(nn_exact_se) || length(nn_exact_se) != 1) {
+    stop("'nn_exact_se' must be a logical scalar")
+  }
+
+  if (!is.numeric(num_boot) || num_boot < 1 || num_boot %% 1 != 0) {
+    stop("'num_boot' must be a positive integer")
+  }
+
+  if (!is.numeric(alpha) || alpha <= 0 || alpha >= 1) {
+    stop("'alpha' must be between 0 and 1")
+  }
+
+  if (!is.numeric(cores) || cores < 1 || cores %% 1 != 0) {
+    stop("'cores' must be a positive integer")
+  }
+
   list(
-    vars_selection = if (missing(vars_selection)) FALSE else vars_selection,
-    var_method = if (missing(var_method)) "analytic" else var_method,
-    rep_type = if (missing(rep_type)) "subbootstrap" else rep_type,
-    bias_inf = if (missing(bias_inf)) "union" else bias_inf,
+    vars_selection = vars_selection,
+    var_method = var_method,
+    rep_type = rep_type,
+    bias_inf = bias_inf,
     bias_correction = bias_correction,
     num_boot = num_boot,
     alpha = alpha,
     cores = cores,
-    keep_boot = if (missing(keep_boot)) {
-      TRUE
-    } else {
-      if (!is.logical(keep_boot)) {
-        stop("The `keep_boot` argument for `control_inf` function must be logical.")
-      } else {
-        keep_boot
-      }
-    },
-    nn_exact_se = if (!is.logical(nn_exact_se) & length(nn_exact_se) == 1) {
-      stop("The `nn_exact_se` argument must be a logical scalar.")
-    } else {
-      nn_exact_se
-    },
-    pi_ij = if (missing(pi_ij)) NULL else pi_ij
+    keep_boot = keep_boot,
+    nn_exact_se = nn_exact_se,
+    pi_ij = pi_ij
   )
 }
