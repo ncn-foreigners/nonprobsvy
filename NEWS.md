@@ -13,7 +13,8 @@ nonprobsvy News and Updates
     in the package.
 -   argument `maxLik_method` renamed to `maxlik_method` in the
     `control_sel` function. 
-- 
+-   `control_out` function:
+      + `predictive_match` renamed to `pmm_match_type` to align with the PMM (Predictive Mean Matching) estimator naming convention, where all related parameters start with `pmm_`
 
 ### Features
 

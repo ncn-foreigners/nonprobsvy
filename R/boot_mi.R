@@ -45,7 +45,7 @@ boot_mi <- function(X_rand,
   }
 
 
-  predictive_match <- control_outcome$predictive_match
+  pmm_match_type <- control_outcome$pmm_match_type
   nn_exact_se <- control_inference$nn_exact_se
   pmm_reg_engine <- control_outcome$pmm_reg_engine
   pi_ij <- control_inference$pi_ij
@@ -185,7 +185,7 @@ boot_mi <- function(X_rand,
             y_rand_strap <- family_nonprobsvy$linkinv(eta_rand)
             y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
-            model_rand <- switch(control_outcome$predictive_match,
+            model_rand <- switch(control_outcome$pmm_match_type,
               { # 1
                 nonprob_mi_nn(
                   data = y_strap,
@@ -227,7 +227,7 @@ boot_mi <- function(X_rand,
             #                      pmm_reg_engine = pmm_reg_engine,
             #                      model_obj = model_obj,
             #                      svydesign = svydesign,
-            #                      predictive_match = predictive_match,
+            #                      pmm_match_type = pmm_match_type,
             #                      k = control_inference$k,
             #                      N = N)
             #   comp2_stat[k] <- comp2
@@ -337,7 +337,7 @@ boot_mi <- function(X_rand,
             y_strap_nons <- family_nonprobsvy$linkinv(eta_nons)
 
 
-            model_rand <- switch(control_outcome$predictive_match,
+            model_rand <- switch(control_outcome$pmm_match_type,
               { # 1
                 nonprob_mi_nn(
                   data = y_strap,
@@ -383,7 +383,7 @@ boot_mi <- function(X_rand,
         pmm_reg_engine = pmm_reg_engine,
         model_obj = model_obj,
         svydesign = svydesign,
-        predictive_match = predictive_match,
+        pmm_match_type = pmm_match_type,
         k = control_inference$k,
         N = N
       )
@@ -554,7 +554,7 @@ boot_mi_multicore <- function(X_rand,
           y_nons_strap <- family_nonprobsvy$linkinv(eta_nons)
 
 
-          model_rand <- switch(control_outcome$predictive_match,
+          model_rand <- switch(control_outcome$pmm_match_type,
             { # 1
               nonprob_mi_nn(
                 data = y_strap,

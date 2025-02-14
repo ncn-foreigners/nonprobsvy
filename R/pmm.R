@@ -52,7 +52,7 @@ pmm_nonprobsvy <- function(outcome,
     }
   )
   # add protection for very low values in weighting
-  switch(control$predictive_match,
+  switch(control$pmm_match_type,
     { # 1
       if (is.null(pop_totals)) {
         model_rand <- nonprob_mi_nn(
@@ -167,7 +167,7 @@ pmm_exact <- function(pi_ij,
                       # glm,   #why is this here?
                       model_obj,
                       svydesign,
-                      predictive_match,
+                      pmm_match_type,
                       k,
                       N) {
   loop_size <- 50
@@ -204,7 +204,7 @@ pmm_exact <- function(pi_ij,
         reg_object_boot <- NULL
       }
     }
-    YY <- switch(predictive_match,
+    YY <- switch(pmm_match_type,
       {
         nonprob_mi_nn(
           data = predict(

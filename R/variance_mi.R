@@ -18,7 +18,7 @@ internal_varMI <- function(svydesign,
                            model_obj,
                            pop_totals,
                            k,
-                           predictive_match,
+                           pmm_match_type,
                            nn_exact_se,
                            pmm_reg_engine,
                            pi_ij) {
@@ -84,7 +84,7 @@ internal_varMI <- function(svydesign,
           pmm_reg_engine = pmm_reg_engine,
           model_obj = model_obj,
           svydesign = svydesign,
-          predictive_match = predictive_match,
+          pmm_match_type = pmm_match_type,
           k = k,
           N = N
         )

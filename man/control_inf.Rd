@@ -20,14 +20,14 @@ control_inf(
 )
 }
 \arguments{
-\item{vars_selection}{If \code{TRUE}, then the variables selection model is used.}
+\item{vars_selection}{default \code{FALSE}; if \code{TRUE}, then the variables selection model is used.}
 
-\item{var_method}{the variance method.}
+\item{var_method}{the variance method (default \code{"analytic"}).}
 
 \item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
-Default is \code{subbootstrap}.}
+Default is \code{"subbootstrap"}.}
 
-\item{bias_correction}{if \code{TRUE}, then the bias minimization estimation used during model fitting.}
+\item{bias_correction}{default \code{FALSE}; if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
 \item{bias_inf}{the inference method in the bias minimization.
 \itemize{
@@ -38,12 +38,11 @@ selection and outcome model.
 
 \item{num_boot}{the number of iteration for bootstrap algorithms.}
 
-\item{alpha}{significance level, 0.05 by defult.}
+\item{alpha}{significance level (default 0.05).}
 
-\item{cores}{the number of cores in parallel computing.}
+\item{cores}{the number of cores in parallel computing (default 1).}
 
-\item{keep_boot}{a logical value indicating whether statistics from bootstrap should be kept.
-By default set to \code{TRUE}}
+\item{keep_boot}{a logical value indicating whether statistics from bootstrap should be kept (default \code{TRUE})}
 
 \item{nn_exact_se}{a logical value indicating whether to compute the exact
 standard error estimate for \code{nn} or \code{pmm} estimator. The variance estimator for
@@ -57,7 +56,7 @@ set this value to \code{TRUE} before submitting the final results.}
 \item{pi_ij}{either a matrix or a \code{ppsmat} class object (default \code{NULL}).}
 }
 \value{
-List with selected parameters.
+A \code{list} with selected parameters.
 }
 \description{
 \code{control_inf} constructs a \code{list} with all necessary control parameters
