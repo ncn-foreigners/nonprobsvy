@@ -318,7 +318,6 @@ probit_model_nonprobsvy <- function(...) {
     1 / N^2 * sum((1 - ps) * (resid_part - model_part)^2)
   }
 
-  structure(
     list(
       make_link = link,
       make_dlink = dlink,
@@ -336,7 +335,5 @@ probit_model_nonprobsvy <- function(...) {
       b_vec_dr = b_vec_dr,
       t_vec = t_vec,
       var_nonprob = var_nonprob
-    ),
-    class = "method_selection"
-  )
+    )
 }

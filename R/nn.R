@@ -93,6 +93,9 @@ nonprob_mi_nn <- function(data,
 }
 
 
+#' "exact" variance estimator for the NN estimator
+#' should be renamed with something that refers to variance
+#' @noRd
 nn_exact <- function(pi_ij,
                      weights_rand,
                      n_nons,
@@ -100,26 +103,11 @@ nn_exact <- function(pi_ij,
                      X_nons,
                      X_rand,
                      k,
-                     # control,
+                     control,
                      N) {
-  # if (isTRUE("ppsmat" %in% class(pi_ij))) {
-  #   pi_ij <- pi_ij$pij
-  # }
-  # # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
-  # #   pi_ij <- svydesign$dcheck[[1]]$dcheck
-  # # }
-  # if (is.null(pi_ij)) {
-  #   pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
-  #     1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
-  #       sum(1 - 1 / weights_rand))
-  # }
-  # # if (!is.matrix(pi_ij)) {
-  # #
-  # # }
-  # add variable for loop size to control
   loop_size <- 50
 
-  dd <- vector(mode = "numeric", length = loop_size)
+  dd <- numeric(length = loop_size)
   for (jj in 1:loop_size) {
     boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
     # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
@@ -130,11 +118,8 @@ nn_exact <- function(pi_ij,
       data = x_nons_b,
       query = X_rand,
       k = k,
-      searchtype = "standard",
-      treetype = "kd"
-      # TODO:: add control options
-      # treetype = control$treetype,
-      # searchtype = control$searchtype
+      treetype = control$treetype,
+      searchtype = control$searchtype
     )
 
     dd[jj] <- weighted.mean(

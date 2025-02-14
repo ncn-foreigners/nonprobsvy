@@ -1,5 +1,4 @@
 # Variance for doubly robust estimator
-# TODO add nn and pmm
 internal_varDR <- function(outcome_model,
                            selection_model,
                            y_nons_pred,

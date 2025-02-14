@@ -4,12 +4,10 @@
 \alias{pop_size}
 \title{Estimate size of population}
 \usage{
-pop_size(object, ...)
+pop_size(object)
 }
 \arguments{
 \item{object}{object returned by \code{nonprobsvy}.}
-
-\item{...}{additional parameters}
 }
 \value{
 Vector returning the value of the estimated population size.

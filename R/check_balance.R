@@ -54,7 +54,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 2) {
     stop("The `object` argument is required.")
   }
 
-  if (!any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (!inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     stop("No estimated weights available. Only the IPW or the DR methods are supported.")
   }
 
@@ -162,5 +162,5 @@ check_balance.nonprobsvy <- function(x, object, dig = 2) {
     prob_totals = prob_totals,
     balance = diff
   )
-  result
+  return(result)
 }

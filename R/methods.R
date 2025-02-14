@@ -1,4 +1,24 @@
-# no need for documenting simple functions
+
+# my methods --------------------------------------------------------------
+
+#' @method pop_size nonprobsvy
+#' @exportS3Method
+pop_size.nonprobsvy <- function(object) {
+  object$pop_size
+}
+
+#' @title Estimate size of population
+#' @description Estimate size of population
+#' @param object object returned by `nonprobsvy`.
+#' @return Vector returning the value of the estimated population size.
+#' @export
+pop_size <- function(object) {
+  UseMethod("pop_size")
+}
+
+
+# base R methods ----------------------------------------------------------
+
 
 #' @method nobs nonprobsvy
 #' @importFrom stats nobs
@@ -7,21 +27,7 @@ nobs.nonprobsvy <- function(object,
                             ...) {
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
-#' @method pop_size nonprobsvy
-#' @exportS3Method
-pop_size.nonprobsvy <- function(object,
-                                ...) {
-  object$pop_size
-}
-#' @title Estimate size of population
-#' @description Estimate size of population
-#' @param object object returned by `nonprobsvy`.
-#' @param ... additional parameters
-#' @return Vector returning the value of the estimated population size.
-#' @export
-pop_size <- function(object, ...) {
-  UseMethod("pop_size")
-}
+
 #' @method residuals nonprobsvy
 #' @importFrom stats residuals
 #' @exportS3Method
@@ -60,7 +66,7 @@ residuals.nonprobsvy <- function(object,
       res_out <- r / sqrt((1 - hatvalues(object)$outcome) * variance)
     }
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     propensity_scores <- object$prob
     if (!is.null(object$prob_size)) {
       R <- c(rep(1, object$nonprob_size), rep(0, object$prob_size))
@@ -79,9 +85,9 @@ residuals.nonprobsvy <- function(object,
       "pearsonSTD" = r / sqrt((1 - hatvalues(object)$selection) * object$selection$variance)
     ) # TODO add partial
   }
-  if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+  if (inherits(object, "nonprobsvy_mi")) res <- list(outcome = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- list(selection = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- list(selection = res_sel, outcome = res_out)
   res
 }
 #' @method cooks.distance nonprobsvy
@@ -159,7 +165,7 @@ hatvalues.nonprobsvy <- function(model,
 #' @importFrom stats logLik
 #' @exportS3Method
 logLik.nonprobsvy <- function(object, ...) { # TODO consider adding appropriate warning/error in case of running on non mle method
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     val_sel <- object$selection$log_likelihood
     attr(val_sel, "nobs") <- dim(residuals(object, type = "pearson"))[1]
     attr(val_sel, "df") <- length(object$selection$coefficients)
@@ -172,9 +178,9 @@ logLik.nonprobsvy <- function(object, ...) { # TODO consider adding appropriate 
       val_out <- "NULL"
     }
   }
-  if (class(object)[2] == "nonprobsvy_mi") val <- c("outcome" = val_out)
-  if (class(object)[2] == "nonprobsvy_ipw") val <- c("selection" = val_sel)
-  if (class(object)[2] == "nonprobsvy_dr") val <- c("selection" = val_sel, "outcome" = val_out)
+  if (inherits(object, "nonprobsvy_mi")) val <- c("outcome" = val_out)
+  if (inherits(object, "nonprobsvy_ipw")) val <- c("selection" = val_sel)
+  if (inherits(object, "nonprobsvy_dr")) val <- c("selection" = val_sel, "outcome" = val_out)
   val
 }
 #' @method AIC nonprobsvy
@@ -182,7 +188,7 @@ logLik.nonprobsvy <- function(object, ...) { # TODO consider adding appropriate 
 #' @exportS3Method
 AIC.nonprobsvy <- function(object,
                            ...) {
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     if (!is.na(object$selection$log_likelihood)) {
       res_sel <- 2 * (length(object$selection$coefficients) - object$selection$log_likelihood)
     } else {
@@ -190,9 +196,9 @@ AIC.nonprobsvy <- function(object,
     }
   }
   if (any(c("nonprobsvy_dr", "nonprobsvy_mi") %in% class(object))) res_out <- object$outcome[[1]]$aic
-  if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
+  if (inherits(object, "nonprobsvy_mi")) res <- c("outcome" = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- c("selection" = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- c("selection" = res_sel, "outcome" = res_out)
   res
 }
 #' @method BIC nonprobsvy
@@ -200,7 +206,7 @@ AIC.nonprobsvy <- function(object,
 #' @exportS3Method
 BIC.nonprobsvy <- function(object,
                            ...) {
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     if (!is.na(object$selection$log_likelihood)) {
       res_sel <- length(object$selection$coefficients) * log(object$nonprob_size + object$prob_size) - 2 * object$selection$log_likelihood
     } else {
@@ -214,9 +220,9 @@ BIC.nonprobsvy <- function(object,
       res_out <- NA
     }
   }
-  if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list("selection" = res_sel, "outcome" = res_out)
+  if (inherits(object, "nonprobsvy_mi")) res <- c("outcome" = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- c("selection" = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- list("selection" = res_sel, "outcome" = res_out)
   res
 }
 #' @title Confidence Intervals for Model Parameters
@@ -239,7 +245,7 @@ confint.nonprobsvy <- function(object,
                                parm,
                                level = 0.95,
                                ...) {
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     std <- object$selection$std_err
     sc <- qnorm(p = 1 - (1 - level) / 2)
     res_sel <- data.frame(object$selection$coefficients - sc * std, object$selection$coefficients + sc * std)
@@ -261,9 +267,9 @@ confint.nonprobsvy <- function(object,
       )
     }
   }
-  if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+  if (inherits(object, "nonprobsvy_mi")) res <- list(outcome = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- list(selection = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- list(selection = res_sel, outcome = res_out)
   res
 }
 #' @title Obtain Covariance Matrix estimation.
@@ -290,10 +296,10 @@ vcov.nonprobsvy <- function(object,
       res_out <- object$outcome[[1]]$variance_covariance
     }
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) res_sel <- object$selection$variance_covariance
-  if (class(object)[2] == "nonprobsvy_mi") res <- list(outcome = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- list(selection = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- list(selection = res_sel, outcome = res_out)
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) res_sel <- object$selection$variance_covariance
+  if (inherits(object, "nonprobsvy_mi")) res <- list(outcome = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- list(selection = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- list(selection = res_sel, outcome = res_out)
   res
 }
 #' @method deviance nonprobsvy
@@ -308,7 +314,7 @@ deviance.nonprobsvy <- function(object,
       res_out <- "NULL"
     }
   }
-  if (any(c("nonprobsvy_dr", "nonprobsvy_ipw") %in% class(object))) {
+  if (inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
     message("Deviance for selection model not available yet.")
     if (!is.character(object$selection$log_likelihood)) {
       res_sel <- NA
@@ -316,109 +322,9 @@ deviance.nonprobsvy <- function(object,
       res_sel <- NA
     }
   }
-  if (class(object)[2] == "nonprobsvy_mi") res <- c("outcome" = res_out)
-  if (class(object)[2] == "nonprobsvy_ipw") res <- c("selection" = res_sel)
-  if (class(object)[2] == "nonprobsvy_dr") res <- c("selection" = res_sel, "outcome" = res_out)
+  if (inherits(object, "nonprobsvy_mi")) res <- c("outcome" = res_out)
+  if (inherits(object, "nonprobsvy_ipw")) res <- c("selection" = res_sel)
+  if (inherits(object, "nonprobsvy_dr")) res <- c("selection" = res_sel, "outcome" = res_out)
   res
 }
 
-# Internal function - not exported in CRAN version
-# Will be exported in future releases after variance estimation is implemented
-#' @keywords internal
-nonprobsvytotal.nonprobsvy <- function(x, object, interaction = FALSE) {
-  # TODO variance - NOT READY FOR CRAN
-  groups <- rhs.vars(x)
-  var <- lhs.vars(x)
-  # Validate inputs
-  if (!is.null(var)) {
-    stop("No dependend variable needed for this method, please remove it and try again.")
-  }
-  if (nrow(object$data) == 0) {
-    stop("An empty dataset detected (zero rows).")
-  }
-  class_nonprob <- class(object)[2]
-  if (!class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr", "nonprobsvy_mi")) {
-    stop("Invalid nonprob object class")
-  }
-  # Check if all group variables exist in the dataset
-  missing_vars <- setdiff(groups, names(object$data))
-  if (length(missing_vars) > 0) {
-    stop(sprintf(
-      "The following variables are not present in the dataset: %s",
-      paste(missing_vars, collapse = ", ")
-    ))
-  }
-  if (class_nonprob %in% c("nonprobsvy_ipw", "nonprobsvy_dr")) {
-    if (interaction) {
-      # For single categorical variable, use the same approach as non-interaction
-      if (length(groups) == 1) {
-        data <- model.matrix(as.formula(paste(x, "- 1")), data = object$data)
-        result <- sapply(as.data.frame(data), function(col) sum(col * object$weights))
-        result <- data.frame(
-          variable = names(result),
-          total = unname(result)
-        )
-        return(result)
-      }
-
-      data <- object$data[which(object$R == 1), groups, drop = FALSE]
-      weights <- object$weights[which(object$R == 1)]
-      # Check for NAs in grouping variables
-      for (g in groups) {
-        current_mask <- !is.na(data[[g]])
-        if (sum(!current_mask) > 0) {
-          warning(sprintf("NA values found in grouping variable %s", g))
-        }
-      }
-      # Create all combinations of group variables
-      group_combinations <- do.call(expand.grid, lapply(data, unique))
-      # Calculate totals for each combination
-      result <- data.frame(group_combinations)
-      result$total <- NA
-      for (i in 1:nrow(result)) {
-        mask <- rep(TRUE, nrow(data))
-        valid_combination <- TRUE
-        for (g in groups) {
-          current_val <- result[[g]][i]
-          if (is.na(current_val)) {
-            valid_combination <- FALSE
-            break
-          }
-          current_mask <- !is.na(data[[g]]) & (data[[g]] == current_val)
-          mask <- mask & current_mask
-        }
-        # Check if we have any valid observations for this combination
-        if (valid_combination && sum(mask, na.rm = TRUE) > 0) {
-          result$total[i] <- sum(weights[mask])
-          # Warning for small group sizes
-          if (sum(mask) < 5) {
-            warning(sprintf(
-              "Small group size (%d) for combination: %s",
-              sum(mask),
-              paste(result[i, groups], collapse = ", ")
-            ))
-          }
-        }
-      }
-      # Remove rows where combination doesn't exist
-      result <- result[!is.na(result$total), ]
-      names(result) <- c(groups, "total")
-    } else {
-      data <- model.matrix(as.formula(paste(x, "- 1")), data = object$data)
-      result <- sapply(as.data.frame(data), function(col) sum(col * object$weights))
-      result <- data.frame(
-        variable = names(result),
-        total = unname(result)
-      )
-    }
-  } else {
-    if (interaction) {
-      form <- as.formula(paste("~interaction(", paste(groups, collapse = ", "), ")"))
-      result <- svytotal(form, object$svydesign)
-    } else {
-      result <- svytotal(x, object$svydesign)
-    }
-    result <- as.data.frame(result)
-  }
-  result
-}

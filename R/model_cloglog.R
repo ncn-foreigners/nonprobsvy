@@ -336,8 +336,7 @@ cloglog_model_nonprobsvy <- function(...) {
     sum((1 - ps) * (w_resid - model_adj)^2) / N^2
   }
 
-  structure(
-    list(
+  list(
       make_log_like = log_like,
       make_gradient = gradient,
       make_hessian = hessian,
@@ -354,7 +353,5 @@ cloglog_model_nonprobsvy <- function(...) {
       b_vec_dr = b_vec_dr,
       t_vec = t_vec,
       var_nonprob = var_nonprob
-    ),
-    class = "method_selection"
-  )
+    )
 }

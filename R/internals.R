@@ -75,6 +75,8 @@ internal_outcome <- function(outcome,
 }
 
 ##' @title Setup lambda parameter for the {ncvreg} package
+##' @param X a `matrix` of auxiliary variables
+##' @param y a `vector` of target variables
 ##'
 ##' @noRd
 setup_lambda <- function(X,
@@ -87,7 +89,6 @@ setup_lambda <- function(X,
                          alpha = 1,
                          log_lambda = FALSE,
                          ...) {
-  # TODO
   # consider penalty factor here
   # consider for pop_totals/pop_means
   if (is.null(pop_totals)) {

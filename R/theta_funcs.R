@@ -168,6 +168,7 @@ u_theta_beta_dr <- function(par,
                             weights,
                             method_selection,
                             family_nonprobsvy) {
+
   method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
   method <- get_method(method_selection)
 
@@ -199,70 +200,3 @@ u_theta_beta_dr <- function(par,
   utb
 }
 
-u_theta_ipw <- function(par,
-                        R,
-                        X,
-                        y,
-                        weights,
-                        method_selection) { # TODO
-
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
-  inv_link_rev <- method$make_link_inv_rev
-  inv_link <- method$make_link_inv
-
-  p <- ncol(X)
-  theta <- par
-  eta_pi <- X %*% theta
-  y[which(is.na(y))] <- 0
-
-  R_rand <- 1 - R
-  loc_nons <- which(R == 1)
-  loc_rand <- which(R == 0)
-  n <- length(R)
-  y_mean <- mean(y[loc_nons])
-
-  UTB <- apply(X * (R / as.vector(inv_link(eta_pi)) * y - mean(y)) * as.vector(inv_link_rev(eta_pi)), 2, sum) # TODO
-  UTB
-}
-
-# TODO Jacobian of the estimating equations for dr method
-u_theta_beta_dr_jacob <- function(par,
-                                  R,
-                                  X,
-                                  y,
-                                  weights,
-                                  method_selection,
-                                  family_nonprobsvy) {
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
-
-  inv_link <- method$make_link_inv
-  inv_link_rev <- method$make_link_inv_rev
-  dinv_link_rev <- method$make_link_inv_rev_de
-
-  p <- ncol(X)
-  theta <- par[1:(p + 1)]
-  beta <- par[(p + 2):(2 * p + 2)]
-  X0 <- cbind(1, X)
-  eta_pi <- X0 %*% theta
-  ps <- inv_link(eta_pi)
-  y[which(is.na(y))] <- 0
-  ps <- as.vector(ps)
-
-  eta <- X0 %*% beta
-  mu <- family_nonprobsvy$mu(eta)
-  mu_der <- family_nonprobsvy$mu_der(mu)
-  mu_der2 <- family_nonprobsvy$mu_der2(mu)
-  res <- family_nonprobsvy$residuals(mu = mu, y = y)
-  n <- length(R)
-  R_rand <- 1 - R
-
-  jac <- c(
-    apply(-X0 * R * weights * as.vector(inv_link_rev(eta_pi)) * mu_der, 2, sum),
-    apply(X0 * R / ps * mu_der2 * weights - X0 * R_rand * weights * mu_der2, 2, sum),
-    apply(X0 * R * weights * as.vector(dinv_link_rev(eta_pi)) * res * X0, 2, sum),
-    apply(X0 * R * weights * as.vector(inv_link_rev(eta_pi)) * mu_der, 2, sum)
-  ) / n
-  jac
-}

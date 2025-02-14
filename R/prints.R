@@ -134,20 +134,4 @@ print.summary_nonprobsvy <- function(x,
 
   invisible(x)
 }
-#' @method print nonprobsvycheck
-#' @exportS3Method
-print.nonprobsvycheck <- function(x, ...) {
-  cat("Balance check results:\n\n")
 
-  # Create a data frame for nice printing
-  results <- data.frame(
-    Variable = names(x$balance),
-    NonProb_Total = x$nonprob_totals,
-    Prob_Total = x$prob_totals[names(x$balance)],
-    Difference = x$balance,
-    row.names = NULL
-  )
-
-  print(results)
-  invisible(x)
-}

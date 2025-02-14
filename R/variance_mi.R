@@ -22,6 +22,7 @@ internal_varMI <- function(svydesign,
                            nn_exact_se,
                            pmm_reg_engine,
                            pi_ij) {
+
   parameters <- model_obj$parameters
 
   if (is.character(family)) {
@@ -47,8 +48,7 @@ internal_varMI <- function(svydesign,
           X_nons       = X_nons,
           X_rand       = X_rand,
           k            = k,
-          # TODO:: add control here
-          # control      = control
+          #control      = control, ## add control parameter here (it is not yet passed)
           N            = N
         )
       }

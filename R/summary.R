@@ -111,7 +111,7 @@ summary.nonprobsvy <- function(object,
         cnf_int = object$confidence_interval
       ),
       sample_size = nobs(object, ...),
-      population_size = pop_size(object, ...),
+      population_size = pop_size(object),
       totals = object$pop_totals,
       test = test,
       control = object$control,

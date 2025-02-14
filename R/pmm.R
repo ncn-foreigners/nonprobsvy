@@ -170,24 +170,9 @@ pmm_exact <- function(pi_ij,
                       predictive_match,
                       k,
                       N) {
-  # if (isTRUE("ppsmat" %in% class(pi_ij))) {
-  #   pi_ij <- pi_ij$pij
-  # }
-  # # if (!is.null(svydesign$dcheck[[1]]$dcheck)) {
-  # #   pi_ij <- svydesign$dcheck[[1]]$dcheck
-  # # }
-  # if (is.null(pi_ij)) {
-  #   pi_ij <- outer(1 / weights_rand, 1 / weights_rand) * (
-  #     1 - outer(1 - 1 / weights_rand, 1 - 1 / weights_rand) /
-  #       sum(1 - 1 / weights_rand))
-  # }
-  # # if (!is.matrix(pi_ij)) {
-  # #
-  # # }
-  # add variable for loop size to control
   loop_size <- 50
 
-  dd <- vector(mode = "numeric", length = loop_size)
+  dd <- numeric(length = loop_size)
   for (jj in 1:loop_size) {
     reg_object_boot <- NULL
     while (is.null(reg_object_boot)) {
