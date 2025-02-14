@@ -4,7 +4,7 @@ u_theta <- function(R,
                     X,
                     weights,
                     method_selection,
-                    h,
+                    gee_h_fun,
                     N = NULL,
                     pop_totals = NULL,
                     pop_size = NULL) {
@@ -27,7 +27,7 @@ u_theta <- function(R,
     # "1" = t(X0[loc_nons,]) %*% (1/ps[loc_nons]) - t(X0[loc_rand,]) %*% weights[loc_rand],
     # "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
     if (is.null(pop_totals)) {
-      eq <- switch(h,
+      eq <- switch(gee_h_fun,
         "1" = c(apply(X0 * R / ps * weights - X0 * R_rand * weights, 2, sum)), # consider division by N_nons
         "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
       )
@@ -43,7 +43,7 @@ u_theta_der <- function(R,
                         X,
                         weights,
                         method_selection,
-                        h,
+                        gee_h_fun,
                         N = NULL,
                         pop_totals = NULL) {
   method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
@@ -70,7 +70,7 @@ u_theta_der <- function(R,
     if (!is.null(pop_totals)) {
       mxDer <- t(R * X0 * weights * inv_link_rev(eta)) %*% X0
     } else {
-      mxDer <- switch(h,
+      mxDer <- switch(gee_h_fun,
         "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
         "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
       )
@@ -83,7 +83,7 @@ theta_h_estimation <- function(R,
                                X,
                                weights_rand,
                                weights,
-                               h,
+                               gee_h_fun,
                                method_selection,
                                maxit,
                                nleqslv_method,
@@ -97,7 +97,7 @@ theta_h_estimation <- function(R,
     R = R,
     X = X,
     weights = c(weights_rand, weights),
-    h = h,
+    gee_h_fun = gee_h_fun,
     method_selection = method_selection,
     pop_totals = pop_totals
   )
@@ -106,7 +106,7 @@ theta_h_estimation <- function(R,
     R = R,
     X = X,
     weights = c(weights_rand, weights),
-    h = h,
+    gee_h_fun = gee_h_fun,
     method_selection = method_selection,
     pop_totals = pop_totals
   )

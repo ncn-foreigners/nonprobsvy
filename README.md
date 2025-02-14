@@ -189,7 +189,7 @@ nonprob(
                  ..., 
                  xk = tau_xk), 
   method_selection = "logit", 
-  control_selection = control_sel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 
@@ -338,7 +338,7 @@ nonprob(
   data = nonprob, 
   svydesign = prob, 
   method_selection = "logit", 
-  control_selection = control_sel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 

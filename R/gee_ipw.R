@@ -38,32 +38,32 @@ gee <- function(...) {
     )
   }
 
-  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
+  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights) {
     # common calculations
     mean_nons <- sum(weights * y_nons) / N
     Xb <- X %*% t(as.matrix(b))
 
-    # choose formula based on h
-    if (h == 1) {
+    # choose formula based on gee_h_fun
+    if (gee_h_fun == 1) {
       t_comp <- Xb + y_rand - mean_nons
-    } else if (h == 2) {
+    } else if (gee_h_fun == 2) {
       t_comp <- as.vector(ps) * Xb + y_rand - mean_nons
     }
     t_comp
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
-    # force h=1 if pop_totals available
-    if (!is.null(pop_totals)) h <- 1
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, gee_h_fun, method_selection, weights, pop_totals) {
+    # force gee_h_fun=1 if pop_totals available
+    if (!is.null(pop_totals)) gee_h_fun <- 1
 
     # common terms
     resid <- weights * (y - y_pred - h_n)
     model_adj <- b %*% t(X)
 
     # variance calculation based on h
-    if (h == 2) {
+    if (gee_h_fun == 2) {
       var_nonprob <- 1 / N^2 * sum((1 - ps) * (resid / ps - model_adj)^2)
-    } else if (h == 1) {
+    } else if (gee_h_fun == 1) {
       var_nonprob <- 1 / N^2 * sum((1 - ps) * ((resid - model_adj) / ps)^2)
     }
     as.numeric(var_nonprob)
@@ -77,7 +77,7 @@ gee <- function(...) {
                               R,
                               method_selection,
                               optim_method,
-                              h = h,
+                              gee_h_fun = gee_h_fun,
                               est_method,
                               maxit,
                               control_selection,
@@ -113,7 +113,7 @@ gee <- function(...) {
           X = X[, 1, drop = FALSE],
           weights_rand = weights_rand,
           weights = weights,
-          h = h,
+          gee_h_fun = gee_h_fun,
           method_selection = method_selection,
           maxit = maxit,
           nleqslv_method = control_selection$nleqslv_method,
@@ -132,7 +132,7 @@ gee <- function(...) {
       X = X,
       weights_rand = weights_rand,
       weights = weights,
-      h = h,
+      gee_h_fun = gee_h_fun,
       method_selection = method_selection,
       maxit = maxit,
       nleqslv_method = control_selection$nleqslv_method,

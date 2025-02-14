@@ -45,7 +45,7 @@ mle <- function(...) {
     )
   }
 
-  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
+  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights, weights_sum) {
     method <- get_method(method_selection)
     t_comp <- method$t_vec(
       X = X,
@@ -60,7 +60,8 @@ mle <- function(...) {
     t_comp
   }
 
-  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, weights_sum, pop_totals = NULL) {
+  make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, gee_h_fun, method_selection,
+                               weights = weights, weights_sum, pop_totals = NULL) {
     method <- get_method(method_selection)
     var_nonprob <- method$var_nonprob(
       ps = ps,
@@ -84,7 +85,7 @@ mle <- function(...) {
                               R,
                               method_selection,
                               optim_method,
-                              h = h,
+                              gee_h_fun = gee_h_fun,
                               est_method,
                               maxit,
                               control_selection,

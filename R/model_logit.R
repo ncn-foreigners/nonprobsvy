@@ -155,7 +155,7 @@ logit_model_nonprobsvy <- function(...) {
     )
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
     N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
     n <- ifelse(is.null(dim(X)), length(X), nrow(X))
 
@@ -169,7 +169,7 @@ logit_model_nonprobsvy <- function(...) {
     }
 
     # get weights based on method
-    w1 <- if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
+    w1 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
       (1 - ps) / ps^2
     } else {
       (1 - ps) / ps
@@ -181,7 +181,7 @@ logit_model_nonprobsvy <- function(...) {
     v_1 <- t(v1_)
 
     # calc v_2
-    w2 <- if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
+    w2 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
       (1 - ps) / ps
     } else {
       (1 - ps)
@@ -200,7 +200,7 @@ logit_model_nonprobsvy <- function(...) {
     Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
   }
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) {
+  variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
     # get population size
     N <- sum(1 / svydesign$prob)
 
@@ -210,7 +210,7 @@ logit_model_nonprobsvy <- function(...) {
       cov <- Matrix::Matrix(0, dim_totals, dim_totals, sparse = TRUE)
     } else {
       # adjust probabilities for MLE/GEE if needed
-      if (est_method == "mle" || (est_method == "gee" && h == 2)) {
+      if (est_method == "mle" || (est_method == "gee" && gee_h_fun == 2)) {
         svydesign$prob <- svydesign$prob / eps
       }
 

@@ -30,7 +30,7 @@ expect_silent(ipw_est2 <- nonprob(
   svydesign = jvs_svy,
   data = admin,
   method_selection = "logit",
-  control_selection = control_sel(h = 1, est_method_sel = "gee")
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 ))
 
 

@@ -51,7 +51,7 @@ internal_varIPW <- function(svydesign,
                             method_selection,
                             est_method,
                             theta,
-                            h,
+                            gee_h_fun,
                             verbose,
                             var_cov1,
                             var_cov2) {
@@ -90,7 +90,7 @@ internal_varIPW <- function(svydesign,
     psd = ps_nons_der,
     pop_size = pop_size,
     est_method = est_method,
-    h = h,
+    gee_h_fun = gee_h_fun,
     weights = weights,
     pop_totals = pop_totals
   ) # fixed
@@ -99,7 +99,7 @@ internal_varIPW <- function(svydesign,
     svydesign = svydesign,
     eps = est_ps_rand,
     est_method = est_method,
-    h = h,
+    gee_h_fun = gee_h_fun,
     pop_totals = pop_totals,
     psd = est_ps_rand_der
   )

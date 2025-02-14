@@ -175,7 +175,7 @@ cloglog_model_nonprobsvy <- function(...) {
     )
   }
 
-  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, h, weights, pop_totals = NULL) {
+  variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
     # ensure matrix format and get dimensions
     X <- as.matrix(X)
     n <- nrow(X)
@@ -205,8 +205,8 @@ cloglog_model_nonprobsvy <- function(...) {
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-    } else if (est_method == "gee" && h == 1 || !is.null(pop_totals)) {
-      # GEE h=1 or pop_totals case
+    } else if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
+      # GEE gee_h_fun=1 or pop_totals case
       v11 <- sum(w1 * y_sq) / N^2
       v1_ <- (w1 * y_adj) %*% X / N^2
 
@@ -216,8 +216,8 @@ cloglog_model_nonprobsvy <- function(...) {
         v_2 <- v_2 + v_2i
       }
       v_2 <- v_2 / N^2
-    } else if (est_method == "gee" && h == 2) {
-      # GEE h=2 case
+    } else if (est_method == "gee" && gee_h_fun == 2) {
+      # GEE gee_h_fun=2 case
       v11 <- sum(w1 * y_sq) / N^2
       v1_ <- ((1 - ps) / ps * y_adj) %*% X / N^2
 
@@ -237,7 +237,7 @@ cloglog_model_nonprobsvy <- function(...) {
   }
 
 
-  variance_covariance2 <- function(X, svydesign, eps, est_method, h, pop_totals, psd, postStrata = NULL) {
+  variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
     # get total population size
     N <- sum(1 / svydesign$prob)
 
@@ -249,7 +249,7 @@ cloglog_model_nonprobsvy <- function(...) {
       # adjust probabilities based on method
       if (est_method == "mle") {
         svydesign$prob <- svydesign$prob * log1p(-eps) # more stable than log(1-eps)
-      } else if (est_method == "gee" && h == 2) {
+      } else if (est_method == "gee" && gee_h_fun == 2) {
         svydesign$prob <- svydesign$prob * eps
       }
 

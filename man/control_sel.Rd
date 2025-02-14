@@ -2,20 +2,17 @@
 % Please edit documentation in R/control_selection.R
 \name{control_sel}
 \alias{control_sel}
-\title{Control parameters for selection model}
+\title{Control parameters for the selection model}
 \usage{
 control_sel(
-  method = "glm.fit",
-  epsilon = 1e-04,
-  maxit = 500,
-  trace = FALSE,
+  est_method = c("mle", "gee"),
+  gee_h_fun = 1,
   optimizer = c("maxLik", "optim"),
   maxlik_method = "NR",
   optim_method = "BFGS",
-  dependence = FALSE,
-  key = NULL,
-  est_method_sel = c("mle", "gee"),
-  h = c(1, 2),
+  epsilon = 1e-04,
+  maxit = 500,
+  trace = FALSE,
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
@@ -27,38 +24,32 @@ control_sel(
   start_type = c("glm", "naive", "zero"),
   nleqslv_method = c("Broyden", "Newton"),
   nleqslv_global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
-  nleqslv_xscalm = c("fixed", "auto")
+  nleqslv_xscalm = c("fixed", "auto"),
+  dependence = FALSE,
+  key = NULL
 )
 }
 \arguments{
-\item{method}{estimation method.}
+\item{est_method}{Method of estimation for propensity score model.}
+
+\item{gee_h_fun}{Smooth function for the generalized estimating equations (GEE) method taking the following values
+\itemize{
+\item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
+\item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
+}}
+
+\item{optimizer}{optimization function for maximum likelihood estimation.}
+
+\item{maxlik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
+
+\item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
 \item{epsilon}{Tolerance for fitting algorithms by default \code{1e-6}.}
 
 \item{maxit}{Maximum number of iterations.}
 
 \item{trace}{logical value. If \code{TRUE} trace steps of the fitting algorithms. Default is \code{FALSE}}
-
-\item{optimizer}{\itemize{
-\item optimization function for maximum likelihood estimation.
-}}
-
-\item{maxlik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
-
-\item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
-
-\item{dependence}{logical value - \code{TRUE} if samples overlap (NOT YET IMPLEMENTED)}
-
-\item{key}{binary key variable (NOT YET IMPLEMENTED)}
-
-\item{est_method_sel}{Method of estimation for propensity score model.}
-
-\item{h}{Smooth function for the generalized estimating equations methods taking the following values
-\itemize{
-\item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
-  \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
-\item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
-}}
 
 \item{penalty}{The penalization function used during variables selection.}
 
@@ -90,6 +81,10 @@ control_sel(
 \item{nleqslv_global}{The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
 \item{nleqslv_xscalm}{The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+
+\item{dependence}{logical value (default \code{TRUE}) informing whether samples overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).}
+
+\item{key}{binary key variable allowing to identify the overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).}
 }
 \value{
 List with selected parameters.

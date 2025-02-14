@@ -13,7 +13,7 @@ inline double loss_theta(const vec& par,
                          const mat& X,
                          const vec& weights,
                          const std::string& method_selection,
-                         const int& h,
+                         const int& gee_h_fun,
                          const uvec& idx,
                          Nullable<arma::vec> pop_totals) { // TODO add weights
 
@@ -41,10 +41,10 @@ inline double loss_theta(const vec& par,
   // Calculate the loss using the appropriate method
   double loss;
   if (pop_totals.isNull()) {
-    if (h == 1) {
+    if (gee_h_fun == 1) {
       temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
       loss = accu(square(sum(temp, 0)));
-    } else if (h == 2) {
+    } else if (gee_h_fun == 2) {
       temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
       loss = accu(square(sum(temp, 0)));
     } else {
@@ -115,7 +115,7 @@ arma::mat u_theta_der(const arma::vec& par,
                       const arma::mat& X,
                       const arma::vec& weights,
                       const std::string& method_selection,
-                      const int& h,
+                      const int& gee_h_fun,
                       Nullable<arma::vec> pop_totals,
                       Nullable<int> N = R_NilValue) { // TODO add weights
 
@@ -147,7 +147,7 @@ arma::mat u_theta_der(const arma::vec& par,
   arma::rowvec X_row;
   arma::mat temp;
 
-  if (h == 1 || !pop_totals.isNull()) {
+  if (gee_h_fun == 1 || !pop_totals.isNull()) {
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
@@ -168,7 +168,7 @@ arma::mat u_theta_der(const arma::vec& par,
         mxDer += temp * X_row;
       }
     }
-  } else if (h == 2) {
+  } else if (gee_h_fun == 2) {
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
@@ -252,7 +252,7 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
                               const arma::vec& weights,
                               const std::string& method_selection,
-                              const int& h,
+                              const int& gee_h_fun,
                               double lambda,
                               int maxit,
                               double eps,
@@ -276,8 +276,8 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
     }
     // avoid unnecessary computations by saving results
 
-    arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, h, pop_totals);
-    arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, h, pop_totals);
+    arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, gee_h_fun, pop_totals);
+    arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, gee_h_fun, pop_totals);
     arma::vec q_lambda_output = q_lambda_cpp(par0, lambda, penalty, a);
 
     LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
@@ -304,7 +304,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
                               const arma::vec& weights_X,
                               const std::string& method_selection,
-                              const int& h,
+                              const int& gee_h_fun,
                               int maxit,
                               double eps,
                               double lambda_min,
@@ -380,7 +380,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                                   X_train.col(ncols - 1),
                                                   X_train.col(ncols - 2),
                                                   method_selection,
-                                                  h,
+                                                  gee_h_fun,
                                                   lambdas1(i),
                                                   maxit,
                                                   eps,
@@ -399,7 +399,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                  X_testloss,
                                  weights_testloss,
                                  method_selection,
-                                 h,
+                                 gee_h_fun,
                                  arma::find(theta_est != 0),
                                  pop_totals);
         loss_theta_fld(j, i) = loss;
@@ -422,7 +422,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                         R_,
                                         weights_X,
                                         method_selection,
-                                        h,
+                                        gee_h_fun,
                                         lambda,
                                         maxit,
                                         eps,
