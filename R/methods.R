@@ -7,10 +7,42 @@ pop_size.nonprobsvy <- function(object) {
   object$pop_size
 }
 
-#' @title Estimate size of population
-#' @description Estimate size of population
-#' @param object object returned by `nonprobsvy`.
-#' @return Vector returning the value of the estimated population size.
+#' @title Returns population size (estimated or fixed)
+#' @description Returns population size that is assumed to be
+#'\itemize{
+#'  \item{\code{fixed} -- if it is based on the `pop_size` argument,}
+#'  \item{\code{estimated} -- if it is based on the probability survey specified in the `svydesign` or based on the estimated propensity scores for the non-probability sample.}
+#'}
+#' @param object object returned by the `nonprob` function.
+#' @return a scalar returning the value of the population size.
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit"
+#' )
+#'
+#' ipw_est2 <- nonprob(
+#' selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit",
+#' control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
+#'
+#' ## estimated population size based on the non-calibrated IPW (MLE)
+#' pop_size(ipw_est1)
+#'
+#' ## estimated population size based on the calibrated IPW (GEE)
+#' pop_size(ipw_est2)
+#'
+#'
 #' @export
 pop_size <- function(object) {
   UseMethod("pop_size")

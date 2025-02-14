@@ -46,13 +46,13 @@
 
 control_sel <- function(est_method = c("mle", "gee"),
                         gee_h_fun = 1,
-                        optimizer = c("maxLik", "optim"),
-                        maxlik_method = "NR",
-                        optim_method = "BFGS",
-                        epsilon = 1e-4,
-                        maxit = 500,
-                        trace = FALSE,
-                        penalty = c("SCAD", "lasso", "MCP"),
+                        optimizer = c("maxLik", "optim"), ## for mle
+                        maxlik_method = "NR", ## for mle
+                        optim_method = "BFGS", ## for mle
+                        epsilon = 1e-4, ## for both
+                        maxit = 500, ## for both
+                        trace = FALSE, ## for both
+                        penalty = c("SCAD", "lasso", "MCP"), ## for variable sel
                         a_SCAD = 3.7,
                         a_MCP = 3,
                         lambda = -1,
@@ -60,7 +60,7 @@ control_sel <- function(est_method = c("mle", "gee"),
                         nlambda = 50,
                         nfolds = 10,
                         print_level = 0,
-                        start_type = c("glm", "naive", "zero"),
+                        start_type = c("glm", "naive", "zero"), ## for gee ?
                         nleqslv_method = c("Broyden", "Newton"),
                         nleqslv_global = c("dbldog", "pwldog", "cline",
                                            "qline", "gline", "hook", "none"),
