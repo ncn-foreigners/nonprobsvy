@@ -8,11 +8,11 @@
 #
 # @return list with model frames and matrices to preprocess
 # @noRd
-model_frame <- function(formula,
-                        data,
-                        weights = NULL,
-                        svydesign = NULL,
-                        pop_totals = NULL) {
+make_model_frame <- function(formula,
+                             data,
+                             weights = NULL,
+                             svydesign = NULL,
+                             pop_totals = NULL) {
 
   update_formula <- function(formula, nons_names, outcome_name) {
     dot_check <- sapply(formula, function(x) x == ".")
@@ -41,9 +41,7 @@ model_frame <- function(formula,
       model_frame_rand <- intersect(names_rand, colnames(design_to_frame))
     } else {
       terms_object <- terms(formula)
-      names_rand <- all.vars(as.formula(paste("~", paste(
-        attr(terms_object, "term.labels"), collapse = " + "
-      ))))
+      names_rand <- all.vars(as.formula(paste("~", paste(attr(terms_object, "term.labels"), collapse = " + "))))
       model_frame_nons_rand <- design_to_frame[, names_rand, drop = FALSE]
       model_frame_rand <- intersect(names_rand, colnames(design_to_frame))
     }
@@ -97,9 +95,9 @@ model_frame <- function(formula,
   }
 
   if (!is.null(svydesign)) {
-    return(model_frame_svydesign(formula, data, svydesign, flag))
+    return(model_frame_svydesign(formula, data, svydesign))
   } else if (!is.null(pop_totals)) {
-    return(model_frame_pop(formula, data, pop_totals, flag))
+    return(model_frame_pop(formula, data, pop_totals))
   } else {
     stop("Either svydesign or pop_totals must be provided.")
   }

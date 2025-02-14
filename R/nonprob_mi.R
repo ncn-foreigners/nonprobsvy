@@ -71,7 +71,7 @@ nonprob_mi <- function(outcome,
       cond <- TRUE
       kk <- control_outcome$k - 1
       while (cond) {
-        outcome_model_data <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+        outcome_model_data <- make_model_frame(formula = outcome, data = data, svydesign = svydesign)
         X_nons <- outcome_model_data$X_nons
         X_rand <- outcome_model_data$X_rand
         nons_names <- outcome_model_data$nons_names
@@ -165,7 +165,7 @@ nonprob_mi <- function(outcome,
       outcome <- outcomes$outcome[[k]]
 
       # model for outcome formula
-      outcome_model_data <- model_frame(formula = outcome, data = data, svydesign = svydesign)
+      outcome_model_data <- make_model_frame(formula = outcome, data = data, svydesign = svydesign)
       X_nons <- outcome_model_data$X_nons
       X_rand <- outcome_model_data$X_rand
       nons_names <- outcome_model_data$nons_names
@@ -262,7 +262,7 @@ nonprob_mi <- function(outcome,
           stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
         }
       }
-      Model <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
+      Model <- make_model_frame(formula = outcome, data = data, pop_totals = pop_totals)
 
       X_nons <- Model$X_nons
       X_rand <- Model$X_rand

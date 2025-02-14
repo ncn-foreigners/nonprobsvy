@@ -71,7 +71,7 @@ internal_varDR <- function(outcome_model,
     )
 
     if (is.null(pop_totals)) {
-      t <- est_method$make_t(
+      t_comp <- est_method$make_t_comp(
         X = selection_model$X_rand,
         ps = est_ps_rand,
         psd = est_ps_rand_der,
@@ -84,10 +84,8 @@ internal_varDR <- function(outcome_model,
         weights = weights
       )
       # design based variance estimation based on approximations of the second-order inclusion probabilities
-      svydesign <- stats::update(svydesign,
-        t = t
-      )
-      svydesign_mean <- survey::svymean(~t, svydesign) # perhaps using survey package to compute prob variance
+      svydesign <- stats::update(svydesign, t_comp = t_comp)
+      svydesign_mean <- survey::svymean(~t_comp, svydesign) # perhaps using survey package to compute prob variance
       var_prob <- as.vector(attr(svydesign_mean, "var"))
     } else {
       var_prob <- 0

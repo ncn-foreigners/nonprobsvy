@@ -79,7 +79,7 @@ nonprob_dr <- function(selection,
   if (is.null(pop_totals) && !is.null(svydesign)) {
     # TODO if (bias_corr == FALSE)
     # model for selection formula
-    selection_model_data <- model_frame(
+    selection_model_data <- make_model_frame(
       formula = selection,
       data = data,
       svydesign = svydesign
@@ -184,7 +184,7 @@ nonprob_dr <- function(selection,
     }
 
     # model for selection formula
-    selection_model_data <- model_frame(formula = selection, data = data, pop_totals = pop_totals)
+    selection_model_data <- make_model_frame(formula = selection, data = data, pop_totals = pop_totals)
     n_nons <- nrow(selection_model_data$X_nons)
     n_rand <- 0
     R <- rep(1, n_nons)
@@ -254,7 +254,7 @@ nonprob_dr <- function(selection,
         combined_terms <- union(terms_out, terms_sel)
         combined_formula <- as.formula(paste(outcome[2], paste(combined_terms, collapse = " + "), sep = " ~ "))
 
-        outcome_model_data <- model_frame(
+        outcome_model_data <- make_model_frame(
           formula = combined_formula,
           data = data,
           svydesign = svydesign
@@ -367,7 +367,7 @@ nonprob_dr <- function(selection,
         )
       } else {
         # model for outcome formula
-        outcome_model_data <- model_frame(
+        outcome_model_data <- make_model_frame(
           formula = outcome,
           data = data,
           svydesign = svydesign
@@ -516,7 +516,7 @@ nonprob_dr <- function(selection,
     } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
       # model for outcome formula
       # TODO add pop_means ? to check
-      outcome_model_data <- model_frame(formula = outcome, data = data, pop_totals = pop_totals)
+      outcome_model_data <- make_model_frame(formula = outcome, data = data, pop_totals = pop_totals)
       X_nons <- outcome_model_data$X_nons
       X_rand <- outcome_model_data$X_rand
       nons_names <- outcome_model_data$nons_names

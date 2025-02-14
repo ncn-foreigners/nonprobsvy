@@ -38,18 +38,18 @@ gee <- function(...) {
     )
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
+  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights) {
     # common calculations
     mean_nons <- sum(weights * y_nons) / N
     Xb <- X %*% t(as.matrix(b))
 
     # choose formula based on h
     if (h == 1) {
-      t <- Xb + y_rand - mean_nons
+      t_comp <- Xb + y_rand - mean_nons
     } else if (h == 2) {
-      t <- as.vector(ps) * Xb + y_rand - mean_nons
+      t_comp <- as.vector(ps) * Xb + y_rand - mean_nons
     }
-    t
+    t_comp
   }
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights, pop_totals) {
@@ -185,7 +185,7 @@ gee <- function(...) {
   structure(
     list(
       estimation_model = estimation_model,
-      make_t = make_t,
+      make_t_comp = make_t_comp,
       make_var_nonprob = make_var_nonprob,
       model_selection = model_selection
     ),

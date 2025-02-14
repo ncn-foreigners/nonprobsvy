@@ -30,7 +30,9 @@ internal_selection <- function(X,
                                bias_correction = FALSE,
                                varcov = FALSE,
                                ...) {
+
   if (bias_correction == TRUE) est_method <- "mm"
+
   estimation_method <- get_method(est_method)
   estimation_method$model_selection(
     X = X,

@@ -45,6 +45,7 @@ nonprob_ipw <- function(selection,
   nfolds <- control_selection$nfolds
   eps <- control_selection$epsilon
   rep_type <- control_inference$rep_type
+
   if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
   # formula for outcome variable if target defined
   dependents <- paste(selection, collapse = " ")
@@ -64,7 +65,7 @@ nonprob_ipw <- function(selection,
   # outcome <- stats::as.formula(paste(outcome[2], dependents))
 
   if (is.null(pop_totals) && !is.null(svydesign)) {
-    model <- model_frame(
+    model <- make_model_frame(
       formula = outcomes$outcome[[1]],
       data = data,
       svydesign = svydesign
@@ -205,7 +206,7 @@ nonprob_ipw <- function(selection,
     # names(pop_totals) <- names_pop
 
     # model for outcome formula
-    model <- model_frame(
+    model <- make_model_frame(
       formula = outcomes$outcome[[1]],
       data = data,
       pop_totals = pop_totals
@@ -367,22 +368,18 @@ nonprob_ipw <- function(selection,
   mu_hats <- numeric(length = outcomes$l)
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals)) {
-      y_nons <- model_frame(
+      y_nons <- make_model_frame(
         formula = outcomes$outcome[[k]],
         data = data,
         svydesign = svydesign,
-        pop_size = pop_size,
-        weights = weights,
-        flag = FALSE
+        weights = weights
       )$y_nons
     } else {
-      y_nons <- model_frame(
+      y_nons <- make_model_frame(
         formula = outcomes$outcome[[k]],
         data = data,
         pop_totals = pop_totals,
-        pop_size = pop_size,
-        weights = weights,
-        flag = FALSE
+        weights = weights
       )$y_nons
     }
     ys[[k]] <- as.numeric(y_nons)

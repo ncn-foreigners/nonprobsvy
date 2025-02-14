@@ -45,9 +45,9 @@ mle <- function(...) {
     )
   }
 
-  make_t <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
+  make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, h, N, method_selection, weights, weights_sum) {
     method <- get_method(method_selection)
-    t <- method$t_vec(
+    t_comp <- method$t_vec(
       X = X,
       ps = ps,
       psd = psd,
@@ -57,7 +57,7 @@ mle <- function(...) {
       N = N,
       weights = weights
     )
-    t
+    t_comp
   }
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, h, method_selection, weights = weights, weights_sum, pop_totals = NULL) {
@@ -170,7 +170,7 @@ mle <- function(...) {
   structure(
     list(
       estimation_model = estimation_model,
-      make_t = make_t,
+      make_t_comp = make_t_comp,
       make_var_nonprob = make_var_nonprob,
       model_selection = model_selection
     ),
