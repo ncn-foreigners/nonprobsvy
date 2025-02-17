@@ -90,6 +90,7 @@ gee <- function(...) {
     inv_link <- method$make_link_inv
 
     if (is.null(start)) {
+
       if (control_selection$start_type == "glm") {
         start_to_gee <- start_fit(
           X = X, # <--- does not work with pop_totals
@@ -98,7 +99,9 @@ gee <- function(...) {
           weights_rand = weights_rand,
           method_selection = method_selection
         )
-        start <- method$make_max_lik(
+
+        start <- ipw_maxlik(
+          method,
           X_nons = X_nons,
           X_rand = X_rand,
           weights = weights,
@@ -106,6 +109,8 @@ gee <- function(...) {
           start = start_to_gee,
           control = control_selection
         )$theta_hat
+
+
         ####
       } else if (control_selection$start_type == "naive") {
         start_h <- suppressWarnings(theta_h_estimation(

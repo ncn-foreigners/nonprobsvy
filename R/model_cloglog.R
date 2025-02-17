@@ -89,93 +89,6 @@ cloglog_model_nonprobsvy <- function(...) {
     }
   }
 
-  # TODO error when svydesign is provided with no weights argument (works with method == "BFGS", NaN in Std. errors)
-  ## this should be moved to MLE() function - that estimate parameters
-  max_lik <- function(X_nons, X_rand, weights, weights_rand, start, control, ...) {
-    log_like <- log_like(
-      X_nons,
-      X_rand,
-      weights,
-      weights_rand
-    )
-
-    gradient <- gradient(
-      X_nons,
-      X_rand,
-      weights,
-      weights_rand
-    )
-
-    hessian <- hessian(
-      X_nons,
-      X_rand,
-      weights,
-      weights_rand
-    )
-
-    if (control$optimizer == "maxLik") {
-      ########### maxLik ##########
-      maxLik_an <- maxLik::maxLik(
-        logLik = log_like,
-        grad = gradient,
-        hess = hessian,
-        method = "BFGS",
-        start = start,
-        printLevel = control$print_level
-      )
-
-      if (maxLik_an$code %in% c(3:7, 100)) {
-        switch(as.character(maxLik_an$code),
-          "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
-          "4" = warning("Maxiteration limit reached in fitting selection model by the `maxLik` package."),
-          "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
-          "6" = stop("Infinite value of gradient in fitting selection model by the `maxLik` package, error code 6."),
-          "7" = stop("Infinite value of hessian in fitting selection model by the `maxLik` package, error code 7."),
-          "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
-        )
-      }
-
-      theta <- maxLik_an$estimate
-      grad <- maxLik_an$gradient
-      hess <- maxLik_an$hessian
-      log_likelihood <- log_like(theta)
-    } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
-      ########### optim ##########
-      maxLik_an <- stats::optim(
-        fn = log_like,
-        gr = gradient,
-        method = control$optim_method,
-        par = start,
-        control = list(
-          fnscale = -1,
-          trace = control$trace,
-          maxit = control$maxit
-        )
-      )
-      if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
-        switch(as.character(maxLik_an$convergence),
-          "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
-          "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
-          "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
-          "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
-        )
-      }
-      theta <- maxLik_an$par
-      log_likelihood <- log_like(theta)
-      grad <- gradient(theta)
-      hess <- hessian(theta)
-    } else {
-      stop("Provide valid optimizer (`optim` or `maxLik`).")
-    }
-
-    list(
-      log_l = log_likelihood,
-      grad = grad,
-      hess = hess,
-      theta_hat = theta
-    )
-  }
-
   variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
     # ensure matrix format and get dimensions
     X <- as.matrix(X)
@@ -347,7 +260,6 @@ cloglog_model_nonprobsvy <- function(...) {
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
-      make_max_lik = max_lik,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,

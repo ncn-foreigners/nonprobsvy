@@ -1,4 +1,92 @@
 # Object with output parameters for Maximum likelihood Estimation for propensity scores
+## this should be moved to MLE() function - that estimate parameters
+
+ipw_maxlik <- function(method, X_nons, X_rand, weights, weights_rand, start, control, ...) {
+  log_like <- method$make_log_like(
+    X_nons,
+    X_rand,
+    weights,
+    weights_rand
+  )
+
+  gradient <- method$make_gradient(
+    X_nons,
+    X_rand,
+    weights,
+    weights_rand
+  )
+
+  hessian <- method$make_hessian(
+    X_nons,
+    X_rand,
+    weights,
+    weights_rand
+  )
+
+  if (control$optimizer == "maxLik") {
+    ########### maxLik ##########
+    maxLik_an <- maxLik::maxLik(
+      logLik = log_like,
+      grad = gradient,
+      hess = hessian,
+      method = "BFGS",
+      start = start,
+      printLevel = control$print_level
+    )
+
+    if (maxLik_an$code %in% c(3:7, 100)) {
+      switch(as.character(maxLik_an$code),
+             "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
+             "4" = warning("Maxiteration limit reached in fitting selection model by the `maxLik` package."),
+             "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
+             "6" = stop("Infinite value of gradient in fitting selection model by the `maxLik` package, error code 6."),
+             "7" = stop("Infinite value of hessian in fitting selection model by the `maxLik` package, error code 7."),
+             "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
+      )
+    }
+
+    theta <- maxLik_an$estimate
+    grad <- maxLik_an$gradient
+    hess <- maxLik_an$hessian
+    log_likelihood <- log_like(theta)
+  } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
+    ########### optim ##########
+    maxLik_an <- stats::optim(
+      fn = log_like,
+      gr = gradient,
+      method = control$optim_method,
+      par = start,
+      control = list(
+        fnscale = -1,
+        trace = control$trace,
+        maxit = control$maxit
+      )
+    )
+    if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
+      switch(as.character(maxLik_an$convergence),
+             "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
+             "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
+             "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
+             "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
+      )
+    }
+    theta <- maxLik_an$par
+    log_likelihood <- log_like(theta)
+    grad <- gradient(theta)
+    hess <- hessian(theta)
+  } else {
+    stop("Provide valid optimizer (`optim` or `maxLik`).")
+  }
+
+  list(
+    log_l = log_likelihood,
+    grad = grad,
+    hess = hess,
+    theta_hat = theta
+  )
+}
+
+
 mle <- function(...) {
   estimation_model <- function(model, method_selection, ...) {
     method <- model$method
@@ -93,12 +181,11 @@ mle <- function(...) {
                               verbose = FALSE,
                               varcov = FALSE,
                               ...) {
+
     method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
+
     method <- get_method(method = method_selection_function)
-    max_lik <- method$make_max_lik # function for propensity score estimation
-    loglike <- method$make_log_like
-    gradient <- method$make_gradient
-    hessian <- method$make_hessian
+
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der
 
@@ -113,7 +200,9 @@ mle <- function(...) {
           method_selection = method_selection
         )
       } else if (control_selection$start_type == "naive") {
-        intercept_start <- suppressWarnings(max_lik(
+
+        intercept_start <- suppressWarnings(ipw_maxlik(
+          method,
           X_nons = X_nons[, 1, drop = FALSE],
           X_rand = X_rand[, 1, drop = FALSE],
           weights = weights,
@@ -129,7 +218,8 @@ mle <- function(...) {
 
     df_reduced <- nrow(X) - length(start)
 
-    maxLik_nons_obj <- max_lik(
+    maxLik_nons_obj <- ipw_maxlik(
+      method,
       X_nons = X_nons,
       X_rand = X_rand,
       weights = weights,
@@ -137,6 +227,7 @@ mle <- function(...) {
       start = start,
       control = control_selection
     )
+
     theta <- maxLik_nons_obj$theta_hat
     eta_nons <- theta %*% t(X_nons)
     eta_rand <- theta %*% t(X_rand)

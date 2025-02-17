@@ -142,6 +142,8 @@ nonprob <- function(data,
     estimator <- "mi"
   }
 
+  ## processing data for all methods
+
 
   ## model estimates
   model_estimates <- switch(estimator,

@@ -49,6 +49,7 @@ nonprob_ipw <- function(selection,
 
   if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
   # formula for outcome variable if target defined
+
   dependents <- paste(selection, collapse = " ")
   outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
   outcomes <- make_outcomes(outcome)
