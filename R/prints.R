@@ -1,5 +1,8 @@
 # no print doccumentation
 
+
+# general printing --------------------------------------------------------
+
 #' @method print nonprob
 #' @exportS3Method
 print.nonprob <- function(x, digits = 8, ...) {
@@ -131,6 +134,21 @@ print.summary_nonprob <- function(x,
 
 
   # cat("\nRegression diagnostics:") #TODO
+
+  invisible(x)
+}
+
+
+
+# print for specific classes ------------------------------------------------
+
+#' @method print nonprob_model
+#' @exportS3Method
+print.nonprob_model <- function(x, ...) {
+
+  if (x$model == "ps") {
+    print(sprintf("Propensity score model with %s link", x$link))
+  }
 
   invisible(x)
 }

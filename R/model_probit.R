@@ -10,7 +10,6 @@
 #'
 #' [nonprob()] -- for fitting procedure with non-probability samples.
 #'
-#' @importFrom maxLik maxLik
 #' @importFrom stats pnorm
 #' @importFrom stats dnorm
 #' @importFrom Matrix Matrix
