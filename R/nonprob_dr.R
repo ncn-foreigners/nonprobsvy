@@ -135,8 +135,11 @@ nonprob_dr <- function(selection,
       X_stand <- ncvreg::std(X) # penalizing without an intercept
       prior_weights <- c(weights_rand, weights)
 
-      method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-      method <- get_method(method_selection_function)
+      method <- switch(method_selection,
+                       "logit" = model_ps("logit"),
+                       "probit" = model_ps("probit"),
+                       "cloglog" = model_ps("cloglog"))
+
       inv_link <- method$make_link_inv
 
       # Cross-validation for variable selection
@@ -196,8 +199,11 @@ nonprob_dr <- function(selection,
       # pop_totals <- colMeans(X_nons) / apply(X_nons, 2, sd)
       X_stand <- ncvreg::std(X) # penalizing without an intercept
 
-      method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-      method <- get_method(method_selection_function)
+      method <- switch(method_selection,
+                       "logit" = model_ps("logit"),
+                       "probit" = model_ps("probit"),
+                       "cloglog" = model_ps("cloglog"))
+
       inv_link <- method$make_link_inv
 
       n <- nrow(X)
@@ -623,8 +629,12 @@ nonprob_dr <- function(selection,
       hess <- h_object$hess
       grad <- h_object$grad
       names(theta_hat) <- selection_model_data$total_names
-      method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-      method <- get_method(method_selection_function)
+
+      method <- switch(method_selection,
+                       "logit" = model_ps("logit"),
+                       "probit" = model_ps("probit"),
+                       "cloglog" = model_ps("cloglog"))
+
       inv_link <- method$make_link_inv
       dinv_link <- method$make_link_inv_der
       eta_nons <- theta_hat %*% t(selection_model_data$X_nons)

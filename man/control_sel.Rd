@@ -21,7 +21,7 @@ control_sel(
   nlambda = 50,
   nfolds = 10,
   print_level = 0,
-  start_type = c("glm", "naive", "zero"),
+  start_type = c("zero", "glm", "naive"),
   nleqslv_method = c("Broyden", "Newton"),
   nleqslv_global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
   nleqslv_xscalm = c("fixed", "auto"),
@@ -70,9 +70,9 @@ control_sel(
 \item{start_type}{\itemize{
 \item Type of method for start points for model fitting taking the following values
 \itemize{
+\item if \code{zero} then start is a vector of zeros (default).
 \item if \code{glm} then start taken from the glm function called on samples.
 \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
-\item if \code{zero} then start is a vector of zeros.
 }
 }}
 

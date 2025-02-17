@@ -21,15 +21,15 @@ A \code{list} of functions for a specific link function with the following field
 \item{make_link}{link}
 \item{make_link_inv}{inverse link}
 \item{make_link_der}{first derivative}
-\item{make_link_inv_der}{}
-\item{make_link_inv_rev}{}
-\item{make_link_inv_rev_der}{}
-\item{variance_covariance1}{}
-\item{variance_covariance2}{}
-\item{b_vec_ipw}{}
-\item{b_vec_dr}{}
-\item{t_vec}{}
-\item{var_nonprob}{}
+\item{make_link_inv_der}{TBA}
+\item{make_link_inv_rev}{TBA}
+\item{make_link_inv_rev_der}{TBA}
+\item{variance_covariance1}{TBA}
+\item{variance_covariance2}{TBA}
+\item{b_vec_ipw}{TBA}
+\item{b_vec_dr}{TBA}
+\item{t_vec}{TBA}
+\item{var_nonprob}{TBA}
 \item{link}{link function for the PS model}
 \item{model}{model type}
 }

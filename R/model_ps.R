@@ -44,6 +44,10 @@
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
 #' @importFrom MASS ginv
+#' @importFrom stats dnorm
+#' @importFrom stats plogis
+#' @importFrom stats pnorm
+#' @importFrom stats qlogis
 #' @export
 model_ps <- function(link = c("logit", "probit", "cloglog"),
                      ...) {

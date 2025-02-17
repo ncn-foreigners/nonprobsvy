@@ -44,6 +44,7 @@ boot_dr <- function(outcome,
   if (is.function(family)) {
     family <- family()
   }
+
   method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
   MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
 
@@ -200,8 +201,12 @@ boot_dr <- function(outcome,
             )
 
             theta_hat_strap <- h_object_strap$theta_h
-            method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-            method <- get_method(method_selection_function)
+
+            method <- switch(method_selection,
+                             "logit" = model_ps("logit"),
+                             "probit" = model_ps("probit"),
+                             "cloglog" = model_ps("cloglog"))
+
             inv_link <- method$make_link_inv
             ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_strap_nons))
             weights_nons_strap <- 1 / ps_nons_strap
@@ -346,8 +351,8 @@ boot_dr_multicore <- function(outcome,
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl = cl, varlist = c(
-      "internal_selection", "internal_outcome", "logit_model_nonprobsvy", "start_fit", "get_method", "control_sel", "theta_h_estimation",
-      "mle", "mu_hatDR", "probit_model_nonprobsvy", "cloglog_model_nonprobsvy", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
+      "internal_selection", "internal_outcome", "model_ps", "start_fit", "get_method", "control_sel", "theta_h_estimation",
+      "mle", "mu_hatDR", "model_ps", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
       "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy", "nonprob_mi_fit", "control_out"
     ))
     if (is.null(pop_totals)) {
@@ -461,8 +466,12 @@ boot_dr_multicore <- function(outcome,
           )
 
           theta_hat_strap <- h_object_strap$theta_h
-          method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-          method <- get_method(method_selection_function)
+
+          method <- switch(method_selection,
+                           "logit" = model_ps("logit"),
+                           "probit" = model_ps("probit"),
+                           "cloglog" = model_ps("cloglog"))
+
           inv_link <- method$make_link_inv
           ps_nons_strap <- inv_link(theta_hat_strap %*% t(X_nons_strap))
           weights_nons_strap <- 1 / ps_nons_strap

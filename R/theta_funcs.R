@@ -8,8 +8,12 @@ u_theta <- function(R,
                     N = NULL,
                     pop_totals = NULL,
                     pop_size = NULL) {
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
+
+  method <- switch(method_selection,
+                   "logit" = model_ps("logit"),
+                   "probit" = model_ps("probit"),
+                   "cloglog" = model_ps("cloglog"))
+
   inv_link <- method$make_link_inv
   function(par) {
     # loc_nons = which(R == 1)
@@ -46,8 +50,12 @@ u_theta_der <- function(R,
                         gee_h_fun,
                         N = NULL,
                         pop_totals = NULL) {
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
+
+  method <- switch(method_selection,
+                   "logit" = model_ps("logit"),
+                   "probit" = model_ps("probit"),
+                   "cloglog" = model_ps("cloglog"))
+
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der
   inv_link_rev <- method$make_link_inv_rev
@@ -169,8 +177,10 @@ u_theta_beta_dr <- function(par,
                             method_selection,
                             family_nonprobsvy) {
 
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
+  method <- switch(method_selection,
+                   "logit" = model_ps("logit"),
+                   "probit" = model_ps("probit"),
+                   "cloglog" = model_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   inv_link_rev <- method$make_link_inv_rev

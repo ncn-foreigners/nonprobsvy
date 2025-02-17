@@ -88,6 +88,7 @@ ipw_maxlik <- function(method, X_nons, X_rand, weights, weights_rand, start, con
 
 
 mle <- function(...) {
+
   estimation_model <- function(model, method_selection, ...) {
     method <- model$method
     dinv_link <- method$make_link_inv_der
@@ -104,7 +105,7 @@ mle <- function(...) {
     var_cov1 <- model$var_cov1
     var_cov2 <- model$var_cov2
     df_residual <- model$df_residual
-    variance_covariance <- solve(-hess) # MASS::ginv # variance-covariance matrix of estimated parameters
+    variance_covariance <- MASS::ginv(-hess) # MASS::ginv # variance-covariance matrix of estimated parameters
     eta <- c(model$eta_rand, model$eta_nons)
     aic <- 2 * (length(theta_hat) - log_likelihood)
     residuals <- model$residuals
@@ -134,7 +135,12 @@ mle <- function(...) {
   }
 
   make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights, weights_sum) {
-    method <- get_method(method_selection)
+
+    method <- switch(method_selection,
+                     "logit" = model_ps("logit"),
+                     "probit" = model_ps("probit"),
+                     "cloglog" = model_ps("cloglog"))
+
     t_comp <- method$t_vec(
       X = X,
       ps = ps,
@@ -150,7 +156,12 @@ mle <- function(...) {
 
   make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, gee_h_fun, method_selection,
                                weights = weights, weights_sum, pop_totals = NULL) {
-    method <- get_method(method_selection)
+
+    method <- switch(method_selection,
+                     "logit" = model_ps("logit"),
+                     "probit" = model_ps("probit"),
+                     "cloglog" = model_ps("cloglog"))
+
     var_nonprob <- method$var_nonprob(
       ps = ps,
       psd = psd,
@@ -182,9 +193,10 @@ mle <- function(...) {
                               varcov = FALSE,
                               ...) {
 
-    method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-
-    method <- get_method(method = method_selection_function)
+    method <- switch(method_selection,
+                     "logit" = model_ps("logit"),
+                     "probit" = model_ps("probit"),
+                     "cloglog" = model_ps("cloglog"))
 
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der

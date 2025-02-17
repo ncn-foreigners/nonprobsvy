@@ -57,8 +57,10 @@ internal_varIPW <- function(svydesign,
                             var_cov2) {
 
   eta <- as.vector(X_nons %*% as.matrix(theta))
-  method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-  method <- get_method(method_selection)
+  method <- switch(method_selection,
+                   "logit" = model_ps("logit"),
+                   "probit" = model_ps("probit"),
+                   "cloglog" = model_ps("cloglog"))
   b_obj <- method$b_vec_ipw(
     X = X_nons,
     ps = ps_nons,

@@ -37,8 +37,12 @@ internal_varDR <- function(outcome_model,
   } else {
     eta <- as.vector(selection_model$X_nons %*% as.matrix(theta))
     h_n <- 1 / N_nons * sum(outcome_model$y_nons - y_nons_pred) # TODO add weights # errors mean
-    method_selection <- paste(method_selection, "_model_nonprobsvy", sep = "")
-    method <- get_method(method_selection)
+
+    method <- switch(method_selection,
+                     "logit" = model_ps("logit"),
+                     "probit" = model_ps("probit"),
+                     "cloglog" = model_ps("cloglog"))
+
     est_method <- get_method(est_method)
 
     b <- method$b_vec_dr(

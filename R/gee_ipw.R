@@ -85,8 +85,12 @@ gee <- function(...) {
                               verbose,
                               varcov = FALSE,
                               ...) {
-    method_selection_function <- paste(method_selection, "_model_nonprobsvy", sep = "")
-    method <- get_method(method = method_selection_function)
+
+    method <- switch(method_selection,
+                     "logit" = model_ps("logit"),
+                     "probit" = model_ps("probit"),
+                     "cloglog" = model_ps("cloglog"))
+
     inv_link <- method$make_link_inv
 
     if (is.null(start)) {

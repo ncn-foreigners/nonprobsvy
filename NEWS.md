@@ -24,6 +24,9 @@ nonprobsvy News and Updates
         to the user
 -   `nonprobsvy` class renamed to `nonprob` and all related method
     adjusted to this change
+-   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
+    `cloglog_model_nonprobsvy` removed in the favour of more readable
+    `model_ps` function that specifies the propensity score model
 
 ### Features
 

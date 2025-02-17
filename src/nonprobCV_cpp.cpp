@@ -18,10 +18,8 @@ inline double loss_theta(const vec& par,
                          Nullable<arma::vec> pop_totals) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-
-  Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  std::string method_selection_function = method_selection + "_model_nonprobsvy";
-  List method = get_method(method_selection_function);
+  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
+  List method = model_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
 
@@ -77,10 +75,8 @@ inline arma::vec u_theta(const arma::vec& par,
                          Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-
-  Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  std::string method_selection_function = method_selection + "_model_nonprobsvy";
-  List method = get_method(method_selection_function);
+  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
+  List method = model_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
 
@@ -120,10 +116,8 @@ arma::mat u_theta_der(const arma::vec& par,
                       Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-
-  Rcpp::Function get_method = nonprobsvy_env["get_method"];
-  std::string method_selection_function = method_selection + "_model_nonprobsvy";
-  List method = get_method(method_selection_function);
+  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
+  List method = model_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
   Function inv_link_der = method["make_link_inv_der"];
@@ -319,9 +313,9 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
   Rcpp::Function setup_lambda_cpp = nonprobsvy_env["setup_lambda"];
 
-  Rcpp::Function logit = nonprobsvy_env["logit_model_nonprobsvy"];
-  Rcpp::Function cloglog = nonprobsvy_env["cloglog_model_nonprobsvy"];
-  Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
+  //Rcpp::Function logit = nonprobsvy_env["logit_model_nonprobsvy"];
+  //Rcpp::Function cloglog = nonprobsvy_env["cloglog_model_nonprobsvy"];
+  //Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
 
   arma::vec weights;
   arma::vec loss_theta_av(nlambda);

@@ -494,8 +494,8 @@ summary(result_dr)
 #> -----------------------
 #> For glm regression on selection variable:
 #>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
-#> x2           1.885629   0.005303   355.6  <2e-16 ***
+#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
+#> x2           1.885627   0.005303   355.6  <2e-16 ***
 #> -------------------------
 #> 
 #> Weights:
@@ -598,8 +598,8 @@ summary(result_ipw)
 #> -----------------------
 #> For glm regression on selection variable:
 #>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
-#> x2           1.885629   0.005303   355.6  <2e-16 ***
+#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
+#> x2           1.885627   0.005303   355.6  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> -------------------------
