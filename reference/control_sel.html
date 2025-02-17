@@ -58,7 +58,7 @@ for selection model.</p>
 <span>  nlambda <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  nfolds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  print_level <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  start_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"naive"</span>, <span class="st">"zero"</span><span class="op">)</span>,</span>
+<span>  start_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zero"</span>, <span class="st">"glm"</span>, <span class="st">"naive"</span><span class="op">)</span>,</span>
 <span>  nleqslv_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Broyden"</span>, <span class="st">"Newton"</span><span class="op">)</span>,</span>
 <span>  nleqslv_global <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dbldog"</span>, <span class="st">"pwldog"</span>, <span class="st">"cline"</span>, <span class="st">"qline"</span>, <span class="st">"gline"</span>, <span class="st">"hook"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  nleqslv_xscalm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="st">"auto"</span><span class="op">)</span>,</span>
@@ -72,26 +72,26 @@ for selection model.</p>
 
 
 <dl><dt id="arg-est-method">est_method<a class="anchor" aria-label="anchor" href="#arg-est-method"></a></dt>
-<dd><p>Method of estimation for propensity score model.</p></dd>
+<dd><p>Method of estimation for propensity score model (<code>"mle"</code> or <code>"gee"</code>; default is <code>"mle"</code>).</p></dd>
 
 
 <dt id="arg-gee-h-fun">gee_h_fun<a class="anchor" aria-label="anchor" href="#arg-gee-h-fun"></a></dt>
 <dd><p>Smooth function for the generalized estimating equations (GEE) method taking the following values</p><ul><li><p>if <code>1</code> then h(x, ) =
-  (x, )x</p></li>
+  (x, )x,</p></li>
 <li><p>if <code>2</code> then  h(x, ) = x</p></li>
 </ul></dd>
 
 
 <dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
-<dd><p>optimization function for maximum likelihood estimation.</p></dd>
+<dd><p>(for the <code>est_method="mle"</code> only) optimization function for maximum likelihood estimation.</p></dd>
 
 
 <dt id="arg-maxlik-method">maxlik_method<a class="anchor" aria-label="anchor" href="#arg-maxlik-method"></a></dt>
-<dd><p>maximisation method that will be passed to <code><a href="https://rdrr.io/pkg/maxLik/man/maxLik.html" class="external-link">maxLik::maxLik()</a></code> function. Default is <code>NR</code>.</p></dd>
+<dd><p>(for the <code>est_method="mle"</code> only) maximisation method that will be passed to <code><a href="https://rdrr.io/pkg/maxLik/man/maxLik.html" class="external-link">maxLik::maxLik()</a></code> function. Default is <code>NR</code>.</p></dd>
 
 
 <dt id="arg-optim-method">optim_method<a class="anchor" aria-label="anchor" href="#arg-optim-method"></a></dt>
-<dd><p>maximisation method that will be passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> function. Default is <code>BFGS</code>.</p></dd>
+<dd><p>(for the <code>est_method="mle"</code> only) maximisation method that will be passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> function. Default is <code>BFGS</code>.</p></dd>
 
 
 <dt id="arg-epsilon">epsilon<a class="anchor" aria-label="anchor" href="#arg-epsilon"></a></dt>
@@ -139,23 +139,23 @@ for selection model.</p>
 
 
 <dt id="arg-start-type">start_type<a class="anchor" aria-label="anchor" href="#arg-start-type"></a></dt>
-<dd><ul><li><p>Type of method for start points for model fitting taking the following values</p><ul><li><p>if <code>glm</code> then start taken from the glm function called on samples.</p></li>
+<dd><ul><li><p>Type of method for start points for model fitting taking the following values</p><ul><li><p>if <code>zero</code> then start is a vector of zeros (default).</p></li>
+<li><p>if <code>glm</code> then start taken from the glm function called on samples.</p></li>
 <li><p>if <code>naive</code> then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.</p></li>
-<li><p>if <code>zero</code> then start is a vector of zeros.</p></li>
 </ul></li>
 </ul></dd>
 
 
 <dt id="arg-nleqslv-method">nleqslv_method<a class="anchor" aria-label="anchor" href="#arg-nleqslv-method"></a></dt>
-<dd><p>The method that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
+<dd><p>(for the <code>est_method="gee"</code> only) The method that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
 
 
 <dt id="arg-nleqslv-global">nleqslv_global<a class="anchor" aria-label="anchor" href="#arg-nleqslv-global"></a></dt>
-<dd><p>The global strategy that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
+<dd><p>(for the <code>est_method="gee"</code> only) The global strategy that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
 
 
 <dt id="arg-nleqslv-xscalm">nleqslv_xscalm<a class="anchor" aria-label="anchor" href="#arg-nleqslv-xscalm"></a></dt>
-<dd><p>The type of x scaling that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
+<dd><p>(for the <code>est_method="gee"</code> only) The type of x scaling that will be passed to <code><a href="https://rdrr.io/pkg/nleqslv/man/nleqslv.html" class="external-link">nleqslv::nleqslv()</a></code> function.</p></dd>
 
 
 <dt id="arg-dependence">dependence<a class="anchor" aria-label="anchor" href="#arg-dependence"></a></dt>
