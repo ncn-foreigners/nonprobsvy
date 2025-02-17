@@ -478,7 +478,6 @@ nonprob_mi <- function(outcome,
       data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
-      R = R,
       prob = NULL,
       weights = NULL,
       control = list(
@@ -497,6 +496,6 @@ nonprob_mi <- function(outcome,
       boot_sample = boot_sample,
       svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
-    class = c("nonprobsvy", "nonprobsvy_mi")
+    class = "nonprob"
   )
 }

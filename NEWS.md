@@ -22,6 +22,7 @@ nonprobsvy News and Updates
     -   argument `est_method_sel` renamed to `est_method`
     -   argument `h` renamed to `gee_h_fun` to make this more readable
         to the user
+-   `nonprobsvy` class renamed to `nonprob` and all related method adjusted to this change
 
 ### Features
 

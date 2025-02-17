@@ -90,6 +90,7 @@ cloglog_model_nonprobsvy <- function(...) {
   }
 
   # TODO error when svydesign is provided with no weights argument (works with method == "BFGS", NaN in Std. errors)
+  ## this should be moved to MLE() function - that estimate parameters
   max_lik <- function(X_nons, X_rand, weights, weights_rand, start, control, ...) {
     log_like <- log_like(
       X_nons,

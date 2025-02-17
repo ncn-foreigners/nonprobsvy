@@ -132,19 +132,19 @@ nonprob <- function(data,
           paste(common_vars, collapse = ", ")
         ))
       }
-      model_used <- "ipw"
+      estimator <- "ipw"
     } else {
       # Case: DR method
-      model_used <- "dr"
+      estimator <- "dr"
     }
   } else if (inherits(outcome, "formula")) {
     # Case: MI method
-    model_used <- "mi"
+    estimator <- "mi"
   }
 
 
   ## model estimates
-  model_estimates <- switch(model_used,
+  model_estimates <- switch(estimator,
     ipw = nonprob_ipw(
       selection = selection,
       target = target,
@@ -219,7 +219,9 @@ nonprob <- function(data,
   names <- names(model_estimates)
   res <- append(model_estimates, call, after = 0)
   names(res) <- c("call", names)
-  ## add information about the approach (this is only used in s3methods)
-  res$estimator <- model_used
-  structure(res, class = class(model_estimates))
+
+  res$estimator <- estimator
+
+  return(structure(res,
+                   class = class(model_estimates)))
 }

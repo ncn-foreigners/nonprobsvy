@@ -30,20 +30,20 @@ control_sel(
 )
 }
 \arguments{
-\item{est_method}{Method of estimation for propensity score model.}
+\item{est_method}{Method of estimation for propensity score model (\code{"mle"} or \code{"gee"}; default is \code{"mle"}).}
 
 \item{gee_h_fun}{Smooth function for the generalized estimating equations (GEE) method taking the following values
 \itemize{
-\item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
-  \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
-\item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
+\item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+\item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 }}
 
-\item{optimizer}{optimization function for maximum likelihood estimation.}
+\item{optimizer}{(for the \code{est_method="mle"} only) optimization function for maximum likelihood estimation.}
 
-\item{maxlik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
+\item{maxlik_method}{(for the \code{est_method="mle"} only) maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
 
-\item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
+\item{optim_method}{(for the \code{est_method="mle"} only) maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
 \item{epsilon}{Tolerance for fitting algorithms by default \code{1e-6}.}
 
@@ -76,11 +76,11 @@ control_sel(
 }
 }}
 
-\item{nleqslv_method}{The method that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_method}{(for the \code{est_method="gee"} only) The method that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
-\item{nleqslv_global}{The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_global}{(for the \code{est_method="gee"} only) The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
-\item{nleqslv_xscalm}{The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_xscalm}{(for the \code{est_method="gee"} only) The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
 \item{dependence}{logical value (default \code{TRUE}) informing whether samples overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).}
 

@@ -600,6 +600,6 @@ nonprob_ipw <- function(selection,
       boot_sample = boot_sample,
       svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
     ),
-    class = c("nonprobsvy", "nonprobsvy_ipw")
+    class = "nonprob"
   )
 }

@@ -265,7 +265,7 @@ expect_silent(
 
 expect_error(
   anova(ipw_result),
-  "The `anova` method is not implemented for the `nonprobsvy` class"
+  "The `anova` method is not implemented for the `nonprob` class"
 )
 
 expect_error(

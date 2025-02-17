@@ -1,8 +1,8 @@
 # no print doccumentation
 
-#' @method print nonprobsvy
+#' @method print nonprob
 #' @exportS3Method
-print.nonprobsvy <- function(x, digits = 8, ...) {
+print.nonprob <- function(x, digits = 8, ...) {
   if (!is.null(x$call)) {
     cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
       "\n\n",
@@ -15,10 +15,10 @@ print.nonprobsvy <- function(x, digits = 8, ...) {
   print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)
 }
-#' @method print summary_nonprobsvy
+#' @method print summary_nonprob
 #' @importFrom stats printCoefmat
 #' @exportS3Method
-print.summary_nonprobsvy <- function(x,
+print.summary_nonprob <- function(x,
                                      signif.stars = getOption("show.signif.stars"),
                                      digits = max(3L, getOption("digits") - 3L),
                                      ...) { # TODO regression diagnostics divided into outcome and selection models

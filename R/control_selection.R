@@ -1,18 +1,20 @@
+#' @import mathjaxr
+#'
 #' @title Control parameters for the selection model
 #'
 #' @description \code{control_sel} constructs a list with all necessary control parameters
 #' for selection model.
 #'
-#' @param est_method Method of estimation for propensity score model.
+#' @param est_method Method of estimation for propensity score model (`"mle"` or `"gee"`; default is `"mle"`).
 #' @param gee_h_fun Smooth function for the generalized estimating equations (GEE) method taking the following values
 #' \itemize{
-#'   \item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
-#'   \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
-#'   \item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
+#'   \item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+#'   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+#'   \item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 #'   }
-#' @param optimizer  optimization function for maximum likelihood estimation.
-#' @param optim_method maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
-#' @param maxlik_method maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
+#' @param optimizer  (for the `est_method="mle"` only) optimization function for maximum likelihood estimation.
+#' @param optim_method (for the `est_method="mle"` only) maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
+#' @param maxlik_method (for the `est_method="mle"` only) maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
 #' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
@@ -30,9 +32,9 @@
 #' \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
 #' \item if \code{zero} then start is a vector of zeros.
 #' }
-#' @param nleqslv_method The method that will be passed to [nleqslv::nleqslv()] function.
-#' @param nleqslv_global The global strategy that will be passed to [nleqslv::nleqslv()] function.
-#' @param nleqslv_xscalm The type of x scaling that will be passed to [nleqslv::nleqslv()] function.
+#' @param nleqslv_method (for the `est_method="gee"` only) The method that will be passed to [nleqslv::nleqslv()] function.
+#' @param nleqslv_global (for the `est_method="gee"` only) The global strategy that will be passed to [nleqslv::nleqslv()] function.
+#' @param nleqslv_xscalm (for the `est_method="gee"` only) The type of x scaling that will be passed to [nleqslv::nleqslv()] function.
 #' @param dependence logical value (default `TRUE`) informing whether samples overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).
 #' @param key binary key variable allowing to identify the overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).
 #'
@@ -46,13 +48,13 @@
 
 control_sel <- function(est_method = c("mle", "gee"),
                         gee_h_fun = 1,
-                        optimizer = c("maxLik", "optim"), ## for mle
-                        maxlik_method = "NR", ## for mle
-                        optim_method = "BFGS", ## for mle
-                        epsilon = 1e-4, ## for both
-                        maxit = 500, ## for both
-                        trace = FALSE, ## for both
-                        penalty = c("SCAD", "lasso", "MCP"), ## for variable sel
+                        optimizer = c("maxLik", "optim"),
+                        maxlik_method = "NR",
+                        optim_method = "BFGS",
+                        epsilon = 1e-4,
+                        maxit = 500,
+                        trace = FALSE,
+                        penalty = c("SCAD", "lasso", "MCP"),
                         a_SCAD = 3.7,
                         a_MCP = 3,
                         lambda = -1,
@@ -60,7 +62,7 @@ control_sel <- function(est_method = c("mle", "gee"),
                         nlambda = 50,
                         nfolds = 10,
                         print_level = 0,
-                        start_type = c("glm", "naive", "zero"), ## for gee ?
+                        start_type = c("glm", "naive", "zero"),
                         nleqslv_method = c("Broyden", "Newton"),
                         nleqslv_global = c("dbldog", "pwldog", "cline",
                                            "qline", "gline", "hook", "none"),

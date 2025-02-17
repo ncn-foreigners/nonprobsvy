@@ -1,6 +1,6 @@
-#' @title Summary statistics for model of nonprobsvy class.
+#' @title Summary statistics for model of the `nonprob` class.
 #'
-#' @param object object of nonprobsvy class
+#' @param object object of the `nonprob` class
 #' @param test Type of test for significance of parameters \code{"t"} for t-test
 #' and \code{"z"} for normal approximation of students t distribution, by
 #' default \code{"z"} is used if there are more than 30 degrees of freedom
@@ -10,7 +10,7 @@
 #' @param cov Covariance matrix corresponding to regression parameters
 #' @param ... Additional optional arguments
 #'
-#' @return An object of \code{summary_nonprobsvy} class containing:
+#' @return An object of \code{summary_nonprob} class containing:
 #' \itemize{
 #' \item \code{call} -- A call which created \code{object}.
 #' \item \code{pop_total} -- A list containing information about the estimated population mean, its standard error and confidence interval.
@@ -35,23 +35,125 @@
 #' }
 #'
 #'
-#' @method summary nonprobsvy
+#' @method summary nonprob
 #' @importFrom stats pt
 #' @importFrom stats coef
 #' @importFrom stats sd
 #' @exportS3Method
-summary.nonprobsvy <- function(object,
+summary.nonprob <- function(object,
                                test = c("t", "z"),
                                correlation = FALSE,
                                # regression_confint = FALSE, confint Logical value indicating whether confidence intervals for
                                #                             regression parameters should be constructed TODO
                                cov = NULL, # in case of adding sandwich methods
                                ...) {
-  model_specific_info <- specific_summary_info(
-    object,
-    correlation = correlation,
-    ...
-  )
+
+  ## info on estimators
+  summary_ipw <- function(object,
+                                                ...) {
+    coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
+                         ncol = 2,
+                         dimnames = list(
+                           names(object$selection$coefficients),
+                           c("Estimate", "Std. Error")
+                         )
+    )
+    res <- list(
+      coeffs_sel = coeffs_sel,
+      weights = object$weights,
+      df_residual = object$selection$df_residual
+    )
+
+    attr(res$coeffs_sel, "glm") <- TRUE
+    attr(res$weights, "glm") <- FALSE
+    attr(res$df_residual, "glm") <- FALSE # TODO
+    attr(res, "model") <- c("glm regression on selection variable")
+    res
+  }
+
+  summary_mi <- function(object,
+                                               ...) {
+    if (object$outcome[[1]]$method == "glm") { # TODO for pmm
+      coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
+                           ncol = 2,
+                           dimnames = list(
+                             names(object$outcome[[1]]$coefficients),
+                             c("Estimate", "Std. Error")
+                           )
+      )
+    } else {
+      coeffs_out <- "no coefficients"
+    }
+
+    res <- list(
+      coeffs_out = coeffs_out
+    )
+    if (object$outcome[[1]]$method == "glm") {
+      attr(res$coeffs_out, "glm") <- TRUE
+      attr(res, "model") <- "glm regression on outcome variable"
+    } else if (object$outcome[[1]]$method == "nn") {
+      attr(res$coeffs_out, "glm") <- FALSE
+    } else if (object$outcome[[1]]$method == "pmm") { # TODO
+      attr(res$coeffs_out, "glm") <- FALSE
+      # attr(res, "model") <- "glm regression on outcome variable"
+    }
+    res
+  }
+
+  summary_dr <- function(object,
+                                               ...) {
+    coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
+                         ncol = 2,
+                         dimnames = list(
+                           names(object$selection$coefficients),
+                           c("Estimate", "Std. Error")
+                         )
+    )
+
+
+    if (object$outcome[[1]]$method == "glm") {
+      coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
+                           ncol = 2,
+                           dimnames = list(
+                             names(object$outcome[[1]]$coefficients),
+                             c("Estimate", "Std. Error")
+                           )
+      )
+    } else {
+      coeffs_out <- "no coefficients"
+    }
+
+    res <- list(
+      coeffs_sel = coeffs_sel,
+      coeffs_out = coeffs_out,
+      weights = object$weights,
+      df_residual = object$selection$df_residual
+    )
+    attr(res$coeffs_sel, "glm") <- TRUE
+    if (object$outcome[[1]]$method == "glm") {
+      attr(res$coeffs_out, "glm") <- TRUE
+      attr(res, "model") <- c(
+        "glm regression on selection variable",
+        "glm regression on outcome variable"
+      )
+    } else if (object$outcome[[1]]$method == "nn") {
+      attr(res$coeffs_out, "glm") <- FALSE
+      attr(res, "model") <- c("glm regression on selection variable")
+    }
+    attr(res$weights, "glm") <- FALSE
+    attr(res$df_residual, "glm") <- FALSE
+
+    res
+  }
+
+
+  ## depending on the estimator
+  model_specific_info <- switch(object$estimator,
+                                "mi"= summary_mi(object, correlation = correlation,...),
+                                "ipw"=summary_ipw(object, correlation = correlation,...),
+                                "dr"= summary_dr(object, correlation = correlation,...))
+
+
   df_residual <- model_specific_info$df_residual
   if (!is.null(df_residual)) {
     if (missing(test)) {
@@ -115,16 +217,16 @@ summary.nonprobsvy <- function(object,
       totals = object$pop_totals,
       test = test,
       control = object$control,
-      model = switch(class(object)[2],
-        "nonprobsvy_dr"  = "Doubly-Robust",
-        "nonprobsvy_ipw" = "Inverse probability weighted",
-        "nonprobsvy_mi"  = "Mass Imputation"
+      model = switch(object$estimator,
+        "dr"  = "Doubly-Robust",
+        "ipw" = "Inverse probability weighted",
+        "mi"  = "Mass Imputation"
       ),
-      aic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), AIC(object), "no value for the selected method"),
-      bic = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), BIC(object), "no value for the selected method"),
-      residuals = residuals.nonprobsvy(object, type = "response"),
-      likelihood = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$log_likelihood, "no value for the selected method"),
-      df_residual = ifelse(class(object)[2] %in% c("nonprobsvy_dr", "nonprobsvy_ipw"), object$selection$df_residual, "no value for the selected method"),
+      aic = ifelse(object$estimator %in% c("dr", "ipw"), AIC(object), "no value for the selected method"),
+      bic = ifelse(object$estimator %in% c("dr", "ipw"), BIC(object), "no value for the selected method"),
+      residuals = residuals.nonprob(object, type = "response"),
+      likelihood = ifelse(object$estimator %in% c("dr", "ipw"), object$selection$log_likelihood, "no value for the selected method"),
+      df_residual = ifelse(object$estimator %in% c("dr", "ipw"), object$selection$df_residual, "no value for the selected method"),
       weights = summary(object$weights),
       coef = cf,
       std_err = se,
@@ -134,113 +236,12 @@ summary.nonprobsvy <- function(object,
       confidence_interval_coef = confidence_interval_coef,
       names = attr(model_specific_info, "model")
     ),
-    class = c("summary_nonprobsvy")
+    class = c("summary_nonprob")
   )
   res
 }
 
 
-#' @keywords internal
-specific_summary_info <- function(object, ...) {
-  UseMethod("specific_summary_info")
-}
-
-#' @method specific_summary_info nonprobsvy_ipw
-specific_summary_info.nonprobsvy_ipw <- function(object,
-                                                 ...) {
-  coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
-    ncol = 2,
-    dimnames = list(
-      names(object$selection$coefficients),
-      c("Estimate", "Std. Error")
-    )
-  )
-  res <- list(
-    coeffs_sel = coeffs_sel,
-    weights = object$weights,
-    df_residual = object$selection$df_residual
-  )
-
-  attr(res$coeffs_sel, "glm") <- TRUE
-  attr(res$weights, "glm") <- FALSE
-  attr(res$df_residual, "glm") <- FALSE # TODO
-  attr(res, "model") <- c("glm regression on selection variable")
-  res
-}
-
-#' @method specific_summary_info nonprobsvy_mi
-specific_summary_info.nonprobsvy_mi <- function(object,
-                                                ...) {
-  if (object$outcome[[1]]$method == "glm") { # TODO for pmm
-    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
-      ncol = 2,
-      dimnames = list(
-        names(object$outcome[[1]]$coefficients),
-        c("Estimate", "Std. Error")
-      )
-    )
-  } else {
-    coeffs_out <- "no coefficients"
-  }
-
-  res <- list(
-    coeffs_out = coeffs_out
-  )
-  if (object$outcome[[1]]$method == "glm") {
-    attr(res$coeffs_out, "glm") <- TRUE
-    attr(res, "model") <- "glm regression on outcome variable"
-  } else if (object$outcome[[1]]$method == "nn") {
-    attr(res$coeffs_out, "glm") <- FALSE
-  } else if (object$outcome[[1]]$method == "pmm") { # TODO
-    attr(res$coeffs_out, "glm") <- FALSE
-    # attr(res, "model") <- "glm regression on outcome variable"
-  }
-  res
-}
-
-#' @method specific_summary_info nonprobsvy_dr
-specific_summary_info.nonprobsvy_dr <- function(object,
-                                                ...) {
-  coeffs_sel <- matrix(c(object$selection$coefficients, object$selection$std_err),
-    ncol = 2,
-    dimnames = list(
-      names(object$selection$coefficients),
-      c("Estimate", "Std. Error")
-    )
-  )
 
 
-  if (object$outcome[[1]]$method == "glm") {
-    coeffs_out <- matrix(c(object$outcome[[1]]$coefficients, object$outcome[[1]]$std_err),
-      ncol = 2,
-      dimnames = list(
-        names(object$outcome[[1]]$coefficients),
-        c("Estimate", "Std. Error")
-      )
-    )
-  } else {
-    coeffs_out <- "no coefficients"
-  }
 
-  res <- list(
-    coeffs_sel = coeffs_sel,
-    coeffs_out = coeffs_out,
-    weights = object$weights,
-    df_residual = object$selection$df_residual
-  )
-  attr(res$coeffs_sel, "glm") <- TRUE
-  if (object$outcome[[1]]$method == "glm") {
-    attr(res$coeffs_out, "glm") <- TRUE
-    attr(res, "model") <- c(
-      "glm regression on selection variable",
-      "glm regression on outcome variable"
-    )
-  } else if (object$outcome[[1]]$method == "nn") {
-    attr(res$coeffs_out, "glm") <- FALSE
-    attr(res, "model") <- c("glm regression on selection variable")
-  }
-  attr(res$weights, "glm") <- FALSE
-  attr(res$df_residual, "glm") <- FALSE
-
-  res
-}

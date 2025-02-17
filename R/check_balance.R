@@ -42,9 +42,9 @@ check_balance <- function(x, object, dig) {
   UseMethod("check_balance", object)
 }
 
-#' @method check_balance nonprobsvy
+#' @method check_balance nonprob
 #' @exportS3Method
-check_balance.nonprobsvy <- function(x, object, dig = 2) {
+check_balance.nonprob <- function(x, object, dig = 2) {
   # Input validation
   if (!inherits(x, "formula")) {
     stop("The `x` argument must be a formula.")
@@ -54,7 +54,7 @@ check_balance.nonprobsvy <- function(x, object, dig = 2) {
     stop("The `object` argument is required.")
   }
 
-  if (!inherits(object, c("nonprobsvy_dr", "nonprobsvy_ipw"))) {
+  if (object$estimator == "mi") {
     stop("No estimated weights available. Only the IPW or the DR methods are supported.")
   }
 
