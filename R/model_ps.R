@@ -10,16 +10,16 @@
 #' @param link link for the PS model
 #' @param ... Additional, optional arguments.
 #'
-#' @return A `list` of functions for a specific link function with the following fields:
+#' @return A `list` of functions and elements for a specific link function with the following entries:
 #'
 #' \describe{
-#'   \item{make_log_like}{log-likelihood function}
-#'   \item{make_gradient}{gradient}
-#'   \item{make_hessian}{hessian}
-#'   \item{make_link}{link}
-#'   \item{make_link_inv}{inverse link}
-#'   \item{make_link_der}{first derivative}
-#'   \item{make_link_inv_der}{TBA}
+#'   \item{make_log_like}{log-likelihood function for a specific link function}
+#'   \item{make_gradient}{gradient of the loglik}
+#'   \item{make_hessian}{hessian of the loglik}
+#'   \item{make_link}{link function}
+#'   \item{make_link_inv}{inverse link function}
+#'   \item{make_link_der}{first derivative of the link function}
+#'   \item{make_link_inv_der}{first derivative of the the inverse link function}
 #'   \item{make_link_inv_rev}{TBA}
 #'   \item{make_link_inv_rev_der}{TBA}
 #'   \item{variance_covariance1}{TBA}
@@ -28,8 +28,8 @@
 #'   \item{b_vec_dr}{TBA}
 #'   \item{t_vec}{TBA}
 #'   \item{var_nonprob}{TBA}
-#'   \item{link}{link function for the PS model}
-#'   \item{model}{model type}
+#'   \item{link}{name of the selected link function for the PS model (character)}
+#'   \item{model}{model type (character)}
 #' }
 #'
 #' @examples

@@ -49,8 +49,8 @@
 control_sel <- function(est_method = c("mle", "gee"),
                         gee_h_fun = 1,
                         optimizer = c("maxLik", "optim"),
-                        maxlik_method = "NR",
-                        optim_method = "BFGS",
+                        maxlik_method = c("NR", "BFGS", "NM"),
+                        optim_method = c("BFGS", "Nelder-Mead"),
                         epsilon = 1e-4,
                         maxit = 500,
                         trace = FALSE,
@@ -71,8 +71,10 @@ control_sel <- function(est_method = c("mle", "gee"),
                         key = NULL) {
 
   # Input validation
-  optimizer <- match.arg(optimizer)
   est_method <- match.arg(est_method)
+  optimizer <- match.arg(optimizer)
+  maxlik_method <- match.arg(maxlik_method)
+  optim_method <- match.arg(optim_method)
   penalty <- match.arg(penalty)
   start_type <- match.arg(start_type)
   nleqslv_method <- match.arg(nleqslv_method)

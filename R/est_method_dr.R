@@ -116,8 +116,10 @@ mm <- function(X,
   par_sel <- multiroot$x
   if (multiroot$termcd %in% c(2:7, -10)) {
     switch(as.character(multiroot$termcd),
-           "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv, but user must check if function values are acceptably small."),
-           "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable new point when fitting selection model by nleqslv."),
+           "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv,
+                         but user must check if function values are acceptably small."),
+           "3" = warning("Algorithm did not find suitable point - has stalled cannot find
+                         an acceptable new point when fitting selection model by nleqslv."),
            "4" = warning("Iteration limit exceeded when fitting selection model by nleqslv."),
            "5" = warning("Ill-conditioned Jacobian when fitting selection model by nleqslv."),
            "6" = warning("Jacobian is singular when fitting selection model by nleqslv."),
@@ -142,6 +144,11 @@ mm <- function(X,
   resids <- R - c(est_ps_rand, ps_nons)
   variance <- as.vector((t(resids) %*% resids) / df_residual)
 
+  eta_out <- as.vector(beta_hat %*% t(X))
+  y_hat <- family$linkinv(eta_out)
+  y_rand_pred <- y_hat[loc_rand]
+  y_nons_pred <- y_hat[loc_nons]
+
   if (!boot) {
     N_nons <- sum(weights * weights_nons)
     # variance-covariance matrix for selection model toFix
@@ -149,27 +156,19 @@ mm <- function(X,
     vcov_selection <- solve(t(X) %*% V %*% X)
     # vcov_selection <- matrix(0, nrow = nrow(X_design), ncol = ncol(X_design))
     theta_errors <- sqrt(diag(vcov_selection))
-  }
-
-  eta_out <- as.vector(beta_hat %*% t(X))
-  y_hat <- family$linkinv(eta_out)
-  y_rand_pred <- y_hat[loc_rand]
-  y_nons_pred <- y_hat[loc_nons]
-
-  if (!boot) {
     # sigma_nons <- family$variance(mu = y_nons_pred, y = y[loc_nons])
     # sigma_rand <- family$variance(mu = y_rand_pred, y = y[loc_rand])
     sigma_nons <- family$variance(mu = y_nons_pred)
     sigma_rand <- family$variance(mu = y_rand_pred)
     residuals <- family$residuals(mu = y_nons_pred, y = y[loc_nons])
-  }
-
-  if (!boot) {
     # variance-covariance matrix for outcome model
     # vcov_outcome <- solve(t(X_design) %*% diag(sigma) %*% X_design)
     vcov_outcome <- solve(t(X[loc_nons, ]) %*% (sigma_nons * X[loc_nons, ]))
     beta_errors <- sqrt(diag(vcov_outcome))
   }
+
+
+
 
   # grad = multiroot$f.root[(p+1):(2*p)]
   if (!boot) {

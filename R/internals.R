@@ -34,6 +34,7 @@ internal_selection <- function(X,
   if (bias_correction == TRUE) est_method <- "mm"
 
   estimation_method <- est_method_ipw(est_method)
+
   estimation_method$model_selection(
     X = X,
     X_nons = X_nons,
@@ -130,7 +131,9 @@ start_fit <- function(X,
                       weights,
                       weights_rand,
                       method_selection,
-                      control_selection = control_sel()) {
+                      control_selection) {
+
+
   weights_to_glm <- c(weights_rand, weights)
   start_model <- stats::glm.fit(
     x = X, # glm model for initial values in propensity score estimation

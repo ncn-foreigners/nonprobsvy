@@ -1,6 +1,7 @@
 #' ipw maxlik function
 #' @noRd
 ipw_maxlik <- function(method, X_nons, X_rand, weights, weights_rand, start, control, ...) {
+
   log_like <- method$make_log_like(
     X_nons,
     X_rand,
@@ -22,19 +23,26 @@ ipw_maxlik <- function(method, X_nons, X_rand, weights, weights_rand, start, con
     weights_rand
   )
 
-  if (control$optimizer == "maxLik") {
-    ########### maxLik ##########
-    maxLik_an <- maxLik::maxLik(
-      logLik = log_like,
-      grad = gradient,
-      hess = hessian,
-      method = "BFGS",
-      start = start,
-      printLevel = control$print_level
-    )
+  opt_results <- switch(control$optimizer,
+                          "maxLik" = maxLik::maxLik(logLik = log_like,
+                                                    grad = gradient,
+                                                    hess = hessian,
+                                                    method = control$maxlik_method,
+                                                    start = start,
+                                                    printLevel = control$print_level),
+                          "optim" = stats::optim(fn = log_like,
+                                                 gr = gradient,
+                                                 method = control$optim_method,
+                                                 par = start,
+                                                 control = list(fnscale = -1,
+                                                                trace = control$trace,
+                                                                maxit = control$maxit))
+                          )
 
-    if (maxLik_an$code %in% c(3:7, 100)) {
-      switch(as.character(maxLik_an$code),
+
+  if (control$optimizer == "maxLik") {
+    if (opt_results$code %in% c(3:7, 100)) {
+      switch(as.character(opt_results$code),
              "3" = warning("Warning in fitting selection model with the `maxLik` package: probably not converged."),
              "4" = warning("Maxiteration limit reached in fitting selection model by the `maxLik` package."),
              "5" = stop("Infinite value of log_like in fitting selection model by the `maxLik` package, error code 5."),
@@ -43,39 +51,27 @@ ipw_maxlik <- function(method, X_nons, X_rand, weights, weights_rand, start, con
              "100" = stop("Error in fitting selection model with the `maxLik` package, error code 100: Bad start."),
       )
     }
-
-    theta <- maxLik_an$estimate
-    grad <- maxLik_an$gradient
-    hess <- maxLik_an$hessian
+    theta <- opt_results$estimate
+    grad <- opt_results$gradient
+    hess <- opt_results$hessian
     log_likelihood <- log_like(theta)
-  } else if (control$optimizer == "optim") { # TODO add optimParallel for high-dimensional data
-    ########### optim ##########
-    maxLik_an <- stats::optim(
-      fn = log_like,
-      gr = gradient,
-      method = control$optim_method,
-      par = start,
-      control = list(
-        fnscale = -1,
-        trace = control$trace,
-        maxit = control$maxit
-      )
-    )
-    if (maxLik_an$convergence %in% c(1, 10, 51, 52)) {
-      switch(as.character(maxLik_an$convergence),
-             "1" = warning("Warning in fitting selection model with the `optim` function: the iteration limit maxit had been reached."),
+  }
+  if (control$optimizer == "optim") {
+    if (as.character(opt_results$convergence) %in% c(1, 10, 51, 52)) {
+      switch(as.character(opt_results$convergence),
+             "1" = warning("Warning in fitting selection model with the `optim` function:
+                           the iteration limit maxit had been reached."),
              "10" = warning("Degeneracy of the Nelder Mead simplex in fitting selection model by the `optim` function."), # TODO -
              "51" = warning("Warning from the L-BFGS-B when fitting by the `optim` function."), # TODO -
              "52" = stop("Indicates an error from the L-BFGS-B method when fitting by the `optim` function.")
       )
     }
-    theta <- maxLik_an$par
+    theta <- opt_results$par
     log_likelihood <- log_like(theta)
     grad <- gradient(theta)
     hess <- hessian(theta)
-  } else {
-    stop("Provide valid optimizer (`optim` or `maxLik`).")
   }
+
 
   list(
     log_l = log_likelihood,
@@ -206,30 +202,20 @@ theta_h_estimation <- function(R,
     method_selection = method_selection,
     pop_totals = pop_totals
   )
-  ######### NLESQLV
-  if (method_selection == "cloglog") {
-    root <- nleqslv::nleqslv(
-      x = start,
-      fn = u_theta,
-      method = "Newton", # TODO consider the methods
-      global = "dbldog", # qline",
-      xscalm = "auto",
-      jacobian = TRUE,
-      control = list(maxit = maxit)
-    )
-  } else {
-    root <- nleqslv::nleqslv(
-      x = start,
-      fn = u_theta,
-      method = "Newton", # TODO consider the methods
-      global = "dbldog", # qline",
-      xscalm = "auto",
-      jacobian = TRUE,
-      jac = u_theta_der,
-      control = list(maxit = maxit)
-    )
-  }
+
+  root <- nleqslv::nleqslv(
+    x = start,
+    fn = u_theta,
+    method = "Newton", #nleqslv_method # TODO consider the methods
+    global = "dbldog", #nleqslv_global # qline",
+    xscalm = "auto", #nleqslv_xscalm
+    jacobian = TRUE,
+    jac = if (method_selection == "cloglog") NULL else u_theta_der,
+    control = list(maxit = maxit)
+  )
+
   theta_root <- root$x
+
   if (root$termcd %in% c(2:7, -10)) {
     switch(as.character(root$termcd),
            "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv,
@@ -406,46 +392,45 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
 
       if (is.null(start)) {
 
-        if (control_selection$start_type == "glm") {
-          start_to_gee <- start_fit(
-            X = X, # <--- does not work with pop_totals
-            R = R,
-            weights = weights,
-            weights_rand = weights_rand,
-            method_selection = method_selection
-          )
+        start <- switch(control_selection$start_type,
+                        "zero" = rep(0, ncol(X)),
+                        "naive" = {
+                          start_h <- suppressWarnings(theta_h_estimation(
+                            R = R,
+                            X = X[, 1, drop = FALSE],
+                            weights_rand = weights_rand,
+                            weights = weights,
+                            gee_h_fun = gee_h_fun,
+                            method_selection = method_selection,
+                            maxit = maxit,
+                            nleqslv_method = control_selection$nleqslv_method,
+                            nleqslv_global = control_selection$nleqslv_global,
+                            nleqslv_xscalm = control_selection$nleqslv_xscalm,
+                            start = 0
+                          )$theta_h)
 
-          start <- ipw_maxlik(
-            method,
-            X_nons = X_nons,
-            X_rand = X_rand,
-            weights = weights,
-            weights_rand = weights_rand,
-            start = start_to_gee,
-            control = control_selection
-          )$theta_hat
+                          c(start_h, rep(0, ncol(X) - 1))
+                        },
+                        "glm" = {
+                          start_to_gee <- start_fit(
+                            X = X, # <--- does not work with pop_totals
+                            R = R,
+                            weights = weights,
+                            weights_rand = weights_rand,
+                            method_selection = method_selection
+                          )
 
-
-          ####
-        } else if (control_selection$start_type == "naive") {
-          start_h <- suppressWarnings(theta_h_estimation(
-            R = R,
-            X = X[, 1, drop = FALSE],
-            weights_rand = weights_rand,
-            weights = weights,
-            gee_h_fun = gee_h_fun,
-            method_selection = method_selection,
-            maxit = maxit,
-            nleqslv_method = control_selection$nleqslv_method,
-            nleqslv_global = control_selection$nleqslv_global,
-            nleqslv_xscalm = control_selection$nleqslv_xscalm,
-            start = 0
-          )$theta_h)
-          start <- c(start_h, rep(0, ncol(X) - 1))
-        } else if (control_selection$start_type == "zero") {
-          start <- rep(0, ncol(X))
+                          ipw_maxlik(
+                            method,
+                            X_nons = X_nons,
+                            X_rand = X_rand,
+                            weights = weights,
+                            weights_rand = weights_rand,
+                            start = start_to_gee,
+                            control = control_selection
+                          )$theta_hat
+                        })
         }
-      }
 
       h_object <- theta_h_estimation(
         R = R,

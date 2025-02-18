@@ -149,7 +149,8 @@ nonprob_ipw <- function(selection,
       X_nons <- X[loc_nons, , drop = FALSE]
       X_rand <- X[loc_rand, , drop = FALSE]
     }
-    ## maybe this should be replaced
+
+    ## maybe this should be replaced -- estimation of parameters?
     model_sel <- internal_selection(
       X = X,
       X_nons = X_nons,
@@ -169,10 +170,12 @@ nonprob_ipw <- function(selection,
     )
 
     estimation_method <- est_method_ipw(est_method)
+
     selection_model <- estimation_method$estimation_model(
       model = model_sel,
       method_selection = method_selection
     )
+
     theta_hat <- selection_model$theta_hat
     grad <- selection_model$grad
     hess <- selection_model$hess
