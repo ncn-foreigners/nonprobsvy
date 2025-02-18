@@ -45,7 +45,9 @@ boot_ipw <- function(X_rand,
   }
 
   if (is.null(pop_totals)) {
-    rep_weights <- survey::as.svrepdesign(design = svydesign, type = rep_type, replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
+    rep_weights <- survey::as.svrepdesign(design = svydesign,
+                                          type = rep_type,
+                                          replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
     while (k <= num_boot) {
       tryCatch(
         {
@@ -68,7 +70,6 @@ boot_ipw <- function(X_rand,
           R_nons <- rep(1, n_nons)
           R_rand <- rep(0, n_rand_strap)
           R <- c(R_rand, R_nons)
-
 
           est_method_obj <- estimation_method$estimation_model(
             model = estimation_method$model_selection(
@@ -233,9 +234,8 @@ boot_ipw_multicore <- function(X_rand,
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  parallel::clusterExport(cl = cl, varlist = c(
-    "model_ps", "start_fit", "est_method_ipw", "control_sel",
-    "mle", "mu_hatIPW", "theta_h_estimation"
+  parallel::clusterExport(cl = cl, varlist = c("model_ps", "start_fit", "est_method_ipw", "control_sel",
+                                               "mu_hatIPW", "theta_h_estimation"
   ))
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
