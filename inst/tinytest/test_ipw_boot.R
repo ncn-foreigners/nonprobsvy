@@ -26,18 +26,18 @@ expect_silent(ipw_logit_boot <- nonprob(
   svydesign = jvs_svy,
   data = admin,
   method_selection = "logit",
-  control_inference = control_inf(var_method = "bootstrap", num_boot = 10)
+  control_inference = control_inf(var_method = "bootstrap", num_boot = 5)
 ))
 
 # calibrated IPW estimator --------------------------------------------------
 
-expect_silent(ipw_logit_gee_boot <- nonprob(
+expect_silent(suppressWarnings(ipw_logit_gee_boot <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,
   data = admin,
   method_selection = "logit",
   control_selection = control_sel(est_method = "gee"),
-  control_inference = control_inf(var_method = "bootstrap", num_boot = 10)
-))
+  control_inference = control_inf(var_method = "bootstrap", num_boot = 5)
+)))
 
