@@ -210,12 +210,12 @@ mm <- function(X,
     )
   } else {
     selection <- list(
-      coefficients = theta_hat, # TODO list as close as possible to SelecttionList
+      coefficients = theta_hat, # TODO list as close as possible to SelectionList
       ps_nons = ps_nons
     )
     outcome <- list(
       coefficients = beta_hat,
-      y_rand_pred = y_rand_pred, # TODO list as close as possible to SelecttionList
+      y_rand_pred = y_rand_pred, # TODO list as close as possible to SelectionList
       y_nons_pred = y_nons_pred
     )
   }
