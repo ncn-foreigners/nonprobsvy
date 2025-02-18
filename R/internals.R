@@ -33,7 +33,7 @@ internal_selection <- function(X,
 
   if (bias_correction == TRUE) est_method <- "mm"
 
-  estimation_method <- get_method(est_method)
+  estimation_method <- est_method_ipw(est_method)
   estimation_method$model_selection(
     X = X,
     X_nons = X_nons,

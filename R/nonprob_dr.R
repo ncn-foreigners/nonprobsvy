@@ -453,7 +453,7 @@ nonprob_dr <- function(selection,
           verbose = verbose
         )
 
-        estimation_method <- get_method(est_method)
+        estimation_method <- est_method_ipw(est_method)
         selection_model <- estimation_method$estimation_model(
           model = model_sel,
           method_selection = method_selection

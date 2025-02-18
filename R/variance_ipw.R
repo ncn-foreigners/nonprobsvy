@@ -57,10 +57,12 @@ internal_varIPW <- function(svydesign,
                             var_cov2) {
 
   eta <- as.vector(X_nons %*% as.matrix(theta))
+
   method <- switch(method_selection,
                    "logit" = model_ps("logit"),
                    "probit" = model_ps("probit"),
                    "cloglog" = model_ps("cloglog"))
+
   b_obj <- method$b_vec_ipw(
     X = X_nons,
     ps = ps_nons,
@@ -73,10 +75,9 @@ internal_varIPW <- function(svydesign,
     weights = weights,
     verbose = verbose
   )
-  b <- b_obj$b
 
   # sparse matrix
-  b_vec <- cbind(-1, b)
+  b_vec <- cbind(-1, b_obj$b)
   H_mx <- try(cbind(0, N * solve(hess)), silent = TRUE)
   if (inherits(H_mx, "try-error")) {
     if (verbose) message("solve() failed, using ginv() instead.")

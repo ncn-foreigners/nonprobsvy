@@ -450,7 +450,7 @@ boot_mi_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "model_ps", "start_fit", "get_method", "control_sel",
+    "internal_selection", "model_ps", "start_fit", "est_method_ipw", "control_sel",
     "mle", "mu_hatIPW", "nonprob_mi_nn"
   ))
 

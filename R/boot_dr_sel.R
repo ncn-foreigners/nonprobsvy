@@ -146,7 +146,7 @@ boot_dr_sel_multicore <- function(X,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "model_ps", "start_fit", "get_method", "control_sel", "mle", "mm", "u_theta_beta_dr",
+    "internal_selection", "model_ps", "start_fit", "est_method_ipw", "control_sel", "mle", "mm", "u_theta_beta_dr",
     "mu_hatDR"
   ))
 

@@ -77,7 +77,7 @@ boot_dr <- function(outcome,
     if (verbose) {
       pb <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
     }
-    estimation_method <- get_method(est_method)
+    estimation_method <- est_method_ipw(est_method)
     if (is.null(pop_totals)) {
       rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
       N <- sum(weights_rand)
@@ -351,7 +351,7 @@ boot_dr_multicore <- function(outcome,
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl = cl, varlist = c(
-      "internal_selection", "internal_outcome", "model_ps", "start_fit", "get_method", "control_sel", "theta_h_estimation",
+      "internal_selection", "internal_outcome", "model_ps", "start_fit", "est_method_ipw", "control_sel", "theta_h_estimation",
       "mle", "mu_hatDR", "model_ps", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
       "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy", "nonprob_mi_fit", "control_out"
     ))
@@ -362,7 +362,7 @@ boot_dr_multicore <- function(outcome,
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {
-          estimation_method <- get_method(est_method)
+          estimation_method <- est_method_ipw(est_method)
           strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
           # strap_rand <- sample.int(replace = TRUE, n = n_rand, prob = 1/weights_rand)
 

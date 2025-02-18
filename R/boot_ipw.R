@@ -24,7 +24,7 @@ boot_ipw <- function(X_rand,
                      pop_totals,
                      ...) {
   if (!is.null(weights_rand)) N <- sum(weights_rand)
-  estimation_method <- get_method(est_method)
+  estimation_method <- est_method_ipw(est_method)
 
   method <- switch(method_selection,
                    "logit" = model_ps("logit"),
@@ -213,7 +213,7 @@ boot_ipw_multicore <- function(X_rand,
                                verbose,
                                ...) {
   if (!is.null(weights_rand)) N <- sum(weights_rand)
-  estimation_method <- get_method(est_method)
+  estimation_method <- est_method_ipw(est_method)
   method <- switch(method_selection,
                    "logit" = model_ps("logit"),
                    "probit" = model_ps("probit"),
@@ -231,7 +231,7 @@ boot_ipw_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "model_ps", "start_fit", "get_method", "control_sel",
+    "internal_selection", "model_ps", "start_fit", "est_method_ipw", "control_sel",
     "mle", "mu_hatIPW", "theta_h_estimation"
   ))
 

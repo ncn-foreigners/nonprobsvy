@@ -43,7 +43,7 @@ internal_varDR <- function(outcome_model,
                      "probit" = model_ps("probit"),
                      "cloglog" = model_ps("cloglog"))
 
-    est_method <- get_method(est_method)
+    estimation_method <- est_method_ipw(est_method)
 
     b <- method$b_vec_dr(
       X = selection_model$X_nons,
@@ -59,7 +59,7 @@ internal_varDR <- function(outcome_model,
     )
 
     # asymptotic variance by each propensity score method (nonprobability component)
-    var_nonprob <- est_method$make_var_nonprob(
+    var_nonprob <- estimation_method$make_var_nonprob(
       ps = ps_nons,
       psd = ps_nons_der,
       y = outcome_model$y_nons,
@@ -75,7 +75,7 @@ internal_varDR <- function(outcome_model,
     )
 
     if (is.null(pop_totals)) {
-      t_comp <- est_method$make_t_comp(
+      t_comp <- estimation_method$make_t_comp(
         X = selection_model$X_rand,
         ps = est_ps_rand,
         psd = est_ps_rand_der,
