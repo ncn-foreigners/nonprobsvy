@@ -64,27 +64,27 @@ of the mean.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code>list</code> of functions for a specific link function with the following fields:</p>
+    <p>A <code>list</code> of functions and elements for a specific link function with the following entries:</p>
 <dl><dt>make_log_like</dt>
-<dd><p>log-likelihood function</p></dd>
+<dd><p>log-likelihood function for a specific link function</p></dd>
 
 <dt>make_gradient</dt>
-<dd><p>gradient</p></dd>
+<dd><p>gradient of the loglik</p></dd>
 
 <dt>make_hessian</dt>
-<dd><p>hessian</p></dd>
+<dd><p>hessian of the loglik</p></dd>
 
 <dt>make_link</dt>
-<dd><p>link</p></dd>
+<dd><p>link function</p></dd>
 
 <dt>make_link_inv</dt>
-<dd><p>inverse link</p></dd>
+<dd><p>inverse link function</p></dd>
 
 <dt>make_link_der</dt>
-<dd><p>first derivative</p></dd>
+<dd><p>first derivative of the link function</p></dd>
 
 <dt>make_link_inv_der</dt>
-<dd><p>TBA</p></dd>
+<dd><p>first derivative of the the inverse link function</p></dd>
 
 <dt>make_link_inv_rev</dt>
 <dd><p>TBA</p></dd>
@@ -111,10 +111,10 @@ of the mean.</p>
 <dd><p>TBA</p></dd>
 
 <dt>link</dt>
-<dd><p>link function for the PS model</p></dd>
+<dd><p>name of the selected link function for the PS model (character)</p></dd>
 
 <dt>model</dt>
-<dd><p>model type</p></dd>
+<dd><p>model type (character)</p></dd>
 
 
 </dl></div>
@@ -144,8 +144,8 @@ of the mean.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             (weights_rand * exp(eta2)))</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x55e817b25c58&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e820b12730&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x55f2515bf4d0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55f256bdab78&gt;</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
