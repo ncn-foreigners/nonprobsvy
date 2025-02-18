@@ -11,7 +11,7 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 #' @rdname nonprob
-#' @export
+#' @noRd
 nonprob_ipw <- function(selection,
                         target,
                         data,
@@ -33,6 +33,7 @@ nonprob_ipw <- function(selection,
                         se,
                         ...) {
 
+  ## passing control parameters
   gee_h_fun <- control_selection$gee_h_fun
   maxit <- control_selection$maxit
   optim_method <- control_selection$optim_method
@@ -47,14 +48,18 @@ nonprob_ipw <- function(selection,
   eps <- control_selection$epsilon
   rep_type <- control_inference$rep_type
 
-  if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
-  # formula for outcome variable if target defined
+  estimation_method <- est_method_ipw(est_method)
 
+  # if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
+
+  ## multiple dependent variables
   dependents <- paste(selection, collapse = " ")
   outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
   outcomes <- make_outcomes(outcome)
+
   output <- list()
   ys <- list()
+
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -62,11 +67,8 @@ nonprob_ipw <- function(selection,
     confidence_interval <- NULL
     SE_values <- NULL
   }
-  # formula for outcome variable if outcome defined
-  # dependents <- paste(selection, collapse = " ")
-  # outcome <- stats::as.formula(paste(outcome[2], dependents))
 
-  if (is.null(pop_totals) && !is.null(svydesign)) {
+  if (!is.null(svydesign)) {
     model <- make_model_frame(
       formula = outcomes$outcome[[1]],
       data = data,
@@ -88,15 +90,6 @@ nonprob_ipw <- function(selection,
     n_nons <- nrow(X_nons)
     n_rand <- nrow(X_rand)
 
-    # if (all(svydesign$prob) == 1) { # TODO
-    #  if (!is.null(pop_size)) {
-    #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
-    #    } else {
-    #      ps_rand <- svydesign$prob/sum(svydesign$prob)
-    #    }
-    # } else {
-    #  ps_rand <- svydesign$prob
-    # }
     ps_rand <- svydesign$prob
     weights_rand <- 1 / ps_rand
     weights_sum <- sum(weights_rand, weights)
@@ -130,8 +123,8 @@ nonprob_ipw <- function(selection,
         nfolds = control_selection$nfolds,
         penalty = control_selection$penalty,
         a = switch(control_selection$penalty,
-          SCAD = control_selection$a_SCAD,
-          control_selection$a_MCP
+                   SCAD = control_selection$a_SCAD,
+                   control_selection$a_MCP
         ),
         lambda = lambda_control,
         pop_totals = pop_totals,
@@ -150,29 +143,24 @@ nonprob_ipw <- function(selection,
       X_rand <- X[loc_rand, , drop = FALSE]
     }
 
-    ## maybe this should be replaced -- estimation of parameters?
-    model_sel <- internal_selection(
-      X = X,
-      X_nons = X_nons,
-      X_rand = X_rand,
-      weights = weights,
-      weights_rand = weights_rand,
-      R = R,
-      method_selection = method_selection,
-      optim_method = optim_method,
-      gee_h_fun = gee_h_fun,
-      est_method = est_method,
-      maxit = maxit,
-      start = start_selection,
-      control_selection = control_selection,
-      verbose = verbose,
-      varcov = TRUE
-    )
-
-    estimation_method <- est_method_ipw(est_method)
-
     selection_model <- estimation_method$estimation_model(
-      model = model_sel,
+      model = estimation_method$model_selection(
+        X = X,
+        X_nons = X_nons,
+        X_rand = X_rand,
+        weights = weights,
+        weights_rand = weights_rand,
+        R = R,
+        method_selection = method_selection,
+        optim_method = optim_method,
+        gee_h_fun = gee_h_fun,
+        est_method = est_method,
+        maxit = maxit,
+        start = start_selection,
+        control_selection = control_selection,
+        verbose = verbose,
+        varcov = TRUE
+      ),
       method_selection = method_selection
     )
 
@@ -191,12 +179,7 @@ nonprob_ipw <- function(selection,
     weights_nons <- 1 / ps_nons
     N <- sum(weights * weights_nons)
 
-    # if (!is.null(pop_size)) {
-    #   N <- pop_size
-    # } else {
-    #   N <- sum(weights * weights_nons)
-    # }
-  } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
+  } else {
     if (var_selection == FALSE) { # TODO how to handle that
       if (!is.null(pop_totals)) pop_size <- pop_totals[1]
     }
@@ -209,11 +192,6 @@ nonprob_ipw <- function(selection,
       }
     }
 
-    # names_pop <- names(pop_totals)
-    # #pop_totals <- as.vector(pop_totals)
-    # names(pop_totals) <- names_pop
-
-    # model for outcome formula
     model <- make_model_frame(
       formula = outcomes$outcome[[1]],
       data = data,
@@ -267,8 +245,8 @@ nonprob_ipw <- function(selection,
         nfolds = control_selection$nfolds,
         penalty = control_selection$penalty,
         a = switch(control_selection$penalty,
-          SCAD = control_selection$a_SCAD,
-          control_selection$a_MCP
+                   SCAD = control_selection$a_SCAD,
+                   control_selection$a_MCP
         ),
         lambda = lambda_control,
         pop_totals = pop_totals[-1],
@@ -337,20 +315,24 @@ nonprob_ipw <- function(selection,
     hess <- h_object$hess
     grad <- h_object$grad
     names(theta_hat) <- colnames(X)
+
     method <- switch(method_selection,
                      "logit" = model_ps("logit"),
                      "probit" = model_ps("probit"),
                      "cloglog" = model_ps("cloglog"))
+
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der
     eta_nons <- theta_hat %*% t(X_nons)
     ps_nons <- inv_link(eta_nons)
     ps_nons_der <- dinv_link(eta_nons)
     variance_covariance <- try(solve(-hess), silent = TRUE)
+
     if (inherits(variance_covariance, "try-error")) {
       if (verbose) message("solve() failed, using ginv() instead.")
       variance_covariance <- MASS::ginv(-hess)
     }
+
     theta_standard_errors <- sqrt(diag(variance_covariance))
     var_cov1 <- method$variance_covariance1
     var_cov2 <- method$variance_covariance2
@@ -375,9 +357,8 @@ nonprob_ipw <- function(selection,
       log_likelihood = NA
     )
     #######################################
-  } else {
-    stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
   }
+
   mu_hats <- numeric(length = outcomes$l)
   for (k in 1:outcomes$l) {
     if (is.null(pop_totals)) {
@@ -401,7 +382,7 @@ nonprob_ipw <- function(selection,
       weights = weights,
       weights_nons = weights_nons,
       N = ifelse(is.null(pop_size), N, pop_size)
-    ) # IPW estimator # consider using weighted.mean function
+    )
     # mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
   }
   if (se) {

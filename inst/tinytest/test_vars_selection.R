@@ -117,7 +117,7 @@ expect_equal(
 )
 
 # probit
-expect_silent(ipw_probit_cal <- nonprob(
+expect_warning(ipw_probit_cal <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,
@@ -125,7 +125,8 @@ expect_silent(ipw_probit_cal <- nonprob(
   method_selection = "probit",
   control_inference = control_inf(vars_selection = TRUE),
   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee")
-))
+),
+  pattern = "Relatively convergent algorithm")
 
 expect_equal(ipw_probit_cal$output$mean, 0.6871912, tolerance = 0.001)
 
@@ -138,7 +139,7 @@ expect_equal(
 
 
 # cloglog
-expect_silent(ipw_cloglog_cal <- nonprob(
+expect_warning(ipw_cloglog_cal <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,
@@ -146,7 +147,8 @@ expect_silent(ipw_cloglog_cal <- nonprob(
   method_selection = "cloglog",
   control_inference = control_inf(vars_selection = TRUE),
   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee")
-))
+),
+pattern = "Relatively convergent algorithm")
 
 expect_equal(ipw_cloglog_cal$output$mean, 0.686266, tolerance = 0.001)
 

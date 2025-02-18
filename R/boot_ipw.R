@@ -25,6 +25,7 @@ boot_ipw <- function(X_rand,
                      pop_totals,
                      ...) {
   if (!is.null(weights_rand)) N <- sum(weights_rand)
+
   estimation_method <- est_method_ipw(est_method)
 
   method <- switch(method_selection,
@@ -68,24 +69,25 @@ boot_ipw <- function(X_rand,
           R_rand <- rep(0, n_rand_strap)
           R <- c(R_rand, R_nons)
 
-          model_sel <- internal_selection(
-            X = X,
-            X_nons = X_nons_strap,
-            X_rand = X_rand_strap,
-            weights = weights[strap_nons],
-            weights_rand = weights_strap_rand,
-            R = R,
-            method_selection = method_selection,
-            optim_method = optim_method,
-            gee_h_fun = gee_h_fun,
-            est_method = est_method,
-            maxit = maxit,
-            control_selection = control_selection,
-            start = start_selection
-          )
 
           est_method_obj <- estimation_method$estimation_model(
-            model = model_sel,
+            model = estimation_method$model_selection(
+              X = X,
+              X_nons = X_nons,
+              X_rand = X_rand,
+              weights = weights,
+              weights_rand = weights_rand,
+              R = R,
+              method_selection = method_selection,
+              optim_method = optim_method,
+              gee_h_fun = gee_h_fun,
+              est_method = est_method,
+              maxit = maxit,
+              start = start_selection,
+              control_selection = control_selection,
+              verbose = verbose,
+              varcov = TRUE
+            ),
             method_selection = method_selection
           )
 
@@ -232,7 +234,7 @@ boot_ipw_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl, varlist = c(
-    "internal_selection", "model_ps", "start_fit", "est_method_ipw", "control_sel",
+    "model_ps", "start_fit", "est_method_ipw", "control_sel",
     "mle", "mu_hatIPW", "theta_h_estimation"
   ))
 
@@ -263,24 +265,24 @@ boot_ipw_multicore <- function(X_rand,
         R_rand <- rep(0, n_rand_strap)
         R <- c(R_rand, R_nons)
 
-        model_sel <- internal_selection(
-          X = X,
-          X_nons = X_nons_strap,
-          X_rand = X_rand_strap,
-          weights = weights[strap_nons],
-          weights_rand = weights_strap_rand,
-          R = R,
-          method_selection = method_selection,
-          optim_method = optim_method,
-          gee_h_fun = gee_h_fun,
-          est_method = est_method,
-          maxit = maxit,
-          control_selection = control_selection,
-          start = start_selection
-        )
-
         est_method_obj <- estimation_method$estimation_model(
-          model = model_sel,
+          model = estimation_method$model_selection(
+            X = X,
+            X_nons = X_nons,
+            X_rand = X_rand,
+            weights = weights,
+            weights_rand = weights_rand,
+            R = R,
+            method_selection = method_selection,
+            optim_method = optim_method,
+            gee_h_fun = gee_h_fun,
+            est_method = est_method,
+            maxit = maxit,
+            start = start_selection,
+            control_selection = control_selection,
+            verbose = verbose,
+            varcov = TRUE
+          ),
           method_selection = method_selection
         )
 

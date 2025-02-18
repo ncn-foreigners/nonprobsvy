@@ -206,9 +206,9 @@ theta_h_estimation <- function(R,
   root <- nleqslv::nleqslv(
     x = start,
     fn = u_theta,
-    method = "Newton", #nleqslv_method # TODO consider the methods
-    global = "dbldog", #nleqslv_global # qline",
-    xscalm = "auto", #nleqslv_xscalm
+    method = nleqslv_method,
+    global = nleqslv_global,
+    xscalm = nleqslv_xscalm,
     jacobian = TRUE,
     jac = if (method_selection == "cloglog") NULL else u_theta_der,
     control = list(maxit = maxit)
@@ -220,7 +220,8 @@ theta_h_estimation <- function(R,
     switch(as.character(root$termcd),
            "2" = warning("Relatively convergent algorithm when fitting selection model by nleqslv,
                          but user must check if function values are acceptably small."),
-           "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable new point when fitting selection model by nleqslv."),
+           "3" = warning("Algorithm did not find suitable point - has stalled cannot find an acceptable
+                         new point when fitting selection model by nleqslv."),
            "4" = warning("Iteration limit exceeded when fitting selection model by nleqslv."),
            "5" = warning("Ill-conditioned Jacobian when fitting selection model by nleqslv."),
            "6" = warning("Jacobian is singular when fitting selection model by nleqslv."),
@@ -228,13 +229,10 @@ theta_h_estimation <- function(R,
            "-10" = warning("User specified Jacobian is incorrect when fitting selection model by nleqslv.")
     )
   }
+
   theta_h <- as.vector(theta_root)
   grad <- u_theta(theta_h)
-  if (method_selection == "cloglog") {
-    hess <- root$jac
-  } else {
-    hess <- u_theta_der(theta_h) # TODO compare with root$jac
-  }
+  hess <- if (method_selection == "cloglog") root$jac else u_theta_der(theta_h)
 
   list(
     theta_h = theta_h,
@@ -441,10 +439,11 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
         method_selection = method_selection,
         maxit = maxit,
         nleqslv_method = control_selection$nleqslv_method,
-        nleqslv_global = control_selection$nleqslv_method,
-        nleqslv_xscalm = control_selection$nleqslv_method,
+        nleqslv_global = control_selection$nleqslv_global,
+        nleqslv_xscalm = control_selection$nleqslv_xscalm,
         start = start
       )
+
       theta_hat <- h_object$theta_h
       hess <- h_object$hess
       grad <- h_object$grad
@@ -453,6 +452,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       ps_nons <- inv_link(eta_nons)
       est_ps_rand <- inv_link(eta_rand)
       variance_covariance <- try(solve(-hess), silent = TRUE)
+
       if (inherits(variance_covariance, "try-error")) {
         if (verbose) message("solve() failed, using ginv() instead.")
         variance_covariance <- MASS::ginv(-hess)
@@ -500,6 +500,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
   mle <- function(...) {
 
     estimation_model <- function(model, method_selection, ...) {
+
       method <- model$method
       dinv_link <- method$make_link_inv_der
       maxLik_nons_obj <- model$maxLik_nons_obj
