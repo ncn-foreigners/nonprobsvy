@@ -24,6 +24,7 @@ boot_ipw <- function(X_rand,
                      pop_size,
                      pop_totals,
                      ...) {
+
   if (!is.null(weights_rand)) N <- sum(weights_rand)
 
   estimation_method <- est_method_ipw(est_method)

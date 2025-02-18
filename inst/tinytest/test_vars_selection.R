@@ -139,7 +139,7 @@ expect_equal(
 
 
 # cloglog
-expect_warning(suppressWarnings(ipw_cloglog_cal <- nonprob(
+expect_silent(suppressWarnings(ipw_cloglog_cal <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   svydesign = jvs_svy,

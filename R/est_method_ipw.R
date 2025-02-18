@@ -457,6 +457,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
         if (verbose) message("solve() failed, using ginv() instead.")
         variance_covariance <- MASS::ginv(-hess)
       }
+
       resids <- R - c(est_ps_rand, ps_nons)
 
       df_reduced <- nrow(X) - length(theta_hat)
