@@ -1,3 +1,4 @@
+## bootstrap for the IPW estimator
 boot_ipw <- function(X_rand,
                      X_nons,
                      svydesign,

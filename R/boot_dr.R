@@ -1,3 +1,4 @@
+## bootstrap for the DR estimator
 boot_dr <- function(outcome,
                     data,
                     svydesign,

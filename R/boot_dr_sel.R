@@ -1,3 +1,4 @@
+## bootstrap with variable selection
 boot_dr_sel <- function(X,
                         R,
                         y,

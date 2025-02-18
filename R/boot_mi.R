@@ -1,4 +1,4 @@
-# These functions are only used internally, so there is no need for documenting them
+# Bootstrap for the MI estimator
 #' @importFrom survey as.svrepdesign
 #' @importFrom nleqslv nleqslv
 #' @importFrom utils setTxtProgressBar
