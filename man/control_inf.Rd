@@ -7,7 +7,7 @@
 control_inf(
   vars_selection = FALSE,
   var_method = c("analytic", "bootstrap"),
-  rep_type = c("auto", "JK1", "JKn", "BRR", "bootstrap", "subbootstrap", "mrbbootstrap",
+  rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap", "mrbbootstrap",
     "Fay"),
   bias_correction = FALSE,
   bias_inf = c("union", "div"),
