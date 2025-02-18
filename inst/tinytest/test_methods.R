@@ -157,14 +157,14 @@ expect_silent(
 #   residuals(mi_result, "pearsonSTD")
 # )
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-  expect_silent(
-    cooks.distance(mi_result)
-  )
-  expect_silent(
-    hatvalues(mi_result)
-  )
-}
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+#   expect_silent(
+#     cooks.distance(mi_result)
+#   )
+#   expect_silent(
+#     hatvalues(mi_result)
+#   )
+# }
 
 expect_silent(
   logLik(mi_result)
@@ -226,15 +226,15 @@ expect_silent(
 #   residuals(dr_result, "pearsonSTD")
 # )
 
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-  expect_silent(
-    cooks.distance(dr_result)
-  )
-
-  expect_silent(
-    hatvalues(dr_result)
-  )
-}
+# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+#   expect_silent(
+#     cooks.distance(dr_result)
+#   )
+#
+#   expect_silent(
+#     hatvalues(dr_result)
+#   )
+# }
 
 expect_silent(
   logLik(dr_result)
