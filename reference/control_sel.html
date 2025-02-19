@@ -58,7 +58,7 @@ for selection model.</p>
 <span>  nlambda <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  nfolds <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  print_level <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  start_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zero"</span>, <span class="st">"glm"</span>, <span class="st">"naive"</span><span class="op">)</span>,</span>
+<span>  start_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zero"</span>, <span class="st">"mle"</span>, <span class="st">"naive"</span><span class="op">)</span>,</span>
 <span>  nleqslv_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Broyden"</span>, <span class="st">"Newton"</span><span class="op">)</span>,</span>
 <span>  nleqslv_global <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dbldog"</span>, <span class="st">"pwldog"</span>, <span class="st">"cline"</span>, <span class="st">"qline"</span>, <span class="st">"gline"</span>, <span class="st">"hook"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  nleqslv_xscalm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="st">"auto"</span><span class="op">)</span>,</span>
@@ -139,9 +139,8 @@ for selection model.</p>
 
 
 <dt id="arg-start-type">start_type<a class="anchor" aria-label="anchor" href="#arg-start-type"></a></dt>
-<dd><ul><li><p>Type of method for start points for model fitting taking the following values</p><ul><li><p>if <code>zero</code> then start is a vector of zeros (default).</p></li>
-<li><p>if <code>glm</code> then start taken from the glm function called on samples.</p></li>
-<li><p>if <code>naive</code> then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.</p></li>
+<dd><ul><li><p>Type of method for start points for model fitting taking the following values</p><ul><li><p>if <code>zero</code> then start is a vector of zeros (default for all methods).</p></li>
+<li><p>if <code>mle</code> (for <code>est_method="gee"</code> only) starting parameters are taken from the result of the <code>est_method="mle"</code> method.</p></li>
 </ul></li>
 </ul></dd>
 

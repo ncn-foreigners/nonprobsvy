@@ -50,6 +50,8 @@
 <li>argument <code>est_method_sel</code> renamed to <code>est_method</code>
 </li>
 <li>argument <code>h</code> renamed to <code>gee_h_fun</code> to make this more readable to the user</li>
+<li>
+<code>start_type</code> now accepts only <code>zero</code> and <code>mle</code> (for <code>gee</code> models only).</li>
 </ul></li>
 <li>
 <code>nonprobsvy</code> class renamed to <code>nonprob</code> and all related method adjusted to this change</li>
@@ -58,7 +60,7 @@
 <div class="section level4">
 <h4 id="features-0-2-0">Features<a class="anchor" aria-label="anchor" href="#features-0-2-0"></a></h4>
 <ul><li>two additional datasets have been included: <code>jvs</code> (Job Vacancy Survey; a probability sample survey) and <code>admin</code> (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.</li>
-<li>a <code>nonprobsvycheck</code> function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.</li>
+<li>a <code>check_balance</code> function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.</li>
 <li>citation file added.</li>
 </ul></div>
 <div class="section level4">
