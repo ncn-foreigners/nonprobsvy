@@ -22,6 +22,7 @@ nonprobsvy News and Updates
     -   argument `est_method_sel` renamed to `est_method`
     -   argument `h` renamed to `gee_h_fun` to make this more readable
         to the user
+    -   `start_type` now accepts only `zero` and `mle` (for `gee` models only).
 -   `nonprobsvy` class renamed to `nonprob` and all related method
     adjusted to this change
 -   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
@@ -35,7 +36,7 @@ nonprobsvy News and Updates
     Database; a non-probability sample survey). The units and auxiliary
     variables have been aligned in a way that allows the data to be
     integrated using the methods implemented in this package.
--   a `nonprobsvycheck` function was added to check the balance in the
+-   a `check_balance` function was added to check the balance in the
     totals of the variables based on the weighted weights between the
     non-probability and probability samples.
 -   citation file added.

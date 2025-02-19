@@ -184,6 +184,9 @@ theta_h_estimation <- function(R,
                                start = NULL,
                                pop_totals = NULL,
                                pop_means = NULL) {
+
+  if (is.null(start)) start <- rep(0, ncol(X))
+
   p <- ncol(X)
   u_theta <- u_theta(
     R = R,
@@ -392,39 +395,14 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
 
         start <- switch(control_selection$start_type,
                         "zero" = rep(0, ncol(X)),
-                        "naive" = {
-                          start_h <- suppressWarnings(theta_h_estimation(
-                            R = R,
-                            X = X[, 1, drop = FALSE],
-                            weights_rand = weights_rand,
-                            weights = weights,
-                            gee_h_fun = gee_h_fun,
-                            method_selection = method_selection,
-                            maxit = maxit,
-                            nleqslv_method = control_selection$nleqslv_method,
-                            nleqslv_global = control_selection$nleqslv_global,
-                            nleqslv_xscalm = control_selection$nleqslv_xscalm,
-                            start = 0
-                          )$theta_h)
-
-                          c(start_h, rep(0, ncol(X) - 1))
-                        },
-                        "glm" = {
-                          start_to_gee <- start_fit(
-                            X = X, # <--- does not work with pop_totals
-                            R = R,
-                            weights = weights,
-                            weights_rand = weights_rand,
-                            method_selection = method_selection
-                          )
-
+                        "mle" = {
                           ipw_maxlik(
                             method,
                             X_nons = X_nons,
                             X_rand = X_rand,
                             weights = weights,
                             weights_rand = weights_rand,
-                            start = start_to_gee,
+                            start = rep(0, ncol(X)),
                             control = control_selection
                           )$theta_hat
                         })
@@ -614,31 +592,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       dinv_link <- method$make_link_inv_der
 
       # initial values for propensity score estimation
-      if (is.null(start)) {
-        if (control_selection$start_type == "glm") {
-          start <- start_fit(
-            X = X,
-            R = R,
-            weights = weights,
-            weights_rand = weights_rand,
-            method_selection = method_selection
-          )
-        } else if (control_selection$start_type == "naive") {
-
-          intercept_start <- suppressWarnings(ipw_maxlik(
-            method,
-            X_nons = X_nons[, 1, drop = FALSE],
-            X_rand = X_rand[, 1, drop = FALSE],
-            weights = weights,
-            weights_rand = weights_rand,
-            start = 0,
-            control = control_selection
-          )$theta_hat)
-          start <- c(intercept_start, rep(0, ncol(X_nons) - 1))
-        } else if (control_selection$start_type == "zero") {
-          start <- rep(0, ncol(X))
-        }
-      }
+      if (is.null(start)) start <- rep(0, ncol(X))
 
       df_reduced <- nrow(X) - length(start)
 

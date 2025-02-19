@@ -17,6 +17,8 @@ expect_silent(
 ))
 
 
+# unit-level data ---------------------------------------------------------
+
 # standard IPW estimator --------------------------------------------------
 
 # logit
@@ -267,5 +269,6 @@ expect_silent(dr_cloglog_gee <- nonprob(
 expect_equal(dr_cloglog_gee$output$mean, 0.7038575, tolerance = 0.001)
 
 
+# pop data only -----------------------------------------------------------
 
 

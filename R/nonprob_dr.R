@@ -583,33 +583,7 @@ nonprob_dr <- function(selection,
         selection_model_data$total_names <- names(selection_model_data$pop_totals)
       }
 
-      if (is.null(start_selection)) {
-        if (control_selection$start_type == "glm") {
-          start_selection <- start_fit(
-            X = selection_model_data$X_nons, # <--- does not work with pop_totals
-            R = R,
-            weights = weights,
-            weights_rand = weights_rand,
-            method_selection = method_selection
-          )
-        } else if (control_selection$start_type == "naive") {
-          start_h <- suppressWarnings(theta_h_estimation(
-            R = R,
-            X = selection_model_data$X_nons[, 1, drop = FALSE],
-            weights_rand = weights_rand,
-            weights = weights,
-            gee_h_fun = gee_h_fun,
-            method_selection = method_selection,
-            start = 0,
-            maxit = maxit,
-            nleqslv_method = control_selection$nleqslv_method,
-            nleqslv_global = control_selection$nleqslv_global,
-            nleqslv_xscalm = control_selection$nleqslv_xscalm,
-            pop_totals = selection_model_data$pop_totals[1]
-          )$theta_h)
-          start_selection <- c(start_h, rep(0, ncol(X) - 1))
-        }
-      }
+      if (is.null(start_selection)) start_selection <- rep(0, ncol(selection_model_data$X_nons))
 
       h_object <- theta_h_estimation(
         R = R,

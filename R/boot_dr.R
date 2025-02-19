@@ -351,11 +351,13 @@ boot_dr_multicore <- function(outcome,
     cl <- parallel::makeCluster(cores)
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
-    parallel::clusterExport(cl = cl, varlist = c(
-      "internal_selection", "internal_outcome", "model_ps", "start_fit", "est_method_ipw", "control_sel", "theta_h_estimation",
-      "mle", "mu_hatDR", "model_ps", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
-      "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy", "nonprob_mi_fit", "control_out"
-    ))
+    parallel::clusterExport(cl = cl,
+                            varlist = c( "internal_selection", "internal_outcome", "model_ps",
+                                         "est_method_ipw", "control_sel", "theta_h_estimation",
+                                         "mu_hatDR", "glm_nonprobsvy", "nn_nonprobsvy", "pmm_nonprobsvy",
+                                         "gaussian_nonprobsvy", "poisson_nonprobsvy", "binomial_nonprobsvy",
+                                         "nonprob_mi_fit", "control_out"),
+                            envir = getNamespace("nonprobsvy"))
     if (is.null(pop_totals)) {
       N <- sum(weights_rand)
 

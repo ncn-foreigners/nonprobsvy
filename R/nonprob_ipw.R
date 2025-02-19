@@ -48,38 +48,29 @@ nonprob_ipw <- function(selection,
   eps <- control_selection$epsilon
   rep_type <- control_inference$rep_type
 
+  ## estimation method
   estimation_method <- est_method_ipw(est_method)
 
   # if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
 
   ## multiple dependent variables
   dependents <- paste(selection, collapse = " ")
-  outcome <- outcome_init <- stats::as.formula(paste(target[2], dependents))
+  outcome <- stats::as.formula(paste(target[2], dependents))
   outcomes <- make_outcomes(outcome)
 
-  output <- list()
-  ys <- list()
-
-  if (se) {
-    confidence_interval <- list()
-    SE_values <- list()
-  } else {
-    confidence_interval <- NULL
-    SE_values <- NULL
-  }
+  model <- make_model_frame(
+    formula = outcomes$outcome[[1]],
+    data = data,
+    svydesign = svydesign,
+    pop_totals = pop_totals
+  )
 
   if (!is.null(svydesign)) {
-    model <- make_model_frame(
-      formula = outcomes$outcome[[1]],
-      data = data,
-      svydesign = svydesign
-    )
 
     X_nons <- model$X_nons
     X_rand <- model$X_rand
     nons_names <- model$nons_names
     X <- rbind(X_rand, X_nons)
-
     R_nons <- rep(1, nrow(X_nons))
     R_rand <- rep(0, nrow(X_rand))
     R <- c(R_rand, R_nons)
@@ -94,10 +85,30 @@ nonprob_ipw <- function(selection,
     weights_rand <- 1 / ps_rand
     weights_sum <- sum(weights_rand, weights)
 
+  } else {
+
+    X_nons <- model$X_nons
+    nons_names <- model$nons_names
+    y_nons <- model$y_nons
+    R <- rep(1, nrow(X_nons))
+    n_nons <- nrow(X_nons)
+    pop_totals <- model$pop_totals
+
+    X_rand <- NULL
+    est_ps_rand <- NULL
+    est_ps_rand_der <- NULL
+    ps_rand <- NULL
+    n_rand <- 0
+    weights_rand <- NULL
+    X <- rbind(model$X_rand, model$X_nons)
+  }
+
+  output <- list()
+  ys <- list()
+
+  if (!is.null(svydesign)) {
     if (var_selection == TRUE) {
-      # X_stand <- cbind(1, ncvreg::std(X)) # standardization of variables before fitting
-      # TODO add std seperately on X_nons and X_rand, after that do join to X matrix
-      X_stand <- ncvreg::std(X) # penalizing without an intercept
+      X_stand <- ncvreg::std(X) # intercept is removed
       prior_weights <- c(weights_rand, weights)
 
       method <- switch(method_selection,
@@ -107,8 +118,6 @@ nonprob_ipw <- function(selection,
 
       inv_link <- method$make_link_inv
 
-      n <- nrow(X)
-      p <- ncol(X)
       # Cross-validation for variable selection
       cv <- cv_nonprobsvy_rcpp(
         X = X_stand,
@@ -180,56 +189,14 @@ nonprob_ipw <- function(selection,
     N <- sum(weights * weights_nons)
 
   } else {
-    if (var_selection == FALSE) { # TODO how to handle that
-      if (!is.null(pop_totals)) pop_size <- pop_totals[1]
-    }
-    if (!is.null(pop_means)) { # TO consider
-      if (!is.null(pop_size)) {
-        pop_totals <- c(pop_size, pop_size * pop_means)
-        names(pop_totals) <- c("(Intercept)", names(pop_means))
-      } else {
-        stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
-      }
-    }
-
-    model <- make_model_frame(
-      formula = outcomes$outcome[[1]],
-      data = data,
-      pop_totals = pop_totals
-    )
-
-    X_nons <- model$X_nons
-    nons_names <- model$nons_names
-    y_nons <- model$y_nons
-    R <- rep(1, nrow(X_nons))
-    n_nons <- nrow(X_nons)
-    pop_totals <- model$pop_totals
-
-    X_rand <- NULL
-    est_ps_rand <- NULL
-    est_ps_rand_der <- NULL
-    ps_rand <- NULL
-    n_rand <- 0
-    weights_rand <- NULL
-    log_likelihood <- "NULL"
-    X <- rbind(model$X_rand, model$X_nons) # joint matrix
-
     if (var_selection == TRUE) {
       X_stand <- ncvreg::std(X) # penalizing without an intercept
-      # pop_totals_varsel <- pop_totals[-1] - colMeans(model$X_nons[,-1]) / apply(model$X_nons[,-1], 2, sd) * pop_totals[1]
-      # print(pop_totals)
-      # print(pop_totals_varsel)
-      # stop("123")
-
       method <- switch(method_selection,
                        "logit" = model_ps("logit"),
                        "probit" = model_ps("probit"),
                        "cloglog" = model_ps("cloglog"))
 
       inv_link <- method$make_link_inv
-
-      n <- nrow(X)
-      p <- ncol(X)
 
       # Cross-validation for variable selection
       cv <- cv_nonprobsvy_rcpp(
@@ -252,6 +219,7 @@ nonprob_ipw <- function(selection,
         pop_totals = pop_totals[-1],
         verbose = verbose
       )
+
       min <- cv$min
       lambda <- cv$lambda
       theta_selected <- cv$theta_selected
@@ -261,39 +229,7 @@ nonprob_ipw <- function(selection,
       psel <- length(idx)
       X <- as.matrix(X[, idx, drop = FALSE])
       X_nons <- X_nons[, idx, drop = FALSE]
-      # data <- data[, idx, drop=FALSE]
-      # colnames(X_design) <- c("(Intercept)", colnames(Xsel))
-
-      ################ ESTIMATION
       pop_totals <- model$pop_totals[idx]
-    }
-
-    if (is.null(start_selection)) {
-      if (control_selection$start_type == "glm") {
-        start_selection <- start_fit(
-          X = X, # <--- does not work with pop_totals
-          R = R,
-          weights = weights,
-          weights_rand = weights_rand,
-          method_selection = method_selection
-        )
-      } else if (control_selection$start_type == "naive") {
-        start_h <- suppressWarnings(theta_h_estimation(
-          R = R,
-          X = X[, 1, drop = FALSE],
-          weights_rand = weights_rand,
-          weights = weights,
-          gee_h_fun = gee_h_fun,
-          method_selection = method_selection,
-          start = 0,
-          maxit = maxit,
-          nleqslv_method = control_selection$nleqslv_method,
-          nleqslv_global = control_selection$nleqslv_global,
-          nleqslv_xscalm = control_selection$nleqslv_xscalm,
-          pop_totals = pop_totals[1]
-        )$theta_h)
-        start_selection <- c(start_h, rep(0, ncol(X) - 1))
-      }
     }
 
     h_object <- theta_h_estimation(
@@ -303,7 +239,7 @@ nonprob_ipw <- function(selection,
       weights = weights,
       gee_h_fun = gee_h_fun,
       method_selection = method_selection,
-      start = start_selection,
+      start = if (is.null(start_selection)) numeric(ncol(X)) else start_selection,
       maxit = maxit,
       nleqslv_method = control_selection$nleqslv_method,
       nleqslv_global = control_selection$nleqslv_global,
@@ -383,9 +319,11 @@ nonprob_ipw <- function(selection,
       weights_nons = weights_nons,
       N = ifelse(is.null(pop_size), N, pop_size)
     )
-    # mu_hat <- weighted.mean(y_nons, w = weights * weights_nons)
   }
+
   if (se) {
+    confidence_interval <- list()
+    SE_values <- list()
     if (var_method == "analytic") {
       var_nonprob <- numeric(length = outcomes$l)
       var_prob <- numeric(length = outcomes$l)
@@ -500,6 +438,9 @@ nonprob_ipw <- function(selection,
       ))))
     }
   } else {
+    confidence_interval <- NULL
+    SE_values <- NULL
+
     for (k in 1:outcomes$l) {
       SE <- NA
       confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(
@@ -512,7 +453,7 @@ nonprob_ipw <- function(selection,
   for (k in 1:outcomes$l) {
     output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hats[k], SE = SE[k]))))
   }
-  X <- rbind(X_rand, X_nons) # joint model matrix
+
   parameters <- matrix(c(theta_hat, theta_standard_errors),
     ncol = 2,
     dimnames = list(
@@ -528,7 +469,7 @@ nonprob_ipw <- function(selection,
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   if (is.null(pop_size)) pop_size <- N # estimated pop_size
   names(pop_size) <- "pop_size"
-  names(ys) <- all.vars(outcome_init[[2]])
+  names(ys) <- all.vars(outcome[[2]])
 
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
@@ -573,7 +514,7 @@ nonprob_ipw <- function(selection,
   structure(
     list(
       data = data,
-      X = if (isTRUE(x)) X else NULL,
+      X = if (isTRUE(x)) rbind(X_rand, X_nons) else NULL,
       y = if (isTRUE(y)) ys else NULL,
       R = R,
       prob = prop_scores,

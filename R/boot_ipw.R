@@ -139,7 +139,9 @@ boot_ipw <- function(X_rand,
             method_selection = method_selection,
             maxit = maxit,
             pop_totals = pop_totals,
-            start = start_selection
+            nleqslv_method = control_selection$nleqslv_method,
+            nleqslv_global = control_selection$nleqslv_global,
+            nleqslv_xscalm = control_selection$nleqslv_xscalm
           )
           theta_hat_strap <- h_object_strap$theta_h
           ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
@@ -217,12 +219,16 @@ boot_ipw_multicore <- function(X_rand,
                                pop_totals,
                                verbose,
                                ...) {
+
   if (!is.null(weights_rand)) N <- sum(weights_rand)
+
   estimation_method <- est_method_ipw(est_method)
+
   method <- switch(method_selection,
                    "logit" = model_ps("logit"),
                    "probit" = model_ps("probit"),
                    "cloglog" = model_ps("cloglog"))
+
   inv_link <- method$make_link_inv
   rep_type <- control_inference$rep_type
 
@@ -230,14 +236,17 @@ boot_ipw_multicore <- function(X_rand,
   mu_hats_boot <- numeric(length = num_boot * mu_len)
   boot_vars <- numeric(length = mu_len)
 
-  if (verbose) message("Multicores bootstrap in progress..")
+  if (verbose) {
+    message("Multicore bootstrap in progress....")
+  }
 
   cl <- parallel::makeCluster(cores)
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
-  parallel::clusterExport(cl = cl, varlist = c("model_ps", "start_fit", "est_method_ipw", "control_sel",
-                                               "mu_hatIPW", "theta_h_estimation"
-  ))
+  parallel::clusterExport(cl = cl,
+                          varlist = c("model_ps", "est_method_ipw", "control_sel",
+                                      "mu_hatIPW", "theta_h_estimation"),
+                          envir = getNamespace("nonprobsvy"))
 
   rep_weights <- survey::as.svrepdesign(svydesign, type = rep_type, replicates = num_boot)$repweights$weights
 
@@ -316,7 +325,10 @@ boot_ipw_multicore <- function(X_rand,
           method_selection = method_selection,
           maxit = maxit,
           pop_totals = pop_totals,
-          start = start_selection
+          start = start_selection,
+          nleqslv_method = control_selection$nleqslv_method,
+          nleqslv_global = control_selection$nleqslv_global,
+          nleqslv_xscalm = control_selection$nleqslv_xscalm
         )
         theta_hat_strap <- h_object_strap$theta_h
         ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))

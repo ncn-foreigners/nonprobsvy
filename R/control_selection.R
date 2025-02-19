@@ -28,9 +28,8 @@
 #' @param print_level this argument determines the level of printing which is done during the optimization (for propensity score model) process.
 #' @param start_type - Type of method for start points for model fitting taking the following values
 #' \itemize{
-#' \item if \code{zero} then start is a vector of zeros (default).
-#' \item if \code{glm} then start taken from the glm function called on samples.
-#' \item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
+#' \item if \code{zero} then start is a vector of zeros (default for all methods).
+#' \item if \code{mle} (for `est_method="gee"` only) starting parameters are taken from the result of the `est_method="mle"` method.
 #' }
 #' @param nleqslv_method (for the `est_method="gee"` only) The method that will be passed to [nleqslv::nleqslv()] function.
 #' @param nleqslv_global (for the `est_method="gee"` only) The global strategy that will be passed to [nleqslv::nleqslv()] function.
@@ -62,7 +61,7 @@ control_sel <- function(est_method = c("mle", "gee"),
                         nlambda = 50,
                         nfolds = 10,
                         print_level = 0,
-                        start_type = c("zero", "glm", "naive"),
+                        start_type = c("zero", "mle", "naive"),
                         nleqslv_method = c("Broyden", "Newton"),
                         nleqslv_global = c("dbldog", "pwldog", "cline",
                                            "qline", "gline", "hook", "none"),

@@ -143,7 +143,12 @@ nonprob <- function(data,
   }
 
   ## processing data for all methods
-
+  if (is.null(pop_totals) && !is.null(pop_means) && !is.null(pop_size)) {
+    pop_totals <- c(pop_size, pop_size * pop_means)
+    names(pop_totals) <- c("(Intercept)", names(pop_means))
+  } else if (!is.null(pop_totals)) {
+    pop_size <- pop_totals[1]
+  }
 
   ## model estimates
   model_estimates <- switch(estimator,
