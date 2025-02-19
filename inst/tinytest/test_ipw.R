@@ -1,23 +1,4 @@
-# Load test data
-data(jvs)
-data(admin)
-
-
-# create objects ----------------------------------------------------------
-
-# Setup survey design
-expect_silent(
-  jvs_svy <- svydesign(
-    ids = ~1,
-    weights = ~weight,
-    strata = ~size + nace + region,
-    data = jvs)
-)
-
-
-N <- sum(weights(jvs_svy))
-pop_totals <- colSums(model.matrix(~region + private + nace + size, jvs)*jvs$weight)
-pop_means <- pop_totals[-1]/N
+source("_code_for_all_.R")
 
 # population data only ----------------------------------------------------------------
 

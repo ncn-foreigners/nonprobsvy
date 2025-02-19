@@ -1,18 +1,4 @@
-# Load required data
-data(admin)
-data(jvs)
-
-
-# Create objects ----------------------------------------------------------
-
-# Create survey design object
-expect_silent(
-  jvs_svy <- svydesign(
-  ids = ~1,
-  weights = ~weight,
-  strata = ~size + nace + region,
-  data = jvs
-))
+source("_code_for_all_.R")
 
 # Create standard IPW estimator
 expect_silent(ipw_est1 <- nonprob(

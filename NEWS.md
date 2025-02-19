@@ -53,6 +53,7 @@ nonprobsvy News and Updates
 -   documentation improved.
 -   switching completely to snake_case.
 -   extensive cleaning of the code.
+-   more unit-tests added.
 
 ### Documentation
 
