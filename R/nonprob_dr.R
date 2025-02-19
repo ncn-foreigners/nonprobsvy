@@ -13,7 +13,6 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 #' @rdname nonprob
-#' @export
 nonprob_dr <- function(selection,
                        outcome,
                        data,

@@ -13,7 +13,6 @@
 #' @import Rcpp
 #' @importFrom Rcpp evalCpp
 #' @rdname nonprob
-#' @export
 nonprob_mi <- function(outcome,
                        data,
                        svydesign,
@@ -34,12 +33,15 @@ nonprob_mi <- function(outcome,
                        y,
                        se,
                        ...) {
+
   var_selection <- control_inference$vars_selection
   outcome_init <- outcome
   outcomes <- make_outcomes(outcome)
   output <- list()
+
   ys <- list()
   outcome_list <- list()
+
   if (se) {
     confidence_interval <- list()
     SE_values <- list()
@@ -47,16 +49,23 @@ nonprob_mi <- function(outcome,
     confidence_interval <- NULL
     SE_values <- NULL
   }
+
   num_boot <- control_inference$num_boot
+
   if (method_outcome == "pmm" & (!is.null(pop_totals) | !is.null(pop_means))) {
+
     control_inference$var_method <- "bootstrap"
     message("Bootstrap variance only, analytical version during implementation.")
   }
+
   if (control_inference$var_method == "bootstrap") {
     stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
   }
+
   terms_obj <- terms(outcome)
+
   if (is.null(pop_totals) && !is.null(svydesign)) {
+
     prob_totals <- svytotal(reformulate(attr(terms_obj, "term.labels")), svydesign)
     prob_pop_totals <- c(sum(weights(svydesign)), prob_totals)
   }
@@ -71,7 +80,9 @@ nonprob_mi <- function(outcome,
       cond <- TRUE
       kk <- control_outcome$k - 1
       while (cond) {
+
         outcome_model_data <- make_model_frame(formula = outcome, data = data, svydesign = svydesign)
+
         X_nons <- outcome_model_data$X_nons
         X_rand <- outcome_model_data$X_rand
         nons_names <- outcome_model_data$nons_names
