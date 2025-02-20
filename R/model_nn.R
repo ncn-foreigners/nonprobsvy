@@ -1,131 +1,69 @@
-nn_nonprobsvy <- function(outcome,
-                          data,
-                          weights,
-                          family_outcome,
-                          X_nons,
-                          y_nons,
-                          X_rand,
-                          control,
-                          n_nons,
-                          n_rand,
-                          vars_selection,
-                          pop_totals,
-                          model_frame = NULL,
-                          start_outcome = NULL) { # TODO consider add data standardization before modelling
-
-  model_nons <- nonprob_mi_nn(
-    data = X_nons,
-    query = X_nons,
-    k = control$k,
-    treetype = control$treetype,
-    searchtype = control$searchtype
-  )
-  if (is.null(pop_totals)) {
-    model_rand <- nonprob_mi_nn(
-      data = X_nons,
-      query = X_rand,
-      k = control$k,
-      treetype = control$treetype,
-      searchtype = control$searchtype
-    )
-    y_rand_pred <- vector(mode = "numeric", length = n_rand)
-    y_nons_pred <- vector(mode = "numeric", length = n_nons)
-    parameters <- "Non-parametric method for outcome model"
-
-    y_rand_pred <- apply(model_rand$nn.idx, 1,
-      FUN = function(x) mean(y_nons[x])
-      # FUN=function(x) mean(sample_nonprob$short_[x])
-    )
-
-    y_nons_pred <- apply(model_nons$nn.idx, 1,
-      FUN = function(x) mean(y_nons[x])
-      # FUN=function(x) mean(sample_nonprob$short_[x])
-    )
-  } else {
-    model_rand <- nonprob_mi_nn(
-      data = X_nons,
-      query = t(as.matrix(pop_totals / pop_totals[1])),
-      k = control$k,
-      treetype = control$treetype,
-      searchtype = control$searchtype
-    )
-    y_rand_pred <- vector(mode = "numeric", length = 1)
-    y_nons_pred <- vector(mode = "numeric", length = n_nons)
-    parameters <- "Non-parametric method for outcome model"
-
-    y_rand_pred <- mean(y_nons[model_rand$nn.idx])
-    y_nons_pred <- apply(model_nons$nn.idx, 1,
-      FUN = function(x) mean(y_nons[x])
-      # FUN=function(x) mean(sample_nonprob$short_[x])
-    )
-  }
-
-  model_out <- list(
-    model_nons = model_nons,
-    model_rand = model_rand
-  )
-  list(
-    model = model_out,
-    y_rand_pred = y_rand_pred,
-    y_nons_pred = y_nons_pred,
-    parameters = parameters
-  )
-}
-
-
-nonprob_mi_nn <- function(data,
-                          query,
-                          k,
-                          treetype,
-                          searchtype,
-                          radius = 0,
-                          eps = 0) {
-  model_nn <- RANN::nn2(
-    data = data,
-    query = query,
-    k = k,
-    treetype = treetype,
-    searchtype = searchtype,
-    radius = radius,
-    eps = eps
-  )
-  model_nn
-}
-
-
-#' "exact" variance estimator for the NN estimator
-#' should be renamed with something that refers to variance
-#' @noRd
-nn_exact <- function(pi_ij,
-                     weights_rand,
-                     n_nons,
-                     y,
+#' Function for the mass imputation model using nn method
+#'
+#' @importFrom stats glm.fit
+#' @importFrom ncvreg cv.ncvreg
+#' @importFrom stats update
+#' @importFrom survey svymean
+#'
+#' @description
+#' Model for the outcome for the mass imputation estimator
+#'
+#'
+#' @param y_nons target variable from non-probability sample
+#' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
+#' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
+#' @param weights case / frequency weights from non-probability sample
+#' @param svydesign a svydesign object
+#' @param family_outcome family for the glm model
+#' @param start_outcome start parameters
+#' @param vars_selection whether variable selection should be conducted
+#' @param pop_totals population totals from the `nonprob` function
+#' @param pop_size population size from the `nonprob` function
+#' @param control_outcome controls passed by the `control_out` function
+#' @param verbose parameter passed from the main `nonprob` function
+#' @param se whether standard errors should be calculated
+#'
+#' @returns an `nonprob_model` class which is a `list` with the following entries
+#'
+#' \describe{
+#'   \item{model_fitted}{fitted model either an `glm.fit` or `cv.ncvreg` object}
+#'   \item{y_nons_pred}{predicted values for the non-probablity sample}
+#'   \item{y_rand_pred}{predicted values for the probability sample or population totals}
+#'   \item{coefficients}{coefficients for the model (if available)}
+#'   \item{svydesign}{an updated `surveydesign2` object (new column `y_hat_MI` is added)}
+#'   \item{y_mi_hat}{estimated population mean for the target variable}
+#'   \item{vars_selection}{whether variable selection was performed}
+#'   \item{var_prob}{variance for the probability sample component (if available)}
+#'   \item{var_nonprob}{variance for the non-probability sampl component}
+#'   \item{model}{model type (character `"nn"`)}
+#' }
+#' @export
+model_nn <- function(y_nons,
                      X_nons,
                      X_rand,
-                     k,
-                     control,
-                     N) {
-  loop_size <- 50
-
-  dd <- numeric(length = loop_size)
-  for (jj in 1:loop_size) {
-    boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
-    # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
-    y_nons_b <- y[boot_samp]
-    x_nons_b <- X_nons[boot_samp, , drop = FALSE]
-
-    YY <- nonprob_mi_nn(
-      data = x_nons_b,
-      query = X_rand,
-      k = k,
-      treetype = control$treetype,
-      searchtype = control$searchtype
-    )
-
-    dd[jj] <- weighted.mean(
-      apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons_b[x])),
-      weights_rand
-    )
-  }
-  var(dd)
+                     weights,
+                     svydesign,
+                     family_outcome,
+                     start_outcome,
+                     vars_selection,
+                     pop_totals,
+                     pop_size,
+                     control_outcome,
+                     verbose,
+                     se) {
+  return(
+    structure(
+      list(
+        model_fitted = NULL,
+        y_nons_pred = NULL,
+        y_rand_pred = NULL,
+        coefficients = NULL,
+        svydesign = NULL,
+        y_mi_hat = NULL,
+        vars_selection = NULL,
+        var_prob = NULL,
+        var_nonprob = NULL,
+        model = "nn"
+      ), class = "nonprob_model")
+  )
 }

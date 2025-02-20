@@ -1,4 +1,4 @@
-#' Function for the mass imputation model using pmm method
+#' Function for the mass imputation model using nonparametric method
 #'
 #' @importFrom stats glm.fit
 #' @importFrom ncvreg cv.ncvreg
@@ -35,22 +35,22 @@
 #'   \item{vars_selection}{whether variable selection was performed}
 #'   \item{var_prob}{variance for the probability sample component (if available)}
 #'   \item{var_nonprob}{variance for the non-probability sampl component}
-#'   \item{model}{model type (character `"pmm"`)}
+#'   \item{model}{model type (character `"npar"`)}
 #' }
 #' @export
-model_pmm <- function(y_nons,
-                      X_nons,
-                      X_rand,
-                      weights,
-                      svydesign,
-                      family_outcome,
-                      start_outcome,
-                      vars_selection,
-                      pop_totals,
-                      pop_size,
-                      control_outcome,
-                      verbose,
-                      se) {
+model_npar <- function(y_nons,
+                       X_nons,
+                       X_rand,
+                       weights,
+                       svydesign,
+                       family_outcome,
+                       start_outcome,
+                       vars_selection,
+                       pop_totals,
+                       pop_size,
+                       control_outcome,
+                       verbose,
+                       se) {
   return(
     structure(
       list(
@@ -63,7 +63,7 @@ model_pmm <- function(y_nons,
         vars_selection = NULL,
         var_prob = NULL,
         var_nonprob = NULL,
-        model = "pmm"
+        model = "npar"
       ), class = "nonprob_model")
   )
 }

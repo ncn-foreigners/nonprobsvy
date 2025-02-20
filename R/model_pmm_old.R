@@ -1,0 +1,238 @@
+#' @importFrom stats loess
+#' @importFrom stats predict
+#' @importFrom stats loess.control
+pmm_nonprobsvy <- function(outcome,
+                           data,
+                           weights,
+                           family_outcome,
+                           start_outcome,
+                           X_nons,
+                           y_nons,
+                           X_rand,
+                           control,
+                           n_nons,
+                           n_rand,
+                           vars_selection,
+                           pop_totals,
+                           model_frame) {
+  glm_object <- switch(control$pmm_reg_engine,
+    "glm" = glm_nonprobsvy(
+      outcome,
+      data,
+      weights,
+      family_outcome,
+      start_outcome = start_outcome,
+      X_nons,
+      y_nons,
+      X_rand,
+      control,
+      n_nons,
+      n_rand,
+      model_frame,
+      vars_selection,
+      pop_totals
+    ),
+    "loess" = {
+      # doesn't accept weights
+      mm <- stats::loess(
+        outcome,
+        data,
+        span = .2,
+        control = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
+      )
+      mm$data <- data
+      mm$formula <- outcome
+
+      list(
+        model = mm,
+        y_rand_pred = predict(mm, newdata = model_frame),
+        y_nons_pred = predict(mm),
+        parameters = NULL
+      )
+    }
+  )
+  # add protection for very low values in weighting
+  switch(control$pmm_match_type,
+    { # 1
+      if (is.null(pop_totals)) {
+        model_rand <- nonprob_mi_nn(
+          data = glm_object$y_nons_pred,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        y_rand_pred <- apply(model_rand$nn.idx, 1,
+          FUN = function(x) mean(y_nons[x])
+          # FUN=function(x) mean(sample_nonprob$short_[x])
+        )
+
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = function(x) mean(y_nons[x])
+              # FUN=function(x) mean(sample_nonprob$short_[x])
+            )
+          },
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = function(x) {
+                weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                  w = 1 / model_rand$nn.dist[x, ]
+                )
+              }
+              # FUN=function(x) mean(sample_nonprob$short_[x])
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprob_mi_nn(
+          data = glm_object$y_nons_pred,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    },
+    { # 2
+      if (is.null(pop_totals)) {
+        model_rand <- nonprob_mi_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+
+        switch(control$pmm_weights,
+          "none" = {
+            y_rand_pred <- apply(model_rand$nn.idx, 1,
+              FUN = function(x) mean(y_nons[x])
+              # FUN=function(x) mean(sample_nonprob$short_[x])
+            )
+          },
+          "prop_dist" = {
+            # TODO:: these weights will need to be saved for variance estimation
+            y_rand_pred <- sapply(1:NROW(model_rand$nn.idx),
+              FUN = function(x) {
+                weighted.mean(y_nons[model_rand$nn.idx[x, ]],
+                  w = 1 / model_rand$nn.dist[x, ]
+                )
+              }
+              # FUN=function(x) mean(sample_nonprob$short_[x])
+            )
+          }
+        )
+      } else {
+        # I'm not touching this
+        model_rand <- nonprob_mi_nn(
+          data = y_nons,
+          query = glm_object$y_rand_pred,
+          k = control$k,
+          treetype = control$treetype,
+          searchtype = control$searchtype
+        )
+        y_rand_pred <- mean(y_nons[model_rand$nn.idx])
+      }
+    }
+  )
+
+  model_out <- list(
+    # model_nons = model_nons,
+    model_rand = model_rand,
+    glm_object = glm_object$model
+  )
+  attr(model_out, "method") <- "pmm"
+  list(
+    model = model_out,
+    y_rand_pred = y_rand_pred,
+    # y_nons_pred = y_nons_pred,
+    parameters = glm_object$parameters
+  )
+}
+
+
+
+pmm_exact <- function(pi_ij,
+                      weights_rand,
+                      n_nons,
+                      y,
+                      pmm_reg_engine,
+                      # stats, #why is this here?
+                      # glm,   #why is this here?
+                      model_obj,
+                      svydesign,
+                      pmm_match_type,
+                      k,
+                      N) {
+  loop_size <- 50
+
+  dd <- numeric(length = loop_size)
+  for (jj in 1:loop_size) {
+    reg_object_boot <- NULL
+    while (is.null(reg_object_boot)) {
+      boot_samp <- sample(1:n_nons, size = n_nons, replace = TRUE)
+      # boot_samp <- sample(1:n_rand, size = n_rand, replace = TRUE)
+      y_nons_b <- y[boot_samp]
+
+      reg_object_boot <- switch(pmm_reg_engine,
+        "glm" = stats::glm(
+          formula = model_obj$model$glm_object$formula,
+          data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+          # weights = weights,
+          family = model_obj$model$glm_object$family,
+          start = model_obj$model$glm_object$coefficients
+        ),
+        "loess" = stats::loess(
+          formula = model_obj$model$glm_object$formula,
+          data = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+          span = .2,
+          control = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
+        )
+      )
+      XX <- predict(
+        reg_object_boot,
+        newdata = svydesign$variables,
+        type = "response"
+      )
+      if (any(!is.finite(XX))) {
+        reg_object_boot <- NULL
+      }
+    }
+    YY <- switch(pmm_match_type,
+      {
+        nonprob_mi_nn(
+          data = predict(
+            reg_object_boot,
+            newdata = model_obj$model$glm_object$data[boot_samp, , drop = FALSE],
+            type = "response"
+          ),
+          query = XX,
+          k = k,
+          searchtype = "standard",
+          treetype = "kd"
+        )
+      },
+      {
+        nonprob_mi_nn(
+          data = y_nons_b,
+          query = XX,
+          k = k,
+          searchtype = "standard",
+          treetype = "kd"
+        )
+      }
+    )
+
+    dd[jj] <- weighted.mean(
+      apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons_b[x])),
+      weights_rand
+    )
+  }
+  var(dd)
+}

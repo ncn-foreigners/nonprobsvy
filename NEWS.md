@@ -40,6 +40,12 @@ nonprobsvy News and Updates
     totals of the variables based on the weighted weights between the
     non-probability and probability samples.
 -   citation file added.
+-   new functions added and exported:
+      - `model_ps` -- for modelling propensity score
+      - `model_glm` -- for modelling y using `glm` function
+      - `model_nn` -- for the NN method
+      - `model_pmm` -- for the PMM method
+      - `model_npar` -- for the non-parametric method
 
 ### Bugfixes
 

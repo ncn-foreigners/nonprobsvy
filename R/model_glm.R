@@ -26,11 +26,12 @@
 #' @returns an `nonprob_model` class which is a `list` with the following entries
 #'
 #' \describe{
-#'   \item{model}{fitted model either an `glm.fit` or `cv.ncvreg` object}
+#'   \item{model_fitted}{fitted model either an `glm.fit` or `cv.ncvreg` object}
 #'   \item{y_nons_pred}{predicted values for the non-probablity sample}
 #'   \item{y_rand_pred}{predicted values for the probability sample or population totals}
 #'   \item{coefficients}{coefficients for the model (if available)}
 #'   \item{svydesign}{an updated `surveydesign2` object (new column `y_hat_MI` is added)}
+#'   \item{y_mi_hat}{estimated population mean for the target variable}
 #'   \item{vars_selection}{whether variable selection was performed}
 #'   \item{var_prob}{variance for the probability sample component (if available)}
 #'   \item{var_nonprob}{variance for the non-probability sampl component}
@@ -115,6 +116,8 @@ model_glm <- function(y_nons,
 
     if (is.null(pop_totals)) {
       svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
+      y_mi_hat <- as.numeric(y_mi_hat)
+
       var_prob <- as.vector(attr(svydesign_mean, "var"))
 
       beta <- model_fitted$coefficients[, 1]
@@ -132,6 +135,8 @@ model_glm <- function(y_nons,
       eta_nons <- X_nons %*% beta
       eta_rand <- pop_totals %*% beta
 
+      y_mi_hat <- weighted.mean(as.vector(model_fitted$family$mu.eta(eta_rand)), pop_totals)
+
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
       c <- solve(1 / nrow(X_nons) * t(as.data.frame(X_nons) * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
       var_nonprob <- as.vector(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
@@ -144,11 +149,12 @@ model_glm <- function(y_nons,
   return(
     structure(
       list(
-        model = model_fitted,
+        model_fitted = model_fitted,
         y_nons_pred = y_nons_pred,
         y_rand_pred = y_rand_pred,
         coefficients = model_fitted$coefficients,
         svydesign = if (is.null(svydesign)) svydesign else svydesign_updated,
+        y_mi_hat = y_mi_hat,
         vars_selection = vars_selection,
         var_prob = var_prob,
         var_nonprob = var_nonprob,
