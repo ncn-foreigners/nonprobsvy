@@ -39,9 +39,9 @@ internal_varDR <- function(outcome_model,
     h_n <- 1 / N_nons * sum(outcome_model$y_nons - y_nons_pred) # TODO add weights # errors mean
 
     method <- switch(method_selection,
-                     "logit" = model_ps("logit"),
-                     "probit" = model_ps("probit"),
-                     "cloglog" = model_ps("cloglog"))
+                     "logit" = method_ps("logit"),
+                     "probit" = method_ps("probit"),
+                     "cloglog" = method_ps("cloglog"))
 
     estimation_method <- est_method_ipw(est_method)
 

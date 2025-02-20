@@ -38,19 +38,19 @@
 #'   \item{model}{model type (character `"glm"`)}
 #' }
 #' @export
-model_glm <- function(y_nons,
-                      X_nons,
-                      X_rand,
-                      weights,
-                      svydesign,
-                      family_outcome,
-                      start_outcome,
-                      vars_selection,
-                      pop_totals,
-                      pop_size,
-                      control_outcome,
-                      verbose,
-                      se) {
+method_glm <- function(y_nons,
+                       X_nons,
+                       X_rand,
+                       weights,
+                       svydesign,
+                       family_outcome,
+                       start_outcome, ## do not needed?
+                       vars_selection,
+                       pop_totals,
+                       pop_size,
+                       control_outcome,
+                       verbose,
+                       se) {
 
   predict.glm.fit <- function(object, newdata) {
     coefficients <- object$coefficients
@@ -73,7 +73,6 @@ model_glm <- function(y_nons,
         trace = control_outcome$trace
       ),
       intercept = FALSE)
-    y_nons_pred <- model_fitted$fitted.values
   } else {
     model_fitted <- ncvreg::cv.ncvreg(
         X = X_nons[, -1, drop = FALSE],
@@ -100,10 +99,12 @@ model_glm <- function(y_nons,
     }
 
     if (is.null(pop_totals)) {
-      y_rand_pred <- predict.glm.fit(model_fitted$glm, X_rand)
-      residuals <- as.vector(y_nons - y_rand_pred)
+      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
+      y_rand_pred <- predict.glm.fit(model_fitted, X_rand)
+      residuals <- as.vector(y_nons - predict.glm.fit(model_fitted, X_nons))
       svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
     } else {
+      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
       eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
       y_rand_pred <- model_fitted$family$linkinv(eta)
     }
@@ -116,29 +117,29 @@ model_glm <- function(y_nons,
 
     if (is.null(pop_totals)) {
       svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
-      y_mi_hat <- as.numeric(y_mi_hat)
+      y_mi_hat <- as.numeric(svydesign_mean)
 
       var_prob <- as.vector(attr(svydesign_mean, "var"))
 
-      beta <- model_fitted$coefficients[, 1]
-      eta_nons <- X_nons %*% beta
-      eta_rand <- X_rand %*% beta
+      beta <- model_fitted$coefficients
+      eta_nons <- drop(X_nons %*% beta)
+      eta_rand <- drop(X_rand %*% beta)
 
-      mx <- 1 / pop_size * colSums(as.data.frame(X_rand) * (weights(svydesign_updated) * model_fitted$family$mu.eta(eta_rand)))
-      c <- solve(1 / nrow(X_nons) * t(as.data.frame(X_nons) * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
-      var_nonprob <- as.vector(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
+      mx <- 1 / pop_size * colSums(X_rand * (weights(svydesign_updated) * model_fitted$family$mu.eta(eta_rand)))
+      c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
+      var_nonprob <- drop(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
 
     } else {
       var_prob <- 0
 
-      beta <- model_fitted$coefficients[, 1]
+      beta <- model_fitted$coefficients
       eta_nons <- X_nons %*% beta
       eta_rand <- pop_totals %*% beta
 
       y_mi_hat <- weighted.mean(as.vector(model_fitted$family$mu.eta(eta_rand)), pop_totals)
 
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
-      c <- solve(1 / nrow(X_nons) * t(as.data.frame(X_nons) * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
+      c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
       var_nonprob <- as.vector(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
       }
     } else {

@@ -38,19 +38,19 @@
 #'   \item{model}{model type (character `"pmm"`)}
 #' }
 #' @export
-model_pmm <- function(y_nons,
-                      X_nons,
-                      X_rand,
-                      weights,
-                      svydesign,
-                      family_outcome,
-                      start_outcome,
-                      vars_selection,
-                      pop_totals,
-                      pop_size,
-                      control_outcome,
-                      verbose,
-                      se) {
+method_pmm <- function(y_nons,
+                       X_nons,
+                       X_rand,
+                       weights,
+                       svydesign,
+                       family_outcome,
+                       start_outcome,
+                       vars_selection,
+                       pop_totals,
+                       pop_size,
+                       control_outcome,
+                       verbose,
+                       se) {
   return(
     structure(
       list(

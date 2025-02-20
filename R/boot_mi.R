@@ -450,7 +450,7 @@ boot_mi_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl,
-                          varlist = c("model_ps", "est_method_ipw", "control_sel",
+                          varlist = c("method_ps", "est_method_ipw", "control_sel",
                                       "mle", "mu_hatIPW", "nonprob_mi_nn"),
                           envir = getNamespace("nonprobsvy"))
 

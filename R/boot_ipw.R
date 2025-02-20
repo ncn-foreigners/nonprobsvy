@@ -30,9 +30,9 @@ boot_ipw <- function(X_rand,
   estimation_method <- est_method_ipw(est_method)
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   k <- 1
@@ -225,9 +225,9 @@ boot_ipw_multicore <- function(X_rand,
   estimation_method <- est_method_ipw(est_method)
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   rep_type <- control_inference$rep_type
@@ -244,7 +244,7 @@ boot_ipw_multicore <- function(X_rand,
   doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl,
-                          varlist = c("model_ps", "est_method_ipw", "control_sel",
+                          varlist = c("method_ps", "est_method_ipw", "control_sel",
                                       "mu_hatIPW", "theta_h_estimation"),
                           envir = getNamespace("nonprobsvy"))
 

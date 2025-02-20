@@ -75,9 +75,9 @@ mm <- function(X,
                boot = FALSE) {
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der

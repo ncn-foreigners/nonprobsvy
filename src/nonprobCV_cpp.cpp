@@ -18,8 +18,8 @@ inline double loss_theta(const vec& par,
                          Nullable<arma::vec> pop_totals) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
-  List method = model_ps(method_selection);
+  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
+  List method = method_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
 
@@ -75,8 +75,8 @@ inline arma::vec u_theta(const arma::vec& par,
                          Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
-  List method = model_ps(method_selection);
+  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
+  List method = method_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
 
@@ -116,8 +116,8 @@ arma::mat u_theta_der(const arma::vec& par,
                       Nullable<int> N = R_NilValue) { // TODO add weights
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function model_ps = nonprobsvy_env["model_ps"];
-  List method = model_ps(method_selection);
+  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
+  List method = method_ps(method_selection);
 
   Function inv_link = method["make_link_inv"];
   Function inv_link_der = method["make_link_inv_der"];

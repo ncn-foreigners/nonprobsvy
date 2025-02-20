@@ -27,7 +27,7 @@ nonprobsvy News and Updates
     adjusted to this change
 -   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
     `cloglog_model_nonprobsvy` removed in the favour of more readable
-    `model_ps` function that specifies the propensity score model
+    `method_ps` function that specifies the propensity score model
 
 ### Features
 
@@ -41,11 +41,11 @@ nonprobsvy News and Updates
     non-probability and probability samples.
 -   citation file added.
 -   new functions added and exported:
-      - `model_ps` -- for modelling propensity score
-      - `model_glm` -- for modelling y using `glm` function
-      - `model_nn` -- for the NN method
-      - `model_pmm` -- for the PMM method
-      - `model_npar` -- for the non-parametric method
+      - `method_ps` -- for modelling propensity score
+      - `method_glm` -- for modelling y using `glm` function
+      - `method_nn` -- for the NN method
+      - `method_pmm` -- for the PMM method
+      - `method_npar` -- for the non-parametric method
 
 ### Bugfixes
 

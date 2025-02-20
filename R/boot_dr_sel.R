@@ -148,7 +148,7 @@ boot_dr_sel_multicore <- function(X,
   on.exit(parallel::stopCluster(cl))
   parallel::clusterExport(cl = cl,
                           varlist = c(
-                            "internal_selection", "model_ps", "est_method_ipw", "control_sel",
+                            "internal_selection", "method_ps", "est_method_ipw", "control_sel",
                             "est_method_dr", "u_theta_beta_dr","mu_hatDR"),
                           envir = getNamespace("nonprobsvy"))
 

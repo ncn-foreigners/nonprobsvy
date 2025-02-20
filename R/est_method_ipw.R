@@ -94,9 +94,9 @@ u_theta <- function(R,
                     pop_size = NULL) {
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   function(par) {
@@ -136,9 +136,9 @@ u_theta_der <- function(R,
                         pop_totals = NULL) {
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   dinv_link <- method$make_link_inv_der
@@ -254,9 +254,9 @@ u_theta_beta_dr <- function(par,
                             family_nonprobsvy) {
 
   method <- switch(method_selection,
-                   "logit" = model_ps("logit"),
-                   "probit" = model_ps("probit"),
-                   "cloglog" = model_ps("cloglog"))
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
 
   inv_link <- method$make_link_inv
   inv_link_rev <- method$make_link_inv_rev
@@ -385,9 +385,9 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
                                 ...) {
 
       method <- switch(method_selection,
-                       "logit" = model_ps("logit"),
-                       "probit" = model_ps("probit"),
-                       "cloglog" = model_ps("cloglog"))
+                       "logit" = method_ps("logit"),
+                       "probit" = method_ps("probit"),
+                       "cloglog" = method_ps("cloglog"))
 
       inv_link <- method$make_link_inv
 
@@ -527,9 +527,9 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
     make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights, weights_sum) {
 
       method <- switch(method_selection,
-                       "logit" = model_ps("logit"),
-                       "probit" = model_ps("probit"),
-                       "cloglog" = model_ps("cloglog"))
+                       "logit" = method_ps("logit"),
+                       "probit" = method_ps("probit"),
+                       "cloglog" = method_ps("cloglog"))
 
       t_comp <- method$t_vec(
         X = X,
@@ -548,9 +548,9 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
                                  weights = weights, weights_sum, pop_totals = NULL) {
 
       method <- switch(method_selection,
-                       "logit" = model_ps("logit"),
-                       "probit" = model_ps("probit"),
-                       "cloglog" = model_ps("cloglog"))
+                       "logit" = method_ps("logit"),
+                       "probit" = method_ps("probit"),
+                       "cloglog" = method_ps("cloglog"))
 
       var_nonprob <- method$var_nonprob(
         ps = ps,
@@ -584,9 +584,9 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
                                 ...) {
 
       method <- switch(method_selection,
-                       "logit" = model_ps("logit"),
-                       "probit" = model_ps("probit"),
-                       "cloglog" = model_ps("cloglog"))
+                       "logit" = method_ps("logit"),
+                       "probit" = method_ps("probit"),
+                       "cloglog" = method_ps("cloglog"))
 
       inv_link <- method$make_link_inv
       dinv_link <- method$make_link_inv_der

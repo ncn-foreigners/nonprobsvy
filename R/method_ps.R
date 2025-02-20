@@ -35,11 +35,11 @@
 #' @examples
 #' # Printing information on the model selected
 #'
-#' model_ps()
+#' method_ps()
 #'
 #' # extracting specific field
 #'
-#' model_ps("cloglog")$make_gradient
+#' method_ps("cloglog")$make_gradient
 #'
 #' @importFrom Matrix Matrix
 #' @importFrom survey svyrecvar
@@ -49,8 +49,8 @@
 #' @importFrom stats pnorm
 #' @importFrom stats qlogis
 #' @export
-model_ps <- function(link = c("logit", "probit", "cloglog"),
-                     ...) {
+method_ps <- function(link = c("logit", "probit", "cloglog"),
+                      ...) {
 
   link_fun <- match.arg(link)
 
