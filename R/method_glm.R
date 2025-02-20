@@ -20,6 +20,7 @@
 #' @param pop_totals population totals from the `nonprob` function
 #' @param pop_size population size from the `nonprob` function
 #' @param control_outcome controls passed by the `control_out` function
+#' @param control_inference controls passed by the `control_inf` function (currently not used, for further development)
 #' @param verbose parameter passed from the main `nonprob` function
 #' @param se whether standard errors should be calculated
 #'
@@ -35,6 +36,7 @@
 #'   \item{vars_selection}{whether variable selection was performed}
 #'   \item{var_prob}{variance for the probability sample component (if available)}
 #'   \item{var_nonprob}{variance for the non-probability sampl component}
+#'   \item{var_total}{total variance, if possible it should be `var_prob+var_nonprob` if not, just a scalar}
 #'   \item{model}{model type (character `"glm"`)}
 #'   \item{family}{family type (character `"glm"`)}
 #' }
@@ -45,17 +47,26 @@ method_glm <- function(y_nons,
                        svydesign,
                        weights=NULL,
                        family_outcome="gaussian",
-                       start_outcome=NULL, ## do not needed?
+                       start_outcome=NULL,
                        vars_selection=FALSE,
                        pop_totals=NULL,
                        pop_size=NULL,
                        control_outcome=control_out(),
+                       control_inference=control_inf(),
                        verbose=FALSE,
                        se=TRUE) {
 
-  if (missing(y_nons) | missing(X_nons) | missing(X_rand) | missing(svydesign)) {
-    stop("`y_nons`, `X_nons`, `X_rand` and `svydesign` are required.")
+  ## this does not handle aggregated data
+
+  if (missing(y_nons) | missing(X_nons)) {
+    stop("Arguments `y_nons` and `X_nons` are required.")
   }
+
+  if (is.null(svydesign)) svydesign <- NULL
+  if (is.null(start_outcome)) start_outcome <- numeric(ncol(X_nons))
+  if (is.null(weights)) weights <- rep(1, nrow(X_nons))
+  if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
+
   predict.glm.fit <- function(object, newdata) {
     coefficients <- object$coefficients
     family <- object$family
@@ -63,10 +74,6 @@ method_glm <- function(y_nons,
     eta <- drop(newdata %*% coefficients) + offset
     return(family$linkinv(eta))
   }
-
-  if (is.null(start_outcome)) start_outcome <- numeric(ncol(X_nons))
-  if (is.null(weights)) weights <- rep(1, nrow(X_nons))
-  if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
   if (!vars_selection) {
     model_fitted <- stats::glm.fit(
@@ -91,9 +98,10 @@ method_glm <- function(y_nons,
       y_mi_hat <- as.numeric(svydesign_mean)
     } else {
       y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
-      eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
-      y_rand_pred <- model_fitted$family$linkinv(eta)
-      y_mi_hat <- weighted.mean(y_rand_pred, pop_totals)
+      y_rand_pred <- NA
+      residuals <- as.vector(y_nons - y_nons_pred)
+      eta <- drop(pop_totals %*% model_fitted$coefficients / pop_totals[1])
+      y_mi_hat <- model_fitted$family$linkinv(eta)
     }
   } else {
     model_fitted <- ncvreg::cv.ncvreg(
@@ -127,9 +135,10 @@ method_glm <- function(y_nons,
 
       } else {
         y_nons_pred <- predict(model_fitted, X_nons[, -1], type = "response")
-        eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
-        y_rand_pred <- model_fitted$family$linkinv(eta)
-        y_mi_hat <- weighted.mean(y_rand_pred, pop_totals)
+        y_rand_pred <- NA
+        residuals <- as.vector(y_nons - y_nons_pred)
+        eta <- drop(pop_totals %*% coef(model_fitted) / pop_totals[1])
+        y_mi_hat <- model_fitted$family$linkinv(eta)
       }
     }
 
@@ -153,8 +162,8 @@ method_glm <- function(y_nons,
       var_prob <- 0
 
       beta <- coef(model_fitted)
-      eta_nons <- X_nons %*% beta
-      eta_rand <- pop_totals %*% beta
+      eta_nons <- drop(X_nons %*% beta)
+      eta_rand <- drop(pop_totals %*% beta)
 
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
       c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
@@ -177,6 +186,7 @@ method_glm <- function(y_nons,
         vars_selection = vars_selection,
         var_prob = var_prob,
         var_nonprob = var_nonprob,
+        var_total = var_prob + var_nonprob,
         model = "glm",
         family = family_outcome
         ),

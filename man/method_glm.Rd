@@ -16,6 +16,7 @@ method_glm(
   pop_totals = NULL,
   pop_size = NULL,
   control_outcome = control_out(),
+  control_inference = control_inf(),
   verbose = FALSE,
   se = TRUE
 )
@@ -43,6 +44,8 @@ method_glm(
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
 
+\item{control_inference}{controls passed by the \code{control_inf} function (currently not used, for further development)}
+
 \item{verbose}{parameter passed from the main \code{nonprob} function}
 
 \item{se}{whether standard errors should be calculated}
@@ -60,6 +63,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 \item{vars_selection}{whether variable selection was performed}
 \item{var_prob}{variance for the probability sample component (if available)}
 \item{var_nonprob}{variance for the non-probability sampl component}
+\item{var_total}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
 \item{model}{model type (character \code{"glm"})}
 \item{family}{family type (character \code{"glm"})}
 }

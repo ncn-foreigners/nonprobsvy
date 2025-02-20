@@ -53,7 +53,7 @@ In most situations this term is negligible and is very computationally
 expensive so by default it is set to \code{FALSE}, but the recommended option is to
 set this value to \code{TRUE} before submitting the final results.}
 
-\item{pi_ij}{either a matrix or a \code{ppsmat} class object (default \code{NULL}).}
+\item{pi_ij}{either a matrix or a \code{ppsmat} class object (default \code{NULL}, currently not supported, for further development).}
 }
 \value{
 A \code{list} with selected parameters.
