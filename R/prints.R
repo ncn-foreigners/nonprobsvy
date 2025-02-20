@@ -148,6 +148,11 @@ print.nonprob_model <- function(x, ...) {
 
   if (x$model == "ps") {
     print(sprintf("Propensity score model with %s link", x$link))
+  } else {
+    print(sprintf("Prediction model (%s). Estimated mean: %s (SE: %s)",
+                  x$family,
+                  sprintf("%.4f", x$y_mi_hat),
+                  sprintf("%.4f", sqrt(x$var_prob+x$var_nonprob))))
   }
 
   invisible(x)

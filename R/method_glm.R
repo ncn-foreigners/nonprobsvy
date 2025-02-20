@@ -12,10 +12,10 @@
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
-#' @param weights case / frequency weights from non-probability sample
 #' @param svydesign a svydesign object
+#' @param weights case / frequency weights from non-probability sample
 #' @param family_outcome family for the glm model
-#' @param start_outcome start parameters
+#' @param start_outcome start parameters (default `NULL`)
 #' @param vars_selection whether variable selection should be conducted
 #' @param pop_totals population totals from the `nonprob` function
 #' @param pop_size population size from the `nonprob` function
@@ -36,22 +36,26 @@
 #'   \item{var_prob}{variance for the probability sample component (if available)}
 #'   \item{var_nonprob}{variance for the non-probability sampl component}
 #'   \item{model}{model type (character `"glm"`)}
+#'   \item{family}{family type (character `"glm"`)}
 #' }
 #' @export
 method_glm <- function(y_nons,
                        X_nons,
                        X_rand,
-                       weights,
                        svydesign,
-                       family_outcome,
-                       start_outcome, ## do not needed?
-                       vars_selection,
-                       pop_totals,
-                       pop_size,
-                       control_outcome,
-                       verbose,
-                       se) {
+                       weights=NULL,
+                       family_outcome="gaussian",
+                       start_outcome=NULL, ## do not needed?
+                       vars_selection=FALSE,
+                       pop_totals=NULL,
+                       pop_size=NULL,
+                       control_outcome=control_out(),
+                       verbose=FALSE,
+                       se=TRUE) {
 
+  if (missing(y_nons) | missing(X_nons) | missing(X_rand) | missing(svydesign)) {
+    stop("`y_nons`, `X_nons`, `X_rand` and `svydesign` are required.")
+  }
   predict.glm.fit <- function(object, newdata) {
     coefficients <- object$coefficients
     family <- object$family
@@ -60,12 +64,16 @@ method_glm <- function(y_nons,
     return(family$linkinv(eta))
   }
 
+  if (is.null(start_outcome)) start_outcome <- numeric(ncol(X_nons))
+  if (is.null(weights)) weights <- rep(1, nrow(X_nons))
+  if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
+
   if (!vars_selection) {
     model_fitted <- stats::glm.fit(
       x = X_nons,
       y = y_nons,
       weights = weights,
-      family = family_outcome, ## only gaussian() etc
+      family = get(family_outcome)(),
       start = start_outcome,
       control = list(
         epsilon = control_outcome$epsilon,
@@ -73,6 +81,20 @@ method_glm <- function(y_nons,
         trace = control_outcome$trace
       ),
       intercept = FALSE)
+
+    if (is.null(pop_totals)) {
+      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
+      y_rand_pred <- predict.glm.fit(model_fitted, X_rand)
+      residuals <- as.vector(y_nons - y_nons_pred)
+      svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
+      svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
+      y_mi_hat <- as.numeric(svydesign_mean)
+    } else {
+      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
+      eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
+      y_rand_pred <- model_fitted$family$linkinv(eta)
+      y_mi_hat <- weighted.mean(y_rand_pred, pop_totals)
+    }
   } else {
     model_fitted <- ncvreg::cv.ncvreg(
         X = X_nons[, -1, drop = FALSE],
@@ -90,38 +112,36 @@ method_glm <- function(y_nons,
         eps = control_outcome$epsilon
       )
 
-      beta_est <- model_fitted$fit$beta[, model_fitted$min]
-      beta_selected <- which(abs(beta_est) != 0) - 1
-      beta_est <- beta_est[model_fitted$fit$beta[, model_fitted$min] != 0]
-      cve_outcome <- model_fitted$cve
-      lambda_outcome <- model_fitted$lambda
-      lambda_min_outcome <- model_fitted$lambda.min
+      model_fitted$family <- get(model_fitted$fit$family)()
+      #beta_est <- model_fitted$fit$beta[, model_fitted$min]
+      #beta_selected <- unname(which(abs(beta_est) > 0))
+      #beta_est <- beta_est[beta_selected]
+
+      if (is.null(pop_totals)) {
+        y_nons_pred <- predict(model_fitted, X_nons[, -1], type = "response")
+        y_rand_pred <- predict(model_fitted, X_rand[, -1], type = "response")
+        residuals <- as.vector(y_nons - y_nons_pred)
+        svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
+        svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
+        y_mi_hat <- as.numeric(svydesign_mean)
+
+      } else {
+        y_nons_pred <- predict(model_fitted, X_nons[, -1], type = "response")
+        eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
+        y_rand_pred <- model_fitted$family$linkinv(eta)
+        y_mi_hat <- weighted.mean(y_rand_pred, pop_totals)
+      }
     }
-
-    if (is.null(pop_totals)) {
-      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
-      y_rand_pred <- predict.glm.fit(model_fitted, X_rand)
-      residuals <- as.vector(y_nons - predict.glm.fit(model_fitted, X_nons))
-      svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
-    } else {
-      y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
-      eta <- pop_totals %*% model_fitted$coefficients / pop_totals[1]
-      y_rand_pred <- model_fitted$family$linkinv(eta)
-    }
-
-
 
 
   ## variance components
   if (se) {
 
     if (is.null(pop_totals)) {
-      svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
-      y_mi_hat <- as.numeric(svydesign_mean)
 
       var_prob <- as.vector(attr(svydesign_mean, "var"))
 
-      beta <- model_fitted$coefficients
+      beta <- coef(model_fitted)
       eta_nons <- drop(X_nons %*% beta)
       eta_rand <- drop(X_rand %*% beta)
 
@@ -132,11 +152,9 @@ method_glm <- function(y_nons,
     } else {
       var_prob <- 0
 
-      beta <- model_fitted$coefficients
+      beta <- coef(model_fitted)
       eta_nons <- X_nons %*% beta
       eta_rand <- pop_totals %*% beta
-
-      y_mi_hat <- weighted.mean(as.vector(model_fitted$family$mu.eta(eta_rand)), pop_totals)
 
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
       c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
@@ -153,14 +171,16 @@ method_glm <- function(y_nons,
         model_fitted = model_fitted,
         y_nons_pred = y_nons_pred,
         y_rand_pred = y_rand_pred,
-        coefficients = model_fitted$coefficients,
+        coefficients = coef(model_fitted),
         svydesign = if (is.null(svydesign)) svydesign else svydesign_updated,
         y_mi_hat = y_mi_hat,
         vars_selection = vars_selection,
         var_prob = var_prob,
         var_nonprob = var_nonprob,
-        model = "glm"
-    ), class = "nonprob_model")
+        model = "glm",
+        family = family_outcome
+        ),
+      class = "nonprob_model")
   )
 }
 
