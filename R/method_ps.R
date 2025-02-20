@@ -757,6 +757,6 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   link_funs$link <- link_fun
   link_funs$model <- "ps"
-  class(link_funs) <- "nonprob_model"
+  class(link_funs) <- "nonprob_method"
   return(link_funs)
 }

@@ -48,7 +48,7 @@ method_nn(
 \item{se}{whether standard errors should be calculated}
 }
 \value{
-an \code{nonprob_model} class which is a \code{list} with the following entries
+an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
 \item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}

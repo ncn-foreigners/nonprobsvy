@@ -23,7 +23,7 @@
 #' @param verbose parameter passed from the main `nonprob` function
 #' @param se whether standard errors should be calculated
 #'
-#' @returns an `nonprob_model` class which is a `list` with the following entries
+#' @returns an `nonprob_method` class which is a `list` with the following entries
 #'
 #' \describe{
 #'   \item{model_fitted}{fitted model either an `glm.fit` or `cv.ncvreg` object}
@@ -180,7 +180,7 @@ method_glm <- function(y_nons,
         model = "glm",
         family = family_outcome
         ),
-      class = "nonprob_model")
+      class = "nonprob_method")
   )
 }
 

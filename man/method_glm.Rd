@@ -8,16 +8,16 @@ method_glm(
   y_nons,
   X_nons,
   X_rand,
-  weights,
   svydesign,
-  family_outcome,
-  start_outcome,
-  vars_selection,
-  pop_totals,
-  pop_size,
-  control_outcome,
-  verbose,
-  se
+  weights = NULL,
+  family_outcome = "gaussian",
+  start_outcome = NULL,
+  vars_selection = FALSE,
+  pop_totals = NULL,
+  pop_size = NULL,
+  control_outcome = control_out(),
+  verbose = FALSE,
+  se = TRUE
 )
 }
 \arguments{
@@ -27,13 +27,13 @@ method_glm(
 
 \item{X_rand}{a \code{model.matrix} with auxiliary variables from non-probability sample}
 
-\item{weights}{case / frequency weights from non-probability sample}
-
 \item{svydesign}{a svydesign object}
+
+\item{weights}{case / frequency weights from non-probability sample}
 
 \item{family_outcome}{family for the glm model}
 
-\item{start_outcome}{start parameters}
+\item{start_outcome}{start parameters (default \code{NULL})}
 
 \item{vars_selection}{whether variable selection should be conducted}
 
@@ -48,7 +48,7 @@ method_glm(
 \item{se}{whether standard errors should be calculated}
 }
 \value{
-an \code{nonprob_model} class which is a \code{list} with the following entries
+an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
 \item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}
@@ -61,6 +61,7 @@ an \code{nonprob_model} class which is a \code{list} with the following entries
 \item{var_prob}{variance for the probability sample component (if available)}
 \item{var_nonprob}{variance for the non-probability sampl component}
 \item{model}{model type (character \code{"glm"})}
+\item{family}{family type (character \code{"glm"})}
 }
 }
 \description{

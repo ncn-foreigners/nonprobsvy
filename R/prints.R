@@ -142,9 +142,9 @@ print.summary_nonprob <- function(x,
 
 # print for specific classes ------------------------------------------------
 
-#' @method print nonprob_model
+#' @method print nonprob_method
 #' @exportS3Method
-print.nonprob_model <- function(x, ...) {
+print.nonprob_method <- function(x, ...) {
 
   if (x$model == "ps") {
     print(sprintf("Propensity score model with %s link", x$link))
