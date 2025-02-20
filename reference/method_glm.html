@@ -50,6 +50,7 @@
 <span>  pop_totals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pop_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  control_outcome <span class="op">=</span> <span class="fu"><a href="control_out.html">control_out</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  control_inference <span class="op">=</span> <span class="fu"><a href="control_inf.html">control_inf</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  se <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -103,6 +104,10 @@
 <dd><p>controls passed by the <code>control_out</code> function</p></dd>
 
 
+<dt id="arg-control-inference">control_inference<a class="anchor" aria-label="anchor" href="#arg-control-inference"></a></dt>
+<dd><p>controls passed by the <code>control_inf</code> function (currently not used, for further development)</p></dd>
+
+
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>parameter passed from the main <code>nonprob</code> function</p></dd>
 
@@ -140,6 +145,9 @@
 
 <dt>var_nonprob</dt>
 <dd><p>variance for the non-probability sampl component</p></dd>
+
+<dt>var_total</dt>
+<dd><p>total variance, if possible it should be <code>var_prob+var_nonprob</code> if not, just a scalar</p></dd>
 
 <dt>model</dt>
 <dd><p>model type (character <code>"glm"</code>)</p></dd>

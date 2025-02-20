@@ -42,16 +42,14 @@
 <span>  <span class="va">y_nons</span>,</span>
 <span>  <span class="va">X_nons</span>,</span>
 <span>  <span class="va">X_rand</span>,</span>
-<span>  <span class="va">weights</span>,</span>
 <span>  <span class="va">svydesign</span>,</span>
-<span>  <span class="va">family_outcome</span>,</span>
-<span>  <span class="va">start_outcome</span>,</span>
-<span>  <span class="va">vars_selection</span>,</span>
-<span>  <span class="va">pop_totals</span>,</span>
-<span>  <span class="va">pop_size</span>,</span>
-<span>  <span class="va">control_outcome</span>,</span>
-<span>  <span class="va">verbose</span>,</span>
-<span>  <span class="va">se</span></span>
+<span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  vars_selection <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  pop_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  control_outcome <span class="op">=</span> <span class="fu"><a href="control_out.html">control_out</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  control_inference <span class="op">=</span> <span class="fu"><a href="control_inf.html">control_inf</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  se <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -71,28 +69,16 @@
 <dd><p>a <code>model.matrix</code> with auxiliary variables from non-probability sample</p></dd>
 
 
-<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
-<dd><p>case / frequency weights from non-probability sample</p></dd>
-
-
 <dt id="arg-svydesign">svydesign<a class="anchor" aria-label="anchor" href="#arg-svydesign"></a></dt>
 <dd><p>a svydesign object</p></dd>
 
 
-<dt id="arg-family-outcome">family_outcome<a class="anchor" aria-label="anchor" href="#arg-family-outcome"></a></dt>
-<dd><p>family for the glm model</p></dd>
-
-
-<dt id="arg-start-outcome">start_outcome<a class="anchor" aria-label="anchor" href="#arg-start-outcome"></a></dt>
-<dd><p>start parameters</p></dd>
+<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
+<dd><p>case / frequency weights from non-probability sample</p></dd>
 
 
 <dt id="arg-vars-selection">vars_selection<a class="anchor" aria-label="anchor" href="#arg-vars-selection"></a></dt>
 <dd><p>whether variable selection should be conducted</p></dd>
-
-
-<dt id="arg-pop-totals">pop_totals<a class="anchor" aria-label="anchor" href="#arg-pop-totals"></a></dt>
-<dd><p>population totals from the <code>nonprob</code> function</p></dd>
 
 
 <dt id="arg-pop-size">pop_size<a class="anchor" aria-label="anchor" href="#arg-pop-size"></a></dt>
@@ -101,6 +87,10 @@
 
 <dt id="arg-control-outcome">control_outcome<a class="anchor" aria-label="anchor" href="#arg-control-outcome"></a></dt>
 <dd><p>controls passed by the <code>control_out</code> function</p></dd>
+
+
+<dt id="arg-control-inference">control_inference<a class="anchor" aria-label="anchor" href="#arg-control-inference"></a></dt>
+<dd><p>controls passed by the <code>control_inf</code> function</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -133,13 +123,16 @@
 <dd><p>estimated population mean for the target variable</p></dd>
 
 <dt>vars_selection</dt>
-<dd><p>whether variable selection was performed</p></dd>
+<dd><p>whether variable selection was performed (not implemented, for further development)</p></dd>
 
 <dt>var_prob</dt>
 <dd><p>variance for the probability sample component (if available)</p></dd>
 
 <dt>var_nonprob</dt>
-<dd><p>variance for the non-probability sampl component</p></dd>
+<dd><p>variance for the non-probability sample component</p></dd>
+
+<dt>var_tot</dt>
+<dd><p>total variance, if possible it should be <code>var_prob+var_nonprob</code> if not, just a scalar</p></dd>
 
 <dt>model</dt>
 <dd><p>model type (character <code>"nn"</code>)</p></dd>
