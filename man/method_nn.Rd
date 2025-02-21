@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_nn.R
 \name{method_nn}
 \alias{method_nn}
-\title{Mass imputation using the nearest neighbours method}
+\title{Mass imputation using nearest neighbours matching method}
 \usage{
 method_nn(
   y_nons,
@@ -60,5 +60,67 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Mass imputation using nearest neighbours approach via the \link[RANN:nn2]{RANN::nn2} function.
+\strong{Basic information}
+
+Mass imputation using nearest neighbours approach as described in Yang (2021).
+The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
+Euclidean distance to matching.
+
+This implementation extends Yang (2021) approach as described in Chlebicki et al. (2025), namely:
+
+\describe{
+\item{pmm_weights}{if k>1 weighted aggregation of the mean for a given unit is used. We use distance
+matrix returned by \link[RANN:nn2]{RANN::nn2} function (\code{pmm_weights} from the \code{\link[=control_out]{control_out()}} function)}
+\item{nn_exact_se}{if the non-probability sample is small we recommend using a mini-bootstrap
+approach to estimate variance from the non-probability sample  (\code{nn_exact_se} from the \code{\link[=control_inf]{control_inf()}} function)}
+\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on the
+variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
+}
+
+\strong{Analytical variance}
+
+The variance of the mean is estimated based on the following approach
+\enumerate{
+\item probability part
+}
+
+This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
+equation:
+
+\mjsdeqn{
+\hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+\frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+}
+\enumerate{
+\item non-probability part
+}
+
+\mjsdeqn{
+\hat{V}_2 = ..
+}
+}
+\details{
+\loadmathjax
+}
+\examples{
+
+data(admin)
+data(jvs)
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+
+res_nn <- method_nn(y_nons = admin$single_shift,
+                    X_nons = model.matrix(~ region + private + nace + size, admin),
+                    X_rand = model.matrix(~ region + private + nace + size, jvs),
+                    svydesign = jvs_svy)
+
+res_nn
+
+}
+\references{
+Yang, S., Kim, J. K., & Hwang, Y. (2021). Integration of data from probability surveys and
+big found data for finite population inference using mass imputation.
+Survey Methodology, June 2021 29 Vol. 47, No. 1, pp. 29-58
+
+Chlebicki, P., Chrostowski, Ł., & Beręsewicz, M. (2025). Data integration of non-probability
+and probability samples with predictive mean matching. arXiv preprint arXiv:2403.13750.
 }

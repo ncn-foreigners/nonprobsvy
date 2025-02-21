@@ -1,4 +1,4 @@
-#' Function for the mass imputation model using glm
+#' Mass imputation using the generalized linear model method
 #'
 #' @importFrom stats glm.fit
 #' @importFrom ncvreg cv.ncvreg
@@ -40,6 +40,20 @@
 #'   \item{model}{model type (character `"glm"`)}
 #'   \item{family}{family type (character `"glm"`)}
 #' }
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+#'
+#' res_glm <- method_pmm(y_nons = admin$single_shift,
+#'                       X_nons = model.matrix(~ region + private + nace + size, admin),
+#'                       X_rand = model.matrix(~ region + private + nace + size, jvs),
+#'                       svydesign = jvs_svy)
+#'
+#' res_glm
+#'
 #' @export
 method_glm <- function(y_nons,
                        X_nons,
@@ -158,6 +172,8 @@ method_glm <- function(y_nons,
       c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
       var_nonprob <- drop(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
 
+      var_total <- var_prob + var_nonprob
+
     } else {
       var_prob <- 0
 
@@ -168,10 +184,11 @@ method_glm <- function(y_nons,
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
       c <- solve(1 / nrow(X_nons) * t(X_nons * model_fitted$family$mu.eta(eta_nons)) %*% X_nons) %*% mx
       var_nonprob <- as.vector(1 / nrow(X_nons)^2 * t(as.matrix(residuals^2)) %*% (X_nons %*% c)^2)
+
+      var_total <- var_prob + var_nonprob
       }
     } else {
-      var_prob <- NA
-      var_nonprob <- NA
+      var_prob <- var_nonprob <- var_total <- NA
     }
 
   return(

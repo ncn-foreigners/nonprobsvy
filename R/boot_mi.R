@@ -91,7 +91,7 @@ boot_mi <- function(X_rand,
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
               # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
+              # message(info)
               utils::setTxtProgressBar(pb, k)
             }
             k <- k + 1
@@ -99,7 +99,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -142,7 +142,7 @@ boot_mi <- function(X_rand,
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
               # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
+              # message(info)
               utils::setTxtProgressBar(pb, k)
             }
             k <- k + 1
@@ -150,7 +150,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -215,7 +215,7 @@ boot_mi <- function(X_rand,
             mu_hats[k] <- mu_hat_boot
             if (verbose) {
               # info <- paste("iteration ", k, "/", num_boot, ", estimated mean = ", mu_hat_boot, sep = "")
-              # print(info)
+              # message(info)
               utils::setTxtProgressBar(pb, k)
             }
             # slower option
@@ -237,7 +237,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -277,7 +277,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -308,7 +308,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -367,7 +367,7 @@ boot_mi <- function(X_rand,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )

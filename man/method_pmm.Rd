@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_pmm.R
 \name{method_pmm}
 \alias{method_pmm}
-\title{Mass imputation using the predictive mean matching method}
+\title{Mass imputation using predictive mean matching method}
 \usage{
 method_pmm(
   y_nons,
@@ -66,4 +66,18 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator
+}
+\examples{
+
+data(admin)
+data(jvs)
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+
+res_pmm <- method_pmm(y_nons = admin$single_shift,
+                      X_nons = model.matrix(~ region + private + nace + size, admin),
+                      X_rand = model.matrix(~ region + private + nace + size, jvs),
+                      svydesign = jvs_svy)
+
+res_pmm
+
 }

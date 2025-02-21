@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_glm.R
 \name{method_glm}
 \alias{method_glm}
-\title{Function for the mass imputation model using glm}
+\title{Mass imputation using the generalized linear model method}
 \usage{
 method_glm(
   y_nons,
@@ -70,4 +70,18 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Modle for the outcome for the mass imputation estimator
+}
+\examples{
+
+data(admin)
+data(jvs)
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+
+res_glm <- method_pmm(y_nons = admin$single_shift,
+                      X_nons = model.matrix(~ region + private + nace + size, admin),
+                      X_rand = model.matrix(~ region + private + nace + size, jvs),
+                      svydesign = jvs_svy)
+
+res_glm
+
 }

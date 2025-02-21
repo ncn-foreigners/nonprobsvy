@@ -1,4 +1,4 @@
-#' Mass imputation using the predictive mean matching method
+#' Mass imputation using predictive mean matching method
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator
@@ -33,6 +33,20 @@
 #'   \item{model}{model type (character `"pmm"`)}
 #'   \item{family}{depends on the method selected for estimating E(Y|X)}
 #' }
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+#'
+#' res_pmm <- method_pmm(y_nons = admin$single_shift,
+#'                       X_nons = model.matrix(~ region + private + nace + size, admin),
+#'                       X_rand = model.matrix(~ region + private + nace + size, jvs),
+#'                       svydesign = jvs_svy)
+#'
+#' res_pmm
+#'
 #' @export
 method_pmm <- function(y_nons,
                        X_nons,
@@ -107,6 +121,8 @@ method_pmm <- function(y_nons,
   if (se) {
     svydesign_mean <- svymean(~y_hat_MI, pmm_results$svydesign)
     var_prob <- as.vector(attr(svydesign_mean, "var"))
+    var_nonprob <- 0
+
     if (control_inference$nn_exact_se) {
 
       message("The `nn_exact_se=TRUE` option used. Remember to set the seed for reproducibility.")
@@ -114,7 +130,7 @@ method_pmm <- function(y_nons,
       loop_size <- 50
 
       if (verbose) {
-        print("Estimating variance component using mini-bootstrap...")
+        message("Estimating variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
 
@@ -201,7 +217,7 @@ method_pmm <- function(y_nons,
         svydesign = pmm_results$svydesign,
         y_mi_hat = pmm_results$y_mi_hat,
         vars_selection = vars_selection,
-        var_prob = var_nonprob,
+        var_prob = var_prob,
         var_nonprob = var_nonprob,
         var_total = var_total,
         model = "pmm",

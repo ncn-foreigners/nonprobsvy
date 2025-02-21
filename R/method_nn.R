@@ -1,11 +1,54 @@
-#' Mass imputation using the nearest neighbours method
+#' Mass imputation using nearest neighbours matching method
 #'
+#' \loadmathjax
+#'
+#' @import mathjaxr
 #' @importFrom stats update
 #' @importFrom survey svymean
-#' @importFtom RANN nn2
+#' @importFrom stats weighted.mean
+#' @importFrom RANN nn2
+#'
 #'
 #' @description
-#' Mass imputation using nearest neighbours approach via the [RANN::nn2] function.
+#'
+#' **Basic information**
+#'
+#' Mass imputation using nearest neighbours approach as described in Yang (2021).
+#' The implementation is currently based on [RANN::nn2] function and thus it uses
+#' Euclidean distance to matching.
+#'
+#' This implementation extends Yang (2021) approach as described in Chlebicki et al. (2025), namely:
+#'
+#' \describe{
+#'  \item{pmm_weights}{if k>1 weighted aggregation of the mean for a given unit is used. We use distance
+#'  matrix returned by [RANN::nn2] function (`pmm_weights` from the [control_out()] function)}
+#'  \item{nn_exact_se}{if the non-probability sample is small we recommend using a mini-bootstrap
+#'  approach to estimate variance from the non-probability sample  (`nn_exact_se` from the [control_inf()] function)}
+#'  \item{pmm_k_choice}{the main `nonprob` function allows for dynamic selection of `k` neighbours based on the
+#'  variance minimization procedure (`pmm_k_choice` from the [control_out()] function)}
+#' }
+#'
+#'
+#' **Analytical variance**
+#'
+#' The variance of the mean is estimated based on the following approach
+#'
+#' 1. probability part
+#'
+#'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
+#'  equation:
+#'
+#' \mjsdeqn{
+#' \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+#' }
+#'
+#' 2. non-probability part
+#'
+#' \mjsdeqn{
+#' \hat{V}_2 = ..
+#' }
+#'
 #'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
@@ -35,6 +78,28 @@
 #'   \item{model}{model type (character `"nn"`)}
 #'   \item{family}{placeholder for the `NN approach` information}
 #' }
+#'
+#' @references
+#'  Yang, S., Kim, J. K., & Hwang, Y. (2021). Integration of data from probability surveys and
+#'  big found data for finite population inference using mass imputation.
+#'  Survey Methodology, June 2021 29 Vol. 47, No. 1, pp. 29-58
+#'
+#' Chlebicki, P., Chrostowski, Ł., & Beręsewicz, M. (2025). Data integration of non-probability
+#' and probability samples with predictive mean matching. arXiv preprint arXiv:2403.13750.
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+#'
+#' res_nn <- method_nn(y_nons = admin$single_shift,
+#'                     X_nons = model.matrix(~ region + private + nace + size, admin),
+#'                     X_rand = model.matrix(~ region + private + nace + size, jvs),
+#'                     svydesign = jvs_svy)
+#'
+#' res_nn
+#'
 #' @export
 method_nn <- function(y_nons,
                       X_nons,
@@ -59,7 +124,7 @@ method_nn <- function(y_nons,
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
   if (verbose) {
-    print("Matching units between samples...")
+    message("Matching units between samples...")
   }
 
   model_fitted_nons <- RANN::nn2(
@@ -89,7 +154,7 @@ method_nn <- function(y_nons,
                     FUN = function(x) {
                       w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
                       w_scaled <- w_scaled/sum(w_scaled)
-                      weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                      stats:::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
                                     w = w_scaled)
                     })
            }
@@ -116,7 +181,7 @@ method_nn <- function(y_nons,
       message("The `nn_exact_se=TRUE` option used. Remember to set the seed for reproducibility.")
 
       if (verbose) {
-        print("Estimating variance component using mini-bootstrap...")
+        message("Estimating variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
 
@@ -152,12 +217,12 @@ method_nn <- function(y_nons,
                                                    FUN = function(x) {
                                                      w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
                                                      w_scaled <- w_scaled/sum(w_scaled)
-                                                     weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
-                                                                   w = w_scaled)
+                                                     stats::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                                                                          w = w_scaled)
                                                    })}
                                           })
 
-        dd[jj] <- weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
+        dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
       var_nonprob <- var(dd)
       var_total <- var_prob + var_nonprob

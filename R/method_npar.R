@@ -1,4 +1,4 @@
-#' Function for the mass imputation model using nonparametric method
+#' Mass imputation using non-parametric model method
 #'
 #' @importFrom stats update
 #' @importFrom survey svymean
@@ -62,8 +62,10 @@ method_npar <- function(y_nons,
 
   if (vars_selection) {
     warning("Variable selection for `method_npar` is not yet implemented.
-            Estimation is based on the whole set of auxiliary variables.")
+             Estimation is based on the whole set of auxiliary variables.")
+    vars_selection <- FALSE
   }
+
   if (is.null(weights)) weights <- rep(1, nrow(X_nons))
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
@@ -103,6 +105,8 @@ method_npar <- function(y_nons,
 
       var_nonprob <- 1/pop_size^2*sum( g_hat$fitted[R==1]^{-2}*residuals^2)
 
+      var_total <- var_prob + var_nonprob
+
       # This is for further development if we would like to use np instead of loess
       # if (verbose) message("Estimation of variance started. This may take a while...")
       # g_hat_bw <- npcdensbw(ydat = factor(R), xdat = X[,-1], tol = 0.1, ftol = 0.1, nmulti = 2)
@@ -110,8 +114,7 @@ method_npar <- function(y_nons,
       # var_nonprob <- 1/pop_size^2*sum( stats::fitted(g_hat)[R==1]^{-2}*residuals^2)
 
   } else {
-    var_prob <- NA
-    var_nonprob <- NA
+    var_prob <- var_nonprob <- var_total <- NA
   }
 
   return(
@@ -126,7 +129,7 @@ method_npar <- function(y_nons,
         vars_selection = vars_selection,
         var_prob = var_prob,
         var_nonprob = var_nonprob,
-        var_total = var_prob + var_nonprob,
+        var_total = var_total,
         model = "npar",
         family = family_outcome
       ),

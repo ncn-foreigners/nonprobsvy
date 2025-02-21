@@ -172,7 +172,7 @@ boot_dr <- function(outcome,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
@@ -246,7 +246,7 @@ boot_dr <- function(outcome,
           error = function(e) {
             if (verbose) {
               info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-              print(info)
+              message(info)
             }
           }
         )
