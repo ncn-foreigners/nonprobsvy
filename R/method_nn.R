@@ -154,7 +154,7 @@ method_nn <- function(y_nons,
                     FUN = function(x) {
                       w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
                       w_scaled <- w_scaled/sum(w_scaled)
-                      stats:::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
                                     w = w_scaled)
                     })
            }
