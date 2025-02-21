@@ -20,7 +20,8 @@ control_out(
   pmm_match_type = 1,
   pmm_weights = c("none", "prop_dist"),
   pmm_k_choice = c("none", "min_var"),
-  pmm_reg_engine = c("glm", "loess")
+  pmm_reg_engine = c("glm", "loess"),
+  npar_loess = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
 )
 }
 \arguments{
@@ -73,6 +74,8 @@ this control list will be chosen as starting point.}
 
 \item{pmm_reg_engine}{(Only for the PMM Estimator) whether to use parametric (\code{"glm"})
 or non-parametric (\code{"loess"}) regression model for the outcome. The default is \code{"glm"}.}
+
+\item{npar_loess}{control parameters for the \link[stats:loess]{stats::loess} via the \link[stats:loess.control]{stats::loess.control} function.}
 }
 \value{
 List with selected parameters.

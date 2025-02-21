@@ -1,5 +1,6 @@
 #' @title Control parameters for outcome model
 #'
+#' @importFrom stats loess.control
 #' @description \code{control_out} constructs a list with all necessary control parameters
 #' for outcome model.
 #'
@@ -37,6 +38,7 @@
 #' this control list will be chosen as starting point.
 #' @param pmm_reg_engine (Only for the PMM Estimator) whether to use parametric (`"glm"`)
 #' or non-parametric (`"loess"`) regression model for the outcome. The default is `"glm"`.
+#' @param npar_loess control parameters for the [stats::loess] via the [stats::loess.control] function.
 #'
 #' @return List with selected parameters.
 #'
@@ -62,7 +64,8 @@ control_out <- function(epsilon = 1e-4,
                         pmm_match_type = 1,
                         pmm_weights = c("none", "prop_dist"),
                         pmm_k_choice = c("none", "min_var"),
-                        pmm_reg_engine = c("glm", "loess")) {
+                        pmm_reg_engine = c("glm", "loess"),
+                        npar_loess = stats::loess.control(surface = "interpolate", trace.hat = "approximate")) {
 
   # Input validation
   penalty <- match.arg(penalty)
@@ -118,6 +121,7 @@ control_out <- function(epsilon = 1e-4,
     pmm_match_type = pmm_match_type,
     pmm_weights = pmm_weights,
     pmm_k_choice = pmm_k_choice,
-    pmm_reg_engine = pmm_reg_engine
+    pmm_reg_engine = pmm_reg_engine,
+    npar_loess = npar_loess
   )
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_nn.R
 \name{method_nn}
 \alias{method_nn}
-\title{Function for the mass imputation model using nn method}
+\title{Function for the mass imputation model using the nearest neighbours method}
 \usage{
 method_nn(
   y_nons,
@@ -45,9 +45,9 @@ method_nn(
 an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
-\item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}
-\item{y_nons_pred}{predicted values for the non-probablity sample}
-\item{y_rand_pred}{predicted values for the probability sample or population totals}
+\item{model_fitted}{\code{RANN::nn2} object}
+\item{y_nons_pred}{predicted values for the non-probablity sample (query to itself)}
+\item{y_rand_pred}{predicted values for the probability sample}
 \item{coefficients}{coefficients for the model (if available)}
 \item{svydesign}{an updated \code{surveydesign2} object (new column \code{y_hat_MI} is added)}
 \item{y_mi_hat}{estimated population mean for the target variable}
@@ -56,6 +56,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 \item{var_nonprob}{variance for the non-probability sample component}
 \item{var_tot}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
 \item{model}{model type (character \code{"nn"})}
+\item{family}{placeholder for the \verb{NN approach} information}
 }
 }
 \description{
