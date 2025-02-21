@@ -45,7 +45,7 @@ for outcome model.</p>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  maxit <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  penalty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SCAD"</span>, <span class="st">"lasso"</span>, <span class="st">"MCP"</span><span class="op">)</span>,</span>
 <span>  a_SCAD <span class="op">=</span> <span class="fl">3.7</span>,</span>
 <span>  a_MCP <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -55,9 +55,10 @@ for outcome model.</p>
 <span>  treetype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kd"</span>, <span class="st">"rp"</span>, <span class="st">"ball"</span><span class="op">)</span>,</span>
 <span>  searchtype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standard"</span>, <span class="st">"priority"</span><span class="op">)</span>,</span>
 <span>  pmm_match_type <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  pmm_weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"prop_dist"</span><span class="op">)</span>,</span>
+<span>  pmm_weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"dist"</span><span class="op">)</span>,</span>
 <span>  pmm_k_choice <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"min_var"</span><span class="op">)</span>,</span>
-<span>  pmm_reg_engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"loess"</span><span class="op">)</span></span>
+<span>  pmm_reg_engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"loess"</span><span class="op">)</span>,</span>
+<span>  npar_loess <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/loess.control.html" class="external-link">loess.control</a></span><span class="op">(</span>surface <span class="op">=</span> <span class="st">"interpolate"</span>, trace.hat <span class="op">=</span> <span class="st">"approximate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -145,6 +146,10 @@ this control list will be chosen as starting point.</p></dd>
 <dt id="arg-pmm-reg-engine">pmm_reg_engine<a class="anchor" aria-label="anchor" href="#arg-pmm-reg-engine"></a></dt>
 <dd><p>(Only for the PMM Estimator) whether to use parametric (<code>"glm"</code>)
 or non-parametric (<code>"loess"</code>) regression model for the outcome. The default is <code>"glm"</code>.</p></dd>
+
+
+<dt id="arg-npar-loess">npar_loess<a class="anchor" aria-label="anchor" href="#arg-npar-loess"></a></dt>
+<dd><p>control parameters for the <a href="https://rdrr.io/r/stats/loess.html" class="external-link">stats::loess</a> via the <a href="https://rdrr.io/r/stats/loess.control.html" class="external-link">stats::loess.control</a> function.</p></dd>
 
 </dl></div>
     <div class="section level2">
