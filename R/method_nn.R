@@ -9,11 +9,7 @@
 #' @importFrom RANN nn2
 #'
 #'
-#' @description
-#'
-#' **Basic information**
-#'
-#' Mass imputation using nearest neighbours approach as described in Yang (2021).
+#' @description Mass imputation using nearest neighbours approach as described in Yang (2021).
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
 #' Euclidean distance to matching.
 #'
@@ -29,11 +25,11 @@
 #' }
 #'
 #'
-#' **Analytical variance**
+#' @details Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 #'
-#' 1. probability part
+#' (a) probability part
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
@@ -43,7 +39,7 @@
 #' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
 #' }
 #'
-#' 2. non-probability part
+#' (b) non-probability part
 #'
 #' \mjsdeqn{
 #' \hat{V}_2 = ..

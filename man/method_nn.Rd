@@ -60,8 +60,6 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-\strong{Basic information}
-
 Mass imputation using nearest neighbours approach as described in Yang (2021).
 The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
 Euclidean distance to matching.
@@ -76,13 +74,15 @@ approach to estimate variance from the non-probability sample  (\code{nn_exact_s
 \item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on the
 variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
 }
+}
+\details{
+\loadmathjax
 
-\strong{Analytical variance}
+Analytical variance
 
 The variance of the mean is estimated based on the following approach
-\enumerate{
-\item probability part
-}
+
+(a) probability part
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
@@ -91,16 +91,12 @@ equation:
 \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
 }
-\enumerate{
-\item non-probability part
-}
+
+(b) non-probability part
 
 \mjsdeqn{
 \hat{V}_2 = ..
 }
-}
-\details{
-\loadmathjax
 }
 \examples{
 
