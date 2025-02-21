@@ -1,8 +1,30 @@
 #' Mass imputation using predictive mean matching method
 #'
+#' \loadmathjax
+#'
 #' @description
 #' Model for the outcome for the mass imputation estimator
 #'
+#'
+#' @details Analytical variance
+#'
+#' The variance of the mean is estimated based on the following approach
+#'
+#' (a) probability part
+#'
+#'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
+#'  equation:
+#'
+#' \mjsdeqn{
+#' \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+#' }
+#'
+#' (b) non-probability part
+#'
+#' \mjsdeqn{
+#' \hat{V}_2 = ..
+#' }
 #'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample

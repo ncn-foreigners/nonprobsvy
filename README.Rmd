@@ -361,6 +361,7 @@ nonprob(
 <tr>
 <tr>
 <td>
+
 Doubly robust estimator with variable selection (SCAD) and bias minimization
 </td>
 <td>

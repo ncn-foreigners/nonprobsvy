@@ -32,12 +32,7 @@ control_sel(
 \arguments{
 \item{est_method}{Method of estimation for propensity score model (\code{"mle"} or \code{"gee"}; default is \code{"mle"}).}
 
-\item{gee_h_fun}{Smooth function for the generalized estimating equations (GEE) method taking the following values
-\itemize{
-\item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
-  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
-\item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
-}}
+\item{gee_h_fun}{Smooth function for the generalized estimating equations (GEE) method.}
 
 \item{optimizer}{(for the \code{est_method="mle"} only) optimization function for maximum likelihood estimation.}
 
@@ -91,6 +86,16 @@ List with selected parameters.
 \description{
 \code{control_sel} constructs a list with all necessary control parameters
 for selection model.
+}
+\details{
+\loadmathjax
+
+gee_h_fun Smooth function for the generalized estimating equations (GEE) method taking the following values
+\itemize{
+\item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+\item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
+}
 }
 \seealso{
 \code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.

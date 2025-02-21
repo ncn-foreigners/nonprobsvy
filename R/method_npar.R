@@ -1,5 +1,8 @@
 #' Mass imputation using non-parametric model method
 #'
+#' \loadmathjax
+#'
+#' @import mathjaxr
 #' @importFrom stats update
 #' @importFrom survey svymean
 #' @importFrom stats loess.control
@@ -7,6 +10,27 @@
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator (for continous or semi-continous variables only!)
+#'
+#'
+#' @details Analytical variance
+#'
+#' The variance of the mean is estimated based on the following approach
+#'
+#' (a) probability part
+#'
+#'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
+#'  equation:
+#'
+#' \mjsdeqn{
+#' \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+#' }
+#'
+#' (b) non-probability part
+#'
+#' \mjsdeqn{
+#' \hat{V}_2 = ..
+#' }
 #'
 #'
 #' @param y_nons target variable from non-probability sample
@@ -73,6 +97,7 @@ method_npar <- function(y_nons,
     message("The `method_npar` currently supports only `gaussian` family. Overrwitting to `gaussian`.")
     family_outcome <- "gaussian"
   }
+
   X <- rbind(X_rand, X_nons)
   R <- rep(c(0, 1), times = c(nrow(X_rand), nrow(X_nons)))
 
@@ -102,6 +127,8 @@ method_npar <- function(y_nons,
         formula = R ~ X[, -1],
         family = family_outcome,
         control = control_outcome$npar_loess)
+
+      #g_hat <- stats::glm.fit(x = X, y = R, family = binomial())
 
       var_nonprob <- 1/pop_size^2*sum( g_hat$fitted[R==1]^{-2}*residuals^2)
 

@@ -1,3 +1,5 @@
+#' \loadmathjax
+#'
 #' @import mathjaxr
 #'
 #' @title Control parameters for the selection model
@@ -5,13 +7,17 @@
 #' @description \code{control_sel} constructs a list with all necessary control parameters
 #' for selection model.
 #'
-#' @param est_method Method of estimation for propensity score model (`"mle"` or `"gee"`; default is `"mle"`).
-#' @param gee_h_fun Smooth function for the generalized estimating equations (GEE) method taking the following values
+#' @details
+#' Smooth function (`gee_h_fun`) for the generalized estimating equations (GEE) method taking the following values
+#'
 #' \itemize{
 #'   \item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
 #'   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
 #'   \item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 #'   }
+#'
+#' @param est_method Method of estimation for propensity score model (`"mle"` or `"gee"`; default is `"mle"`).
+#' @param gee_h_fun Smooth function for the generalized estimating equations (GEE) method.
 #' @param optimizer  (for the `est_method="mle"` only) optimization function for maximum likelihood estimation.
 #' @param optim_method (for the `est_method="mle"` only) maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
 #' @param maxlik_method (for the `est_method="mle"` only) maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
