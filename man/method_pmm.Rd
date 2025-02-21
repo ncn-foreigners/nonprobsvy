@@ -2,22 +2,22 @@
 % Please edit documentation in R/method_pmm.R
 \name{method_pmm}
 \alias{method_pmm}
-\title{Function for the mass imputation model using pmm method}
+\title{Mass imputation using the predictive mean matching method}
 \usage{
 method_pmm(
   y_nons,
   X_nons,
   X_rand,
-  weights,
   svydesign,
-  family_outcome,
-  start_outcome,
-  vars_selection,
-  pop_totals,
-  pop_size,
-  control_outcome,
-  verbose,
-  se
+  weights = NULL,
+  family_outcome = "gaussian",
+  start_outcome = NULL,
+  vars_selection = FALSE,
+  pop_size = NULL,
+  control_outcome = control_out(),
+  control_inference = control_inf(),
+  verbose = FALSE,
+  se = TRUE
 )
 }
 \arguments{
@@ -27,9 +27,9 @@ method_pmm(
 
 \item{X_rand}{a \code{model.matrix} with auxiliary variables from non-probability sample}
 
-\item{weights}{case / frequency weights from non-probability sample}
-
 \item{svydesign}{a svydesign object}
+
+\item{weights}{case / frequency weights from non-probability sample}
 
 \item{family_outcome}{family for the glm model}
 
@@ -37,11 +37,11 @@ method_pmm(
 
 \item{vars_selection}{whether variable selection should be conducted}
 
-\item{pop_totals}{population totals from the \code{nonprob} function}
-
 \item{pop_size}{population size from the \code{nonprob} function}
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
+
+\item{control_inference}{controls passed by the \code{control_inf} function}
 
 \item{verbose}{parameter passed from the main \code{nonprob} function}
 
@@ -61,6 +61,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 \item{var_prob}{variance for the probability sample component (if available)}
 \item{var_nonprob}{variance for the non-probability sampl component}
 \item{model}{model type (character \code{"pmm"})}
+\item{family}{depends on the method selected for estimating E(Y|X)}
 }
 }
 \description{

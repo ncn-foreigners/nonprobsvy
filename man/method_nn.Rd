@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_nn.R
 \name{method_nn}
 \alias{method_nn}
-\title{Function for the mass imputation model using the nearest neighbours method}
+\title{Mass imputation using the nearest neighbours method}
 \usage{
 method_nn(
   y_nons,
@@ -60,5 +60,5 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Model for the outcome for the mass imputation estimator
+Mass imputation using nearest neighbours approach via the \link[RANN:nn2]{RANN::nn2} function.
 }

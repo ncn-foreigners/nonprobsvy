@@ -52,7 +52,7 @@
 control_out <- function(epsilon = 1e-4,
                         maxit = 100,
                         trace = FALSE,
-                        k = 1,
+                        k = 5,
                         penalty = c("SCAD", "lasso", "MCP"),
                         a_SCAD = 3.7,
                         a_MCP = 3,

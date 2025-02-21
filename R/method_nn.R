@@ -1,10 +1,11 @@
-#' Function for the mass imputation model using the nearest neighbours method
+#' Mass imputation using the nearest neighbours method
 #'
 #' @importFrom stats update
 #' @importFrom survey svymean
+#' @importFtom RANN nn2
 #'
 #' @description
-#' Model for the outcome for the mass imputation estimator
+#' Mass imputation using nearest neighbours approach via the [RANN::nn2] function.
 #'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
@@ -54,20 +55,24 @@ method_nn <- function(y_nons,
   if (missing(svydesign) | is.null(svydesign)) {
     stop("The NN method is suited only for the unit-level data.")
   }
-  if (is.null(weights)) weights <- rep(1, nrow(X_nons))
+  if (is.null(weights)) weights <- rep(1, NROW(X_nons))
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
+  if (verbose) {
+    print("Matching units between samples...")
+  }
+
   model_fitted_nons <- RANN::nn2(
-    data = X_nons[,-1],
-    query = X_nons[,-1],
+    data = X_nons,
+    query = X_nons,
     k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
 
   model_fitted <- RANN::nn2(
-    data = X_nons[,-1],
-    query = X_rand[,-1],
+    data = X_nons,
+    query = X_rand,
     k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
@@ -77,13 +82,18 @@ method_nn <- function(y_nons,
          "none" = apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
          "dist" = {
            # TODO:: these weights will need to be saved for variance estimation
-           sapply(1:NROW(model_fitted$nn.idx),
-                  FUN = function(x) {
-                    w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
-                    w_scaled <- w_scaled/sum(w_scaled)
-                    weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
-                                  w = w_scaled)
-         })
+           if (control_outcome$k == 1) {
+             apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+           } else {
+             sapply(1:NROW(model_fitted$nn.idx),
+                    FUN = function(x) {
+                      w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
+                      w_scaled <- w_scaled/sum(w_scaled)
+                      weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                                    w = w_scaled)
+                    })
+           }
+
          }
   )
 
@@ -97,19 +107,29 @@ method_nn <- function(y_nons,
     var_prob <- as.vector(attr(svydesign_mean, "var"))
 
     sigma_hat <- mean((y_nons - y_nons_pred)^2)
-    est_ps <- nrow(X_nons) / pop_size
-    var_nonprob <- nrow(X_rand) / pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
+    est_ps <- NROW(X_nons) / pop_size
+    var_nonprob <- NROW(X_rand) / pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
     var_total <- var_prob + var_nonprob
 
     if (control_inference$nn_exact_se) {
 
       message("The `nn_exact_se=TRUE` option used. Remember to set the seed for reproducibility.")
 
+      if (verbose) {
+        print("Estimating variance component using mini-bootstrap...")
+        pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
+      }
+
       loop_size <- 50
 
       dd <- numeric(loop_size)
       for (jj in 1:loop_size) {
-        boot_samp <- sample(1:nrow(X_nons), size = nrow(X_nons), replace = TRUE)
+
+        if (verbose) {
+          utils::setTxtProgressBar(pb, jj)
+        }
+
+        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
@@ -122,18 +142,20 @@ method_nn <- function(y_nons,
         )
 
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                              "none" = apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
-                              "dist" = {
-                                # TODO:: these weights will need to be saved for variance estimation
-                                sapply(1:NROW(YY$nn.idx),
-                                       FUN = function(x) {
-                                         w_scaled <- max(YY$nn.dists[x, ]) - YY$nn.dists[x, ]
-                                         w_scaled <- w_scaled/sum(w_scaled)
-                                         weighted.mean(y_nons[YY$nn.idx[x, ]],
-                                                       w = w_scaled)
-                                       })
-                              }
-        )
+                                        "none" = apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
+                                        "dist" = {
+                                          # TODO:: these weights will need to be saved for variance estimation
+                                          if (control_outcome$k == 1) {
+                                            apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+                                          } else {
+                                            sapply(1:NROW(model_fitted$nn.idx),
+                                                   FUN = function(x) {
+                                                     w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
+                                                     w_scaled <- w_scaled/sum(w_scaled)
+                                                     weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                                                                   w = w_scaled)
+                                                   })}
+                                          })
 
         dd[jj] <- weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
