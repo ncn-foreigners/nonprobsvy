@@ -62,7 +62,7 @@ control_out <- function(epsilon = 1e-4,
                         treetype = c("kd", "rp", "ball"),
                         searchtype = c("standard", "priority"),
                         pmm_match_type = 1,
-                        pmm_weights = c("none", "prop_dist"),
+                        pmm_weights = c("none", "dist"),
                         pmm_k_choice = c("none", "min_var"),
                         pmm_reg_engine = c("glm", "loess"),
                         npar_loess = stats::loess.control(surface = "interpolate", trace.hat = "approximate")) {

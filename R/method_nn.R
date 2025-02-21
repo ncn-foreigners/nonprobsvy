@@ -58,23 +58,37 @@ method_nn <- function(y_nons,
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
   model_fitted_nons <- RANN::nn2(
-    data = X_nons,
-    query = X_nons,
+    data = X_nons[,-1],
+    query = X_nons[,-1],
     k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
 
   model_fitted <- RANN::nn2(
-    data = X_nons,
-    query = X_rand,
+    data = X_nons[,-1],
+    query = X_rand[,-1],
     k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
 
-  y_rand_pred <- apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+  y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
+         "none" = apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
+         "dist" = {
+           # TODO:: these weights will need to be saved for variance estimation
+           sapply(1:NROW(model_fitted$nn.idx),
+                  FUN = function(x) {
+                    w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
+                    w_scaled <- w_scaled/sum(w_scaled)
+                    weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                                  w = w_scaled)
+         })
+         }
+  )
+
   y_nons_pred <- apply(model_fitted_nons$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
   svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
   y_mi_hat <- as.numeric(svydesign_mean)
@@ -107,7 +121,21 @@ method_nn <- function(y_nons,
           searchtype = control_outcome$searchtype
         )
 
-        dd[jj] <- weighted.mean(apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons_b[x])), weights(svydesign))
+        y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
+                              "none" = apply(YY$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
+                              "dist" = {
+                                # TODO:: these weights will need to be saved for variance estimation
+                                sapply(1:NROW(YY$nn.idx),
+                                       FUN = function(x) {
+                                         w_scaled <- max(YY$nn.dists[x, ]) - YY$nn.dists[x, ]
+                                         w_scaled <- w_scaled/sum(w_scaled)
+                                         weighted.mean(y_nons[YY$nn.idx[x, ]],
+                                                       w = w_scaled)
+                                       })
+                              }
+        )
+
+        dd[jj] <- weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
       var_nonprob <- var(dd)
       var_total <- var_prob + var_nonprob
