@@ -169,9 +169,9 @@ print.summary_nonprob <- function(x,
 print.nonprob_method <- function(x, ...) {
 
   if (x$model == "ps") {
-    print(sprintf("Propensity score model with %s link", x$link))
+    cat(sprintf("Propensity score model with %s link", x$link))
   } else {
-    print(sprintf("Mass imputation model (%s approach). Estimated mean: %s (se: %s)",
+    cat(sprintf("Mass imputation model (%s approach). Estimated mean: %s (se: %s)",
                   toupper(x$model),
                   sprintf("%.4f", x$y_mi_hat),
                   sprintf("%.4f", sqrt(x$var_prob+x$var_nonprob))))

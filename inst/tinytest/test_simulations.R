@@ -35,6 +35,60 @@ expect_equal(
   c(TRUE, TRUE)
 )
 
+### mi glm
+
+mi_glm <- nonprob(outcome = y1 + y2~x1 + x2,
+                  svydesign = kim2019_sample_prob,
+                  method_outcome = "glm",
+                  data = kim2019_sample_nonprob)
+
+expect_equal(
+  mi_glm$confidence_interval$lower_bound < kim2019_y_true &
+  mi_glm$confidence_interval$upper_bound > kim2019_y_true,
+  c(TRUE, TRUE)
+)
+
+### mi nn
+
+mi_nn <- nonprob(outcome = y1 + y2~x1 + x2,
+                  svydesign = kim2019_sample_prob,
+                  method_outcome = "nn",
+                  data = kim2019_sample_nonprob)
+
+
+expect_equal(
+  mi_nn$confidence_interval$lower_bound < kim2019_y_true &
+    mi_nn$confidence_interval$upper_bound > kim2019_y_true,
+  c(TRUE, TRUE)
+)
+
+### mi pmm
+
+mi_pmm <- nonprob(outcome = y1 + y2~x1 + x2,
+                 svydesign = kim2019_sample_prob,
+                 method_outcome = "pmm",
+                 data = kim2019_sample_nonprob,
+                 control_inference = control_inf(num_boot = 5))
+
+expect_equal(
+  mi_pmm$confidence_interval$lower_bound < kim2019_y_true &
+  mi_pmm$confidence_interval$upper_bound > kim2019_y_true,
+  c(TRUE, TRUE)
+)
+
+### mi npar
+
+mi_npar <- nonprob(outcome = y1 + y2~x1 + x2,
+                  svydesign = kim2019_sample_prob,
+                  method_outcome = "npar",
+                  data = kim2019_sample_nonprob)
+
+expect_equal(
+  mi_npar$confidence_interval$lower_bound < kim2019_y_true &
+    mi_npar$confidence_interval$upper_bound > kim2019_y_true,
+  c(TRUE, TRUE)
+)
+
 
 # pop level data ----------------------------------------------------------
 
@@ -50,6 +104,19 @@ ipw_mle <- nonprob(
 expect_equal(
   ipw_mle$confidence_interval$lower_bound < kim2019_y_true &
   ipw_mle$confidence_interval$upper_bound > kim2019_y_true,
+  c(TRUE, TRUE)
+)
+
+### mi glm
+
+mi_glm <- nonprob(outcome = y1 + y2 ~ x1 + x2,
+                  pop_totals = kim2019_totals,
+                  method_outcome = "glm",
+                  data = kim2019_sample_nonprob)
+
+expect_equal(
+  mi_glm$confidence_interval$lower_bound < kim2019_y_true &
+  mi_glm$confidence_interval$upper_bound > kim2019_y_true,
   c(TRUE, TRUE)
 )
 
