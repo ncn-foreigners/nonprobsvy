@@ -436,6 +436,7 @@ boot_mi_multicore <- function(X_rand,
   if (is.function(family)) {
     family <- family()
   }
+
   rep_type <- control_inference$rep_type
 
   if (is.character(family_outcome)) {
@@ -464,6 +465,7 @@ boot_mi_multicore <- function(X_rand,
     }
     if (method == "glm") {
       k <- 1:num_boot
+
       mu_hats <- foreach::`%dopar%`(
         obj = foreach::foreach(k = k, .combine = c),
         ex = {

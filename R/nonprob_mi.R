@@ -56,17 +56,6 @@ nonprob_mi <- function(outcome,
     SE_values <- NULL
   }
 
-
-  if (method_outcome == "pmm") {
-    control_inference$var_method <- "bootstrap"
-    message("Bootstrap variance only for the `pmm` method, analytical version during implementation.")
-  }
-
-  if (control_inference$var_method == "bootstrap") {
-    num_boot <- control_inference$num_boot
-    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
-  }
-
   for (o in 1:outcomes$l) {
 
     outcome_model_data <- make_model_frame(formula = outcomes$outcome[[o]],
@@ -79,13 +68,6 @@ nonprob_mi <- function(outcome,
     X_rand <- outcome_model_data$X_rand
     nons_names <- outcome_model_data$nons_names
     y_nons <- outcome_model_data$y_nons
-
-    R_nons <- rep(1, nrow(X_nons))
-    R_rand <- if (!is.null(X_rand)) rep(0, nrow(X_rand)) else NULL
-    R <- c(R_nons, R_rand)
-
-    loc_nons <- which(R == 1)
-    loc_rand <- which(R == 0)
 
     n_nons <- nrow(X_nons)
     n_rand <- nrow(X_rand)
@@ -165,6 +147,17 @@ nonprob_mi <- function(outcome,
     ys[[o]] <- as.numeric(y_nons)
 
     if (se) {
+
+      if (method_outcome == "pmm") {
+        control_inference$var_method <- "bootstrap"
+        message("Bootstrap variance only for the `pmm` method, analytical version during implementation.")
+      }
+
+      if (control_inference$var_method == "bootstrap") {
+        num_boot <- control_inference$num_boot
+        stat_boot <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+      }
+
       if (control_inference$var_method == "analytic")  {
         var_nonprob <- model_obj$var_nonprob
         var_prob <- model_obj$var_prob
@@ -172,62 +165,205 @@ nonprob_mi <- function(outcome,
         se_nonprob <- sqrt(var_nonprob)
         se_prob <- sqrt(var_prob)
         SE_values[[o]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-      } else { # TODO for pop_totals
-        # bootstrap variance
-        if (control_inference$cores > 1) {
-          boot_obj <- boot_mi_multicore(
-            X_rand = X_rand,
-            X_nons = X_nons,
-            weights = weights,
-            y = y_nons,
-            family_outcome = family_outcome,
-            start_outcome = start_outcome,
-            num_boot = num_boot,
-            weights(svydesign),
-            mu_hat,
-            svydesign,
-            model_obj = model_obj,
-            rep_type = control_inference$rep_type,
-            method = method_outcome,
-            control_outcome = control_outcome,
-            control_inference = control_inference,
-            pop_totals = pop_totals,
-            cores = control_inference$cores,
-            verbose = verbose
-          )
-        } else {
-          boot_obj <- boot_mi(
-            X_rand = X_rand,
-            X_nons = X_nons,
-            weights = weights,
-            y = y_nons,
-            family_outcome = family_outcome,
-            start_outcome = start_outcome,
-            num_boot = num_boot,
-            weights(svydesign),
-            mu_hat,
-            svydesign,
-            model_obj = model_obj,
-            rep_type = control_inference$rep_type,
-            method = method_outcome,
-            control_outcome = control_outcome,
-            control_inference = control_inference,
-            pop_totals = pop_totals,
-            verbose = verbose
-          )
-        }
-        var <- boot_obj$var
-        stat[, o] <- boot_obj$stat
-        comp3_stat <- boot_obj$comp3_stat
-        # mu_hat <- boot_obj$mu
-        SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
+        SE <- sqrt(var_total)
+        alpha <- control_inference$alpha
+        z <- stats::qnorm(1 - alpha / 2)
+        # confidence interval based on the normal approximation
+        confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                         upper_bound = mu_hat + z * SE))))
       }
-      SE <- sqrt(var_total)
-      alpha <- control_inference$alpha
-      z <- stats::qnorm(1 - alpha / 2)
-      # confidence interval based on the normal approximation
-      confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
-                                                                       upper_bound = mu_hat + z * SE))))
+
+      if (control_inference$var_method == "bootstrap") {
+
+        if (!is.null(svydesign)) {
+          svydesign_rep <- survey::as.svrepdesign(svydesign,
+                                                  type = control_inference$rep_type,
+                                                  replicates = num_boot)
+          rep_weights <- svydesign_rep$repweights$weights
+        }
+
+
+        if (control_inference$cores == 1) {
+
+          if (verbose) {
+            message("Singlecore bootstrap in progress...")
+            pb_boot <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
+          }
+
+          boot_obj <- numeric(num_boot)
+          b <- 1
+
+          if (!is.null(svydesign)) {
+
+            while (b <= num_boot) {
+              tryCatch(
+                {
+                  # probability part
+
+                  strap_rand_svy <- which(rep_weights[, b] != 0)
+                  weights_rand_strap_svy <- rep_weights[, b] * weights(svydesign)
+                  pop_size_strap <- sum(weights_rand_strap_svy) ## whether this should be fixed to pop_size?
+
+                  ## workaround for as.svrepdesign
+                  svydesign_rep_b <- svydesign_rep
+                  svydesign_rep_b$variables <- svydesign_rep$variables[strap_rand_svy, ]
+                  svydesign_rep_b$repweights <- svydesign_rep$repweights[strap_rand_svy, ]
+                  svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
+
+                  # non-probability part
+                  strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+
+                  model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
+                                                X_nons = X_nons[strap_nons, , drop = FALSE],
+                                                X_rand = X_rand[strap_rand_svy, , drop = FALSE],
+                                                svydesign = svydesign_rep_b,
+                                                weights=weights[strap_nons],
+                                                family_outcome=family_outcome,
+                                                start_outcome=model_obj$coefficients,
+                                                vars_selection=vars_selection,
+                                                pop_totals=pop_totals,
+                                                pop_size=pop_size_strap,
+                                                control_outcome=control_outcome,
+                                                control_inference=control_inference,
+                                                verbose=verbose,
+                                                se=FALSE)
+
+                  boot_obj[b] <- model_obj_b$y_mi_hat
+
+                  if (verbose) {
+                    utils::setTxtProgressBar(pb_boot, b)
+                  }
+                  b <- b + 1
+                },
+                error = function(e) {
+                  if (verbose) {
+                    info <- paste("An error occurred in ", b, " iteration: ", e$message, sep = "")
+                    message(info)
+                  }
+                }
+              )
+            }
+          } else {
+            while (b <= num_boot) {
+              tryCatch(
+                {
+                  # non-probability part
+                  strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+
+                  model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
+                                                X_nons = X_nons[strap_nons, , drop = FALSE],
+                                                X_rand = X_rand,
+                                                svydesign = svydesign,
+                                                weights=weights[strap_nons],
+                                                family_outcome=family_outcome,
+                                                start_outcome=model_obj$coefficients,
+                                                vars_selection=vars_selection,
+                                                pop_totals=pop_totals,
+                                                pop_size=pop_size,
+                                                control_outcome=control_outcome,
+                                                control_inference=control_inference,
+                                                verbose=verbose,
+                                                se=FALSE)
+
+                  boot_obj[b] <- model_obj_b$y_mi_hat
+
+                  if (verbose) {
+                    utils::setTxtProgressBar(pb_boot, b)
+                  }
+                  b <- b + 1
+                },
+                error = function(e) {
+                  if (verbose) {
+                    info <- paste("An error occurred in ", b, " iteration: ", e$message, sep = "")
+                    message(info)
+                  }
+                }
+              )
+            }
+          }
+        } else {
+
+          if (verbose) message("Multicore bootstrap in progress...")
+
+          cl <- parallel::makeCluster(control_inference$cores)
+          doParallel::registerDoParallel(cl)
+          on.exit(parallel::stopCluster(cl))
+          parallel::clusterExport(cl = cl, varlist = NULL, envir = getNamespace("nonprobsvy"))
+
+          if (!is.null(svydesign)) {
+            boot_obj <- foreach::`%dopar%`(
+              obj = foreach::foreach(b = 1:num_boot, .combine = c),
+              ex = {
+                strap_rand_svy <- which(rep_weights[, b] != 0)
+                weights_rand_strap_svy <- rep_weights[, b] * weights(svydesign)
+                pop_size_strap <- sum(weights_rand_strap_svy) ## whether this should be fixed to pop_size?
+
+                ## workaround for as.svrepdesign
+                svydesign_rep_b <- svydesign_rep
+                svydesign_rep_b$variables <- svydesign_rep$variables[strap_rand_svy, ]
+                svydesign_rep_b$repweights <- svydesign_rep$repweights[strap_rand_svy, ]
+                svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
+
+                # non-probability part
+                strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+
+                model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
+                                              X_nons = X_nons[strap_nons, , drop = FALSE],
+                                              X_rand = X_rand[strap_rand_svy, , drop = FALSE],
+                                              svydesign = svydesign_rep_b,
+                                              weights=weights[strap_nons],
+                                              family_outcome=family_outcome,
+                                              start_outcome=model_obj$coefficients,
+                                              vars_selection=vars_selection,
+                                              pop_totals=pop_totals,
+                                              pop_size=pop_size_strap,
+                                              control_outcome=control_outcome,
+                                              control_inference=control_inference,
+                                              verbose=verbose,
+                                              se=FALSE)
+                model_obj_b$y_mi_hat
+              }
+            )
+          } else {
+            boot_obj <- foreach::`%dopar%`(
+              obj = foreach::foreach(b = 1:num_boot, .combine = c),
+              ex = {
+                strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+
+                model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
+                                              X_nons = X_nons[strap_nons, , drop = FALSE],
+                                              X_rand = X_rand,
+                                              svydesign = svydesign,
+                                              weights=weights[strap_nons],
+                                              family_outcome=family_outcome,
+                                              start_outcome=model_obj$coefficients,
+                                              vars_selection=vars_selection,
+                                              pop_totals=pop_totals,
+                                              pop_size=pop_size,
+                                              control_outcome=control_outcome,
+                                              control_inference=control_inference,
+                                              verbose=verbose,
+                                              se=FALSE)
+
+                model_obj_b$y_mi_hat
+              }
+            )
+          }
+
+        }
+
+        var_total <- var(boot_obj)
+        stat_boot[, o] <- boot_obj
+        SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
+        SE <- sqrt(var_total)
+        alpha <- control_inference$alpha
+        z <- stats::qnorm(1 - alpha / 2)
+        # confidence interval based on the normal approximation
+        confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
+                                                                         upper_bound = mu_hat + z * SE))))
+      }
+
+
     } else {
       SE <- NA
       confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = NA, upper_bound = NA ))))
@@ -249,7 +385,7 @@ nonprob_mi <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" && control_inference$keep_boot) {
-    list(stat = stat, comp2 = boot_obj$comp2)
+    list(stat = stat_boot, comp2 = 0)
   } else {
     NULL
   }
