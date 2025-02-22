@@ -224,3 +224,99 @@ mm <- function(X,
     outcome = outcome
   )
 }
+
+
+# joint score equation for theta and beta, used in estimation when variable selections
+u_theta_beta_dr <- function(par,
+                            R,
+                            X,
+                            y,
+                            weights,
+                            method_selection,
+                            family_nonprobsvy) {
+
+  method <- switch(method_selection,
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
+
+  inv_link <- method$make_link_inv
+  inv_link_rev <- method$make_link_inv_rev
+
+  p <- ncol(X)
+  theta <- par[1:(p)]
+  beta <- par[(p + 1):(2 * p)]
+  eta_pi <- X %*% theta
+  ps <- inv_link(eta_pi)
+  y[which(is.na(y))] <- 0
+  ps <- as.vector(ps)
+
+  eta <- X %*% beta
+  mu <- family_nonprobsvy$linkinv(eta)
+  mu_der <- as.vector(family_nonprobsvy$mu.eta(eta))
+  res <- family_nonprobsvy$residuals(mu = mu, y = y)
+  mu_der <- 1
+
+  n <- length(R)
+  R_rand <- 1 - R
+
+  utb <- c(
+    apply(X * R / ps * mu_der * weights - X * R_rand * weights * mu_der, 2, sum),
+    apply(X * R * weights * as.vector(-inv_link_rev(eta_pi)) * res, 2, sum)
+  ) / n
+
+  utb
+}
+
+jacobian_u_theta_beta_dr <- function(par,
+                                     R,
+                                     X,
+                                     y,
+                                     weights,
+                                     method_selection,
+                                     family_nonprobsvy) {
+
+  method <- switch(method_selection,
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
+
+  inv_link <- method$make_link_inv
+  inv_link_rev <- method$make_link_inv_rev
+  inv_link_rev2 <- method$make_link_inv_rev2 # Assuming this is added to method_ps
+
+  p <- ncol(X)
+  theta <- par[1:(p)]
+  beta <- par[(p + 1):(2 * p)]
+  eta_pi <- X %*% theta
+  ps <- inv_link(eta_pi)
+  y[which(is.na(y))] <- 0
+  ps <- as.vector(ps)
+
+  eta <- X %*% beta
+  mu <- family_nonprobsvy$linkinv(eta)
+  mu_der <- as.vector(family_nonprobsvy$mu.eta(eta))
+  res <- family_nonprobsvy$residuals(mu = mu, y = y)
+
+  n <- length(R)
+  R_rand <- 1 - R
+
+  inv_ps_matrix <- diag(1/ps)
+  inv_ps_sq_matrix <- diag(1/ps^2)
+  R_matrix <- diag(R)
+  weights_matrix <- diag(weights)
+  y_minus_mu_matrix <- diag(y - mu)
+  res_matrix <- diag(res)
+  inv_link_rev_matrix <- diag(as.vector(inv_link_rev(eta_pi)))
+  inv_link_rev2_matrix <- diag(as.vector(inv_link_rev2(eta_pi)))
+
+
+  J11 <- - (1/n) * crossprod(X, weights_matrix %*% R_matrix %*% inv_ps_sq_matrix %*% inv_link_rev_matrix %*% X)
+  J12 <- matrix(0, p, p) # J12 is zero matrix
+  J21 <- - (1/n) * crossprod(X, R_matrix %*% weights_matrix %*% inv_link_rev2_matrix %*% res_matrix %*% X)
+  J22 <- (1/n) * crossprod(X, weights_matrix %*% R_matrix %*% inv_link_rev_matrix %*% X)
+
+  jacobian_matrix <- rbind(cbind(J11, J12), cbind(J21, J22))
+  return(jacobian_matrix)
+}
+

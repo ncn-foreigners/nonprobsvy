@@ -244,47 +244,7 @@ theta_h_estimation <- function(R,
   )
 }
 
-# joint score equation for theta and beta, used in estimation when variable selections
-u_theta_beta_dr <- function(par,
-                            R,
-                            X,
-                            y,
-                            weights,
-                            method_selection,
-                            family_nonprobsvy) {
 
-  method <- switch(method_selection,
-                   "logit" = method_ps("logit"),
-                   "probit" = method_ps("probit"),
-                   "cloglog" = method_ps("cloglog"))
-
-  inv_link <- method$make_link_inv
-  inv_link_rev <- method$make_link_inv_rev
-
-  p <- ncol(X)
-  theta <- par[1:(p)]
-  beta <- par[(p + 1):(2 * p)]
-  eta_pi <- X %*% theta
-  ps <- inv_link(eta_pi)
-  y[which(is.na(y))] <- 0
-  ps <- as.vector(ps)
-
-  eta <- X %*% beta
-  mu <- family_nonprobsvy$linkinv(eta)
-  mu_der <- as.vector(family_nonprobsvy$mu.eta(eta))
-  res <- family_nonprobsvy$residuals(mu = mu, y = y)
-  mu_der <- 1
-
-  n <- length(R)
-  R_rand <- 1 - R
-
-  utb <- c(
-    apply(X * R / ps * mu_der * weights - X * R_rand * weights * mu_der, 2, sum),
-    apply(X * R * weights * as.vector(-inv_link_rev(eta_pi)) * res, 2, sum)
-  ) / n
-
-  utb
-}
 
 
 #' estimation method for the IPW estimator

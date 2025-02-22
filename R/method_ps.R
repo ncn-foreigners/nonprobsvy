@@ -84,7 +84,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       den <- (eee - 1)^3
       num / den
     } # second derivative of 1/inv_link
-
+    dinv_link_rev2 <- function(eta) {
+      exp(eta - exp(eta)) * (1 - exp(eta))
+    }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
         # linear predictors
@@ -298,6 +300,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
+      make_link_inv_rev_der2 = dinv_link_rev2,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,
@@ -327,7 +330,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     dinv_link_rev <- function(eta) {
       exp(-eta)
     } # second derivative of 1/inv_link
-
+    dinv_link_rev2 <- function(eta) {
+      exp(eta) * (1 - exp(eta)) / (1 + exp(eta))^3
+    }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
         eta1 <- drop(X_nons %*% theta) # linear predictor
@@ -508,6 +513,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
+      make_link_inv_rev_der = dinv_link_rev2,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,
@@ -534,7 +540,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     dinv_link_rev <- function(eta) {
       -dnorm(eta) * (eta + dnorm(eta)) / pnorm(eta)^3
     } # second derivative of 1/inv_link
-
+    dinv_link_rev2 <- function(eta) {
+      -eta * dnorm(eta)
+    }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
         eta1 <- as.matrix(X_nons) %*% theta
@@ -741,6 +749,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
+      make_link_inv_rev_der2 = dinv_link_rev2,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,

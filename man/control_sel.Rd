@@ -90,7 +90,8 @@ for selection model.
 \details{
 \loadmathjax
 
-gee_h_fun Smooth function for the generalized estimating equations (GEE) method taking the following values
+Smooth function (\code{gee_h_fun}) for the generalized estimating equations (GEE) method taking the following values
+
 \itemize{
 \item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
