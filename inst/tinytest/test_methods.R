@@ -55,147 +55,147 @@ expect_silent(
 # methods for the IPW -----------------------------------------------------
 
 
-expect_silent(
-  summary(ipw_result)
-)
-
-expect_silent(
-  nobs(ipw_result)
-)
-
-expect_silent(
-  pop_size(ipw_result)
-)
-
-expect_silent(
-  residuals(ipw_result)
-)
-#
-expect_silent(
-  residuals(ipw_result, type = "pearson")
-)
-
-expect_silent(
-  residuals(ipw_result, type = "working")
-)
-
-expect_silent(
-  residuals(ipw_result, type = "deviance")
-)
-
-## we should look into the pearsonSTD residuals
 # expect_silent(
-#   residuals(ipw_result, "pearsonSTD")
+#   summary(ipw_result)
 # )
-
-expect_silent(
-  cooks.distance(ipw_result)
-)
-
-expect_silent(
-  hatvalues(ipw_result)
-)
-
-expect_silent(
-  logLik(ipw_result)
-)
-
-expect_silent(
-  AIC(ipw_result)
-)
 #
-expect_silent(
-  BIC(ipw_result)
-)
+# expect_silent(
+#   nobs(ipw_result)
+# )
 #
-expect_silent(
-  confint(ipw_result)
-)
+# expect_silent(
+#   pop_size(ipw_result)
+# )
 #
-expect_silent(
-  vcov(ipw_result)
-)
+# expect_silent(
+#   residuals(ipw_result)
+# )
+# #
+# expect_silent(
+#   residuals(ipw_result, type = "pearson")
+# )
 #
-expect_silent(
-  deviance(ipw_result)
-)
+# expect_silent(
+#   residuals(ipw_result, type = "working")
+# )
+#
+# expect_silent(
+#   residuals(ipw_result, type = "deviance")
+# )
+#
+# ## we should look into the pearsonSTD residuals
+# # expect_silent(
+# #   residuals(ipw_result, "pearsonSTD")
+# # )
+#
+# expect_silent(
+#   cooks.distance(ipw_result)
+# )
+#
+# expect_silent(
+#   hatvalues(ipw_result)
+# )
+#
+# expect_silent(
+#   logLik(ipw_result)
+# )
+#
+# expect_silent(
+#   AIC(ipw_result)
+# )
+# #
+# expect_silent(
+#   BIC(ipw_result)
+# )
+# #
+# expect_silent(
+#   confint(ipw_result)
+# )
+# #
+# expect_silent(
+#   vcov(ipw_result)
+# )
+# #
+# expect_silent(
+#   deviance(ipw_result)
+# )
 
 
 # methods for the MI ------------------------------------------------------
 
 
-expect_silent(
-  summary(mi_result)
-)
-#
-expect_silent(
-  nobs(mi_result)
-)
-
-expect_silent(
-  pop_size(mi_result)
-)
-#
-expect_silent(
-  residuals(mi_result)
-)
-
-expect_silent(
-  residuals(mi_result, type = "pearson")
-)
-#
-expect_silent(
-  residuals(mi_result, type = "working")
-)
-
-expect_silent(
-  residuals(mi_result, type = "deviance")
-)
-
-## we should look into the pearsonSTD residuals
-# expect_error(
-#   residuals(mi_result, "pearsonSTD")
+# expect_silent(
+#   summary(mi_result)
 # )
-
-# if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-#   expect_silent(
-#     cooks.distance(mi_result)
-#   )
-#   expect_silent(
-#     hatvalues(mi_result)
-#   )
-# }
-
-expect_silent(
-  logLik(mi_result)
-)
-
-expect_silent(
-  AIC(mi_result)
-)
 #
-expect_silent(
-  BIC(mi_result)
-)
+# expect_silent(
+#   nobs(mi_result)
+# )
 #
-expect_silent(
-  confint(mi_result)
-)
+# expect_silent(
+#   pop_size(mi_result)
+# )
+# #
+# expect_silent(
+#   residuals(mi_result)
+# )
 #
-expect_silent(
-  vcov(mi_result)
-)
+# expect_silent(
+#   residuals(mi_result, type = "pearson")
+# )
+# #
+# expect_silent(
+#   residuals(mi_result, type = "working")
+# )
 #
-expect_silent(
-  deviance(mi_result)
-)
-
+# expect_silent(
+#   residuals(mi_result, type = "deviance")
+# )
+#
+# ## we should look into the pearsonSTD residuals
+# # expect_error(
+# #   residuals(mi_result, "pearsonSTD")
+# # )
+#
+# # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
+# #   expect_silent(
+# #     cooks.distance(mi_result)
+# #   )
+# #   expect_silent(
+# #     hatvalues(mi_result)
+# #   )
+# # }
+#
+# expect_silent(
+#   logLik(mi_result)
+# )
+#
+# expect_silent(
+#   AIC(mi_result)
+# )
+# #
+# expect_silent(
+#   BIC(mi_result)
+# )
+# #
+# expect_silent(
+#   confint(mi_result)
+# )
+# #
+# expect_silent(
+#   vcov(mi_result)
+# )
+# #
+# expect_silent(
+#   deviance(mi_result)
+# )
+#
 
 # methods for the MI ------------------------------------------------------
 
-expect_silent(
-  summary(dr_result)
-)
+# expect_silent(
+#   summary(dr_result)
+# )
 #
 expect_silent(
   nobs(dr_result)

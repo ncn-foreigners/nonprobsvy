@@ -459,57 +459,15 @@ result_dr <- nonprob(
 Results
 
 ``` r
-summary(result_dr)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
-#>     outcome = y1 ~ x1 + x2, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.95 with overall std.err of: 0.04195
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.000783 and 0.04195
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.867789     3.03224
-#> 
-#> 
-#> Based on: Doubly-Robust method
-#> For a population of estimate size: 1025063
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on outcome variable:
-#>             Estimate Std. Error z value P(>|z|)    
-#> (Intercept) 0.996282   0.002139   465.8  <2e-16 ***
-#> x1          1.001931   0.001200   835.3  <2e-16 ***
-#> x2          0.999125   0.001098   910.2  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> -----------------------
-#> For glm regression on selection variable:
-#>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
-#> x2           1.885627   0.005303   355.6  <2e-16 ***
-#> -------------------------
-#> 
-#> Weights:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.071   1.313   1.479   1.798   2.647 
-#> -------------------------
-#> 
-#> Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
-#> 
-#> AIC: 1010622
-#> BIC: 1010645
-#> Log-Likelihood: -505309 on 694009 Degrees of freedom
+result_dr
+#> A nonprob object
+#>  - estimator type: doubly robust
+#>  - method: glm (gaussian)
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - naive (uncorrected) estimator: 3.1817
+#>  - selected estimator: 2.95 (se=0.042, ci=(2.8678, 3.0322))
 ```
 
 Mass imputation estimator
@@ -525,38 +483,15 @@ result_mi <- nonprob(
 Results
 
 ``` r
-summary(result_mi)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), outcome = y1 ~ 
-#>     x1 + x2, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.95 with overall std.err of: 0.04203
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.001227 and 0.04201
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.867433    3.032186
-#> 
-#> 
-#> Based on: Mass Imputation method
-#> For a population of estimate size: 1e+06
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on outcome variable:
-#>             Estimate Std. Error z value P(>|z|)    
-#> (Intercept) 0.996282   0.002139   465.8  <2e-16 ***
-#> x1          1.001931   0.001200   835.3  <2e-16 ***
-#> x2          0.999125   0.001098   910.2  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> -------------------------
+result_mi
+#> A nonprob object
+#>  - estimator type: mass imputation
+#>  - method: glm (gaussian)
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - naive (uncorrected) estimator: 3.1817
+#>  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))
 ```
 
 Inverse probability weighting estimator
@@ -572,50 +507,15 @@ result_ipw <- nonprob(
 Results
 
 ``` r
-summary(result_ipw)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
-#>     target = ~y1, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.925 with overall std.err of: 0.04999
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.001325 and 0.04997
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.826805    3.022761
-#> 
-#> 
-#> Based on: Inverse probability weighted method
-#> For a population of estimate size: 1025063
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on selection variable:
-#>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498995   0.003702  -134.8  <2e-16 ***
-#> x2           1.885627   0.005303   355.6  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> -------------------------
-#> 
-#> Weights:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.071   1.313   1.479   1.798   2.647 
-#> -------------------------
-#> 
-#> Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
-#> 
-#> AIC: 1010622
-#> BIC: 1010645
-#> Log-Likelihood: -505309 on 694009 Degrees of freedom
+result_ipw
+#> A nonprob object
+#>  - estimator type: inverse probability weighting
+#>  - method: logit (mle )
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - naive (uncorrected) estimator: 3.1817
+#>  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))
 ```
 
 ## Funding

@@ -17,8 +17,7 @@ computed, if missing all parameters will be considered.}
 \item{...}{additional arguments}
 }
 \value{
-An object with named columns that include upper and
-lower limit of confidence intervals.
+returns a \code{data.frame} with confidence intervals for the target variables
 }
 \description{
 A function that computes confidence intervals

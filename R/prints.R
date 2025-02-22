@@ -24,7 +24,7 @@ print.nonprob <- function(x, ...) {
                 tolower(x$control$control_inference$cores > 1)))
   }
 
-  if (nrow(res$output) == 1) {
+  if (nrow(x$output) == 1) {
     cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))
     cat(sprintf(
       " - selected estimator: %s (se=%s, ci=(%s, %s))\n",

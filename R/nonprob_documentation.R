@@ -326,7 +326,7 @@ NULL
 #'   data = nonprob_df,
 #'   svydesign = svyprob
 #' )
-#' summary(MI_res)
+#' MI_res
 #' ## inverse probability weighted estimator
 #' IPW_res <- nonprob(
 #'   selection = ~ x1 + x2 + x3 + x4,
@@ -334,7 +334,7 @@ NULL
 #'   data = nonprob_df,
 #'   svydesign = svyprob
 #' )
-#' summary(IPW_res)
+#' IPW_res
 #' ## doubly robust estimator
 #' DR_res <- nonprob(
 #'   outcome = y80 ~ x1 + x2 + x3 + x4,
@@ -342,7 +342,7 @@ NULL
 #'   data = nonprob_df,
 #'   svydesign = svyprob
 #' )
-#' summary(DR_res)
+#' DR_res
 #' }
 #' @name nonprob
 NULL

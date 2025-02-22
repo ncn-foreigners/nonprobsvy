@@ -269,40 +269,32 @@ BIC.nonprob <- function(object,
 #' @param ... additional arguments
 #'
 #' @method confint nonprob
-#' @return An object with named columns that include upper and
-#' lower limit of confidence intervals.
+#' @return returns a `data.frame` with confidence intervals for the target variables
 #' @importFrom stats confint
 #' @exportS3Method
 confint.nonprob <- function(object,
-                               parm,
-                               level = 0.95,
-                               ...) {
-  if (object$estimator %in% c("dr", "ipw")) {
-    std <- object$selection$std_err
-    sc <- qnorm(p = 1 - (1 - level) / 2)
-    res_sel <- data.frame(object$selection$coefficients - sc * std, object$selection$coefficients + sc * std)
-    colnames(res_sel) <- c(
-      paste0(100 * (1 - level) / 2, "%"),
-      paste0(100 * (1 - (1 - level) / 2), "%")
-    )
+                            parm,
+                            level = 0.95,
+                            ...) {
+
+  if (all(is.na(object$output$SE))) stop("Standard errors were not calculated. Please refit the `nonprob` object.")
+
+  if (missing(parm)) parm <- rownames(object$output)
+
+  if (level == 0.95) {
+    CIs <- object$confidence_interval
+    CIs$target <- rownames(CIs)
+    rownames(CIs) <- NULL
+  } else {
+    CIs <- object$output
+    z <- stats::qnorm(1 - (1-level) / 2)
+    # confidence interval based on the normal approximation
+    CIs$lower_bound <- CIs$mean - z * CIs$SE
+    CIs$upper_bound <- CIs$mean + z * CIs$SE
+    CIs$target <- rownames(CIs)
+    rownames(CIs) <- NULL
   }
-  if (object$estimator %in% c("dr", "mi")) {
-    if (class(object$outcome[[1]])[1] == "glm") {
-      res_out <- confint(object$outcome[[1]])
-    } else {
-      std <- sqrt(diag(vcov(object)$outcome))
-      sc <- qnorm(p = 1 - (1 - level) / 2)
-      res_out <- data.frame(object$outcome[[1]]$coefficients - sc * std, object$outcome[[1]]$coefficients + sc * std)
-      colnames(res_out) <- c(
-        paste0(100 * (1 - level) / 2, "%"),
-        paste0(100 * (1 - (1 - level) / 2), "%")
-      )
-    }
-  }
-  if (object$estimator == "mi") res <- list(outcome = res_out)
-  if (object$estimator == "ipw") res <- list(selection = res_sel)
-  if (object$estimator == "dr") res <- list(selection = res_sel, outcome = res_out)
-  res
+  return(CIs[CIs$target %in% parm, c("target", "lower_bound", "upper_bound")])
 }
 #' @title Obtain Covariance Matrix estimation.
 #'

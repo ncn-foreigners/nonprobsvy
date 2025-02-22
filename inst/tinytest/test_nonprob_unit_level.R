@@ -48,8 +48,7 @@ expect_error(
     svydesign = jvs_svy,
     data = admin,
     method_selection = "invalid"
-  ),
-  "Invalid method for the `selection` formula. Choose from 'logit', 'cloglog', 'probit'"
+  )
 )
 
 expect_error(
@@ -58,8 +57,7 @@ expect_error(
     svydesign = jvs_svy,
     data = admin,
     method_outcome = "invalid"
-  ),
-  "Invalid method for the `outcome` variable. Choose from 'glm', 'nn', 'pmm'"
+  )
 )
 
 
@@ -70,8 +68,7 @@ expect_error(
     data = admin,
     method_outcome = "glm",
     family_outcome = "invalid"
-  ),
-  "Invalid family for the `outcome` formula. Choose from 'gaussian', 'binomial', 'poisson'"
+  )
 )
 
 

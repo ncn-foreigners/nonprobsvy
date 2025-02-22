@@ -431,7 +431,7 @@ result_dr <- nonprob(
 Results
 
 ```{r}
-summary(result_dr)
+result_dr
 ```
 
 Mass imputation estimator
@@ -447,7 +447,7 @@ result_mi <- nonprob(
 Results
 
 ```{r}
-summary(result_mi)
+result_mi
 ```
 
 Inverse probability weighting estimator
@@ -463,7 +463,7 @@ result_ipw <- nonprob(
 Results
 
 ```{r}
-summary(result_ipw)
+result_ipw
 ```
 
 ## Funding

@@ -27,36 +27,21 @@ nonprob <- function(data,
                     ...) {
 
   call <- match.call()
+  method_selection <- match.arg(method_selection)
+  family_outcome <- match.arg(family_outcome)
+  method_outcome <- match.arg(method_outcome)
+
   data <- if (!is.data.frame(data)) data.frame(data) else data
   weights <- if (is.null(weights)) rep(1, nrow(data)) else weights
-  num_of_vars <- NROW(attr(terms(outcome), "term.labels"))
-
-
-
-  # Method defaults
-  method_selection <- if (missing(method_selection)) "logit" else method_selection
-  family_outcome <- if (missing(family_outcome)) "gaussian" else family_outcome
-  method_outcome <- if (missing(method_outcome)) "glm" else method_outcome
 
   # Check data
   if (is.data.frame(data) && ncol(data) == 0) {
     stop("The `data` argument cannot be an empty data frame.")
   }
 
-  # Validation checks for methods
-  if (!(method_outcome %in% c("glm", "nn", "pmm", "npar"))) {
-    stop("Invalid method for the `outcome` variable. Choose from 'glm', 'nn', 'pmm', 'npar'")
-  }
-  if (method_outcome == "npar" & num_of_vars >= 4) {
-    stop("Non-parametric methods are suited for smaller number of variables (less than 4)")
-  }
-
-  if (!(method_selection %in% c("logit", "cloglog", "probit"))) {
-    stop("Invalid method for the `selection` formula. Choose from 'logit', 'cloglog', 'probit'.")
-  }
-
-  if (!(family_outcome %in% c("gaussian", "binomial", "poisson"))) {
-    stop("Invalid family for the `outcome` formula. Choose from 'gaussian', 'binomial', 'poisson'.")
+  if (method_outcome == "npar") {
+    num_of_vars <- NROW(attr(terms(outcome), "term.labels"))
+    if (num_of_vars >= 4) stop("Non-parametric methods are suited for smaller number of variables (less than 4)")
   }
 
   # Validation checks for formulas
