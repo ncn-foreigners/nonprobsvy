@@ -473,57 +473,15 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_dr</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, </span></span>
-<span><span class="co">#&gt;     outcome = y1 ~ x1 + x2, svydesign = sample_prob)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; Estimated population mean: 2.95 with overall std.err of: 0.04195</span></span>
-<span><span class="co">#&gt; And std.err for nonprobability and probability samples being respectively:</span></span>
-<span><span class="co">#&gt; 0.000783 and 0.04195</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 95% Confidence inverval for popualtion mean:</span></span>
-<span><span class="co">#&gt;    lower_bound upper_bound</span></span>
-<span><span class="co">#&gt; y1    2.867789     3.03224</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Based on: Doubly-Robust method</span></span>
-<span><span class="co">#&gt; For a population of estimate size: 1025063</span></span>
-<span><span class="co">#&gt; Obtained on a nonprobability sample of size: 693011</span></span>
-<span><span class="co">#&gt; With an auxiliary probability sample of size: 1000</span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Regression coefficients:</span></span>
-<span><span class="co">#&gt; -----------------------</span></span>
-<span><span class="co">#&gt; For glm regression on outcome variable:</span></span>
-<span><span class="co">#&gt;             Estimate Std. Error z value P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept) 0.996282   0.002139   465.8  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x1          1.001931   0.001200   835.3  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x2          0.999125   0.001098   910.2  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; -----------------------</span></span>
-<span><span class="co">#&gt; For glm regression on selection variable:</span></span>
-<span><span class="co">#&gt;              Estimate Std. Error z value P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept) -0.498995   0.003702  -134.8  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x2           1.885627   0.005303   355.6  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Weights:</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   1.071   1.313   1.479   1.798   2.647 </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span></span>
-<span><span class="co">#&gt; -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; AIC: 1010622</span></span>
-<span><span class="co">#&gt; BIC: 1010645</span></span>
-<span><span class="co">#&gt; Log-Likelihood: -505309 on 694009 Degrees of freedom</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">result_dr</span></span>
+<span><span class="co">#&gt; A nonprob object</span></span>
+<span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
+<span><span class="co">#&gt;  - method: glm (gaussian)</span></span>
+<span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
+<span><span class="co">#&gt;  - vars selection: false</span></span>
+<span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
+<span><span class="co">#&gt;  - selected estimator: 2.95 (se=0.042, ci=(2.8678, 3.0322))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
@@ -533,38 +491,15 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_mi</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; nonprob(data = subset(population, flag_bd1 == 1), outcome = y1 ~ </span></span>
-<span><span class="co">#&gt;     x1 + x2, svydesign = sample_prob)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; Estimated population mean: 2.95 with overall std.err of: 0.04203</span></span>
-<span><span class="co">#&gt; And std.err for nonprobability and probability samples being respectively:</span></span>
-<span><span class="co">#&gt; 0.001227 and 0.04201</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 95% Confidence inverval for popualtion mean:</span></span>
-<span><span class="co">#&gt;    lower_bound upper_bound</span></span>
-<span><span class="co">#&gt; y1    2.867433    3.032186</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Based on: Mass Imputation method</span></span>
-<span><span class="co">#&gt; For a population of estimate size: 1e+06</span></span>
-<span><span class="co">#&gt; Obtained on a nonprobability sample of size: 693011</span></span>
-<span><span class="co">#&gt; With an auxiliary probability sample of size: 1000</span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Regression coefficients:</span></span>
-<span><span class="co">#&gt; -----------------------</span></span>
-<span><span class="co">#&gt; For glm regression on outcome variable:</span></span>
-<span><span class="co">#&gt;             Estimate Std. Error z value P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept) 0.996282   0.002139   465.8  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x1          1.001931   0.001200   835.3  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x2          0.999125   0.001098   910.2  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
-<span><span class="co">#&gt; -------------------------</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">result_mi</span></span>
+<span><span class="co">#&gt; A nonprob object</span></span>
+<span><span class="co">#&gt;  - estimator type: mass imputation</span></span>
+<span><span class="co">#&gt;  - method: glm (gaussian)</span></span>
+<span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
+<span><span class="co">#&gt;  - vars selection: false</span></span>
+<span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
+<span><span class="co">#&gt;  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
@@ -574,50 +509,15 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result_ipw</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, </span></span>
-<span><span class="co">#&gt;     target = ~y1, svydesign = sample_prob)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; Estimated population mean: 2.925 with overall std.err of: 0.04999</span></span>
-<span><span class="co">#&gt; And std.err for nonprobability and probability samples being respectively:</span></span>
-<span><span class="co">#&gt; 0.001325 and 0.04997</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 95% Confidence inverval for popualtion mean:</span></span>
-<span><span class="co">#&gt;    lower_bound upper_bound</span></span>
-<span><span class="co">#&gt; y1    2.826805    3.022761</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Based on: Inverse probability weighted method</span></span>
-<span><span class="co">#&gt; For a population of estimate size: 1025063</span></span>
-<span><span class="co">#&gt; Obtained on a nonprobability sample of size: 693011</span></span>
-<span><span class="co">#&gt; With an auxiliary probability sample of size: 1000</span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Regression coefficients:</span></span>
-<span><span class="co">#&gt; -----------------------</span></span>
-<span><span class="co">#&gt; For glm regression on selection variable:</span></span>
-<span><span class="co">#&gt;              Estimate Std. Error z value P(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept) -0.498995   0.003702  -134.8  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x2           1.885627   0.005303   355.6  &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Weights:</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   1.071   1.313   1.479   1.798   2.647 </span></span>
-<span><span class="co">#&gt; -------------------------</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span></span>
-<span><span class="co">#&gt; -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; AIC: 1010622</span></span>
-<span><span class="co">#&gt; BIC: 1010645</span></span>
-<span><span class="co">#&gt; Log-Likelihood: -505309 on 694009 Degrees of freedom</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">result_ipw</span></span>
+<span><span class="co">#&gt; A nonprob object</span></span>
+<span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
+<span><span class="co">#&gt;  - method: logit (mle )</span></span>
+<span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
+<span><span class="co">#&gt;  - vars selection: false</span></span>
+<span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
+<span><span class="co">#&gt;  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>

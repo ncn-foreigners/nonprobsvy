@@ -42,7 +42,7 @@ In the case of outcome and target multiple y variables can be specified."><meta 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Inference with non-probability survey samples</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_dr.R" class="external-link"><code>R/nonprob_dr.R</code></a>, and 1 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_dr.R" class="external-link"><code>R/nonprob_dr.R</code></a></small>
       <div class="d-none name"><code>nonprob.Rd</code></div>
     </div>
 
@@ -69,7 +69,7 @@ In the case of <code>outcome</code> and <code>target</code> multiple y variables
 <span>  pop_means <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pop_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  method_selection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"logit"</span>, <span class="st">"cloglog"</span>, <span class="st">"probit"</span><span class="op">)</span>,</span>
-<span>  method_outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"nn"</span>, <span class="st">"pmm"</span><span class="op">)</span>,</span>
+<span>  method_outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"nn"</span>, <span class="st">"pmm"</span>, <span class="st">"npar"</span><span class="op">)</span>,</span>
 <span>  family_outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="st">"binomial"</span>, <span class="st">"poisson"</span><span class="op">)</span>,</span>
 <span>  subset <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strata <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -107,29 +107,6 @@ In the case of <code>outcome</code> and <code>target</code> multiple y variables
 <span>  <span class="va">control_inference</span>,</span>
 <span>  <span class="va">start_outcome</span>,</span>
 <span>  <span class="va">start_selection</span>,</span>
-<span>  <span class="va">verbose</span>,</span>
-<span>  <span class="va">x</span>,</span>
-<span>  <span class="va">y</span>,</span>
-<span>  <span class="va">se</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">nonprob_mi</span><span class="op">(</span></span>
-<span>  <span class="va">outcome</span>,</span>
-<span>  <span class="va">data</span>,</span>
-<span>  <span class="va">svydesign</span>,</span>
-<span>  <span class="va">pop_totals</span>,</span>
-<span>  <span class="va">pop_means</span>,</span>
-<span>  <span class="va">pop_size</span>,</span>
-<span>  <span class="va">method_outcome</span>,</span>
-<span>  family_outcome <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
-<span>  <span class="va">subset</span>,</span>
-<span>  <span class="va">strata</span>,</span>
-<span>  <span class="va">weights</span>,</span>
-<span>  <span class="va">na_action</span>,</span>
-<span>  <span class="va">control_outcome</span>,</span>
-<span>  <span class="va">control_inference</span>,</span>
-<span>  <span class="va">start_outcome</span>,</span>
 <span>  <span class="va">verbose</span>,</span>
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">y</span>,</span>
@@ -511,41 +488,15 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
 <span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">MI_res</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nonprob(data = nonprob_df, outcome = y80 ~ x1 + x2 + x3 + x4, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     svydesign = svyprob)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimated population mean: 9.518 with overall std.err of: 0.151</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> And std.err for nonprobability and probability samples being respectively:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.08679 and 0.1236</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 95% Confidence inverval for popualtion mean:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     lower_bound upper_bound</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> y80    9.222349    9.814346</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Based on: Mass Imputation method</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For a population of estimate size: 21631.63</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Obtained on a nonprobability sample of size: 1032</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> With an auxiliary probability sample of size: 1044</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Regression coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For glm regression on outcome variable:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.93113    0.24859   7.768 7.95e-15 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           1.06616    0.16954   6.289 3.20e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           1.04125    0.09731  10.700  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3           0.98891    0.06927  14.277  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x4           0.98930    0.01904  51.946  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="va">MI_res</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: mass imputation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - method: glm (gaussian)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - auxiliary variables source: survey</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - vars selection: false</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - variance estimator: analytic</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - naive (uncorrected) estimator: 11.9797</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimator: 9.5183 (se=0.151, ci=(9.2223, 9.8143))</span>
 <span class="r-in"><span><span class="co">## inverse probability weighted estimator</span></span></span>
 <span class="r-in"><span><span class="va">IPW_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
@@ -553,53 +504,15 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
 <span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">IPW_res</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nonprob(data = nonprob_df, selection = ~x1 + x2 + x3 + x4, target = ~y80, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     svydesign = svyprob)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimated population mean: 9.718 with overall std.err of: 0.1962</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> And std.err for nonprobability and probability samples being respectively:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1331 and 0.1442</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 95% Confidence inverval for popualtion mean:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     lower_bound upper_bound</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> y80    9.332946    10.10219</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Based on: Inverse probability weighted method</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For a population of estimate size: 21127.42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Obtained on a nonprobability sample of size: 1032</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> With an auxiliary probability sample of size: 1044</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Regression coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For glm regression on selection variable:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -4.582648   0.105508 -43.434  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.102633   0.074416   1.379    0.168    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           0.234848   0.042871   5.478 4.30e-08 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3           0.181639   0.029253   6.209 5.33e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x4           0.184285   0.008568  21.508  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weights:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1.172  10.583  18.137  20.472  27.940  79.563 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Residuals:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.56121 -0.04204 -0.01457  0.43052  0.94475  0.98743 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 7797.97</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 7826.161</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -3893.985 on 2071 Degrees of freedom</span>
+<span class="r-in"><span><span class="va">IPW_res</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: inverse probability weighting</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - method: logit (mle )</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - auxiliary variables source: survey</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - vars selection: false</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - variance estimator: analytic</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - naive (uncorrected) estimator: 11.9797</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimator: 9.4911 (se=0.5555, ci=(8.4023, 10.5798))</span>
 <span class="r-in"><span><span class="co">## doubly robust estimator</span></span></span>
 <span class="r-in"><span><span class="va">DR_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  outcome <span class="op">=</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
@@ -607,62 +520,15 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">nonprob_df</span>,</span></span>
 <span class="r-in"><span>  svydesign <span class="op">=</span> <span class="va">svyprob</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">DR_res</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nonprob(data = nonprob_df, selection = ~x1 + x2 + x3 + x4, outcome = y80 ~ </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     x1 + x2 + x3 + x4, svydesign = svyprob)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Estimated population mean: 9.483 with overall std.err of: 0.1525</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> And std.err for nonprobability and probability samples being respectively:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.08508 and 0.1265</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 95% Confidence inverval for popualtion mean:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     lower_bound upper_bound</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> y80    9.183858    9.781461</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Based on: Doubly-Robust method</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For a population of estimate size: 21127.42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Obtained on a nonprobability sample of size: 1032</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> With an auxiliary probability sample of size: 1044</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Regression coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For glm regression on outcome variable:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.93113    0.24859   7.768 7.95e-15 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           1.06616    0.16954   6.289 3.20e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           1.04125    0.09731  10.700  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3           0.98891    0.06927  14.277  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x4           0.98930    0.01904  51.946  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> For glm regression on selection variable:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  P(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -4.582648   0.105508 -43.434  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.102633   0.074416   1.379    0.168    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           0.234848   0.042871   5.478 4.30e-08 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3           0.181639   0.029253   6.209 5.33e-10 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x4           0.184285   0.008568  21.508  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weights:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1.172  10.583  18.137  20.472  27.940  79.563 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Residuals:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.56121 -0.04204 -0.01457  0.43052  0.94475  0.98743 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AIC: 7797.97</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> BIC: 7826.161</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -3893.985 on 2071 Degrees of freedom</span>
+<span class="r-in"><span><span class="va">DR_res</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: doubly robust</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - method: glm (gaussian)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - auxiliary variables source: survey</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - vars selection: false</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - variance estimator: analytic</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - naive (uncorrected) estimator: 11.9797</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimator: 9.4827 (se=0.1525, ci=(9.1839, 9.7815))</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
