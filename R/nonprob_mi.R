@@ -171,11 +171,9 @@ nonprob_mi <- function(outcome,
         alpha <- control_inference$alpha
         z <- stats::qnorm(1 - alpha / 2)
         # confidence interval based on the normal approximation
-        confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
-                                                                         upper_bound = mu_hat + z * SE))))
-      }
-
-      if (control_inference$var_method == "bootstrap") {
+        confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * SE,
+                                               upper_bound = mu_hat + z * SE)
+      } else {
 
         boot_obj <- boot_mi(model_obj=model_obj,
                             y_nons=y_nons,
@@ -196,20 +194,20 @@ nonprob_mi <- function(outcome,
         alpha <- control_inference$alpha
         z <- stats::qnorm(1 - alpha / 2)
         # confidence interval based on the normal approximation
-        confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = mu_hat - z * SE,
-                                                                         upper_bound = mu_hat + z * SE))))
+        confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * SE,
+                                               upper_bound = mu_hat + z * SE)
       }
 
 
     } else {
       SE <- NA
-      confidence_interval[[o]] <- data.frame(t(data.frame("normal" = c(lower_bound = NA, upper_bound = NA ))))
-      SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
+      confidence_interval[[o]] <- data.frame(lower_bound = NA, upper_bound = NA )
+      SE_values[[o]] <- data.frame(nonprob = NA, prob = NA)
     }
 
     X <- rbind(X_rand, X_nons) # joint model matrix
 
-    output[[o]] <- data.frame(t(data.frame(result = c(mean = mu_hat, SE = SE))))
+    output[[o]] <- data.frame(mean = mu_hat, SE = SE)
     outcome_list[[o]]$method <- method_outcome
   }
 
@@ -218,10 +216,9 @@ nonprob_mi <- function(outcome,
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
   names(outcome_list) <- outcomes$f
-  names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome_init[[2]])
 
-  boot_sample <- if (control_inference$var_method == "bootstrap" && control_inference$keep_boot) {
+  boot_sample <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     list(stat = stat_boot, comp2 = 0)
   } else {
     NULL

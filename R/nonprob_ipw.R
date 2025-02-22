@@ -296,24 +296,24 @@ nonprob_ipw <- function(selection,
   }
 
   mu_hats <- numeric(length = outcomes$l)
-  for (k in 1:outcomes$l) {
+  for (o in 1:outcomes$l) {
     if (is.null(pop_totals)) {
       y_nons <- make_model_frame(
-        formula = outcomes$outcome[[k]],
+        formula = outcomes$outcome[[o]],
         data = data,
         svydesign = svydesign,
         weights = weights
       )$y_nons
     } else {
       y_nons <- make_model_frame(
-        formula = outcomes$outcome[[k]],
+        formula = outcomes$outcome[[o]],
         data = data,
         pop_totals = pop_totals,
         weights = weights
       )$y_nons
     }
-    ys[[k]] <- as.numeric(y_nons)
-    mu_hats[k] <- mu_hatIPW(
+    ys[[o]] <- as.numeric(y_nons)
+    mu_hats[o] <- mu_hatIPW(
       y = y_nons,
       weights = weights,
       weights_nons = weights_nons,
@@ -335,10 +335,10 @@ nonprob_ipw <- function(selection,
           svydesign = svydesign,
           X_nons = X_nons,
           X_rand = X_rand,
-          y_nons = ys[[k]],
+          y_nons = ys[[o]],
           weights = weights,
           ps_nons = ps_nons,
-          mu_hat = mu_hats[k],
+          mu_hat = mu_hats[o],
           hess = hess,
           ps_nons_der = ps_nons_der,
           N = N,
@@ -360,9 +360,9 @@ nonprob_ipw <- function(selection,
         var_nonprob[k] <- var_obj$var_nonprob
         var_prob[k] <- var_obj$var_prob
         var[k] <- var_obj$var
-        se_nonprob[k] <- sqrt(var_nonprob[k])
-        se_prob[k] <- sqrt(var_prob[k])
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob[k], nonprob = se_nonprob[k]))))
+        se_nonprob[k] <- sqrt(var_nonprob[o])
+        se_prob[k] <- sqrt(var_prob[o])
+        SE_values[[k]] <- data.frame(prob = se_prob[o], nonprob = se_nonprob[o])
       }
     } else if (var_method == "bootstrap") { # TODO add ys, mu_hats instead of y_nons,
       if (control_inference$cores > 1) {
@@ -421,37 +421,31 @@ nonprob_ipw <- function(selection,
       }
       var <- boot_obj$var
       # mu_hat <- boot_obj$mu
-      for (k in 1:outcomes$l) {
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
+      for (o in 1:outcomes$l) {
+        SE_values[[o]] <- data.frame(nonprob = NA, prob = NA)
       }
     } else {
       stop("Invalid `var_method` for the variance estimation.")
     }
     SE <- sqrt(var)
-    alpha <- control_inference$alpha
-    z <- stats::qnorm(1 - alpha / 2)
+    z <- stats::qnorm(1 - control_inference$alpha / 2)
     # confidence interval based on the normal approximation
-    for (k in 1:outcomes$l) {
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(
-        lower_bound = mu_hats[k] - z * SE[k],
-        upper_bound = mu_hats[k] + z * SE[k]
-      ))))
+    for (o in 1:outcomes$l) {
+      confidence_interval[[o]] <- data.frame(lower_bound = mu_hats[o] - z * SE[o],
+                                             upper_bound = mu_hats[o] + z * SE[o])
     }
   } else {
     confidence_interval <- NULL
     SE_values <- NULL
 
-    for (k in 1:outcomes$l) {
+    for (o in 1:outcomes$l) {
       SE <- NA
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(
-        lower_bound = NA,
-        upper_bound = NA
-      ))))
-      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
+      confidence_interval[[o]] <- data.frame(lower_bound = NA, upper_bound = NA)
+      SE_values[[o]] <- data.frame(nonprob = NA, prob = NA)
     }
   }
-  for (k in 1:outcomes$l) {
-    output[[k]] <- data.frame(t(data.frame(result = c(mean = mu_hats[k], SE = SE[k]))))
+  for (o in 1:outcomes$l) {
+    output[[o]] <- data.frame(mean = mu_hats[o], SE = SE[o])
   }
 
   parameters <- matrix(c(theta_hat, theta_standard_errors),
@@ -472,7 +466,7 @@ nonprob_ipw <- function(selection,
   names(ys) <- all.vars(outcome[[2]])
 
 
-  boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+  boot_sample <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     boot_obj$stat
   } else {
     NULL

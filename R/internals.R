@@ -197,17 +197,13 @@ make_outcomes <- function(formula) {
   )
 }
 
-mu_hatDR <- function(y,
-                     y_nons,
-                     y_rand,
+mu_hatDR <- function(y_hat,
+                     y_resid,
                      weights,
                      weights_nons,
-                     weights_rand,
-                     N_nons,
-                     N_rand) {
-  correction_term <- sum(weights * weights_nons * (y - y_nons)) / N_nons
-  probability_estimate <- sum(weights_rand * y_rand) / N_rand
-  correction_term + probability_estimate
+                     N_nons) {
+
+  colSums(weights * weights_nons * y_resid) / N_nons + y_hat
 }
 
 ## replace with weighted.mean -- maybe it can be removed
