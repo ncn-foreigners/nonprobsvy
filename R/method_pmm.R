@@ -34,6 +34,7 @@
 #' @param family_outcome family for the glm model
 #' @param start_outcome start parameters
 #' @param vars_selection whether variable selection should be conducted
+#' @param pop_totals a place holder (not used in `method_pmm`)
 #' @param pop_size population size from the `nonprob` function
 #' @param control_outcome controls passed by the `control_out` function
 #' @param control_inference controls passed by the `control_inf` function
@@ -78,6 +79,7 @@ method_pmm <- function(y_nons,
                        family_outcome="gaussian",
                        start_outcome=NULL,
                        vars_selection=FALSE,
+                       pop_totals=NULL,
                        pop_size=NULL,
                        control_outcome=control_out(),
                        control_inference=control_inf(),

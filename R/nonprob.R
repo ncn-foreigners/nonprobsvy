@@ -9,7 +9,7 @@ nonprob <- function(data,
                     pop_means = NULL,
                     pop_size = NULL,
                     method_selection = c("logit", "cloglog", "probit"),
-                    method_outcome = c("glm", "nn", "pmm"),
+                    method_outcome = c("glm", "nn", "pmm", "npar"),
                     family_outcome = c("gaussian", "binomial", "poisson"),
                     subset = NULL,
                     strata = NULL,
@@ -29,6 +29,9 @@ nonprob <- function(data,
   call <- match.call()
   data <- if (!is.data.frame(data)) data.frame(data) else data
   weights <- if (is.null(weights)) rep(1, nrow(data)) else weights
+  num_of_vars <- NROW(attr(terms(outcome), "term.labels"))
+
+
 
   # Method defaults
   method_selection <- if (missing(method_selection)) "logit" else method_selection
@@ -41,8 +44,11 @@ nonprob <- function(data,
   }
 
   # Validation checks for methods
-  if (!(method_outcome %in% c("glm", "nn", "pmm"))) {
-    stop("Invalid method for the `outcome` variable. Choose from 'glm', 'nn', 'pmm'.")
+  if (!(method_outcome %in% c("glm", "nn", "pmm", "npar"))) {
+    stop("Invalid method for the `outcome` variable. Choose from 'glm', 'nn', 'pmm', 'npar'")
+  }
+  if (method_outcome == "npar" & num_of_vars >= 4) {
+    stop("Non-parametric methods are suited for smaller number of variables (less than 4)")
   }
 
   if (!(method_selection %in% c("logit", "cloglog", "probit"))) {
@@ -147,7 +153,9 @@ nonprob <- function(data,
     pop_totals <- c(pop_size, pop_size * pop_means)
     names(pop_totals) <- c("(Intercept)", names(pop_means))
   } else if (!is.null(pop_totals)) {
-    pop_size <- pop_totals[1]
+    pop_size <- unname(pop_totals["(Intercept)"])
+  } else {
+    pop_size <- sum(weights(svydesign))
   }
 
   ## model estimates

@@ -11,7 +11,9 @@ method_npar(
   svydesign,
   weights = NULL,
   family_outcome = "gaussian",
+  start_outcome = NULL,
   vars_selection = FALSE,
+  pop_totals = NULL,
   pop_size = NULL,
   control_outcome = control_out(),
   control_inference = control_inf(),
@@ -30,9 +32,13 @@ method_npar(
 
 \item{weights}{case / frequency weights from non-probability sample (default NULL)}
 
-\item{family_outcome}{family for the glm model}
+\item{family_outcome}{family for the glm model)}
+
+\item{start_outcome}{a place holder (not used in \code{method_npar})}
 
 \item{vars_selection}{whether variable selection should be conducted}
+
+\item{pop_totals}{a place holder (not used in \code{method_npar})}
 
 \item{pop_size}{population size from the \code{nonprob} function}
 

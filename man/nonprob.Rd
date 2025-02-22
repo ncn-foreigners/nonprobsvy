@@ -17,7 +17,7 @@ nonprob(
   pop_means = NULL,
   pop_size = NULL,
   method_selection = c("logit", "cloglog", "probit"),
-  method_outcome = c("glm", "nn", "pmm"),
+  method_outcome = c("glm", "nn", "pmm", "npar"),
   family_outcome = c("gaussian", "binomial", "poisson"),
   subset = NULL,
   strata = NULL,

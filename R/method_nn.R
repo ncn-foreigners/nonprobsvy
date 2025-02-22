@@ -51,7 +51,10 @@
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
 #' @param svydesign a svydesign object
 #' @param weights case / frequency weights from non-probability sample
+#' @param family_outcome a placeholder (not used in `method_nn`)
+#' @param start_outcome a placeholder (not used in `method_nn`)
 #' @param vars_selection whether variable selection should be conducted
+#' @param pop_totals a placeholder (not used in `method_nn`)
 #' @param pop_size population size from the `nonprob` function
 #' @param control_outcome controls passed by the `control_out` function
 #' @param control_inference controls passed by the `control_inf` function
@@ -102,7 +105,10 @@ method_nn <- function(y_nons,
                       X_rand,
                       svydesign,
                       weights=NULL,
+                      family_outcome=NULL,
+                      start_outcome=NULL,
                       vars_selection=FALSE,
+                      pop_totals=NULL,
                       pop_size=NULL,
                       control_outcome=control_out(),
                       control_inference=control_inf(),

@@ -10,7 +10,10 @@ method_nn(
   X_rand,
   svydesign,
   weights = NULL,
+  family_outcome = NULL,
+  start_outcome = NULL,
   vars_selection = FALSE,
+  pop_totals = NULL,
   pop_size = NULL,
   control_outcome = control_out(),
   control_inference = control_inf(),
@@ -29,7 +32,13 @@ method_nn(
 
 \item{weights}{case / frequency weights from non-probability sample}
 
+\item{family_outcome}{a placeholder (not used in \code{method_nn})}
+
+\item{start_outcome}{a placeholder (not used in \code{method_nn})}
+
 \item{vars_selection}{whether variable selection should be conducted}
+
+\item{pop_totals}{a placeholder (not used in \code{method_nn})}
 
 \item{pop_size}{population size from the \code{nonprob} function}
 

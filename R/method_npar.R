@@ -38,8 +38,10 @@
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
 #' @param svydesign a svydesign object
 #' @param weights case / frequency weights from non-probability sample (default NULL)
-#' @param family_outcome family for the glm model
+#' @param family_outcome family for the glm model)
+#' @param start_outcome a place holder (not used in `method_npar`)
 #' @param vars_selection whether variable selection should be conducted
+#' @param pop_totals a place holder (not used in `method_npar`)
 #' @param pop_size population size from the `nonprob` function
 #' @param control_outcome controls passed by the `control_out` function
 #' @param control_inference controls passed by the `control_inf` function
@@ -67,7 +69,9 @@ method_npar <- function(y_nons,
                         svydesign,
                         weights=NULL,
                         family_outcome="gaussian",
+                        start_outcome=NULL,
                         vars_selection=FALSE,
+                        pop_totals=NULL,
                         pop_size=NULL,
                         control_outcome=control_out(),
                         control_inference=control_inf(),

@@ -13,6 +13,7 @@ method_pmm(
   family_outcome = "gaussian",
   start_outcome = NULL,
   vars_selection = FALSE,
+  pop_totals = NULL,
   pop_size = NULL,
   control_outcome = control_out(),
   control_inference = control_inf(),
@@ -36,6 +37,8 @@ method_pmm(
 \item{start_outcome}{start parameters}
 
 \item{vars_selection}{whether variable selection should be conducted}
+
+\item{pop_totals}{a place holder (not used in \code{method_pmm})}
 
 \item{pop_size}{population size from the \code{nonprob} function}
 
