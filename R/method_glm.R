@@ -106,7 +106,7 @@ method_glm <- function(y_nons,
   if (is.null(svydesign)) svydesign <- NULL
   if (is.null(start_outcome)) start_outcome <- numeric(ncol(X_nons))
   if (is.null(weights)) weights <- rep(1, nrow(X_nons))
-  if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
+  if (is.null(pop_size) & !is.null(svydesign)) pop_size <- sum(weights(svydesign))
 
   predict.glm.fit <- function(object, newdata) {
     coefficients <- object$coefficients

@@ -238,7 +238,7 @@ nonprob <- function(data,
   res$estimator <- estimator
 
   res$estimator_method <- if (!is.null(outcome)) {
-    paste0(method_outcome, " (", family_outcome,")")
+    ifelse(method_outcome == "nn", method_outcome, paste0(method_outcome, " (", family_outcome,")"))
     } else paste0(method_selection, " (", control_selection$est_method," )")
 
 
