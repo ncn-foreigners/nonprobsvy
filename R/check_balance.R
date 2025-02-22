@@ -66,7 +66,7 @@ check_balance.nonprob <- function(x, object, dig = 2) {
     stop("An empty dataset detected (zero rows).")
   }
 
-  if (sum(object$weights) == 0) {
+  if (sum(object$ipw_weights) == 0) {
     stop("The sum of weights is zero.")
   }
 
@@ -100,19 +100,19 @@ check_balance.nonprob <- function(x, object, dig = 2) {
         if (nrow(data_subset) < 5) {
           warning(sprintf("Small group size (< 5) for level %s in variable %s.", lvl, var))
         }
-        sum(data_subset$weights)
+        sum(data_subset$ipw_weights)
       })
       names(totals) <- paste0(var, levels)
       return(totals)
     } else {
       # For numeric variables
-      return(setNames(sum(data$weights * data[[var]], na.rm = TRUE), var))
+      return(setNames(sum(data$ipw_weights * data[[var]], na.rm = TRUE), var))
     }
   }
 
   # Prepare data
   data <- object$data
-  data$weights <- object$weights
+  data$ipw_weights <- object$ipw_weights
 
   # Calculate nonprob totals
   nonprob_totals <- tryCatch(

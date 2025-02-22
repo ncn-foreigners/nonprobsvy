@@ -73,7 +73,7 @@ boot_dr <- function(selection,
 
         tryCatch(
           {
-            results_ipw_b <- nonprobsvy:::nonprob_ipw(selection = selection,
+            results_ipw_b <- nonprob_ipw(selection = selection,
                                        target = target,
                                        data = data[strap_nons, ],
                                        svydesign = svydesign_b,
