@@ -5,17 +5,36 @@
 
 #' @method print nonprob
 #' @exportS3Method
-print.nonprob <- function(x, digits = 8, ...) {
-  if (!is.null(x$call)) {
-    cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
-      "\n\n",
-      sep = ""
-    )
+print.nonprob <- function(x, ...) {
+
+  cat(sprintf("A %s object\n", class(x)[1L]))
+  cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
+                                                "mi"= "mass imputation",
+                                                "ipw" = "inverse probability weighting",
+                                                "dr" = "doubly robust")))
+  cat(sprintf(" - method: %s\n", x$estimator_method))
+  cat(sprintf(" - vars selection: %s\n", x$control$control_inference$vars_selection))
+
+  if (x$control$control_inference$var_method == "analytic") {
+    cat(sprintf(" - variance estimator: analytic\n"))
+  } else {
+    cat(sprintf(" - variance estimator: bootstrap (with %s samples)\n"), x$control$control_inference$num_boot)
   }
-  cat(
-    "Estimated population mean with overall std.err and confidence interval:\n\n"
-  )
-  print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
+
+  if (nrow(res$output) == 1) {
+    cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))
+    cat(sprintf(
+      " - selected estimator: %s (se=%s, ci=(%s, %s))\n",
+        as.numeric(round(x$output["mean"], 4)),
+        as.numeric(round(x$output["SE"], 4)),
+        as.numeric(round(x$confidence_interval["lower_bound"], 4)),
+        as.numeric(round(x$confidence_interval["upper_bound"], 4))))
+  } else {
+    cat(" - too many variables to summary. See details in the `output` and `confidence_interval` elements.\n")
+  }
+
+  #cat("Estimated population mean with overall std.err and confidence interval:\n\n")
+  #print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)
 }
 #' @method print summary_nonprob
