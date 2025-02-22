@@ -13,6 +13,7 @@ print.nonprob <- function(x, ...) {
                                                 "ipw" = "inverse probability weighting",
                                                 "dr" = "doubly robust")))
   cat(sprintf(" - method: %s\n", x$estimator_method))
+  cat(sprintf(" - auxiliary variables source: %s\n", ifelse(!is.null(x$svydesign), "survey", "population")))
   cat(sprintf(" - vars selection: %s\n", tolower(x$control$control_inference$vars_selection)))
 
   if (x$control$control_inference$var_method == "analytic") {
