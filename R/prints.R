@@ -13,12 +13,14 @@ print.nonprob <- function(x, ...) {
                                                 "ipw" = "inverse probability weighting",
                                                 "dr" = "doubly robust")))
   cat(sprintf(" - method: %s\n", x$estimator_method))
-  cat(sprintf(" - vars selection: %s\n", x$control$control_inference$vars_selection))
+  cat(sprintf(" - vars selection: %s\n", tolower(x$control$control_inference$vars_selection)))
 
   if (x$control$control_inference$var_method == "analytic") {
     cat(sprintf(" - variance estimator: analytic\n"))
   } else {
-    cat(sprintf(" - variance estimator: bootstrap (with %s samples)\n"), x$control$control_inference$num_boot)
+    cat(sprintf(" - variance estimator: bootstrap (with %s samples, multicore: %s)\n",
+                x$control$control_inference$num_boot,
+                tolower(x$control$control_inference$cores > 1)))
   }
 
   if (nrow(res$output) == 1) {
@@ -168,8 +170,8 @@ print.nonprob_method <- function(x, ...) {
   if (x$model == "ps") {
     print(sprintf("Propensity score model with %s link", x$link))
   } else {
-    print(sprintf("Prediction model (%s). Estimated mean: %s (SE: %s)",
-                  x$family,
+    print(sprintf("Mass imputation model (%s approach). Estimated mean: %s (se: %s)",
+                  toupper(res_glm$model),
                   sprintf("%.4f", x$y_mi_hat),
                   sprintf("%.4f", sqrt(x$var_prob+x$var_nonprob))))
   }

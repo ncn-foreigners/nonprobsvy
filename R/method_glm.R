@@ -74,7 +74,7 @@
 #' data(jvs)
 #' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
 #'
-#' res_glm <- method_pmm(y_nons = admin$single_shift,
+#' res_glm <- method_glm(y_nons = admin$single_shift,
 #'                       X_nons = model.matrix(~ region + private + nace + size, admin),
 #'                       X_rand = model.matrix(~ region + private + nace + size, jvs),
 #'                       svydesign = jvs_svy)
