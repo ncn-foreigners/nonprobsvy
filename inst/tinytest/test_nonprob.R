@@ -37,3 +37,10 @@ expect_error(
           target = ~ single_shift,
           pop_size = N)
 )
+
+expect_error(
+  nonprob(data = admin,
+          outcome = single_shift ~ region,
+          selection =  ~ region,
+          method_outcome = "nn")
+)

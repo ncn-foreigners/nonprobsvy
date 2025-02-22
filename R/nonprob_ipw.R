@@ -481,6 +481,7 @@ nonprob_ipw <- function(selection,
 
 
   selection_list <- list(
+    selection_model = selection_model,
     coefficients = selection_model$theta_hat,
     std_err = theta_standard_errors,
     residuals = selection_model$residuals,
@@ -517,8 +518,9 @@ nonprob_ipw <- function(selection,
       X = if (isTRUE(x)) rbind(X_rand, X_nons) else NULL,
       y = if (isTRUE(y)) ys else NULL,
       R = R,
-      prob = prop_scores,
-      weights = as.vector(weights_nons),
+      ps_scores = prop_scores,
+      case_weights = weights,
+      ipw_weights = as.vector(weights_nons),
       control = list(
         control_selection = control_selection,
         control_inference = control_inference
@@ -532,7 +534,10 @@ nonprob_ipw <- function(selection,
       outcome = NULL,
       selection = selection_list,
       boot_sample = boot_sample,
-      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
+      svydesign = if (is.null(pop_totals)) svydesign else NULL,
+      ys_rand_pred = NULL,
+      ys_nons_pred = NULL,
+      ys_resid = NULL
     ),
     class = "nonprob"
   )

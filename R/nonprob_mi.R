@@ -20,7 +20,7 @@ nonprob_mi <- function(outcome,
                        pop_means,
                        pop_size,
                        method_outcome,
-                       family_outcome = "gaussian",
+                       family_outcome,
                        subset,
                        strata,
                        weights,
@@ -45,7 +45,7 @@ nonprob_mi <- function(outcome,
                           "pmm" = method_pmm,
                           "npar" = method_npar)
 
-  ys <- list()
+  ys_resid <- ys_rand_pred <- ys_nons_pred <- ys <- list()
   outcome_list <- list()
 
   if (se) {
@@ -136,8 +136,7 @@ nonprob_mi <- function(outcome,
                                   se=se)
     }
 
-    y_rand_pred <- model_obj$y_rand_pred
-    y_nons_pred <- model_obj$y_nons_pred
+
     mu_hat <- model_obj$y_mi_hat
 
     if (!is.null(svydesign)) svydesign <- model_obj$svydesign
@@ -145,6 +144,9 @@ nonprob_mi <- function(outcome,
     outcome_list[[o]] <- model_obj$model_fitted
     outcome_list[[o]]$model_frame <- outcome_model_data$model_frame_rand
     ys[[o]] <- as.numeric(y_nons)
+    ys_rand_pred[[o]] <- model_obj$y_rand_pred
+    ys_nons_pred[[o]] <- model_obj$y_nons_pred
+    ys_resid[[o]] <- as.numeric(y_nons) - model_obj$y_nons_pred
 
     if (se) {
 
@@ -231,8 +233,9 @@ nonprob_mi <- function(outcome,
       data = data,
       X = if (isTRUE(x)) X else NULL,
       y = if (isTRUE(y)) ys else NULL,
-      prob = NULL,
-      weights = NULL,
+      ps_scores = NULL,
+      case_weights = weights,
+      ipw_weights = NULL,
       control = list(
         control_outcome = control_outcome,
         control_inference = control_inference
@@ -247,7 +250,10 @@ nonprob_mi <- function(outcome,
       outcome = outcome_list,
       selection = NULL,
       boot_sample = boot_sample,
-      svydesign = if (is.null(pop_totals)) svydesign else NULL
+      svydesign = if (is.null(pop_totals)) svydesign else NULL,
+      ys_rand_pred = ys_rand_pred,
+      ys_nons_pred = ys_nons_pred,
+      ys_resid = ys_resid
     ),
     class = "nonprob"
   )

@@ -1,4 +1,5 @@
 #' @useDynLib nonprobsvy
+#' @import Rcpp
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -10,9 +11,8 @@
 #' @importFrom survey svytotal
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
-#' @import Rcpp
 #' @importFrom Rcpp evalCpp
-#' @rdname nonprob
+#' @noRd
 nonprob_dr <- function(selection,
                        outcome,
                        data,
@@ -22,7 +22,7 @@ nonprob_dr <- function(selection,
                        pop_size,
                        method_selection,
                        method_outcome,
-                       family_outcome = "gaussian",
+                       family_outcome,
                        subset,
                        strata,
                        weights,
@@ -37,860 +37,192 @@ nonprob_dr <- function(selection,
                        y,
                        se,
                        ...) {
-  if (method_outcome %in% c("pmm", "nn")) {
-    message("Bootstrap variance only, analytical version during implementation")
-    control_inference$var_method <- "bootstrap"
-  }
-  outcome_init <- outcome
-  gee_h_fun <- control_selection$gee_h_fun
-  maxit <- control_selection$maxit
-  optim_method <- control_selection$optim_method
-  est_method <- control_selection$est_method
-  var_method <- control_inference$var_method
-  num_boot <- control_inference$num_boot
-  bias_corr <- control_inference$bias_correction
-  var_selection <- control_inference$vars_selection
-  lambda_control <- control_selection$lambda
-  lambda_min <- control_selection$lambda_min
-  nlambda <- control_selection$nlambda
-  num_boot <- control_inference$num_boot
-  eps <- control_selection$epsilon
-  rep_type <- control_inference$rep_type
-  ps_rand <- svydesign$prob
-  weights_rand <- 1 / ps_rand
 
+  # important parameters:
+  #   bias_correction = FALSE,
+  #   bias_inf = c("union", "div"),
+
+  mu_hatDR <- function(y_hat,
+                       y_resid,
+                       weights,
+                       weights_nons,
+                       N_nons) {
+
+    colSums(weights * weights_nons * y_resid) / N_nons + y_hat
+  }
+
+  ## setting for the IPW
+  method <- switch(method_selection,
+                   "logit" = method_ps("logit"),
+                   "probit" = method_ps("probit"),
+                   "cloglog" = method_ps("cloglog"))
+
+  estimation_method <- est_method_ipw(control_selection$est_method)
+
+  ## multiple outcomes
   outcomes <- make_outcomes(outcome)
   output <- list()
   outcome_list <- list()
   ys <- list()
-  if (se) {
-    confidence_interval <- list()
-    SE_values <- list()
-  } else {
-    confidence_interval <- NULL
-    SE_values <- NULL
-  }
-  if (control_inference$var_method == "bootstrap") {
-    stat <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
-  }
 
-  # Selection models
-  if (is.null(pop_totals) && !is.null(svydesign)) {
-    # TODO if (bias_corr == FALSE)
-    # model for selection formula
-    selection_model_data <- make_model_frame(
-      formula = selection,
-      data = data,
-      svydesign = svydesign
-    )
-    # if (all(svydesign$prob) == 1) { # TODO how to treat svydesigns with all probs = 1
-    #  if (!is.null(pop_size)) {
-    #      ps_rand <- rep(sum(svydesign$prob)/pop_size, length(svydesign$prob))
-    #    } else {
-    #      ps_rand <- svydesign$prob/sum(svydesign$prob)
-    #    }
-    # } else {
-    #  ps_rand <- svydesign$prob
-    # }
+  confidence_interval <- list()
+  SE_values <- list()
 
-    n_nons <- nrow(selection_model_data$X_nons)
-    n_rand <- nrow(selection_model_data$X_rand)
-    X <- rbind(selection_model_data$X_rand, selection_model_data$X_nons)
-    R_nons <- rep(1, n_nons)
-    R_rand <- rep(0, n_rand)
-    R <- c(R_rand, R_nons)
-    loc_nons <- which(R == 1)
-    loc_rand <- which(R == 0)
-    weights_sum <- sum(weights_rand, weights)
+  ## estimate the ipw
+  results_ipw <- nonprob_ipw(selection = selection,
+                             target = reformulate(outcomes[[1]]),
+                             data = data,
+                             svydesign = svydesign,
+                             pop_totals = pop_totals,
+                             pop_means = pop_means,
+                             pop_size = pop_size,
+                             method_selection = method_selection,
+                             subset = subset,
+                             strata = strata,
+                             weights = weights,
+                             na_action = na_action,
+                             control_selection = control_selection,
+                             control_inference = control_inference,
+                             start_selection = start_selection,
+                             verbose = verbose,
+                             x = T,
+                             y = T,
+                             se = se)
+  ## estimate the mi
+  results_mi <- nonprob_mi(outcome = outcome,
+                           data = data,
+                           svydesign = svydesign,
+                           pop_totals = pop_totals,
+                           pop_means = pop_means,
+                           pop_size = pop_size,
+                           method_outcome = method_outcome,
+                           family_outcome = family_outcome,
+                           subset = subset,
+                           strata = strata,
+                           weights = weights,
+                           na_action = na_action,
+                           control_outcome = control_outcome,
+                           control_inference = control_inference,
+                           start_outcome = start_outcome,
+                           verbose = verbose,
+                           x = T,
+                           y = T,
+                           se = se)
 
+  ## doubly robust estimator
+  mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
+                     y_resid = do.call("cbind", results_mi$ys_resid),
+                     weights = weights,
+                     weights_nons = results_ipw$ipw_weights,
+                     N_nons = sum(results_ipw$ipw_weights))
 
-    # y_rand <- vector(mode = "numeric", length = n_rand)
-    # y <- c(y_rand, y_nons) # outcome variable for joint model
-    n <- nrow(X)
-    p <- ncol(X)
-    N_rand <- sum(weights_rand)
+  for (o in 1:outcomes$l) {
+    if (se) {
+      if (control_inference$var_method == "analytic") {
+        b_var <- method$b_vec_dr(X = results_ipw$X[results_ipw$R == 1, ],
+                                 ps = results_ipw$ps_scores[results_ipw$R == 1],
+                                 psd = as.numeric(results_ipw$selection$selection_model$ps_nons_der),
+                                 y = results_mi$y[[o]],
+                                 hess = results_ipw$selection$selection_model$hess,
+                                 eta = as.numeric(results_ipw$X[results_ipw$R == 1, ] %*% as.matrix(results_ipw$selection$coefficients)),
+                                 h_n = 1 / pop_size * sum(results_mi$y[[o]] - results_mi$ys_nons_pred[[o]]),
+                                 y_pred = results_mi$ys_nons_pred[[o]],
+                                 weights = weights,
+                                 verbose = verbose)
 
-    # Estimation for outcome model
-    # model_out <- internal_outcome(outcome = outcome,
-    #                               data = data,
-    #                               weights = weights,
-    #                               family_outcome = family_outcome)
-    #
-    # model_nons_coefs <- model_out$glm$coefficients
-    # beta_statistics <- model_out$glm_summary$coefficients
-    #
-    # y_rand_pred <- as.numeric(outcome_model_data$X_rand %*% model_nons_coefs) # y_hat for probability sample
-    # y_nons_pred <- model_out$glm$linear.predictors #as.numeric(X_nons %*% model_nons_coefs)
-
-    # Estimation for selection model
-    X <- rbind(selection_model_data$X_rand, selection_model_data$X_nons) # joint model matrix
-
-    ######  WORKING VERSION
-    if (var_selection == TRUE) {
-      # TODO add std seperately on X_nons and X_rand, after that do join to X matrix
-      # X_rand_stand <- ncvreg::std(weights_rand * X_rand)
-      # X_nons_stand <- ncvreg::std(X_nons)
-      # X_stand <- rbind(X_rand_stand, X_nons_stand)
-      X_stand <- ncvreg::std(X) # penalizing without an intercept
-      prior_weights <- c(weights_rand, weights)
-
-      method <- switch(method_selection,
-                       "logit" = method_ps("logit"),
-                       "probit" = method_ps("probit"),
-                       "cloglog" = method_ps("cloglog"))
-
-      inv_link <- method$make_link_inv
-
-      # Cross-validation for variable selection
-      if (verbose == TRUE & lambda_control == -1) {
-        cat("Selection model\n")
-      }
-      cv <- cv_nonprobsvy_rcpp(
-        X = X_stand,
-        R = R,
-        weights_X = prior_weights,
-        method_selection = method_selection,
-        gee_h_fun = gee_h_fun,
-        maxit = maxit,
-        eps = eps,
-        lambda_min = lambda_min,
-        nlambda = nlambda,
-        nfolds = control_selection$nfolds,
-        penalty = control_selection$penalty,
-        a = switch(control_selection$penalty,
-                   SCAD = control_selection$a_SCAD,
-                   control_selection$a_MCP
-        ),
-        lambda = lambda_control,
-        pop_totals = pop_totals,
-        verbose = verbose
-      )
-      # theta_est <- cv$theta_est[cv$theta_est != 0]
-      min <- cv$min
-      lambda <- cv$lambda
-      theta_selected <- c(0, cv$theta_selected + 1)
-      cve_selection <- cv$cv_error
-      lambda_selection <- cv$lambdas
-      # names(theta_est) <- colnames(X)[theta_selected + 1]
-      nlambda <- control_outcome$nlambda
-    }
-  } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
-    if (!is.null(pop_totals)) pop_size <- pop_totals[1]
-    if (!is.null(pop_means)) { # TO consider
-      if (!is.null(pop_size)) {
-        pop_totals <- c(pop_size, pop_size * pop_means)
-        names(pop_totals) <- c("(Intercept)", names(pop_means))
-      } else {
-        stop("The `pop_size` argument must be specified when the `pop_means` argument is provided.")
-      }
-    }
-
-    # model for selection formula
-    selection_model_data <- make_model_frame(formula = selection, data = data, pop_totals = pop_totals)
-    n_nons <- nrow(selection_model_data$X_nons)
-    n_rand <- 0
-    R <- rep(1, n_nons)
-    X <- rbind(selection_model_data$X_nons, selection_model_data$X_rand) # joint model matrix
-
-    ############# WORKING VERSION
-    if (var_selection == TRUE) {
-      # TODO "standardize pop_totals" - dividing by N (?) - means from X_nons / std from X_nons e.g.
-      # pop_totals <- colMeans(X_nons) / apply(X_nons, 2, sd)
-      X_stand <- ncvreg::std(X) # penalizing without an intercept
-
-      method <- switch(method_selection,
-                       "logit" = method_ps("logit"),
-                       "probit" = method_ps("probit"),
-                       "cloglog" = method_ps("cloglog"))
-
-      inv_link <- method$make_link_inv
-
-      n <- nrow(X)
-      p <- ncol(X)
-
-      # Cross-validation for variable selection
-      if (verbose == TRUE & lambda_control == -1) {
-        cat("Selection model\n")
-      }
-      cv <- cv_nonprobsvy_rcpp(
-        X = X_stand, # TODO TO FIX
-        R = R,
-        weights_X = weights,
-        method_selection = method_selection,
-        gee_h_fun = gee_h_fun,
-        maxit = maxit,
-        eps = eps,
-        lambda_min = lambda_min,
-        nlambda = nlambda,
-        nfolds = control_selection$nfolds,
-        penalty = control_selection$penalty,
-        a = switch(control_selection$penalty,
-                   SCAD = control_selection$a_SCAD,
-                   control_selection$a_MCP
-        ),
-        lambda = lambda_control,
-        pop_totals = pop_totals[-1],
-        verbose = verbose
-      )
-      min <- cv$min
-      lambda <- cv$lambda
-      theta_selected <- c(0, cv$theta_selected + 1)
-      cve_selection <- cv$cv_error
-    }
-    ############
-  } else {
-    stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
-  }
-  for (k in 1:outcomes$l) {
-    outcome <- outcomes$outcome[[k]]
-
-    if (is.null(pop_totals) && !is.null(svydesign)) {
-      if (bias_corr == TRUE) {
-        if (is.character(family_outcome)) {
-          family_nonprobsvy <- paste(family_outcome, "_nonprobsvy", sep = "")
-          family_nonprobsvy <- get(family_nonprobsvy, mode = "function", envir = parent.frame())
-          family_nonprobsvy <- family_nonprobsvy()
-        }
-        # Extract the terms from outcome and selection
-        terms_out <- attr(terms(outcome, data = data), "term.labels")
-        terms_sel <- attr(terms(selection, data = data), "term.labels")
-        #
-        # # Combine the terms
-        combined_terms <- union(terms_out, terms_sel)
-        combined_formula <- as.formula(paste(outcome[2], paste(combined_terms, collapse = " + "), sep = " ~ "))
-
-        outcome_model_data <- make_model_frame(
-          formula = combined_formula,
-          data = data,
-          svydesign = svydesign
-        )
-        outcome_model_data <- selection_model_data <- outcome_model_data
-        n_nons <- nrow(outcome_model_data$X_nons)
-        n_rand <- nrow(outcome_model_data$X_rand)
-        R_nons <- rep(1, nrow(outcome_model_data$X_nons))
-        R_rand <- rep(0, nrow(outcome_model_data$X_rand))
-        R <- c(R_rand, R_nons)
-        y_rand <- vector(mode = "numeric", length = n_rand)
-        y <- c(y_rand, outcome_model_data$y_nons) # outcome variable for joint model
-        X <- rbind(outcome_model_data$X_rand, outcome_model_data$X_nons)
-
-        ############ working version
-        if (var_selection == TRUE) {
-          nlambda <- control_outcome$nlambda
-          if (verbose == TRUE) {
-            cat("Outcome model\n")
-          }
-          beta <- ncvreg::cv.ncvreg(
-            X = X[loc_nons, -1],
-            y = outcome_model_data$y_nons,
-            penalty = control_outcome$penalty,
-            family = family_outcome,
-            nlambda = nlambda,
-            trace = verbose,
-            nfolds = control_outcome$nfolds,
-            gamma = switch(control_outcome$penalty,
-                           SCAD = control_outcome$a_SCAD,
-                           control_outcome$a_MCP
-            )
-          )
-
-          beta_est <- beta$fit$beta[, beta$min]
-          beta_selected <- which(abs(beta_est) != 0) - 1
-          beta_est <- beta_est[beta$fit$beta[, beta$min] != 0]
-          cve_outcome <- beta$cve
-          lambda_outcome <- beta$lambda
-          lambda_min_outcome <- beta$lambda.min
-
-          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-          psel <- length(idx)
-          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-          X <- cbind(1, Xsel)
-          colnames(X) <- c("(Intercept)", colnames(Xsel))
-          outcome_model_data$X_rand <- X[loc_rand, ]
-          outcome_model_data$X_nons <- X[loc_nons, ]
-        }
-        estimation_model <- mm(
-          X = X,
-          y = y,
-          weights = weights,
-          weights_rand = weights_rand,
-          R = R,
-          n_nons = n_nons,
-          n_rand = n_rand,
+        var_nonprob <- estimation_method$make_var_nonprob(
+          ps = results_ipw$ps_scores[results_ipw$R == 1],
+          psd = as.numeric(results_ipw$selection$selection_model$ps_nons_der),
+          y = results_mi$y[[o]],
+          y_pred = results_mi$ys_nons_pred[[o]],
+          h_n = 1 / pop_size * sum(results_mi$y[[o]] - results_mi$ys_nons_pred[[o]]),
+          X = results_ipw$X[results_ipw$R == 1, ],
+          b = b_var,
+          N = pop_size,
+          gee_h_fun = control_selection$gee_h_fun,
           method_selection = method_selection,
-          family = family_nonprobsvy,
-          start_selection = start_selection,
-          start_outcome = start_outcome,
-          nleqslv_method = control_selection$nleqslv_method,
-          nleqslv_global = control_selection$nleqslv_global,
-          nleqslv_xscalm = control_selection$nleqslv_xscalm,
-          maxit = maxit
-        )
-
-        selection_model <- estimation_model$selection
-        outcome_list[[k]] <- outcome_model <- estimation_model$outcome
-
-        theta_hat <- selection_model$theta_hat
-        grad <- selection_model$grad
-        hess <- selection_model$hess
-        ps_nons <- selection_model$ps_nons
-        est_ps_rand <- selection_model$est_ps_rand
-        ps_nons_der <- selection_model$ps_nons_der
-        est_ps_rand_der <- selection_model$est_ps_rand_der
-        theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
-        names(theta_hat) <- names(selection_model$theta_hat) <- colnames(X)
-
-        y_rand_pred <- outcome_model$y_rand_pred
-        y_nons_pred <- outcome_model$y_nons_pred
-        beta <- outcome_model$coefficients
-        beta_errors <- sqrt(diag(outcome_model$variance_covariance))
-        beta_statistics <- data.frame(beta = beta, beta_errors = beta_errors)
-        sigma <- outcome_model$sigma_rand
-
-        outcome_list[[k]][c("sigma_rand", "y_rand_pred", "y_nons_pred")] <- NULL
-
-        weights_nons <- 1 / ps_nons
-        N_nons <- sum(weights * weights_nons)
-        N_rand <- sum(weights_rand)
-        y_nons <- outcome_model_data$y_nons
-
-        if (is.null(pop_size)) pop_size <- N_nons
-        mu_hat <- mu_hatDR(
-          y = outcome_model_data$y_nons,
-          y_nons = y_nons_pred,
-          y_rand = y_rand_pred,
           weights = weights,
-          weights_nons = weights_nons,
-          weights_rand = weights_rand,
-          N_nons = N_nons,
-          N_rand = N_rand
-        )
-
-        # updating probability sample by adding y_hat variable
-        svydesign <- stats::update(svydesign,
-                                   .y_hat_MI = y_rand_pred
-        )
-      } else {
-        # model for outcome formula
-        outcome_model_data <- make_model_frame(
-          formula = outcome,
-          data = data,
-          svydesign = svydesign
-        )
-        n_nons <- nrow(outcome_model_data$X_nons)
-        n_rand <- nrow(outcome_model_data$X_rand)
-        R_nons <- rep(1, n_nons)
-        R_rand <- rep(0, n_rand)
-        R <- c(R_rand, R_nons)
-        loc_nons <- which(R == 1)
-        loc_rand <- which(R == 0)
-        weights_sum <- sum(weights_rand, weights)
-
-        ############ working version
-        if (var_selection == TRUE) {
-          nlambda <- control_outcome$nlambda
-          if (verbose == TRUE) {
-            cat("Outcome model\n")
-          }
-          beta <- ncvreg::cv.ncvreg(
-            X = X[loc_nons, -1],
-            y = outcome_model_data$y_nons,
-            penalty = control_outcome$penalty,
-            family = family_outcome,
-            nlambda = nlambda,
-            trace = verbose,
-            nfolds = control_outcome$nfolds,
-            gamma = switch(control_outcome$penalty,
-                           SCAD = control_outcome$a_SCAD,
-                           control_outcome$a_MCP
-            )
-          )
-
-          beta_est <- beta$fit$beta[, beta$min]
-          beta_selected <- which(abs(beta_est) != 0) - 1
-          beta_est <- beta_est[beta$fit$beta[, beta$min] != 0]
-          cve_outcome <- beta$cve
-          lambda_outcome <- beta$lambda
-          lambda_min_outcome <- beta$lambda.min
-
-
-          if (control_inference$bias_inf == "union") {
-            idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-            psel <- length(idx)
-            Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-            X <- cbind(1, Xsel)
-            colnames(X) <- c("(Intercept)", colnames(Xsel))
-            outcome_model_data$X_nons <- selection_model_data$X_nons <- X[loc_nons, ]
-            outcome_model_data$X_rand <- selection_model_data$X_rand <- X[loc_rand, ]
-          } else if (control_inference$bias_inf == "div") {
-            X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
-            Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
-            outcome_model_data$X_nons <- cbind(1, X_outcome[loc_nons, ])
-            outcome_model_data$X_rand <- cbind(1, X_outcome[loc_rand, ])
-            colnames(outcome_model_data$X_nons) <- colnames(outcome_model_data$X_rand) <- c("(Intercept)", colnames(X_outcome))
-            selection_model_data$X_nons <- cbind(1, X_selection[loc_nons, ])
-            selection_model_data$X_rand <- cbind(1, X_selection[loc_rand, ])
-            X <- cbind(1, Xsel)
-            colnames(X) <- colnames(selection_model_data$X_nons) <- colnames(selection_model_data$X_rand) <- c("(Intercept)", colnames(Xsel))
-          }
-        }
-
-        model_sel <- internal_selection(
-          X = X,
-          X_nons = selection_model_data$X_nons,
-          X_rand = selection_model_data$X_rand,
-          weights = weights,
-          weights_rand = weights_rand,
-          R = R,
-          method_selection = method_selection,
-          optim_method = optim_method,
-          gee_h_fun = gee_h_fun,
-          est_method = est_method,
-          maxit = maxit,
-          control_selection = control_selection,
-          start = start_selection,
-          verbose = verbose
-        )
-
-        estimation_method <- est_method_ipw(est_method)
-        selection_model <- estimation_method$estimation_model(
-          model = model_sel,
-          method_selection = method_selection
-        )
-        theta_hat <- selection_model$theta_hat
-        grad <- selection_model$grad
-        hess <- selection_model$hess
-        ps_nons <- selection_model$ps_nons
-        est_ps_rand <- selection_model$est_ps_rand
-        ps_nons_der <- selection_model$ps_nons_der
-        est_ps_rand_der <- selection_model$est_ps_rand_der
-        theta_standard_errors <- sqrt(diag(selection_model$variance_covariance))
-        # log_likelihood <- est_method_obj$log_likelihood
-        # df_residual <- est_method_obj$df_residual
-
-        names(selection_model$theta_hat) <- names(theta_hat) <- colnames(X)
-        weights_nons <- 1 / ps_nons
-        N_nons <- sum(weights * weights_nons)
-        N_rand <- sum(weights_rand)
-
-        ############# selection of specific outcome method
-        method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-        MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
-        model_obj <- MethodOutcome(
-          outcome = outcome,
-          data = data,
-          weights = weights,
-          family_outcome = family_outcome,
-          start_outcome = start_outcome,
-          X_nons = outcome_model_data$X_nons,
-          y_nons = outcome_model_data$y_nons,
-          X_rand = outcome_model_data$X_rand,
-          control = control_outcome,
-          n_nons = n_nons,
-          n_rand = n_rand,
-          model_frame = outcome_model_data$model_frame,
-          vars_selection = control_inference$vars_selection,
           pop_totals = pop_totals
         )
 
-        y_rand_pred <- model_obj$y_rand_pred
-        y_nons_pred <- model_obj$y_nons_pred
-        outcome_model <- model_obj$model
-        # beta_statistics <- model_obj$parameters
-        sigma <- NULL
-        outcome_list[[k]] <- model_obj$model
-        outcome_list[[k]]$model_frame <- outcome_model_data$model_frame
-        y_nons <- outcome_model_data$y_nons
-
-        mu_hat <- mu_hatDR(
-          y = outcome_model_data$y_nons,
-          y_nons = y_nons_pred,
-          y_rand = y_rand_pred,
-          weights = weights,
-          weights_nons = weights_nons,
-          weights_rand = weights_rand,
-          N_nons = N_nons,
-          N_rand = N_rand
-        )
-
-        # updating probability sample by adding y_hat variable
-        svydesign <- stats::update(svydesign,
-                                   .y_hat_MI = y_rand_pred
-        )
-      }
-    } else if ((!is.null(pop_totals) || !is.null(pop_means)) && is.null(svydesign)) {
-      # model for outcome formula
-      # TODO add pop_means ? to check
-      outcome_model_data <- make_model_frame(formula = outcome, data = data, pop_totals = pop_totals)
-      X_nons <- outcome_model_data$X_nons
-      X_rand <- outcome_model_data$X_rand
-      nons_names <- outcome_model_data$nons_names
-      y_nons <- outcome_model_data$y_nons
-      n_nons <- nrow(X_nons)
-      R <- rep(1, n_nons)
-      loc_nons <- which(R == 1)
-
-      if (var_selection == TRUE) {
-        nlambda <- control_outcome$nlambda
-        if (verbose == TRUE) {
-          cat("Outcome model\n")
-        }
-        beta <- ncvreg::cv.ncvreg(
-          X = X[loc_nons, -1, drop = FALSE],
-          y = outcome_model_data$y_nons,
-          penalty = control_outcome$penalty,
-          family = family_outcome,
-          nlambda = nlambda,
-          nfolds = control_outcome$nfolds,
-          trace = verbose,
-          gamma = switch(control_outcome$penalty,
-                         SCAD = control_outcome$a_SCAD,
-                         control_outcome$a_MCP
-          )
-        )
-
-        beta_est <- beta$fit$beta[, beta$min]
-        beta_selected <- which(abs(beta_est) != 0) - 1
-        beta_est <- beta_est[beta$fit$beta[, beta$min] != 0]
-        cve_outcome <- beta$cve
-        lambda_outcome <- beta$lambda
-        lambda_min_outcome <- beta$lambda.min
-
-        # Estimating theta, beta parameters using selected variables
-        # beta_selected <- beta_selected[-1] - 1
-
-        if (control_inference$bias_inf == "union") {
-          idx <- sort(unique(c(beta_selected[-1], theta_selected[-1]))) # excluding intercepts
-          psel <- length(idx)
-          Xsel <- as.matrix(X[, idx + 1, drop = FALSE])
-          X <- cbind(1, Xsel)
-          colnames(X) <- c("(Intercept)", colnames(Xsel))
-          outcome_model_data$X_nons <- selection_model_data$X_nons <- X[loc_nons, ]
-          selection_model_data$pop_totals <- c(selection_model_data$pop_totals[1], selection_model_data$pop_totals[idx + 1])
-          pop_totals <- c(pop_totals[1], pop_totals[idx + 1])
-        } else if (control_inference$bias_inf == "div") {
-          X_outcome <- as.matrix(X[, beta_selected[-1] + 1, drop = FALSE])
-          Xsel <- X_selection <- as.matrix(X[, theta_selected[-1] + 1, drop = FALSE])
-          outcome_model_data$X_nons <- cbind(1, X_outcome[loc_nons, ])
-          colnames(outcome_model_data$X_nons) <- c("(Intercept)", colnames(X_outcome))
-          selection_model_data$pop_totals <- c(selection_model_data$pop_totals[1], selection_model_data$pop_totals[theta_selected[-1] + 1])
-          selection_model_data$X_nons <- cbind(1, X_selection[loc_nons, ])
-          X <- cbind(1, Xsel)
-          colnames(X) <- colnames(selection_model_data$X_nons) <- c("(Intercept)", colnames(Xsel))
-          pop_totals <- c(pop_totals[1], pop_totals[theta_selected[-1] + 1])
-        }
-        selection_model_data$total_names <- names(selection_model_data$pop_totals)
-      }
-
-      if (is.null(start_selection)) start_selection <- rep(0, ncol(selection_model_data$X_nons))
-
-      h_object <- theta_h_estimation(
-        R = R,
-        X = selection_model_data$X_nons,
-        weights_rand = NULL,
-        weights = weights,
-        gee_h_fun = gee_h_fun,
-        method_selection = method_selection,
-        start = start_selection,
-        maxit = maxit,
-        nleqslv_method = control_selection$nleqslv_method,
-        nleqslv_global = control_selection$nleqslv_global,
-        nleqslv_xscalm = control_selection$nleqslv_xscalm,
-        pop_totals = selection_model_data$pop_totals
-      )
-      theta_hat <- h_object$theta_h
-      hess <- h_object$hess
-      grad <- h_object$grad
-      names(theta_hat) <- selection_model_data$total_names
-
-      method <- switch(method_selection,
-                       "logit" = method_ps("logit"),
-                       "probit" = method_ps("probit"),
-                       "cloglog" = method_ps("cloglog"))
-
-      inv_link <- method$make_link_inv
-      dinv_link <- method$make_link_inv_der
-      eta_nons <- theta_hat %*% t(selection_model_data$X_nons)
-      ps_nons <- inv_link(eta_nons)
-      ps_nons_der <- dinv_link(eta_nons)
-      weights_nons <- 1 / ps_nons
-      N_nons <- sum(weights * weights_nons)
-      variance_covariance <- try(solve(-hess), silent = TRUE)
-      if (inherits(variance_covariance, "try-error")) {
-        if (verbose) message("solve() failed, using ginv() instead.")
-        variance_covariance <- MASS::ginv(-hess)
-      }
-      theta_standard_errors <- sqrt(diag(variance_covariance))
-      df_residual <- nrow(selection_model_data$X_nons) - length(theta_hat)
-      # if(is.null(pop_size)) pop_size <- N_nons
-      est_ps_rand <- NULL
-      est_ps_rand_der <- NULL
-      log_likelihood <- NA
-      weights_rand <- NULL
-      sigma <- NULL
-      residuals <- as.vector(rep(1, n_nons) - ps_nons)
-
-      selection_model <- list(
-        theta_hat = theta_hat,
-        hess = hess,
-        grad = grad,
-        ps_nons = ps_nons,
-        est_ps_rand = est_ps_rand,
-        ps_nons_der = ps_nons_der,
-        est_ps_rand_der = est_ps_rand_der,
-        variance_covariance = variance_covariance,
-        # var_cov1 = var_cov1,
-        # var_cov2 = var_cov2,
-        df_residual = df_residual,
-        log_likelihood = log_likelihood,
-        eta = eta_nons,
-        residuals = residuals,
-        method = method
-      )
-
-      method_outcome_nonprobsvy <- paste(method_outcome, "_nonprobsvy", sep = "")
-      MethodOutcome <- get(method_outcome_nonprobsvy, mode = "function", envir = parent.frame())
-      model_obj <- MethodOutcome(
-        outcome = outcome,
-        data = data,
-        weights = weights,
-        family_outcome = family_outcome,
-        start_outcome = start_outcome,
-        X_nons = outcome_model_data$X_nons,
-        y_nons = outcome_model_data$y_nons,
-        X_rand = outcome_model_data$X_rand,
-        control = control_outcome,
-        n_nons = n_nons,
-        n_rand = n_rand,
-        model_frame = outcome_model_data$model_frame_rand,
-        vars_selection = control_inference$vars_selection,
-        pop_totals = pop_totals
-      )
-
-      y_rand_pred <- model_obj$y_rand_pred
-      y_nons_pred <- model_obj$y_nons_pred
-      parameters <- model_obj$parameters
-      outcome_list[[k]] <- model_obj$model
-      outcome_list[[k]]$model_frame <- outcome_model_data$model_frame_rand
-
-      mu_hat <- 1 / N_nons * sum((1 / ps_nons) * (weights * (outcome_model_data$y_nons - y_nons_pred))) + y_rand_pred
-    } else {
-      stop("Specify one of the `svydesign`, `pop_totals' or `pop_means' arguments, not all.")
-    }
-    ys[[k]] <- as.numeric(y_nons)
-
-    if (se) {
-      if (var_method == "analytic") { # TODO add estimator variance with model containing pop_totals to internal_varDR function
-        var_obj <- internal_varDR(
-          outcome_model = outcome_model_data, # consider add selection argument instead of separate arguments for selection objects
-          selection_model = selection_model_data,
-          y_nons_pred = y_nons_pred,
-          weights = weights,
-          weights_rand = weights_rand,
-          method_selection = method_selection,
-          control_selection = control_selection,
-          ps_nons = ps_nons,
-          theta = theta_hat,
-          hess = hess,
-          ps_nons_der = ps_nons_der,
-          est_ps_rand = est_ps_rand,
-          y_rand_pred = y_rand_pred,
-          N_nons = N_nons,
-          est_ps_rand_der = est_ps_rand_der,
-          svydesign = svydesign,
-          est_method = est_method,
-          gee_h_fun = gee_h_fun,
-          pop_totals = pop_totals,
-          sigma = sigma,
-          bias_correction = bias_corr,
-          verbose = verbose
-        )
-
-        var_prob <- var_obj$var_prob
-        var_nonprob <- var_obj$var_nonprob
-
-        var <- var_prob + var_nonprob
-        se_prob <- sqrt(var_prob)
-        se_nonprob <- sqrt(var_nonprob)
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(prob = se_prob, nonprob = se_nonprob))))
-      } else if (var_method == "bootstrap") {
-        if (control_inference$cores > 1) {
-          boot_obj <- boot_dr_multicore(
-            outcome = outcome,
-            data = data,
-            svydesign = svydesign,
-            selection_model = selection_model_data,
-            outcome_model = outcome_model_data,
-            family_outcome = family_outcome,
-            method_outcome = method_outcome,
-            start_outcome = start_outcome,
-            num_boot = num_boot,
-            weights = weights,
-            weights_rand = weights_rand,
-            R = R,
-            theta_hat,
-            mu_hat = mu_hat,
+        if (is.null(pop_totals)) {
+          t_comp <- estimation_method$make_t_comp(
+            X = results_ipw$X[results_ipw$R == 0, ],
+            ps = as.numeric(results_ipw$selection$selection_model$est_ps_rand),
+            psd = as.numeric(results_ipw$selection$selection_model$est_ps_rand_der),
+            b = b_var,
+            gee_h_fun = control_selection$gee_h_fun,
+            y_rand = results_mi$ys_rand_pred[[o]],
+            y_nons = results_mi$ys_nons_pred[[o]],
+            N = pop_size,
             method_selection = method_selection,
-            control_selection = control_selection,
-            start_selection = start_selection,
-            control_outcome = control_outcome,
-            control_inference = control_inference,
-            n_nons = n_nons,
-            n_rand = n_rand,
-            optim_method = optim_method,
-            est_method = est_method,
-            gee_h_fun = gee_h_fun,
-            maxit = maxit,
-            pop_totals = pop_totals,
-            pop_size = pop_size,
-            pop_means = pop_means,
-            bias_correction = bias_corr,
-            cores = control_inference$cores,
-            verbose = verbose
+            weights = weights
           )
+
+          svydesign_ <- stats::update(svydesign, t_comp = t_comp)
+          svydesign_mean <- survey::svymean(~t_comp, svydesign)
+          var_prob <- as.vector(attr(svydesign_mean, "var"))
+
         } else {
-          boot_obj <- boot_dr(
-            outcome = outcome,
-            data = data,
-            svydesign = svydesign,
-            selection_model = selection_model_data,
-            outcome_model = outcome_model_data,
-            family_outcome = family_outcome,
-            method_outcome = method_outcome,
-            start_outcome = start_outcome,
-            num_boot = num_boot,
-            weights = weights,
-            weights_rand = weights_rand,
-            R = R,
-            theta_hat,
-            mu_hat = mu_hat,
-            method_selection = method_selection,
-            control_selection = control_selection,
-            start_selection = start_selection,
-            control_inference = control_inference,
-            control_outcome = control_outcome,
-            n_nons = n_nons,
-            n_rand = n_rand,
-            optim_method = optim_method,
-            est_method = est_method,
-            gee_h_fun = gee_h_fun,
-            maxit = maxit,
-            pop_totals = pop_totals,
-            pop_size = pop_size,
-            pop_means = pop_means,
-            bias_correction = bias_corr,
-            verbose = verbose
-          )
+          var_prob <- 0
         }
-        SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
-        var <- boot_obj$var
-        stat[, k] <- boot_obj$stat
-        # mu_hat <- boot_obj$mu
+        var_total <- var_nonprob + var_prob
+        se_nonprob <- sqrt(var_nonprob)
+        se_prob <- sqrt(var_prob)
+        SE_values[[o]] <- data.frame(prob = se_prob, nonprob = se_nonprob)
+        z <- stats::qnorm(1 - control_inference$alpha / 2)
+        # confidence interval based on the normal approximation
+        confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * sqrt(var_total),
+                                               upper_bound = mu_hat + z * sqrt(var_total))
+        output[[o]] <- data.frame(mean = mu_hat[o], SE = sqrt(var_total))
       } else {
-        stop("Invalid `var_method` argument for the variance estimation.")
+        ## bootstrap
+        }
+      } else {
+        confidence_interval[[o]] <- data.frame(lower_bound = NA, upper_bound = NA)
+        SE_values[[o]] <- data.frame(nonprob = NA, prob = NA)
+        output[[o]] <- data.frame(mean = mu_hat[o], SE = NA)
       }
-      SE <- sqrt(var)
-      alpha <- control_inference$alpha
-      z <- stats::qnorm(1 - alpha / 2)
-      # confidence interval based on the normal approximation
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(
-        lower_bound = mu_hat - z * SE,
-        upper_bound = mu_hat + z * SE
-      ))))
-    } else {
-      SE <- NA
-      confidence_interval[[k]] <- data.frame(t(data.frame("normal" = c(
-        lower_bound = NA,
-        upper_bound = NA
-      ))))
-      SE_values[[k]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
     }
-    output[[k]] <- data.frame(t(data.frame("result" = c(mean = mu_hat, SE = SE))))
-    # outcome_list$std_err <- ifelse(method_outcome == "glm", beta_statistics[,2], NULL)
-    # names(outcome_list$std_err) <- names(outcome_list$coefficients)
-    # parameters <- matrix(c(theta_hat, theta_standard_errors),
-    #                      ncol = 2,
-    #                      dimnames = list(names(theta_hat),
-    #                                      c("Estimate", "Std. Error")))
-    outcome_list[[k]]$method <- method_outcome
-    if (control_inference$vars_selection == TRUE) {
-      outcome_list[[k]]$cve <- cve_outcome
-    } else {
-      NULL
-    }
-  }
-  weights_summary <- summary(as.vector(weights_nons))
-  prop_scores <- c(ps_nons, est_ps_rand)
-  output <- do.call(rbind, output)
-  confidence_interval <- do.call(rbind, confidence_interval)
-  SE_values <- do.call(rbind, SE_values)
-  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  names(outcome_list) <- outcomes$f
-  if (is.null(pop_size)) pop_size <- N_nons
-  names(pop_size) <- "pop_size"
-  names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    stat
+    boot_obj$stat
   } else {
     NULL
   }
   if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
-  selection_list <- list(
-    coefficients = selection_model$theta_hat,
-    std_err = theta_standard_errors,
-    residuals = selection_model$residuals,
-    variance = as.vector(selection_model$variance),
-    variance_covariance = selection_model$variance_covariance,
-    fitted_values = prop_scores,
-    family = selection_model$method,
-    linear_predictors = selection_model$eta,
-    aic = selection_model$aic,
-    weights = as.vector(weights_nons),
-    prior.weights = weights,
-    formula = selection,
-    df_residual = selection_model$df_residual,
-    log_likelihood = selection_model$log_likelihood,
-    hessian = hess,
-    gradient = grad,
-    method = est_method,
-    prob_der = ps_nons_der,
-    prob_rand = ps_rand,
-    prob_rand_est = est_ps_rand,
-    cve = if (control_inference$vars_selection == TRUE) {
-      cve_selection
-    } else {
-      NULL
-    }
-  )
-  # df.null = selection_model$df_null
-  # converged)
-  # TODO add imputed y to the outcome or separately
+  output <- do.call(rbind, output)
+  confidence_interval <- do.call(rbind, confidence_interval)
+  SE_values <- do.call(rbind, SE_values)
+  rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
 
   structure(
     list(
       data = data,
-      X = if (isTRUE(x)) X else NULL,
-      y = if (isTRUE(y)) ys else NULL,
-      R = R,
-      prob = prop_scores,
-      weights = as.vector(weights_nons),
+      X = if (isTRUE(x)) results_mi$X else NULL,
+      y = if (isTRUE(y)) results_mi$y else NULL,
+      R = results_ipw$R,
+      ps_scores = results_ipw$prop_scores,
+      case_weights = results_ipw$case_weights,
+      ipw_weights = results_ipw$ipw_weights,
       control = list(
         control_selection = control_selection,
-        control_outcome = control_outcome,
         control_inference = control_inference
       ),
       output = output,
       SE = SE_values,
       confidence_interval = confidence_interval,
-      nonprob_size = n_nons,
-      prob_size = n_rand,
+      nonprob_size = results_mi$nonprob_size,
+      prob_size = results_mi$prob_size,
       pop_size = pop_size,
-      outcome = outcome_list,
-      selection = selection_list,
+      outcome = results_mi$outcome,
+      selection = results_ipw$selection,
       boot_sample = boot_sample,
-      svydesign = if (is.null(pop_totals)) svydesign else NULL # TODO to customize if pop_totals only
+      svydesign = if (is.null(pop_totals)) svydesign else NULL,
+      ys_rand_pred = results_mi$ys_rand_pred,
+      ys_nons_pred = results_mi$ys_nons_pred,
+      ys_resid = results_mi$ys_resid
     ),
     class = "nonprob"
   )

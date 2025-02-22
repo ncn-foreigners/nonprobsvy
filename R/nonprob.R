@@ -55,6 +55,10 @@ nonprob <- function(data,
     stop("The `target` argument must be a formula.")
   }
 
+  if (!is.null(outcome) & !is.null(selection) & method_outcome != "glm") {
+    stop("Currently we only support `method_glm` for doubly robust estimators.")
+  }
+
   # Validation checks for totals and means
   if (!is.null(pop_totals) && !is.vector(pop_totals)) {
     stop("The `pop_totals` argument must be a vector.")
