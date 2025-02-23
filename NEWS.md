@@ -22,13 +22,20 @@ nonprobsvy News and Updates
     -   argument `est_method_sel` renamed to `est_method`
     -   argument `h` renamed to `gee_h_fun` to make this more readable
         to the user
-    -   `start_type` now accepts only `zero` and `mle` (for `gee` models only).
+    -   `start_type` now accepts only `zero` and `mle` (for `gee` models
+        only).
+-   `control_inf` function:
+    -   `bias_inf` renamed to `vars_combine` and type changed to
+        `logical`. `TRUE` if variables (its levels) should be combined
+        after variable selection algorithm for the doubly robust
+        approach.
+    - `pi_ij` -- argument removed as it is not used.
 -   `nonprobsvy` class renamed to `nonprob` and all related method
     adjusted to this change
 -   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
     `cloglog_model_nonprobsvy` removed in the favour of more readable
     `method_ps` function that specifies the propensity score model
-
+    
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
@@ -41,11 +48,11 @@ nonprobsvy News and Updates
     non-probability and probability samples.
 -   citation file added.
 -   new functions added and exported:
-      - `method_ps` -- for modelling propensity score
-      - `method_glm` -- for modelling y using `glm` function
-      - `method_nn` -- for the NN method
-      - `method_pmm` -- for the PMM method
-      - `method_npar` -- for the non-parametric method
+    -   `method_ps` -- for modelling propensity score
+    -   `method_glm` -- for modelling y using `glm` function
+    -   `method_nn` -- for the NN method
+    -   `method_pmm` -- for the PMM method
+    -   `method_npar` -- for the non-parametric method
 
 ### Bugfixes
 
@@ -60,6 +67,7 @@ nonprobsvy News and Updates
 -   switching completely to snake_case.
 -   extensive cleaning of the code.
 -   more unit-tests added.
+-   new dependencies: `formula.tools`
 
 ### Documentation
 

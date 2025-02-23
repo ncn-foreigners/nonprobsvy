@@ -29,8 +29,6 @@ nonprob_mi <- function(outcome,
                        control_inference,
                        start_outcome,
                        verbose,
-                       x,
-                       y,
                        se,
                        pop_size_fixed,
                        ...) {
@@ -69,10 +67,6 @@ nonprob_mi <- function(outcome,
     X_rand <- outcome_model_data$X_rand
     nons_names <- outcome_model_data$nons_names
     y_nons <- outcome_model_data$y_nons
-
-    n_nons <- nrow(X_nons)
-    n_rand <- nrow(X_rand)
-    X <- rbind(X_nons, X_rand)
 
     model_obj <- outcome_method(y_nons = y_nons,
                                 X_nons = X_nons,
@@ -206,8 +200,6 @@ nonprob_mi <- function(outcome,
       SE_values[[o]] <- data.frame(nonprob = NA, prob = NA)
     }
 
-    X <- rbind(X_rand, X_nons) # joint model matrix
-
     output[[o]] <- data.frame(mean = mu_hat, SE = SE)
     outcome_list[[o]]$method <- method_outcome
   }
@@ -229,27 +221,30 @@ nonprob_mi <- function(outcome,
   structure(
     list(
       data = data,
-      X = if (isTRUE(x)) X else NULL,
-      y = if (isTRUE(y)) ys else NULL,
+      X = rbind(X_nons, X_rand),
+      y = ys,
+      R = c(rep(1, NROW(X_nons)), rep(0, NROW(X_rand))),
       ps_scores = NULL,
       case_weights = weights,
       ipw_weights = NULL,
       control = list(
+        control_selection = NULL,
         control_outcome = control_outcome,
         control_inference = control_inference
       ),
       output = output,
       SE = SE_values,
       confidence_interval = confidence_interval,
-      nonprob_size = n_nons,
-      prob_size = n_rand,
-      pop_size_fixed = pop_size_fixed,
+      nonprob_size = NROW(X_nons),
+      prob_size = NROW(X_rand),
       pop_size = pop_size,
+      pop_size_fixed = pop_size_fixed,
       pop_totals = pop_totals,
+      pop_means = pop_means,
       outcome = outcome_list,
       selection = NULL,
       boot_sample = boot_sample,
-      svydesign = if (is.null(pop_totals)) svydesign else NULL,
+      svydesign = svydesign,
       ys_rand_pred = ys_rand_pred,
       ys_nons_pred = ys_nons_pred,
       ys_resid = ys_resid

@@ -2,18 +2,13 @@
 #'
 #' @description \code{control_inf} constructs a `list` with all necessary control parameters
 #' for statistical inference.
-#'
-#' @param vars_selection default `FALSE`; if `TRUE`, then the variables selection model is used.
+
 #' @param var_method the variance method (default `"analytic"`).
 #' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `"subbootstrap"`.
+#' @param vars_selection default `FALSE`; if `TRUE`, then the variables selection model is used.
+#' @param vars_combine whether variables should be combined after variable selection for doubly robust estimators (default `TRUE`)
 #' @param bias_correction default `FALSE`; if `TRUE`, then the bias minimization estimation used during model fitting.
-#' @param bias_inf the inference method in the bias minimization.
-#' \itemize{
-#'   \item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
-#'   \item if \code{div}, then the final model is fitted separately on division of selected variables into relevant ones for
-#'   selection and outcome model.
-#'   }
 #' @param num_boot the number of iteration for bootstrap algorithms.
 #' @param alpha significance level (default 0.05).
 #' @param cores the number of cores in parallel computing (default 1).
@@ -26,7 +21,6 @@
 #' In most situations this term is negligible and is very computationally
 #' expensive so by default it is set to \code{FALSE}, but the recommended option is to
 #' set this value to \code{TRUE} before submitting the final results.
-#' @param pi_ij either a matrix or a \code{ppsmat} class object (default `NULL`, currently not supported, for further development).
 #'
 #'
 #' @return A `list` with selected parameters.
@@ -37,23 +31,21 @@
 #'
 #' @export
 
-control_inf <- function(vars_selection = FALSE,
-                        var_method = c("analytic", "bootstrap"),
+control_inf <- function(var_method = c("analytic", "bootstrap"),
                         rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap",
                                      "mrbbootstrap", "Fay"),
+                        vars_selection = FALSE,
+                        vars_combine = FALSE,
                         bias_correction = FALSE,
-                        bias_inf = c("union", "div"),
                         num_boot = 500,
                         alpha = 0.05,
                         cores = 1,
                         keep_boot = TRUE,
-                        nn_exact_se = FALSE,
-                        pi_ij = NULL) {
+                        nn_exact_se = FALSE) {
 
   # Input validation
   var_method <- match.arg(var_method)
   rep_type <- match.arg(rep_type)
-  bias_inf <- match.arg(bias_inf)
 
   if (!is.logical(keep_boot) || length(keep_boot) != 1) {
     stop("'keep_boot' must be a logical scalar")
@@ -76,16 +68,15 @@ control_inf <- function(vars_selection = FALSE,
   }
 
   list(
-    vars_selection = vars_selection,
     var_method = var_method,
     rep_type = rep_type,
-    bias_inf = bias_inf,
+    vars_selection = vars_selection,
+    vars_combine = vars_combine,
     bias_correction = bias_correction,
     num_boot = num_boot,
     alpha = alpha,
     cores = cores,
     keep_boot = keep_boot,
-    nn_exact_se = nn_exact_se,
-    pi_ij = pi_ij
+    nn_exact_se = nn_exact_se
   )
 }

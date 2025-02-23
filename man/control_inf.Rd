@@ -5,36 +5,30 @@
 \title{Control parameters for inference}
 \usage{
 control_inf(
-  vars_selection = FALSE,
   var_method = c("analytic", "bootstrap"),
   rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap", "mrbbootstrap",
     "Fay"),
+  vars_selection = FALSE,
+  vars_combine = FALSE,
   bias_correction = FALSE,
-  bias_inf = c("union", "div"),
   num_boot = 500,
   alpha = 0.05,
   cores = 1,
   keep_boot = TRUE,
-  nn_exact_se = FALSE,
-  pi_ij = NULL
+  nn_exact_se = FALSE
 )
 }
 \arguments{
-\item{vars_selection}{default \code{FALSE}; if \code{TRUE}, then the variables selection model is used.}
-
 \item{var_method}{the variance method (default \code{"analytic"}).}
 
 \item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{"subbootstrap"}.}
 
-\item{bias_correction}{default \code{FALSE}; if \code{TRUE}, then the bias minimization estimation used during model fitting.}
+\item{vars_selection}{default \code{FALSE}; if \code{TRUE}, then the variables selection model is used.}
 
-\item{bias_inf}{the inference method in the bias minimization.
-\itemize{
-\item if \code{union}, then the final model is fitted on the union of selected variables for selection and outcome models
-\item if \code{div}, then the final model is fitted separately on division of selected variables into relevant ones for
-selection and outcome model.
-}}
+\item{vars_combine}{whether variables should be combined after variable selection for doubly robust estimators (default \code{TRUE})}
+
+\item{bias_correction}{default \code{FALSE}; if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
 \item{num_boot}{the number of iteration for bootstrap algorithms.}
 
@@ -52,8 +46,6 @@ the probability sample using predictive matches from the non-probability sample.
 In most situations this term is negligible and is very computationally
 expensive so by default it is set to \code{FALSE}, but the recommended option is to
 set this value to \code{TRUE} before submitting the final results.}
-
-\item{pi_ij}{either a matrix or a \code{ppsmat} class object (default \code{NULL}, currently not supported, for further development).}
 }
 \value{
 A \code{list} with selected parameters.

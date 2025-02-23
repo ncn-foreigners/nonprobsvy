@@ -38,8 +38,6 @@ NULL
 #' @param start_selection an optional `vector` with starting values for the parameters of the selection equation.
 #' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation.
 #' @param verbose a numerical value (default `TRUE`) whether detailed information on the fitting should be presented.
-#' @param x a logical value (default `TRUE`) indicating whether to return model matrix of covariates as a part of the output.
-#' @param y a logical value (default `TRUE`) indicating whether to return vector of the outcome variable as a part of the output.
 #' @param se Logical value (default `TRUE`) indicating whether to calculate and return standard error of estimated mean.
 #' @param ... Additional, optional arguments.
 #'

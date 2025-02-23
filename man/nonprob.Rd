@@ -26,8 +26,6 @@ nonprob(
   start_selection = NULL,
   start_outcome = NULL,
   verbose = FALSE,
-  x = TRUE,
-  y = TRUE,
   se = TRUE,
   ...
 )
@@ -74,10 +72,6 @@ nonprob(
 \item{start_outcome}{an optional \code{vector} with starting values for the parameters of the outcome equation.}
 
 \item{verbose}{a numerical value (default \code{TRUE}) whether detailed information on the fitting should be presented.}
-
-\item{x}{a logical value (default \code{TRUE}) indicating whether to return model matrix of covariates as a part of the output.}
-
-\item{y}{a logical value (default \code{TRUE}) indicating whether to return vector of the outcome variable as a part of the output.}
 
 \item{se}{Logical value (default \code{TRUE}) indicating whether to calculate and return standard error of estimated mean.}
 

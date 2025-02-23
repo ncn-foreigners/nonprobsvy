@@ -90,8 +90,6 @@ boot_dr <- function(selection,
                                        control_inference = control_inference,
                                        start_selection = start_selection,
                                        verbose = FALSE,
-                                       x = FALSE,
-                                       y = FALSE,
                                        se = FALSE,
                                        pop_size_fixed=pop_size_fixed)
             ## estimate the mi
@@ -111,8 +109,6 @@ boot_dr <- function(selection,
                                      control_inference = control_inference,
                                      start_outcome = start_outcome,
                                      verbose = FALSE,
-                                     x = FALSE,
-                                     y = FALSE,
                                      se = FALSE,
                                      pop_size_fixed=pop_size_fixed)
 
@@ -160,8 +156,6 @@ boot_dr <- function(selection,
                                        control_inference = control_inference,
                                        start_selection = start_selection,
                                        verbose = FALSE,
-                                       x = FALSE,
-                                       y = FALSE,
                                        se = FALSE,
                                        pop_size_fixed=pop_size_fixed)
             ## estimate the mi
@@ -181,8 +175,6 @@ boot_dr <- function(selection,
                                      control_inference = control_inference,
                                      start_outcome = start_outcome,
                                      verbose = FALSE,
-                                     x = FALSE,
-                                     y = FALSE,
                                      se = FALSE,
                                      pop_size_fixed=pop_size_fixed)
 
@@ -256,8 +248,6 @@ boot_dr <- function(selection,
                                      control_inference = control_inference,
                                      start_selection = start_selection,
                                      verbose = verbose,
-                                     x = TRUE,
-                                     y = TRUE,
                                      se = FALSE,
                                      pop_size_fixed=pop_size_fixed)
           ## estimate the mi
@@ -277,8 +267,6 @@ boot_dr <- function(selection,
                                    control_inference = control_inference,
                                    start_outcome = start_outcome,
                                    verbose = verbose,
-                                   x = TRUE,
-                                   y = TRUE,
                                    se = FALSE,
                                    pop_size_fixed=pop_size_fixed)
 
@@ -315,8 +303,6 @@ boot_dr <- function(selection,
                                      control_inference = control_inference,
                                      start_selection = start_selection,
                                      verbose = verbose,
-                                     x = TRUE,
-                                     y = TRUE,
                                      se = FALSE,
                                      pop_size_fixed=pop_size_fixed)
           ## estimate the mi
@@ -336,8 +322,6 @@ boot_dr <- function(selection,
                                    control_inference = control_inference,
                                    start_outcome = start_outcome,
                                    verbose = verbose,
-                                   x = TRUE,
-                                   y = TRUE,
                                    se = FALSE,
                                    pop_size_fixed=pop_size_fixed)
 

@@ -41,7 +41,8 @@ Imports:
     nleqslv,
     doParallel,
     foreach,
-    parallel
+    parallel,
+    formula.tools
 Suggests: 
     tinytest,
     covr,

@@ -21,8 +21,6 @@ nonprob <- function(data,
                     start_selection = NULL,
                     start_outcome = NULL,
                     verbose = FALSE,
-                    x = TRUE,
-                    y = TRUE,
                     se = TRUE,
                     ...) {
 
@@ -172,8 +170,6 @@ nonprob <- function(data,
       control_inference = control_inference,
       start_selection = start_selection,
       verbose = verbose,
-      x = x,
-      y = y,
       se = se,
       pop_size_fixed=pop_size_fixed,
       ...
@@ -195,8 +191,6 @@ nonprob <- function(data,
       control_inference = control_inference,
       start_outcome = start_outcome,
       verbose = verbose,
-      x = x,
-      y = y,
       se = se,
       pop_size_fixed=pop_size_fixed,
       ...
@@ -222,8 +216,6 @@ nonprob <- function(data,
       start_selection = start_selection,
       start_outcome = start_outcome,
       verbose = verbose,
-      x = x,
-      y = y,
       se = se,
       pop_size_fixed=pop_size_fixed,
       ...
@@ -237,7 +229,7 @@ nonprob <- function(data,
 
   res$estimator_method <- if (!is.null(outcome)) {
     ifelse(method_outcome == "nn", method_outcome, paste0(method_outcome, " (", family_outcome,")"))
-    } else paste0(method_selection, " (", control_selection$est_method," )")
+    } else paste0(method_selection, " (", control_selection$est_method,")")
 
 
 

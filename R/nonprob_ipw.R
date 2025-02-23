@@ -28,8 +28,6 @@ nonprob_ipw <- function(selection,
                         control_inference,
                         start_selection,
                         verbose,
-                        x,
-                        y,
                         se,
                         pop_size_fixed,
                         ...) {
@@ -52,8 +50,6 @@ nonprob_ipw <- function(selection,
   ## estimation method
   estimation_method <- est_method_ipw(est_method)
 
-  # if (!(target[3] == "NULL()")) stop("Ill-defined formula for the `target` argument.")
-
   ## multiple dependent variables
   dependents <- paste(selection, collapse = " ")
   outcome <- stats::as.formula(paste(target[2], dependents))
@@ -72,15 +68,15 @@ nonprob_ipw <- function(selection,
     X_rand <- model$X_rand
     nons_names <- model$nons_names
     X <- rbind(X_rand, X_nons)
-    R_nons <- rep(1, nrow(X_nons))
-    R_rand <- rep(0, nrow(X_rand))
+    R_nons <- rep(1, NROW(X_nons))
+    R_rand <- rep(0, NROW(X_rand))
     R <- c(R_rand, R_nons)
 
     loc_nons <- which(R == 1)
     loc_rand <- which(R == 0)
 
-    n_nons <- nrow(X_nons)
-    n_rand <- nrow(X_rand)
+    n_nons <- NROW(X_nons)
+    n_rand <- NROW(X_rand)
 
     ps_rand <- svydesign$prob
     weights_rand <- 1 / ps_rand
@@ -91,8 +87,8 @@ nonprob_ipw <- function(selection,
     X_nons <- model$X_nons
     nons_names <- model$nons_names
     y_nons <- model$y_nons
-    R <- rep(1, nrow(X_nons))
-    n_nons <- nrow(X_nons)
+    R <- rep(1, NROW(X_nons))
+    n_nons <- NROW(X_nons)
     pop_totals <- model$pop_totals
 
     X_rand <- NULL
@@ -273,7 +269,7 @@ nonprob_ipw <- function(selection,
     theta_standard_errors <- sqrt(diag(variance_covariance))
     var_cov1 <- method$variance_covariance1
     var_cov2 <- method$variance_covariance2
-    df_residual <- nrow(X_nons) - length(theta_hat)
+    df_residual <- NROW(X_nons) - length(theta_hat)
     weights_nons <- 1 / ps_nons
     N <- sum(weights * weights_nons)
     residuals <- as.vector(rep(1, n_nons) - ps_nons)
@@ -510,14 +506,15 @@ nonprob_ipw <- function(selection,
   structure(
     list(
       data = data,
-      X = if (isTRUE(x)) rbind(X_rand, X_nons) else NULL,
-      y = if (isTRUE(y)) ys else NULL,
+      X = rbind(X_rand, X_nons),
+      y = ys,
       R = R,
       ps_scores = prop_scores,
       case_weights = weights,
       ipw_weights = as.vector(weights_nons),
       control = list(
         control_selection = control_selection,
+        control_outcome = NULL,
         control_inference = control_inference
       ),
       output = output,
@@ -527,6 +524,8 @@ nonprob_ipw <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       pop_size_fixed = pop_size_fixed,
+      pop_totals = pop_totals,
+      pop_means = pop_means,
       outcome = NULL,
       selection = selection_list,
       boot_sample = boot_sample,

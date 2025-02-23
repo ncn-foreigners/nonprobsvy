@@ -12,6 +12,8 @@
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv
 #' @importFrom Rcpp evalCpp
+#' @importFrom formula.tools rhs
+#' @importFrom formula.tools lhs
 #' @noRd
 nonprob_dr <- function(selection,
                        outcome,
@@ -33,8 +35,6 @@ nonprob_dr <- function(selection,
                        start_outcome,
                        start_selection,
                        verbose,
-                       x,
-                       y,
                        se,
                        pop_size_fixed,
                        ...) {
@@ -77,8 +77,6 @@ nonprob_dr <- function(selection,
                              control_inference = control_inference,
                              start_selection = start_selection,
                              verbose = verbose,
-                             x = TRUE,
-                             y = TRUE,
                              se = FALSE,
                              pop_size_fixed = pop_size_fixed)
   ## estimate the mi
@@ -98,8 +96,6 @@ nonprob_dr <- function(selection,
                            control_inference = control_inference,
                            start_outcome = start_outcome,
                            verbose = verbose,
-                           x = TRUE,
-                           y = TRUE,
                            se = FALSE,
                            pop_size_fixed=pop_size_fixed)
 
@@ -109,6 +105,87 @@ nonprob_dr <- function(selection,
                      weights = weights,
                      weights_nons = results_ipw$ipw_weights,
                      N_nons = sum(results_ipw$ipw_weights))
+
+  ## combination should be done for each variable separately
+  if (control_inference$vars_combine) {
+
+    ipw_coefs_sel <- names(results_ipw$selection$coefficients)
+    mi_coefs_sel <- lapply(results_mi$outcome, coef)
+    dr_coefs_sel <- lapply(mi_coefs_sel, function(x) {
+        mi_cols <- names(x[abs(x)>0])
+        union(ipw_coefs_sel, mi_cols)
+    })
+
+    selection_vars <- all.vars(formula.tools::rhs(outcome))
+    outcome_vars <- all.vars(formula.tools::rhs(selection))
+    target_vars <- all.vars(formula.tools::lhs(outcome))
+    combined_vars <- reformulate(union(selection_vars, outcome_vars))
+
+    y_nons <- subset(data, select=target_vars)
+    X_nons <- model.matrix(combined_vars, data)
+    X_rand <- model.matrix(combined_vars, svydesign$variables) ## if design is present
+    X_nons <- cbind(y_nons, X_nons[,colnames(X_nons) != "(Intercept)", drop=FALSE])
+    X_rand <- X_rand[,colnames(X_rand) != "(Intercept)", drop=FALSE]
+    svydesign_ <- svydesign
+    svydesign_$variables <- cbind(svydesign_$variables, X_rand)
+
+    results_mi_combined <- results_ipw_combined <- list()
+    mu_hat <- numeric()
+
+    control_inference_ <- control_inference
+    control_inference_$vars_selection <- FALSE
+
+    for (o in outcomes$f) {
+
+      results_ipw_combined[[o]] <- nonprob_ipw(data = X_nons,
+                                      target = reformulate(o),
+                                      selection =  reformulate(dr_coefs_sel[[o]]),
+                                      svydesign = svydesign_,
+                                      pop_totals = pop_totals,
+                                      pop_means = pop_means,
+                                      pop_size = pop_size,
+                                      method_selection = method_selection,
+                                      subset = subset,
+                                      strata = strata,
+                                      weights = weights,
+                                      na_action = na_action,
+                                      control_selection = control_selection,
+                                      control_inference = control_inference_,
+                                      start_selection = start_selection,
+                                      verbose = verbose,
+                                      se = FALSE,
+                                      pop_size_fixed = pop_size_fixed)
+      ## estimate the mi
+      results_mi_combined[[o]] <- nonprob_mi(outcome = as.formula(paste0(o, reformulate(dr_coefs_sel[[o]]))),
+                                    data = X_nons,
+                                    svydesign = svydesign_,
+                                    pop_totals = pop_totals,
+                                    pop_means = pop_means,
+                                    pop_size = pop_size,
+                                    method_outcome = method_outcome,
+                                    family_outcome = family_outcome,
+                                    subset = subset,
+                                    strata = strata,
+                                    weights = weights,
+                                    na_action = na_action,
+                                    control_outcome = control_outcome,
+                                    control_inference = control_inference_,
+                                    start_outcome = start_outcome,
+                                    verbose = verbose,
+                                    se = FALSE,
+                                    pop_size_fixed=pop_size_fixed)
+
+      ## estimate in loop
+      mu_hat[[o]] <- mu_hatDR(y_hat = results_mi_combined[[o]]$output$mean,
+                         y_resid = do.call("cbind", results_mi_combined[[o]]$ys_resid),
+                         weights = weights,
+                         weights_nons = results_ipw_combined[[o]]$ipw_weights,
+                         N_nons = sum(results_ipw_combined[[o]]$ipw_weights))
+
+    }
+  }
+
+
 
     if (se) {
         if (control_inference$var_method == "analytic") {
@@ -233,14 +310,15 @@ nonprob_dr <- function(selection,
   structure(
     list(
       data = data,
-      X = if (isTRUE(x)) results_mi$X else NULL,
-      y = if (isTRUE(y)) results_mi$y else NULL,
+      X = results_mi$X,
+      y = results_mi$y,
       R = results_ipw$R,
       ps_scores = results_ipw$prop_scores,
       case_weights = results_ipw$case_weights,
       ipw_weights = results_ipw$ipw_weights,
       control = list(
         control_selection = control_selection,
+        control_outcome = control_outcome,
         control_inference = control_inference
       ),
       output = output,
@@ -250,6 +328,8 @@ nonprob_dr <- function(selection,
       prob_size = results_mi$prob_size,
       pop_size = pop_size,
       pop_size_fixed = pop_size_fixed,
+      pop_totals = pop_totals,
+      pop_means = pop_means,
       outcome = results_mi$outcome,
       selection = results_ipw$selection,
       boot_sample = boot_sample,
