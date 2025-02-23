@@ -31,6 +31,7 @@ nonprob_ipw <- function(selection,
                         x,
                         y,
                         se,
+                        pop_size_fixed,
                         ...) {
 
   ## passing control parameters
@@ -525,6 +526,7 @@ nonprob_ipw <- function(selection,
       nonprob_size = n_nons,
       prob_size = n_rand,
       pop_size = pop_size,
+      pop_size_fixed = pop_size_fixed,
       outcome = NULL,
       selection = selection_list,
       boot_sample = boot_sample,

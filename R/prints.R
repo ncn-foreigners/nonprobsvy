@@ -12,6 +12,9 @@ print.nonprob <- function(x, ...) {
                                                 "mi"= "mass imputation",
                                                 "ipw" = "inverse probability weighting",
                                                 "dr" = "doubly robust")))
+
+  ## here we should have more information when the doubly robust estimator is applied
+
   cat(sprintf(" - method: %s\n", x$estimator_method))
   cat(sprintf(" - auxiliary variables source: %s\n", ifelse(!is.null(x$svydesign), "survey", "population")))
   cat(sprintf(" - vars selection: %s\n", tolower(x$control$control_inference$vars_selection)))
@@ -23,6 +26,8 @@ print.nonprob <- function(x, ...) {
                 x$control$control_inference$num_boot,
                 tolower(x$control$control_inference$cores > 1)))
   }
+
+  cat(sprintf(" - population size fixed: %s\n", tolower(x$pop_size_fixed)))
 
   if (nrow(x$output) == 1) {
     cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))

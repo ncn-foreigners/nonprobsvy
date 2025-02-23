@@ -45,6 +45,7 @@ check_balance <- function(x, object, dig) {
 #' @method check_balance nonprob
 #' @exportS3Method
 check_balance.nonprob <- function(x, object, dig = 2) {
+
   # Input validation
   if (!inherits(x, "formula")) {
     stop("The `x` argument must be a formula.")

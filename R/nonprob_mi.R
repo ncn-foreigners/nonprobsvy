@@ -32,6 +32,7 @@ nonprob_mi <- function(outcome,
                        x,
                        y,
                        se,
+                       pop_size_fixed,
                        ...) {
 
   vars_selection <- control_inference$vars_selection
@@ -242,6 +243,7 @@ nonprob_mi <- function(outcome,
       confidence_interval = confidence_interval,
       nonprob_size = n_nons,
       prob_size = n_rand,
+      pop_size_fixed = pop_size_fixed,
       pop_size = pop_size,
       pop_totals = pop_totals,
       outcome = outcome_list,

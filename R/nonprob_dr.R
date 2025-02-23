@@ -36,6 +36,7 @@ nonprob_dr <- function(selection,
                        x,
                        y,
                        se,
+                       pop_size_fixed,
                        ...) {
 
   # important parameters:
@@ -78,7 +79,8 @@ nonprob_dr <- function(selection,
                              verbose = verbose,
                              x = TRUE,
                              y = TRUE,
-                             se = FALSE)
+                             se = FALSE,
+                             pop_size_fixed = pop_size_fixed)
   ## estimate the mi
   results_mi <- nonprob_mi(outcome = outcome,
                            data = data,
@@ -98,7 +100,8 @@ nonprob_dr <- function(selection,
                            verbose = verbose,
                            x = TRUE,
                            y = TRUE,
-                           se = FALSE)
+                           se = FALSE,
+                           pop_size_fixed=pop_size_fixed)
 
   ## doubly robust estimator
   mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
@@ -192,7 +195,8 @@ nonprob_dr <- function(selection,
                             control_inference = control_inference,
                             start_outcome = start_outcome,
                             start_selection = start_selection,
-                            verbose = verbose)
+                            verbose = verbose,
+                            pop_size_fixed = pop_size_fixed)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -245,6 +249,7 @@ nonprob_dr <- function(selection,
       nonprob_size = results_mi$nonprob_size,
       prob_size = results_mi$prob_size,
       pop_size = pop_size,
+      pop_size_fixed = pop_size_fixed,
       outcome = results_mi$outcome,
       selection = results_ipw$selection,
       boot_sample = boot_sample,

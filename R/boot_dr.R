@@ -20,7 +20,8 @@ boot_dr <- function(selection,
                     control_inference,
                     start_outcome,
                     start_selection,
-                    verbose) {
+                    verbose,
+                    pop_size_fixed) {
 
   # Initialize objects to store results
   num_boot <- control_inference$num_boot
@@ -83,7 +84,7 @@ boot_dr <- function(selection,
                                        method_selection = method_selection,
                                        subset = subset,
                                        strata = strata,
-                                       weights = weights,
+                                       weights = weights[strap_nons],
                                        na_action = na_action,
                                        control_selection = control_selection,
                                        control_inference = control_inference,
@@ -91,10 +92,11 @@ boot_dr <- function(selection,
                                        verbose = FALSE,
                                        x = FALSE,
                                        y = FALSE,
-                                       se = FALSE)
+                                       se = FALSE,
+                                       pop_size_fixed=pop_size_fixed)
             ## estimate the mi
             results_mi_b <- nonprob_mi(outcome = outcome,
-                                     data = data[strap_nons, ],
+                                       data = data[strap_nons, ],
                                      svydesign = svydesign_b,
                                      pop_totals = NULL,
                                      pop_means = NULL,
@@ -103,7 +105,7 @@ boot_dr <- function(selection,
                                      family_outcome = family_outcome,
                                      subset = subset,
                                      strata = strata,
-                                     weights = weights,
+                                     weights = weights[strap_nons],
                                      na_action = na_action,
                                      control_outcome = control_outcome,
                                      control_inference = control_inference,
@@ -111,11 +113,12 @@ boot_dr <- function(selection,
                                      verbose = FALSE,
                                      x = FALSE,
                                      y = FALSE,
-                                     se = FALSE)
+                                     se = FALSE,
+                                     pop_size_fixed=pop_size_fixed)
 
             boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b$output$mean,
                                       y_resid = do.call("cbind", results_mi_b$ys_resid),
-                                      weights = weights,
+                                      weights = weights[strap_nons],
                                       weights_nons = results_ipw_b$ipw_weights,
                                       N_nons = sum(results_ipw_b$ipw_weights))
 
@@ -136,18 +139,14 @@ boot_dr <- function(selection,
       # Bootstrap for non-probability samples only
       while (b <= num_boot) {
 
-        # data
-        # svydesign
-        # pop_size
-        # pop_totals
-        # pop_means
+        strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / weights)
 
         tryCatch(
           {
             # Non-probability part
             results_ipw_b <- nonprob_ipw(selection = selection,
                                        target = target,
-                                       data = data,
+                                       data = data[strap_nons, ],
                                        svydesign = svydesign,
                                        pop_totals = pop_totals,
                                        pop_means = pop_means,
@@ -155,7 +154,7 @@ boot_dr <- function(selection,
                                        method_selection = method_selection,
                                        subset = subset,
                                        strata = strata,
-                                       weights = weights,
+                                       weights = weights[strap_nons],
                                        na_action = na_action,
                                        control_selection = control_selection,
                                        control_inference = control_inference,
@@ -163,10 +162,11 @@ boot_dr <- function(selection,
                                        verbose = FALSE,
                                        x = FALSE,
                                        y = FALSE,
-                                       se = FALSE)
+                                       se = FALSE,
+                                       pop_size_fixed=pop_size_fixed)
             ## estimate the mi
             results_mi_b <- nonprob_mi(outcome = outcome,
-                                     data = data,
+                                     data = data[strap_nons, ],
                                      svydesign = svydesign,
                                      pop_totals = pop_totals,
                                      pop_means = pop_means,
@@ -175,7 +175,7 @@ boot_dr <- function(selection,
                                      family_outcome = family_outcome,
                                      subset = subset,
                                      strata = strata,
-                                     weights = weights,
+                                     weights = weights[strap_nons],
                                      na_action = na_action,
                                      control_outcome = control_outcome,
                                      control_inference = control_inference,
@@ -183,11 +183,12 @@ boot_dr <- function(selection,
                                      verbose = FALSE,
                                      x = FALSE,
                                      y = FALSE,
-                                     se = FALSE)
+                                     se = FALSE,
+                                     pop_size_fixed=pop_size_fixed)
 
             boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b$output$mean,
                                       y_resid = do.call("cbind", results_mi_b$ys_resid),
-                                      weights = weights,
+                                      weights = weights[strap_nons],
                                       weights_nons = results_ipw_b$ipw_weights,
                                       N_nons = sum(results_ipw_b$ipw_weights))
 
@@ -249,7 +250,7 @@ boot_dr <- function(selection,
                                      method_selection = method_selection,
                                      subset = subset,
                                      strata = strata,
-                                     weights = weights,
+                                     weights = weights[strap_nons],
                                      na_action = na_action,
                                      control_selection = control_selection,
                                      control_inference = control_inference,
@@ -257,7 +258,8 @@ boot_dr <- function(selection,
                                      verbose = verbose,
                                      x = TRUE,
                                      y = TRUE,
-                                     se = FALSE)
+                                     se = FALSE,
+                                     pop_size_fixed=pop_size_fixed)
           ## estimate the mi
           results_mi_b <- nonprob_mi(outcome = outcome,
                                      data = data[strap_nons, ],
@@ -269,7 +271,7 @@ boot_dr <- function(selection,
                                    family_outcome = family_outcome,
                                    subset = subset,
                                    strata = strata,
-                                   weights = weights,
+                                   weights = weights[strap_nons],
                                    na_action = na_action,
                                    control_outcome = control_outcome,
                                    control_inference = control_inference,
@@ -277,11 +279,12 @@ boot_dr <- function(selection,
                                    verbose = verbose,
                                    x = TRUE,
                                    y = TRUE,
-                                   se = FALSE)
+                                   se = FALSE,
+                                   pop_size_fixed=pop_size_fixed)
 
           boot_obj_b <- mu_hatDR(y_hat = results_mi_b$output$mean,
                    y_resid = do.call("cbind", results_mi_b$ys_resid),
-                   weights = weights,
+                   weights = weights[strap_nons],
                    weights_nons = results_ipw_b$ipw_weights,
                    N_nons = sum(results_ipw_b$ipw_weights))
 
@@ -294,11 +297,7 @@ boot_dr <- function(selection,
         obj = foreach::foreach(b = 1:num_boot, .combine = rbind),
         ex = {
 
-          # data
-          # svydesign
-          # pop_size
-          # pop_totals
-          # pop_means
+          strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / weights)
 
           results_ipw_b <- nonprob_ipw(selection = selection,
                                      target = target,
@@ -310,7 +309,7 @@ boot_dr <- function(selection,
                                      method_selection = method_selection,
                                      subset = subset,
                                      strata = strata,
-                                     weights = weights,
+                                     weights = weights[strap_nons],
                                      na_action = na_action,
                                      control_selection = control_selection,
                                      control_inference = control_inference,
@@ -318,7 +317,8 @@ boot_dr <- function(selection,
                                      verbose = verbose,
                                      x = TRUE,
                                      y = TRUE,
-                                     se = FALSE)
+                                     se = FALSE,
+                                     pop_size_fixed=pop_size_fixed)
           ## estimate the mi
           results_mi_b <- nonprob_mi(outcome = outcome,
                                      data = data[strap_nons, ],
@@ -330,7 +330,7 @@ boot_dr <- function(selection,
                                    family_outcome = family_outcome,
                                    subset = subset,
                                    strata = strata,
-                                   weights = weights,
+                                   weights = weights[strap_nons],
                                    na_action = na_action,
                                    control_outcome = control_outcome,
                                    control_inference = control_inference,
@@ -338,11 +338,12 @@ boot_dr <- function(selection,
                                    verbose = verbose,
                                    x = TRUE,
                                    y = TRUE,
-                                   se = FALSE)
+                                   se = FALSE,
+                                   pop_size_fixed=pop_size_fixed)
 
           boot_obj_b <- mu_hatDR(y_hat = results_mi_b$output$mean,
                                  y_resid = do.call("cbind", results_mi_b$ys_resid),
-                                 weights = weights,
+                                 weights = weights[strap_nons],
                                  weights_nons = results_ipw_b$ipw_weights,
                                  N_nons = sum(results_ipw_b$ipw_weights))
           as.matrix(boot_obj_b)

@@ -137,6 +137,12 @@ nonprob <- function(data,
     estimator <- "mi"
   }
 
+  pop_size_fixed <- !is.null(pop_size) | (!is.null(pop_totals) && names(pop_totals)[1] == "(Intercept)")  ## for variance estimation
+
+  if (pop_size_fixed) {
+    message("Caution: since `pop_size' is provided, the variance is estimated assuming that `pop_size' is known (not estimated). If this assumption is wrong, specify the appropriate `var_method' in the `control_inf()` function.\n")
+  }
+
   ## processing data for all methods
   if (is.null(pop_totals) && !is.null(pop_means) && !is.null(pop_size)) {
     pop_totals <- c(pop_size, pop_size * pop_means)
@@ -169,6 +175,7 @@ nonprob <- function(data,
       x = x,
       y = y,
       se = se,
+      pop_size_fixed=pop_size_fixed,
       ...
     ),
     mi = nonprob_mi(
@@ -191,6 +198,7 @@ nonprob <- function(data,
       x = x,
       y = y,
       se = se,
+      pop_size_fixed=pop_size_fixed,
       ...
     ),
     dr = nonprob_dr(
@@ -217,6 +225,7 @@ nonprob <- function(data,
       x = x,
       y = y,
       se = se,
+      pop_size_fixed=pop_size_fixed,
       ...
     )
   )
