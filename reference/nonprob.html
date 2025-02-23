@@ -81,8 +81,6 @@ In the case of <code>outcome</code> and <code>target</code> multiple y variables
 <span>  start_selection <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  start_outcome <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  x <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  y <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  se <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -174,14 +172,6 @@ In the case of <code>outcome</code> and <code>target</code> multiple y variables
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>a numerical value (default <code>TRUE</code>) whether detailed information on the fitting should be presented.</p></dd>
-
-
-<dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>a logical value (default <code>TRUE</code>) indicating whether to return model matrix of covariates as a part of the output.</p></dd>
-
-
-<dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>a logical value (default <code>TRUE</code>) indicating whether to return vector of the outcome variable as a part of the output.</p></dd>
 
 
 <dt id="arg-se">se<a class="anchor" aria-label="anchor" href="#arg-se"></a></dt>
@@ -481,7 +471,7 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span><span class="va">IPW_res</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: inverse probability weighting</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - method: logit (mle )</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - method: logit (mle)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - auxiliary variables source: survey</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - vars selection: false</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - variance estimator: analytic</span>

@@ -54,6 +54,13 @@
 <code>start_type</code> now accepts only <code>zero</code> and <code>mle</code> (for <code>gee</code> models only).</li>
 </ul></li>
 <li>
+<code>control_inf</code> function:
+<ul><li>
+<code>bias_inf</code> renamed to <code>vars_combine</code> and type changed to <code>logical</code>. <code>TRUE</code> if variables (its levels) should be combined after variable selection algorithm for the doubly robust approach.</li>
+<li>
+<code>pi_ij</code> – argument removed as it is not used.</li>
+</ul></li>
+<li>
 <code>nonprobsvy</code> class renamed to <code>nonprob</code> and all related method adjusted to this change</li>
 <li>functions <code>logit_model_nonprobsvy</code>, <code>probit_model_nonprobsvy</code> and <code>cloglog_model_nonprobsvy</code> removed in the favour of more readable <code>method_ps</code> function that specifies the propensity score model</li>
 </ul></div>
@@ -86,6 +93,8 @@
 <li>switching completely to snake_case.</li>
 <li>extensive cleaning of the code.</li>
 <li>more unit-tests added.</li>
+<li>new dependencies: <code>formula.tools</code>
+</li>
 </ul></div>
 <div class="section level4">
 <h4 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h4>

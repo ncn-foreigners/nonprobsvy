@@ -42,18 +42,17 @@ for statistical inference.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">control_inf</span><span class="op">(</span></span>
-<span>  vars_selection <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  var_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"analytic"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
 <span>  rep_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"subbootstrap"</span>, <span class="st">"auto"</span>, <span class="st">"JK1"</span>, <span class="st">"JKn"</span>, <span class="st">"BRR"</span>, <span class="st">"bootstrap"</span>, <span class="st">"mrbbootstrap"</span>,</span>
 <span>    <span class="st">"Fay"</span><span class="op">)</span>,</span>
+<span>  vars_selection <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  vars_combine <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bias_correction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  bias_inf <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"union"</span>, <span class="st">"div"</span><span class="op">)</span>,</span>
 <span>  num_boot <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  keep_boot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  nn_exact_se <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  pi_ij <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  nn_exact_se <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -61,11 +60,7 @@ for statistical inference.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-vars-selection">vars_selection<a class="anchor" aria-label="anchor" href="#arg-vars-selection"></a></dt>
-<dd><p>default <code>FALSE</code>; if <code>TRUE</code>, then the variables selection model is used.</p></dd>
-
-
-<dt id="arg-var-method">var_method<a class="anchor" aria-label="anchor" href="#arg-var-method"></a></dt>
+<dl><dt id="arg-var-method">var_method<a class="anchor" aria-label="anchor" href="#arg-var-method"></a></dt>
 <dd><p>the variance method (default <code>"analytic"</code>).</p></dd>
 
 
@@ -74,15 +69,16 @@ for statistical inference.</p>
 Default is <code>"subbootstrap"</code>.</p></dd>
 
 
+<dt id="arg-vars-selection">vars_selection<a class="anchor" aria-label="anchor" href="#arg-vars-selection"></a></dt>
+<dd><p>default <code>FALSE</code>; if <code>TRUE</code>, then the variables selection model is used.</p></dd>
+
+
+<dt id="arg-vars-combine">vars_combine<a class="anchor" aria-label="anchor" href="#arg-vars-combine"></a></dt>
+<dd><p>whether variables should be combined after variable selection for doubly robust estimators (default <code>TRUE</code>)</p></dd>
+
+
 <dt id="arg-bias-correction">bias_correction<a class="anchor" aria-label="anchor" href="#arg-bias-correction"></a></dt>
 <dd><p>default <code>FALSE</code>; if <code>TRUE</code>, then the bias minimization estimation used during model fitting.</p></dd>
-
-
-<dt id="arg-bias-inf">bias_inf<a class="anchor" aria-label="anchor" href="#arg-bias-inf"></a></dt>
-<dd><p>the inference method in the bias minimization.</p><ul><li><p>if <code>union</code>, then the final model is fitted on the union of selected variables for selection and outcome models</p></li>
-<li><p>if <code>div</code>, then the final model is fitted separately on division of selected variables into relevant ones for
-selection and outcome model.</p></li>
-</ul></dd>
 
 
 <dt id="arg-num-boot">num_boot<a class="anchor" aria-label="anchor" href="#arg-num-boot"></a></dt>
@@ -110,10 +106,6 @@ the probability sample using predictive matches from the non-probability sample.
 In most situations this term is negligible and is very computationally
 expensive so by default it is set to <code>FALSE</code>, but the recommended option is to
 set this value to <code>TRUE</code> before submitting the final results.</p></dd>
-
-
-<dt id="arg-pi-ij">pi_ij<a class="anchor" aria-label="anchor" href="#arg-pi-ij"></a></dt>
-<dd><p>either a matrix or a <code>ppsmat</code> class object (default <code>NULL</code>, currently not supported, for further development).</p></dd>
 
 </dl></div>
     <div class="section level2">
