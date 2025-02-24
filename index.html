@@ -61,15 +61,15 @@
 </h2>
 <p>The goal of this package is to provide R users access to modern methods for non-probability samples when auxiliary information from the population or probability sample is available:</p>
 <ul>
-<li>inverse probability weighting estimators with possible calibration constraints (<a href="#ref-chen2020">Chen, Li, and Wu 2020</a>),</li>
-<li>mass imputation estimators based on nearest neighbours (<a href="#ref-yang2021">Yang, Kim, and Hwang 2021</a>), predictive mean matching and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
-<li>doubly robust estimators (<a href="#ref-chen2020">Chen, Li, and Wu 2020</a>) with bias minimization (<a href="#ref-yang2020">Yang, Kim, and Song 2020</a>).</li>
+<li>inverse probability weighting estimators with possible calibration constraints (<a href="#ref-chen2020">Y. Chen, Li, and Wu 2020</a>),</li>
+<li>mass imputation estimators based on nearest neighbours (<a href="#ref-yang2021">Yang, Kim, and Hwang 2021</a>), predictive mean matching (<a href="#ref-chlebicki2025">Chlebicki, Chrostowski, and Beręsewicz 2025</a>), non-parametric (<a href="#ref-chen2022nonparametric">S. Chen, Yang, and Kim 2022</a>) and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
+<li>doubly robust estimators (<a href="#ref-chen2020">Y. Chen, Li, and Wu 2020</a>) with bias minimization (<a href="#ref-yang2020">Yang, Kim, and Song 2020</a>).</li>
 </ul>
 <p>The package allows for:</p>
 <ul>
 <li>variable section in high-dimensional space using SCAD (<a href="#ref-yang2020">Yang, Kim, and Song 2020</a>), Lasso and MCP penalty (via the <code>ncvreg</code>, <code>Rcpp</code>, <code>RcppArmadillo</code> packages),</li>
 <li>estimation of variance using analytical and bootstrap approach (see Wu (<a href="#ref-wu2023">2023</a>)),</li>
-<li>integration with the <code>survey</code> package when probability sample is available Lumley (<a href="#ref-Lumley2023">2023</a>),</li>
+<li>integration with the <code>survey</code> and <code>srvyr</code> packages when probability sample is available (<a href="#ref-Lumley2004">Lumley 2004</a>, <a href="#ref-Lumley2023">2023</a>; <a href="#ref-srvyr2024">Freedman Ellis and Schneider 2024</a>),</li>
 <li>different links for selection (<code>logit</code>, <code>probit</code> and <code>cloglog</code>) and outcome (<code>gaussian</code>, <code>binomial</code> and <code>poisson</code>) variables.</li>
 </ul>
 <p>Details on the use of the package can be found:</p>
@@ -462,9 +462,25 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <p>Declare <code>svydesign</code> object with <code>survey</code> package</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sample_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids<span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, weights <span class="op">=</span> <span class="op">~</span> <span class="va">base_w_srs</span>, </span>
-<span>                         data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Estimate population mean of <code>y1</code> based on doubly robust estimator using IPW with calibration constraints.</p>
+<span>                         data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sample_prob</span></span>
+<span><span class="co">#&gt; Independent Sampling design (with replacement)</span></span>
+<span><span class="co">#&gt; svydesign(ids = ~1, weights = ~base_w_srs, data = subset(population, </span></span>
+<span><span class="co">#&gt;     flag_srs == 1))</span></span></code></pre></div>
+<p>or with the <code>srvyr</code> package</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sample_prob</span> <span class="op">&lt;-</span> <span class="fu">srvyr</span><span class="fu">::</span><span class="fu">as_survey_design</span><span class="op">(</span>.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>                                       weights <span class="op">=</span> <span class="va">base_w_srs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sample_prob</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>Independent Sampling <span class="fu">design</span> (with replacement)</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>Called via srvyr</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>Sampling variables<span class="sc">:</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>Data variables<span class="sc">:</span> </span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="sc">-</span> <span class="fu">x1</span> (dbl), <span class="fu">x2</span> (dbl), <span class="fu">y1</span> (dbl), <span class="fu">y2</span> (dbl), <span class="fu">p1</span> (dbl), <span class="fu">p2</span> (dbl), <span class="fu">base_w_srs</span> (dbl), <span class="fu">flag_bd1</span> (int), <span class="fu">flag_srs</span> (dbl)</span></code></pre></div>
+<p>Estimate population mean of <code>y1</code> based on doubly robust estimator using IPW with calibration constraints.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
 <span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
@@ -472,7 +488,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_dr</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
@@ -480,17 +496,18 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimator: 2.95 (se=0.042, ci=(2.8678, 3.0322))</span></span></code></pre></div>
+<span><span class="co">#&gt;  - selected estimator: 2.95 (se=0.0415, ci=(2.8687, 3.0313))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: mass imputation</span></span>
@@ -498,24 +515,26 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
 <span><span class="co">#&gt;  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
 <span>  target <span class="op">=</span> <span class="op">~</span><span class="va">y1</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
-<span><span class="co">#&gt;  - method: logit (mle )</span></span>
+<span><span class="co">#&gt;  - method: logit (mle)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
+<span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
 <span><span class="co">#&gt;  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))</span></span></code></pre></div>
 </div>
@@ -528,8 +547,17 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <h2 id="references-selected">References (selected)<a class="anchor" aria-label="anchor" href="#references-selected"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-chen2022nonparametric" class="csl-entry">
+Chen, Sixia, Shu Yang, and Jae Kwang Kim. 2022. “Nonparametric Mass Imputation for Data Integration.” <em>Journal of Survey Statistics and Methodology</em> 10 (1): 1–24.
+</div>
 <div id="ref-chen2020" class="csl-entry">
 Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference With Nonprobability Survey Samples.” <em>Journal of the American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi.org/10.1080/01621459.2019.1677241" class="external-link uri">https://doi.org/10.1080/01621459.2019.1677241</a>.
+</div>
+<div id="ref-chlebicki2025" class="csl-entry">
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data Integration of Non-Probability and Probability Samples with Predictive Mean Matching.” <a href="https://arxiv.org/abs/2403.13750" class="external-link uri">https://arxiv.org/abs/2403.13750</a>.
+</div>
+<div id="ref-srvyr2024" class="csl-entry">
+Freedman Ellis, Greg, and Ben Schneider. 2024. <em>Srvyr: ’Dplyr’-Like Syntax for Summary Statistics of Survey Data</em>. <a href="https://CRAN.R-project.org/package=srvyr" class="external-link uri">https://CRAN.R-project.org/package=srvyr</a>.
 </div>
 <div id="ref-kim2021" class="csl-entry">
 Kim, Jae Kwang, Seho Park, Yilin Chen, and Changbao Wu. 2021. “Combining Non-Probability and Probability Survey Samples Through Mass Imputation.” <em>Journal of the Royal Statistical Society Series A: Statistics in Society</em> 184 (3): 941–63. <a href="https://doi.org/10.1111/rssa.12696" class="external-link uri">https://doi.org/10.1111/rssa.12696</a>.
