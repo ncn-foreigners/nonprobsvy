@@ -234,6 +234,8 @@ nonprob <- function(data,
   names(res) <- c("call", names)
 
   res$estimator <- estimator
+  res$outcome_formula <- outcome
+  res$selection_formula <- selection
 
   res$estimator_method <- if (!is.null(outcome)) {
     ifelse(method_outcome == "nn", method_outcome, paste0(method_outcome, " (", family_outcome,")"))
