@@ -41,8 +41,8 @@ The package allows for:
   `Rcpp`, `RcppArmadillo` packages),
 - estimation of variance using analytical and bootstrap approach (see Wu
   ([2023](#ref-wu2023))),
-- integration with the `survey` package when probability sample is
-  available Lumley ([2023](#ref-Lumley2023)),
+- integration with the `survey` and `srvyr` packages when probability
+  sample is available Lumley ([2023](#ref-Lumley2023)),
 - different links for selection (`logit`, `probit` and `cloglog`) and
   outcome (`gaussian`, `binomial` and `poisson`) variables.
 
@@ -442,6 +442,28 @@ Declare `svydesign` object with `survey` package
 ``` r
 sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs, 
                          data = subset(population, flag_srs == 1))
+
+sample_prob
+#> Independent Sampling design (with replacement)
+#> svydesign(ids = ~1, weights = ~base_w_srs, data = subset(population, 
+#>     flag_srs == 1))
+```
+
+or with `srvyr`
+
+``` r
+sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
+                                       weights = base_w_srs)
+
+sample_prob
+```
+
+``` r
+Independent Sampling design (with replacement)
+Called via srvyr
+Sampling variables:
+Data variables: 
+  - x1 (dbl), x2 (dbl), y1 (dbl), y2 (dbl), p1 (dbl), p2 (dbl), base_w_srs (dbl), flag_bd1 (int), flag_srs (dbl)
 ```
 
 Estimate population mean of `y1` based on doubly robust estimator using
@@ -466,8 +488,9 @@ result_dr
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
+#>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.95 (se=0.042, ci=(2.8678, 3.0322))
+#>  - selected estimator: 2.95 (se=0.0414, ci=(2.8688, 3.0312))
 ```
 
 Mass imputation estimator
@@ -490,6 +513,7 @@ result_mi
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
+#>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
 #>  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))
 ```
@@ -510,10 +534,11 @@ Results
 result_ipw
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
-#>  - method: logit (mle )
+#>  - method: logit (mle)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
+#>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
 #>  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))
 ```

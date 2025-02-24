@@ -61,6 +61,7 @@ nonprob_dr <- function(selection,
   SE_values <- list()
 
   ## estimate the ipw
+  ## check formulas - control_inference$vars_combine even this
   results_ipw <- nonprob_ipw(selection = selection,
                              target = reformulate(outcomes[[1]]),
                              data = data,
@@ -107,13 +108,15 @@ nonprob_dr <- function(selection,
                      N_nons = sum(results_ipw$ipw_weights))
 
   ## combination should be done for each variable separately
-  if (control_inference$vars_combine) {
+  ## check based on formula
+
+  if (control_inference$vars_selection & control_inference$vars_combine) {
 
     ipw_coefs_sel <- names(results_ipw$selection$coefficients)
     mi_coefs_sel <- lapply(results_mi$outcome, coef)
     dr_coefs_sel <- lapply(mi_coefs_sel, function(x) {
-        mi_cols <- names(x[abs(x)>0])
-        union(ipw_coefs_sel, mi_cols)
+      mi_cols <- names(x[abs(x)>0])
+      union(ipw_coefs_sel, mi_cols)
     })
 
     selection_vars <- all.vars(formula.tools::rhs(outcome))
@@ -138,49 +141,49 @@ nonprob_dr <- function(selection,
     for (o in outcomes$f) {
 
       results_ipw_combined[[o]] <- nonprob_ipw(data = X_nons,
-                                      target = reformulate(o),
-                                      selection =  reformulate(dr_coefs_sel[[o]]),
-                                      svydesign = svydesign_,
-                                      pop_totals = pop_totals,
-                                      pop_means = pop_means,
-                                      pop_size = pop_size,
-                                      method_selection = method_selection,
-                                      subset = subset,
-                                      strata = strata,
-                                      weights = weights,
-                                      na_action = na_action,
-                                      control_selection = control_selection,
-                                      control_inference = control_inference_,
-                                      start_selection = start_selection,
-                                      verbose = verbose,
-                                      se = FALSE,
-                                      pop_size_fixed = pop_size_fixed)
+                                               target = reformulate(o),
+                                               selection =  reformulate(dr_coefs_sel[[o]]),
+                                               svydesign = svydesign_,
+                                               pop_totals = pop_totals,
+                                               pop_means = pop_means,
+                                               pop_size = pop_size,
+                                               method_selection = method_selection,
+                                               subset = subset,
+                                               strata = strata,
+                                               weights = weights,
+                                               na_action = na_action,
+                                               control_selection = control_selection,
+                                               control_inference = control_inference_,
+                                               start_selection = start_selection,
+                                               verbose = verbose,
+                                               se = FALSE,
+                                               pop_size_fixed = pop_size_fixed)
       ## estimate the mi
       results_mi_combined[[o]] <- nonprob_mi(outcome = as.formula(paste0(o, reformulate(dr_coefs_sel[[o]]))),
-                                    data = X_nons,
-                                    svydesign = svydesign_,
-                                    pop_totals = pop_totals,
-                                    pop_means = pop_means,
-                                    pop_size = pop_size,
-                                    method_outcome = method_outcome,
-                                    family_outcome = family_outcome,
-                                    subset = subset,
-                                    strata = strata,
-                                    weights = weights,
-                                    na_action = na_action,
-                                    control_outcome = control_outcome,
-                                    control_inference = control_inference_,
-                                    start_outcome = start_outcome,
-                                    verbose = verbose,
-                                    se = FALSE,
-                                    pop_size_fixed=pop_size_fixed)
+                                             data = X_nons,
+                                             svydesign = svydesign_,
+                                             pop_totals = pop_totals,
+                                             pop_means = pop_means,
+                                             pop_size = pop_size,
+                                             method_outcome = method_outcome,
+                                             family_outcome = family_outcome,
+                                             subset = subset,
+                                             strata = strata,
+                                             weights = weights,
+                                             na_action = na_action,
+                                             control_outcome = control_outcome,
+                                             control_inference = control_inference_,
+                                             start_outcome = start_outcome,
+                                             verbose = verbose,
+                                             se = FALSE,
+                                             pop_size_fixed=pop_size_fixed)
 
       ## estimate in loop
       mu_hat[[o]] <- mu_hatDR(y_hat = results_mi_combined[[o]]$output$mean,
-                         y_resid = do.call("cbind", results_mi_combined[[o]]$ys_resid),
-                         weights = weights,
-                         weights_nons = results_ipw_combined[[o]]$ipw_weights,
-                         N_nons = sum(results_ipw_combined[[o]]$ipw_weights))
+                              y_resid = do.call("cbind", results_mi_combined[[o]]$ys_resid),
+                              weights = weights,
+                              weights_nons = results_ipw_combined[[o]]$ipw_weights,
+                              N_nons = sum(results_ipw_combined[[o]]$ipw_weights))
 
     }
   }

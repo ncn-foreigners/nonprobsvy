@@ -9,7 +9,7 @@ control_inf(
   rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap", "mrbbootstrap",
     "Fay"),
   vars_selection = FALSE,
-  vars_combine = FALSE,
+  vars_combine = TRUE,
   bias_correction = FALSE,
   num_boot = 500,
   alpha = 0.05,

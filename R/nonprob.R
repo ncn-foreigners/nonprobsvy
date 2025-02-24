@@ -151,6 +151,14 @@ nonprob <- function(data,
     pop_size <- sum(weights(svydesign))
   }
 
+  ## merge formulas prior dr if user wants joint
+
+  if (estimator == "dr" & control_inference$vars_combine & !control_inference$vars_selection) {
+    dr_formulas <- merge_formulas(outcome, selection)
+    outcome <- dr_formulas[[1]]
+    selection <- dr_formulas[[2]]
+  }
+
   ## model estimates
   model_estimates <- switch(estimator,
     ipw = nonprob_ipw(

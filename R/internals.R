@@ -283,3 +283,20 @@ process_family <- function(family_spec) {
   }
   return(family)
 }
+
+
+merge_formulas <- function(outcome, selection) {
+
+  lhs1 <- formula.tools::lhs(outcome)  # Left hand side of formula1
+  rhs1 <- formula.tools::rhs(outcome)  # Right hand side of formula1
+  rhs2 <- formula.tools::rhs(selection)  # Right hand side of formula2
+
+  # Combine right hand sides (unique terms)
+  combined_rhs <- unique(c(all.vars(rhs1), all.vars(rhs2)))
+  rhs_terms <- paste(combined_rhs, collapse = " + ")
+
+  outcome <- as.formula(paste(deparse(lhs1), "~", rhs_terms))
+  selection <- as.formula(paste("~", rhs_terms))
+
+  return(list(outcome, selection))
+}

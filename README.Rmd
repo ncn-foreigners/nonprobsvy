@@ -55,7 +55,7 @@ The package allows for:
     packages),
 -   estimation of variance using analytical and bootstrap approach (see
     @wu2023),
--   integration with the `survey` package when probability sample is
+-   integration with the `survey` and `srvyr` packages when probability sample is
     available [@Lumley2004, @Lumley2023],
 -   different links for selection (`logit`, `probit` and `cloglog`) and
     outcome (`gaussian`, `binomial` and `poisson`) variables.
@@ -414,6 +414,25 @@ Declare `svydesign` object with `survey` package
 ```{r}
 sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs, 
                          data = subset(population, flag_srs == 1))
+
+sample_prob
+```
+
+or with the `srvyr` package
+
+```r
+sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
+                                       weights = base_w_srs)
+
+sample_prob
+```
+
+```r
+Independent Sampling design (with replacement)
+Called via srvyr
+Sampling variables:
+Data variables: 
+  - x1 (dbl), x2 (dbl), y1 (dbl), y2 (dbl), p1 (dbl), p2 (dbl), base_w_srs (dbl), flag_bd1 (int), flag_srs (dbl)
 ```
 
 Estimate population mean of `y1` based on doubly robust estimator using
