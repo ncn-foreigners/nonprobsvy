@@ -27,12 +27,14 @@ for non-probability samples when auxiliary information from the
 population or probability sample is available:
 
 - inverse probability weighting estimators with possible calibration
-  constraints ([Chen, Li, and Wu 2020](#ref-chen2020)),
+  constraints ([Y. Chen, Li, and Wu 2020](#ref-chen2020)),
 - mass imputation estimators based on nearest neighbours ([Yang, Kim,
-  and Hwang 2021](#ref-yang2021)), predictive mean matching and
+  and Hwang 2021](#ref-yang2021)), predictive mean matching ([Chlebicki,
+  Chrostowski, and Beręsewicz 2025](#ref-chlebicki2025)), non-parametric
+  ([S. Chen, Yang, and Kim 2022](#ref-chen2022nonparametric)) and
   regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators ([Chen, Li, and Wu 2020](#ref-chen2020)) with
-  bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
+- doubly robust estimators ([Y. Chen, Li, and Wu 2020](#ref-chen2020))
+  with bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
 
 The package allows for:
 
@@ -42,7 +44,9 @@ The package allows for:
 - estimation of variance using analytical and bootstrap approach (see Wu
   ([2023](#ref-wu2023))),
 - integration with the `survey` and `srvyr` packages when probability
-  sample is available Lumley ([2023](#ref-Lumley2023)),
+  sample is available ([Lumley 2004](#ref-Lumley2004),
+  [2023](#ref-Lumley2023); [Freedman Ellis and Schneider
+  2024](#ref-srvyr2024)),
 - different links for selection (`logit`, `probit` and `cloglog`) and
   outcome (`gaussian`, `binomial` and `poisson`) variables.
 
@@ -449,7 +453,7 @@ sample_prob
 #>     flag_srs == 1))
 ```
 
-or with `srvyr`
+or with the `srvyr` package
 
 ``` r
 sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
@@ -490,7 +494,7 @@ result_dr
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.95 (se=0.0414, ci=(2.8688, 3.0312))
+#>  - selected estimator: 2.95 (se=0.0415, ci=(2.8687, 3.0313))
 ```
 
 Mass imputation estimator
@@ -553,12 +557,36 @@ Work on this package is supported by the National Science Centre, OPUS
 <div id="refs" class="references csl-bib-body hanging-indent"
 entry-spacing="0">
 
+<div id="ref-chen2022nonparametric" class="csl-entry">
+
+Chen, Sixia, Shu Yang, and Jae Kwang Kim. 2022. “Nonparametric Mass
+Imputation for Data Integration.” *Journal of Survey Statistics and
+Methodology* 10 (1): 1–24.
+
+</div>
+
 <div id="ref-chen2020" class="csl-entry">
 
 Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference
 With Nonprobability Survey Samples.” *Journal of the American
 Statistical Association* 115 (532): 2011–21.
 <https://doi.org/10.1080/01621459.2019.1677241>.
+
+</div>
+
+<div id="ref-chlebicki2025" class="csl-entry">
+
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data
+Integration of Non-Probability and Probability Samples with Predictive
+Mean Matching.” <https://arxiv.org/abs/2403.13750>.
+
+</div>
+
+<div id="ref-srvyr2024" class="csl-entry">
+
+Freedman Ellis, Greg, and Ben Schneider. 2024. *Srvyr: ’Dplyr’-Like
+Syntax for Summary Statistics of Survey Data*.
+<https://CRAN.R-project.org/package=srvyr>.
 
 </div>
 

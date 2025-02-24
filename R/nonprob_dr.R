@@ -65,6 +65,9 @@ nonprob_dr <- function(selection,
   if (control_inference$vars_selection & control_inference$vars_combine) {
 
     ## estimate the mi
+    if (verbose) {
+      cat("MI variable selection in progress...\n")
+    }
     results_mi <- nonprob_mi(outcome = outcome,
                              data = data,
                              svydesign = svydesign,
@@ -84,6 +87,9 @@ nonprob_dr <- function(selection,
                              se = FALSE,
                              pop_size_fixed=pop_size_fixed)
 
+    if (verbose) {
+      cat("IPW variable selection in progress...\n")
+    }
     results_ipw <- nonprob_ipw(selection = selection,
                                target = reformulate(outcomes[[1]]),
                                data = data,
@@ -114,9 +120,18 @@ nonprob_dr <- function(selection,
     mi_coefs_sel <- lapply(results_mi$outcome, coef)
     dr_coefs_sel <- lapply(mi_coefs_sel, function(x) {
       mi_cols <- names(x[abs(x)>0])
-      combined <- union(ipw_coefs_sel, mi_cols)
+      combined <- sort(base::union(ipw_coefs_sel, mi_cols))
       combined[!grepl("Intercept", combined)]
     })
+
+    if (verbose) {
+      cat("IPW vars selected:", ipw_coefs_sel, "\n")
+      cat("MI vars selected:\n")
+      print(lapply(mi_coefs_sel, function(x) names(x[abs(x)>0])))
+      cat("DR combined vars:\n")
+      print(dr_coefs_sel)
+    }
+
 
     selection_vars <- all.vars(formula.tools::rhs(outcome))
     outcome_vars <- all.vars(formula.tools::rhs(selection))
@@ -139,7 +154,7 @@ nonprob_dr <- function(selection,
     control_inference_$vars_selection <- FALSE
 
     for (o in outcomes$f) {
-
+      ## this is not saved in the output list
       results_ipw_combined[[o]] <- nonprob_ipw(data = X_nons,
                                                target = reformulate(o),
                                                selection =  reformulate(dr_coefs_sel[[o]]),
