@@ -61,13 +61,15 @@ nonprob_dr <- function(selection,
   SE_values <- list()
 
 
-  ###
+  # variable selection and combination --------------------------------------
+
   if (control_inference$vars_selection & control_inference$vars_combine) {
 
     ## estimate the mi
     if (verbose) {
       cat("MI variable selection in progress...\n")
     }
+
     results_mi <- nonprob_mi(outcome = outcome,
                              data = data,
                              svydesign = svydesign,
@@ -133,6 +135,7 @@ nonprob_dr <- function(selection,
     }
 
 
+    ## combining variables for selection
     selection_vars <- all.vars(formula.tools::rhs(outcome))
     outcome_vars <- all.vars(formula.tools::rhs(selection))
     target_vars <- all.vars(formula.tools::lhs(outcome))
@@ -204,33 +207,45 @@ nonprob_dr <- function(selection,
     if (se) {
       for (o in outcomes$f) {
         if (control_inference$var_method == "analytic") {
-            b_var <- method$b_vec_dr(X = results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ],
-                                     ps = results_ipw_combined[[o]]$ps_scores[results_ipw_combined[[o]]$R == 1],
-                                     psd = as.numeric(results_ipw_combined[[o]]$selection$selection_model$ps_nons_der),
-                                     y = results_mi_combined[[o]]$y[[o]],
-                                     hess = results_ipw_combined[[o]]$selection$selection_model$hess,
-                                     eta = as.numeric(results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ] %*% as.matrix(results_ipw_combined[[o]]$selection$coefficients)),
-                                     h_n = 1 / pop_size * sum(results_mi_combined[[o]]$y[[o]] - results_mi_combined[[o]]$ys_nons_pred[[1]]),
-                                     y_pred = results_mi_combined[[o]]$ys_nons_pred[[1]],
-                                     weights = weights,
-                                     verbose = verbose)
 
-            var_nonprob <- estimation_method$make_var_nonprob(
-              ps = results_ipw_combined[[o]]$ps_scores[results_ipw_combined[[o]]$R == 1],
-              psd = as.numeric(results_ipw_combined[[o]]$selection$selection_model$ps_nons_der),
-              y = results_mi_combined[[o]]$y[[o]],
-              y_pred = results_mi_combined[[o]]$ys_nons_pred[[o]],
-              h_n = 1 / pop_size * sum(results_mi_combined[[o]]$y[[o]] - results_mi_combined[[o]]$ys_nons_pred[[1]]),
-              X = results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ],
-              b = b_var,
-              N = pop_size,
-              gee_h_fun = control_selection$gee_h_fun,
-              method_selection = method_selection,
-              weights = weights,
-              pop_totals = pop_totals
-            )
+          ps_ <- results_ipw_combined[[o]]$ps_scores[results_ipw_combined[[o]]$R == 1]
+          psd_ <- as.numeric(results_ipw_combined[[o]]$selection$selection_model$ps_nons_der)
+          y_ <- results_mi_combined[[o]]$y[[o]]
+          X_ <- results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ]
+          y_pred_ <- results_mi_combined[[o]]$ys_nons_pred[[1]]
+          h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
+
+          b_var <- method$b_vec_dr(
+            X = X_,
+            ps = ps_,
+            psd = psd_,
+            y = y_,
+            hess = results_ipw_combined[[o]]$selection$selection_model$hess,
+            eta = as.numeric(X_ %*% as.matrix(results_ipw_combined[[o]]$selection$coefficients)),
+            h_n = h_n_,
+            y_pred = y_pred_,
+            weights = weights,
+            verbose = verbose
+          )
+
+          var_nonprob <- estimation_method$make_var_nonprob(
+            ps = ps_,
+            psd = psd_,
+            y = y_,
+            y_pred = results_mi_combined[[o]]$ys_nons_pred[[o]],
+            h_n = h_n_,
+            X = X_,
+            b = b_var,
+            N = pop_size,
+            gee_h_fun = control_selection$gee_h_fun,
+            method_selection = method_selection,
+            weights = weights,
+            pop_totals = pop_totals
+          )
+
 
             if (is.null(pop_totals)) {
+
               t_comp <- estimation_method$make_t_comp(
                 X = results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 0, ],
                 ps = as.numeric(results_ipw_combined[[o]]$selection$selection_model$est_ps_rand),
@@ -266,28 +281,27 @@ nonprob_dr <- function(selection,
         ## this will not work but needs to be updated
         if (control_inference$var_method == "bootstrap") {
 
-        boot_obj <- boot_dr(selection = selection,
-                            outcome = outcome,
-                            target = reformulate(outcomes[[1]]),
-                            data = data,
-                            svydesign = svydesign,
-                            pop_totals = pop_totals,
-                            pop_means = pop_means,
-                            pop_size = pop_size,
-                            method_selection = method_selection,
-                            method_outcome = method_outcome,
-                            family_outcome = family_outcome,
-                            subset = subset,
-                            strata = strata,
-                            weights = weights,
-                            na_action = na_action,
-                            control_selection = control_selection,
-                            control_outcome = control_outcome,
-                            control_inference = control_inference,
-                            start_outcome = start_outcome,
-                            start_selection = start_selection,
-                            verbose = verbose,
-                            pop_size_fixed = pop_size_fixed)
+          boot_obj <- boot_dr(selection =  reformulate(dr_coefs_sel[[o]]),
+                                         outcome = as.formula(paste0(o, reformulate(dr_coefs_sel[[o]]))),
+                                         target = reformulate(o),
+                                         svydesign = svydesign_,
+                                         pop_totals = pop_totals,
+                                         pop_means = pop_means,
+                                         pop_size = pop_size,
+                                         method_selection = method_selection,
+                                         method_outcome = method_outcome,
+                                         family_outcome = family_outcome,
+                                         subset = subset,
+                                         strata = strata,
+                                         weights = weights,
+                                         na_action = na_action,
+                                         control_selection = control_selection,
+                                         control_outcome = control_outcome,
+                                         control_inference = control_inference_,
+                                         start_outcome = start_outcome,
+                                         start_selection = start_selection,
+                                         verbose = verbose,
+                                         pop_size_fixed = pop_size_fixed)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -307,7 +321,9 @@ nonprob_dr <- function(selection,
       }
     }
   } else {
-    ## without variable selection
+
+    # variable selection but without combination ------------------------------
+
     results_mi <- nonprob_mi(outcome = outcome,
                              data = data,
                              svydesign = svydesign,
@@ -356,24 +372,34 @@ nonprob_dr <- function(selection,
     if (se) {
       if (control_inference$var_method == "analytic") {
         for (o in 1:outcomes$l) {
-          b_var <- method$b_vec_dr(X = results_ipw$X[results_ipw$R == 1, ],
-                                   ps = results_ipw$ps_scores[results_ipw$R == 1],
-                                   psd = as.numeric(results_ipw$selection$selection_model$ps_nons_der),
-                                   y = results_mi$y[[o]],
-                                   hess = results_ipw$selection$selection_model$hess,
-                                   eta = as.numeric(results_ipw$X[results_ipw$R == 1, ] %*% as.matrix(results_ipw$selection$coefficients)),
-                                   h_n = 1 / pop_size * sum(results_mi$y[[o]] - results_mi$ys_nons_pred[[o]]),
-                                   y_pred = results_mi$ys_nons_pred[[o]],
-                                   weights = weights,
-                                   verbose = verbose)
+
+          ps_ <- results_ipw$ps_scores[results_ipw$R == 1]
+          psd_ <- as.numeric(results_ipw$selection$selection_model$ps_nons_der)
+          y_ <- results_mi$y[[o]]
+          X_ <- results_ipw$X[results_ipw$R == 1, ]
+          y_pred_ <- results_mi$ys_nons_pred[[1]]
+          h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
+
+          b_var <- method$b_vec_dr(
+            X = X_,
+            ps = ps_,
+            psd = psd_,
+            y = y_,
+            hess = results_ipw$selection$selection_model$hess,
+            eta = as.numeric(X_ %*% as.matrix(results_ipw$selection$coefficients)),
+            h_n = h_n_,
+            y_pred = y_pred_,
+            weights = weights,
+            verbose = verbose
+          )
 
           var_nonprob <- estimation_method$make_var_nonprob(
-            ps = results_ipw$ps_scores[results_ipw$R == 1],
-            psd = as.numeric(results_ipw$selection$selection_model$ps_nons_der),
-            y = results_mi$y[[o]],
+            ps = ps_,
+            psd = psd_,
+            y = y_,
             y_pred = results_mi$ys_nons_pred[[o]],
-            h_n = 1 / pop_size * sum(results_mi$y[[o]] - results_mi$ys_nons_pred[[o]]),
-            X = results_ipw$X[results_ipw$R == 1, ],
+            h_n = h_n_,
+            X = X_,
             b = b_var,
             N = pop_size,
             gee_h_fun = control_selection$gee_h_fun,
@@ -381,6 +407,8 @@ nonprob_dr <- function(selection,
             weights = weights,
             pop_totals = pop_totals
           )
+
+
 
           if (is.null(pop_totals)) {
             t_comp <- estimation_method$make_t_comp(
