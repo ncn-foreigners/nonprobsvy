@@ -35,12 +35,12 @@ nonprobsvy News and Updates
 -   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
     `cloglog_model_nonprobsvy` removed in the favour of more readable
     `method_ps` function that specifies the propensity score model
--   for doubly robust estimator: variables in selection and outcome
-    model are combined i.e. if say `selection=~x1+x2` and `y~x1+x3` then
+-   new option `control_inference=control_inf(vars_combine=TRUE)` which
+    allows doubly robust estimator to combine variables prior estimation 
+    i.e. if `selection=~x1+x2` and `y~x1+x3` then
     the following models are fitted `selection=~x1+x2+x3` and
-    `y~x1+x2+x3`. If this not suitable it can be changed using
-    `control_inference=control_inf(vars_combine=FALSE)`. Note that this
-    behaviour is assumed independently from variable selection.
+    `y~x1+x2+x3`. By default we set `control_inference=control_inf(vars_combine=FALSE)`. 
+    Note that this behaviour is assumed independently from variable selection.
 
 ### Features
 

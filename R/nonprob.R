@@ -238,6 +238,7 @@ nonprob <- function(data,
   res$outcome_formula <- outcome
   res$selection_formula <- selection
 
+  ## add information about the type of the model
   res$estimator_method <- if (!is.null(outcome)) {
     ifelse(method_outcome == "nn", method_outcome, paste0(method_outcome, " (", family_outcome,")"))
     } else paste0(method_selection, " (", control_selection$est_method,")")

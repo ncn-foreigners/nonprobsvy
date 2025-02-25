@@ -91,21 +91,32 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-(a) probability part
+(a) non-probability part
+
+This may be estimated using
+
+\mjsdeqn{
+\hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i)
+}
+
+or
+
+\mjsdeqn{
+\hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1}{\hat{\pi}_B(\boldsymbol{x}_i)}(y_i - y_i^*)
+}
+
+(b) probability part
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
 
 \mjsdeqn{
 \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-\frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+\frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j}
 }
 
-(b) non-probability part
-
-\mjsdeqn{
-\hat{V}_2 = ..
-}
+where \mjseqn{y^*_i} and \mjseqn{y_j^*} are values imputed imputed as an average of \mjseqn{k}-nearest neighbour,
+i.e. \mjseqn{{k}^{-1}\sum_{k}y_k}.
 }
 \examples{
 

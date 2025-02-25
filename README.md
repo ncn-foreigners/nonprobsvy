@@ -479,8 +479,7 @@ result_dr <- nonprob(
   selection = ~ x2,
   outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
-  svydesign = sample_prob,
-  control_inference = control_inf(vars_combine = F)
+  svydesign = sample_prob
 )
 ```
 
@@ -499,8 +498,8 @@ result_dr
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9500 (se=0.0414, ci=(2.8688, 3.0312))
-#>    - variable y2: 1.5762 (se=0.0499, ci=(1.4785, 1.6740))
+#>    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))
+#>    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))
 ```
 
 Mass imputation estimator

@@ -81,7 +81,7 @@ The variance of the mean is estimated based on the following approach
 (a) non-probability part (\mjseqn{S_A})
 
 \mjsdeqn{
-\hat{V}_2 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace,
+\hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace,
 }
 
 where \mjseqn{\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})} and
@@ -95,8 +95,8 @@ This part uses functionalities of the \code{{survey}} package and the variance i
 equation:
 
 \mjsdeqn{
-\hat{V}_1=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-\frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+\hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+\frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 }
 }
 \examples{

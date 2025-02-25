@@ -7,7 +7,7 @@
 #' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `"subbootstrap"`.
 #' @param vars_selection default `FALSE`; if `TRUE`, then the variables selection model is used.
-#' @param vars_combine whether variables should be combined after variable selection for doubly robust estimators (default `TRUE`)
+#' @param vars_combine whether variables should be combined after variable selection for doubly robust estimators (default `FALSE`)
 #' @param bias_correction default `FALSE`; if `TRUE`, then the bias minimization estimation used during model fitting.
 #' @param num_boot the number of iteration for bootstrap algorithms.
 #' @param alpha significance level (default 0.05).
@@ -35,7 +35,7 @@ control_inf <- function(var_method = c("analytic", "bootstrap"),
                         rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap",
                                      "mrbbootstrap", "Fay"),
                         vars_selection = FALSE,
-                        vars_combine = TRUE,
+                        vars_combine = FALSE,
                         bias_correction = FALSE,
                         num_boot = 500,
                         alpha = 0.05,

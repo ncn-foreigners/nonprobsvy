@@ -9,7 +9,7 @@ control_inf(
   rep_type = c("subbootstrap", "auto", "JK1", "JKn", "BRR", "bootstrap", "mrbbootstrap",
     "Fay"),
   vars_selection = FALSE,
-  vars_combine = TRUE,
+  vars_combine = FALSE,
   bias_correction = FALSE,
   num_boot = 500,
   alpha = 0.05,
@@ -26,7 +26,7 @@ Default is \code{"subbootstrap"}.}
 
 \item{vars_selection}{default \code{FALSE}; if \code{TRUE}, then the variables selection model is used.}
 
-\item{vars_combine}{whether variables should be combined after variable selection for doubly robust estimators (default \code{TRUE})}
+\item{vars_combine}{whether variables should be combined after variable selection for doubly robust estimators (default \code{FALSE})}
 
 \item{bias_correction}{default \code{FALSE}; if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
