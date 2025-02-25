@@ -28,6 +28,7 @@ nonprob <- function(data,
   method_selection <- match.arg(method_selection)
   family_outcome <- match.arg(family_outcome)
   method_outcome <- match.arg(method_outcome)
+  #stopifnot("We currently support `family_outcome` with a single entry." = NROW(family_outcome) == 1)
 
   data <- if (!is.data.frame(data)) data.frame(data) else data
   weights <- if (is.null(weights)) rep(1, nrow(data)) else weights

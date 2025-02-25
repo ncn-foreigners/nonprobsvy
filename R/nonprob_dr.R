@@ -365,7 +365,7 @@ nonprob_dr <- function(selection,
                                pop_size_fixed = pop_size_fixed)
 
     ## doubly robust estimator
-    mu_hat <- nonprobsvy:::mu_hatDR(y_hat = results_mi$output$mean,
+    mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
                        y_resid = do.call("cbind", results_mi$ys_resid),
                        weights = weights,
                        weights_nons = results_ipw$ipw_weights,

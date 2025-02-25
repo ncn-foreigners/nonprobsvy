@@ -61,15 +61,9 @@ boot_dr <- function(selection,
         data_prob <- svydesign$variables[strap_rand_svy, ]
         data_prob$weight <- weights_rand_strap_svy[strap_rand_svy]
 
-        svyd_call <- as.list(svydesign$call)
-        svyd_call[[1]] <- NULL
-        svyd_call$ids <- as.formula(svyd_call$ids)
-        svyd_call$weights <- as.formula(svyd_call$weights)
-        svyd_call$strata <- as.formula(svyd_call$strata)
+        svyd_call <- svydesign$call
         svyd_call$data <- as.name("data_prob")
-
-        # Method 1: Using do.call
-        svydesign_b <- do.call(survey::svydesign, svyd_call)
+        svydesign_b <- eval(svyd_call)
 
         strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / weights)
 
@@ -222,15 +216,9 @@ boot_dr <- function(selection,
           data_prob <- svydesign$variables[strap_rand_svy, ]
           data_prob$weight <- weights_rand_strap_svy[strap_rand_svy]
 
-          svyd_call <- as.list(svydesign$call)
-          svyd_call[[1]] <- NULL
-          svyd_call$ids <- as.formula(svyd_call$ids)
-          svyd_call$weights <- as.formula(svyd_call$weights)
-          svyd_call$strata <- as.formula(svyd_call$strata)
+          svyd_call <- svydesign$call
           svyd_call$data <- as.name("data_prob")
-
-          # Method 1: Using do.call
-          svydesign_b <- do.call(survey::svydesign, svyd_call)
+          svydesign_b <- eval(svyd_call)
 
           strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / weights)
 
