@@ -476,7 +476,7 @@ IPW with calibration constraints.
 ``` r
 result_dr <- nonprob(
   selection = ~ x2,
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -494,7 +494,9 @@ result_dr
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))
+#>  - selected estimators: 
+#>    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))
+#>    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))
 ```
 
 Mass imputation estimator

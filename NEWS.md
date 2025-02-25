@@ -70,8 +70,10 @@ A nonprob object
  - vars selection: false
  - variance estimator: analytic
  - population size fixed: false
- - naive (uncorrected) estimator: 3.1817
- - selected estimators: 
+ - naive (uncorrected) estimators:
+   - variable y1: 3.1817
+   - variable y2: 1.8087
+ - selected estimators:
    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))
    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))
 ```
@@ -79,7 +81,7 @@ A nonprob object
 number of digits can be changed using `print(x, digits)` as shown below
 
 ``` r
-> print(result_mi, 2)
+> print(result_mi,2)
 A nonprob object
  - estimator type: mass imputation
  - method: glm (gaussian)
@@ -87,8 +89,10 @@ A nonprob object
  - vars selection: false
  - variance estimator: analytic
  - population size fixed: false
- - naive (uncorrected) estimator: 3.1817
- - selected estimators: 
+ - naive (uncorrected) estimators:
+   - variable y1: 3.18
+   - variable y2: 1.81
+ - selected estimators:
    - variable y1: 2.95 (se=0.04, ci=(2.87, 3.03))
    - variable y2: 1.58 (se=0.03, ci=(1.51, 1.64))
 ```

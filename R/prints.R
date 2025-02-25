@@ -28,9 +28,9 @@ print.nonprob <- function(x, digits=4,...) {
   }
 
   cat(sprintf(" - population size fixed: %s\n", tolower(x$pop_size_fixed)))
-  cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))
 
   if (NROW(x$output) == 1) {
+    cat(sprintf(" - naive (uncorrected) estimator: %.*f\n", digits, as.numeric(mean(x$y[[1]]))))
     cat(sprintf(
       " - selected estimator: %.*f (se=%.*f, ci=(%.*f, %.*f))\n",
       digits, as.numeric(x$output["mean"]),
@@ -38,7 +38,16 @@ print.nonprob <- function(x, digits=4,...) {
       digits, as.numeric(x$confidence_interval["lower_bound"]),
       digits, as.numeric(x$confidence_interval["upper_bound"])))
   } else if (NROW(x$output) <= 5) {
-    cat(" - selected estimators: \n")
+    cat(sprintf(" - naive (uncorrected) estimators:\n"))
+    for (v in 1:NROW(x$output)) {
+          cat(sprintf("   - variable %s: %.*f\n",
+              rownames(x$output)[v],
+              digits,
+              as.numeric(mean(x$y[[v]]))
+              ))
+    }
+
+    cat(" - selected estimators:\n")
     for (v in 1:NROW(x$output)) {
       cat(sprintf(
         "   - variable %s: %.*f (se=%.*f, ci=(%.*f, %.*f))\n",

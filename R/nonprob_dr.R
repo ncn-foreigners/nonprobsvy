@@ -365,7 +365,7 @@ nonprob_dr <- function(selection,
                                pop_size_fixed = pop_size_fixed)
 
     ## doubly robust estimator
-    mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
+    mu_hat <- nonprobsvy:::mu_hatDR(y_hat = results_mi$output$mean,
                        y_resid = do.call("cbind", results_mi$ys_resid),
                        weights = weights,
                        weights_nons = results_ipw$ipw_weights,
@@ -440,8 +440,8 @@ nonprob_dr <- function(selection,
           SE_values[[o]] <- data.frame(prob = se_prob, nonprob = se_nonprob)
           z <- stats::qnorm(1 - control_inference$alpha / 2)
           # confidence interval based on the normal approximation
-          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * sqrt(var_total),
-                                                 upper_bound = mu_hat + z * sqrt(var_total))
+          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat[o] - z * sqrt(var_total),
+                                                 upper_bound = mu_hat[o] + z * sqrt(var_total))
           output[[o]] <- data.frame(mean = mu_hat[o], SE = sqrt(var_total))
         }
       }
