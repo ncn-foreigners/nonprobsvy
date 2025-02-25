@@ -63,6 +63,7 @@
 <li>
 <code>nonprobsvy</code> class renamed to <code>nonprob</code> and all related method adjusted to this change</li>
 <li>functions <code>logit_model_nonprobsvy</code>, <code>probit_model_nonprobsvy</code> and <code>cloglog_model_nonprobsvy</code> removed in the favour of more readable <code>method_ps</code> function that specifies the propensity score model</li>
+<li>for doubly robust estimator: variables in selection and outcome model are combined i.e. if say <code>selection=~x1+x2</code> and <code>y~x1+x3</code> then the following models are fitted <code>selection=~x1+x2+x3</code> and <code>y~x1+x2+x3</code>. If this not suitable it can be changed using <code>control_inference=control_inf(vars_combine=FALSE)</code>. Note that this behaviour is assumed independently from variable selection.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="features-0-2-0">Features<a class="anchor" aria-label="anchor" href="#features-0-2-0"></a></h4>
@@ -81,7 +82,37 @@
 <li>
 <code>method_npar</code> – for the non-parametric method</li>
 </ul></li>
-</ul></div>
+<li>new <code>print.nonprob</code> method, i.e.</li>
+</ul><div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">&gt;</span> result_mi</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>A nonprob object</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a> <span class="sc">-</span> estimator type<span class="sc">:</span> mass imputation</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a> <span class="sc">-</span> method<span class="sc">:</span> <span class="fu">glm</span> (gaussian)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a> <span class="sc">-</span> auxiliary variables source<span class="sc">:</span> survey</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a> <span class="sc">-</span> vars selection<span class="sc">:</span> false</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a> <span class="sc">-</span> variance estimator<span class="sc">:</span> analytic</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a> <span class="sc">-</span> population size fixed<span class="sc">:</span> false</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a> <span class="sc">-</span> <span class="fu">naive</span> (uncorrected) estimators<span class="sc">:</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>   <span class="sc">-</span> variable y1<span class="sc">:</span> <span class="fl">3.1817</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>   <span class="sc">-</span> variable y2<span class="sc">:</span> <span class="fl">1.8087</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a> <span class="sc">-</span> selected estimators<span class="sc">:</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>   <span class="sc">-</span> variable y1<span class="sc">:</span> <span class="fl">2.9498</span> (<span class="at">se=</span><span class="fl">0.0420</span>, <span class="at">ci=</span>(<span class="fl">2.8674</span>, <span class="fl">3.0322</span>))</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>   <span class="sc">-</span> variable y2<span class="sc">:</span> <span class="fl">1.5760</span> (<span class="at">se=</span><span class="fl">0.0326</span>, <span class="at">ci=</span>(<span class="fl">1.5122</span>, <span class="fl">1.6399</span>))</span></code></pre></div>
+<p>number of digits can be changed using <code>print(x, digits)</code> as shown below</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">print</span>(result_mi,<span class="dv">2</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>A nonprob object</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a> <span class="sc">-</span> estimator type<span class="sc">:</span> mass imputation</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a> <span class="sc">-</span> method<span class="sc">:</span> <span class="fu">glm</span> (gaussian)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a> <span class="sc">-</span> auxiliary variables source<span class="sc">:</span> survey</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a> <span class="sc">-</span> vars selection<span class="sc">:</span> false</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a> <span class="sc">-</span> variance estimator<span class="sc">:</span> analytic</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a> <span class="sc">-</span> population size fixed<span class="sc">:</span> false</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a> <span class="sc">-</span> <span class="fu">naive</span> (uncorrected) estimators<span class="sc">:</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>   <span class="sc">-</span> variable y1<span class="sc">:</span> <span class="fl">3.18</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>   <span class="sc">-</span> variable y2<span class="sc">:</span> <span class="fl">1.81</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a> <span class="sc">-</span> selected estimators<span class="sc">:</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>   <span class="sc">-</span> variable y1<span class="sc">:</span> <span class="fl">2.95</span> (<span class="at">se=</span><span class="fl">0.04</span>, <span class="at">ci=</span>(<span class="fl">2.87</span>, <span class="fl">3.03</span>))</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>   <span class="sc">-</span> variable y2<span class="sc">:</span> <span class="fl">1.58</span> (<span class="at">se=</span><span class="fl">0.03</span>, <span class="at">ci=</span>(<span class="fl">1.51</span>, <span class="fl">1.64</span>))</span></code></pre></div>
+</div>
 <div class="section level4">
 <h4 id="bugfixes-0-2-0">Bugfixes<a class="anchor" aria-label="anchor" href="#bugfixes-0-2-0"></a></h4>
 <ul><li>basic methods and functions related to variance estimation, weights and probability linking methods have been rewritten in a more optimal and readable way.</li>

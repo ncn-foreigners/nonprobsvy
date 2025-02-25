@@ -483,7 +483,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
-<span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
+<span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">+</span> <span class="va">y2</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -498,11 +498,13 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimator: 2.95 (se=0.0415, ci=(2.8687, 3.0313))</span></span></code></pre></div>
+<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
-<span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
+<span>  outcome <span class="op">=</span> <span class="va">y1</span> <span class="op">+</span> <span class="va">y2</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -517,12 +519,14 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))</span></span></code></pre></div>
+<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
-<span>  target <span class="op">=</span> <span class="op">~</span><span class="va">y1</span>,</span>
+<span>  target <span class="op">=</span> <span class="op">~</span><span class="va">y1</span><span class="op">+</span><span class="va">y2</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_bd1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  svydesign <span class="op">=</span> <span class="va">sample_prob</span><span class="op">)</span></span></code></pre></div>
 <p>Results</p>
@@ -536,7 +540,9 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
 <span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))</span></span></code></pre></div>
+<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>
