@@ -457,7 +457,7 @@ Mass imputation estimator
 
 ```{r}
 result_mi <- nonprob(
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -474,7 +474,7 @@ Inverse probability weighting estimator
 ```{r}
 result_ipw <- nonprob(
   selection = ~ x2,
-  target = ~y1,
+  target = ~y1+y2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob)
 ```

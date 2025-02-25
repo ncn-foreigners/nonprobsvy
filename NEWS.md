@@ -29,13 +29,19 @@ nonprobsvy News and Updates
         `logical`. `TRUE` if variables (its levels) should be combined
         after variable selection algorithm for the doubly robust
         approach.
-    - `pi_ij` -- argument removed as it is not used.
+    -   `pi_ij` -- argument removed as it is not used.
 -   `nonprobsvy` class renamed to `nonprob` and all related method
     adjusted to this change
 -   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
     `cloglog_model_nonprobsvy` removed in the favour of more readable
     `method_ps` function that specifies the propensity score model
-    
+-   for doubly robust estimator: variables in selection and outcome
+    model are combined i.e. if say `selection=~x1+x2` and `y~x1+x3` then
+    the following models are fitted `selection=~x1+x2+x3` and
+    `y~x1+x2+x3`. If this not suitable it can be changed using
+    `control_inference=control_inf(vars_combine=FALSE)`. Note that this
+    behaviour is assumed independently from variable selection.
+
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
@@ -53,6 +59,39 @@ nonprobsvy News and Updates
     -   `method_nn` -- for the NN method
     -   `method_pmm` -- for the PMM method
     -   `method_npar` -- for the non-parametric method
+-   new `print.nonprob` method, i.e.
+
+``` r
+> result_mi
+A nonprob object
+ - estimator type: mass imputation
+ - method: glm (gaussian)
+ - auxiliary variables source: survey
+ - vars selection: false
+ - variance estimator: analytic
+ - population size fixed: false
+ - naive (uncorrected) estimator: 3.1817
+ - selected estimators: 
+   - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))
+   - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))
+```
+
+number of digits can be changed using `print(x, digits)` as shown below
+
+``` r
+> print(result_mi, 2)
+A nonprob object
+ - estimator type: mass imputation
+ - method: glm (gaussian)
+ - auxiliary variables source: survey
+ - vars selection: false
+ - variance estimator: analytic
+ - population size fixed: false
+ - naive (uncorrected) estimator: 3.1817
+ - selected estimators: 
+   - variable y1: 2.95 (se=0.04, ci=(2.87, 3.03))
+   - variable y2: 1.58 (se=0.03, ci=(1.51, 1.64))
+```
 
 ### Bugfixes
 

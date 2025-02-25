@@ -494,14 +494,14 @@ result_dr
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.95 (se=0.0415, ci=(2.8687, 3.0313))
+#>  - selected estimator: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))
 ```
 
 Mass imputation estimator
 
 ``` r
 result_mi <- nonprob(
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -519,7 +519,9 @@ result_mi
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.9498 (se=0.042, ci=(2.8674, 3.0322))
+#>  - selected estimators: 
+#>    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))
+#>    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))
 ```
 
 Inverse probability weighting estimator
@@ -527,7 +529,7 @@ Inverse probability weighting estimator
 ``` r
 result_ipw <- nonprob(
   selection = ~ x2,
-  target = ~y1,
+  target = ~y1+y2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob)
 ```
@@ -544,7 +546,9 @@ result_ipw
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 3.1817
-#>  - selected estimator: 2.9981 (se=0.0289, ci=(2.9415, 3.0547))
+#>  - selected estimators: 
+#>    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))
+#>    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))
 ```
 
 ## Funding

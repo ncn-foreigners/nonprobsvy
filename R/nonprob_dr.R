@@ -278,30 +278,32 @@ nonprob_dr <- function(selection,
         output[[o]] <- data.frame(mean = mu_hat[o], SE = sqrt(var_total))
         }
       }
-        ## this will not work but needs to be updated
-        if (control_inference$var_method == "bootstrap") {
 
-          boot_obj <- boot_dr(selection =  reformulate(dr_coefs_sel[[o]]),
-                                         outcome = as.formula(paste0(o, reformulate(dr_coefs_sel[[o]]))),
-                                         target = reformulate(o),
-                                         svydesign = svydesign_,
-                                         pop_totals = pop_totals,
-                                         pop_means = pop_means,
-                                         pop_size = pop_size,
-                                         method_selection = method_selection,
-                                         method_outcome = method_outcome,
-                                         family_outcome = family_outcome,
-                                         subset = subset,
-                                         strata = strata,
-                                         weights = weights,
-                                         na_action = na_action,
-                                         control_selection = control_selection,
-                                         control_outcome = control_outcome,
-                                         control_inference = control_inference_,
-                                         start_outcome = start_outcome,
-                                         start_selection = start_selection,
-                                         verbose = verbose,
-                                         pop_size_fixed = pop_size_fixed)
+      if (control_inference$var_method == "bootstrap") {
+
+          ## variable selection should and combination should be done within `boot_dr` function
+          boot_obj <- boot_dr(selection = selection,
+                              outcome = outcome,
+                              target = reformulate(outcomes[[1]]),
+                              data = data,
+                              svydesign = svydesign,
+                              pop_totals = pop_totals,
+                              pop_means = pop_means,
+                              pop_size = pop_size,
+                              method_selection = method_selection,
+                              method_outcome = method_outcome,
+                              family_outcome = family_outcome,
+                              subset = subset,
+                              strata = strata,
+                              weights = weights,
+                              na_action = na_action,
+                              control_selection = control_selection,
+                              control_outcome = control_outcome,
+                              control_inference = control_inference,
+                              start_outcome = start_outcome,
+                              start_selection = start_selection,
+                              verbose = verbose,
+                              pop_size_fixed = pop_size_fixed)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)

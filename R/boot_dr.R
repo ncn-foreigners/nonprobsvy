@@ -26,6 +26,8 @@ boot_dr <- function(selection,
   # Initialize objects to store results
   num_boot <- control_inference$num_boot
 
+  ## add bootstrap with variables combination
+
   if (!is.null(svydesign)) {
     svydesign_rep <- survey::as.svrepdesign(svydesign,
                                             type = control_inference$rep_type,

@@ -5,7 +5,7 @@
 
 #' @method print nonprob
 #' @exportS3Method
-print.nonprob <- function(x, ...) {
+print.nonprob <- function(x, digits=4,...) {
 
   cat(sprintf("A %s object\n", class(x)[1L]))
   cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
@@ -28,17 +28,29 @@ print.nonprob <- function(x, ...) {
   }
 
   cat(sprintf(" - population size fixed: %s\n", tolower(x$pop_size_fixed)))
+  cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))
 
-  if (nrow(x$output) == 1) {
-    cat(sprintf(" - naive (uncorrected) estimator: %s\n", round(mean(x$y[[1]]),4)))
+  if (NROW(x$output) == 1) {
     cat(sprintf(
-      " - selected estimator: %s (se=%s, ci=(%s, %s))\n",
-        as.numeric(round(x$output["mean"], 4)),
-        as.numeric(round(x$output["SE"], 4)),
-        as.numeric(round(x$confidence_interval["lower_bound"], 4)),
-        as.numeric(round(x$confidence_interval["upper_bound"], 4))))
-  } else {
-    cat(" - too many variables to summary. See details in the `output` and `confidence_interval` elements.\n")
+      " - selected estimator: %.*f (se=%.*f, ci=(%.*f, %.*f))\n",
+      digits, as.numeric(x$output["mean"]),
+      digits, as.numeric(x$output["SE"]),
+      digits, as.numeric(x$confidence_interval["lower_bound"]),
+      digits, as.numeric(x$confidence_interval["upper_bound"])))
+  } else if (NROW(x$output) <= 5) {
+    cat(" - selected estimators: \n")
+    for (v in 1:NROW(x$output)) {
+      cat(sprintf(
+        "   - variable %s: %.*f (se=%.*f, ci=(%.*f, %.*f))\n",
+        rownames(x$output)[v],
+        digits, as.numeric(x$output[v, "mean"]),
+        digits, as.numeric(x$output[v, "SE"]),
+        digits, as.numeric(x$confidence_interval[v, "lower_bound"]),
+        digits, as.numeric(x$confidence_interval[v,"upper_bound"])))
+    }
+  }
+  else {
+    cat(" - too many variables (more than 5) to summary. See details in the `output` and `confidence_interval` elements.\n")
   }
 
   #cat("Estimated population mean with overall std.err and confidence interval:\n\n")
