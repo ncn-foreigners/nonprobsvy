@@ -92,6 +92,7 @@ nonprob_dr <- function(selection,
     if (verbose) {
       cat("IPW variable selection in progress...\n")
     }
+
     results_ipw <- nonprob_ipw(selection = selection,
                                target = reformulate(outcomes[[1]]),
                                data = data,

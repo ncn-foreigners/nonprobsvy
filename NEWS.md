@@ -36,11 +36,11 @@ nonprobsvy News and Updates
     `cloglog_model_nonprobsvy` removed in the favour of more readable
     `method_ps` function that specifies the propensity score model
 -   new option `control_inference=control_inf(vars_combine=TRUE)` which
-    allows doubly robust estimator to combine variables prior estimation 
-    i.e. if `selection=~x1+x2` and `y~x1+x3` then
-    the following models are fitted `selection=~x1+x2+x3` and
-    `y~x1+x2+x3`. By default we set `control_inference=control_inf(vars_combine=FALSE)`. 
-    Note that this behaviour is assumed independently from variable selection.
+    allows doubly robust estimator to combine variables prior estimation
+    i.e. if `selection=~x1+x2` and `y~x1+x3` then the following models
+    are fitted `selection=~x1+x2+x3` and `y~x1+x2+x3`. By default we set
+    `control_inference=control_inf(vars_combine=FALSE)`. Note that this
+    behaviour is assumed independently from variable selection.
 
 ### Features
 
@@ -116,6 +116,12 @@ A nonprob object
 
 -   annotation has been added that arguments such as `strata`, `subset`
     and `na_action` are not supported for the time being.
+
+### Replication materials
+
+-   to verify the quality of the software please refer to the
+    replication materials available here:
+    <https://github.com/ncn-foreigners/software-tutorials>
 
 # nonprobsvy 0.1.1
 

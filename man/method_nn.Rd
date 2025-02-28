@@ -105,6 +105,8 @@ or
 \hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1}{\hat{\pi}_B(\boldsymbol{x}_i)}(y_i - y_i^*)
 }
 
+or mini-bootstrap
+
 (b) probability part
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
