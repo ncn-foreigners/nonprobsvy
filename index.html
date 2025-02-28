@@ -479,7 +479,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>Sampling variables<span class="sc">:</span></span>
 <span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>Data variables<span class="sc">:</span> </span>
 <span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="sc">-</span> <span class="fu">x1</span> (dbl), <span class="fu">x2</span> (dbl), <span class="fu">y1</span> (dbl), <span class="fu">y2</span> (dbl), <span class="fu">p1</span> (dbl), <span class="fu">p2</span> (dbl), <span class="fu">base_w_srs</span> (dbl), <span class="fu">flag_bd1</span> (int), <span class="fu">flag_srs</span> (dbl)</span></code></pre></div>
-<p>Estimate population mean of <code>y1</code> based on doubly robust estimator using IPW with calibration constraints.</p>
+<p>Estimate population mean of <code>y1</code> based on doubly robust estimator using IPW with calibration constraints and we specify that auxiliary variables should not be combined for the inference.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
@@ -497,8 +497,10 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
-<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimators:</span></span>
+<span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
+<span><span class="co">#&gt;  - selected estimators:</span></span>
 <span><span class="co">#&gt;    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
@@ -518,8 +520,10 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
-<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimators:</span></span>
+<span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
+<span><span class="co">#&gt;  - selected estimators:</span></span>
 <span><span class="co">#&gt;    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
@@ -539,8 +543,10 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
 <span><span class="co">#&gt;  - population size fixed: false</span></span>
-<span><span class="co">#&gt;  - naive (uncorrected) estimator: 3.1817</span></span>
-<span><span class="co">#&gt;  - selected estimators: </span></span>
+<span><span class="co">#&gt;  - naive (uncorrected) estimators:</span></span>
+<span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
+<span><span class="co">#&gt;  - selected estimators:</span></span>
 <span><span class="co">#&gt;    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))</span></span></code></pre></div>
 </div>

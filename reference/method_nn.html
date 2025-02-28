@@ -216,13 +216,19 @@ variance minimization procedure (<code>pmm_k_choice</code> from the <code><a hre
     <p></p>
 <p>Analytical variance</p>
 <p>The variance of the mean is estimated based on the following approach</p>
-<p>(a) probability part</p>
+<p>(a) non-probability part</p>
+<p>This may be estimated using</p>
+<p>V_1 = 1N^2_i=1^S_A1-_B(x_i)_B(x_i)^2(x_i)</p>
+<p>or</p>
+<p>V_1 = 1N^2_i=1^S_A1_B(x_i)(y_i - y_i^*)</p>
+<p>or mini-bootstrap</p>
+<p>(b) probability part</p>
 <p>This part uses functionalities of the <code>{survey}</code> package and the variance is estimated using the following
 equation:</p>
 <p>V_1=1N^2 _i=1^n _j=1^n _i j-_i _j_i j
-y_i_i y_j_j</p>
-<p>(b) non-probability part</p>
-<p>V_2 = ..</p>
+y_i^*_i y_j^*_j</p>
+<p>where y^*_i and y_j^* are values imputed imputed as an average of k-nearest neighbour,
+i.e. k^-1_ky_k.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

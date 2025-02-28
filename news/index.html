@@ -63,7 +63,7 @@
 <li>
 <code>nonprobsvy</code> class renamed to <code>nonprob</code> and all related method adjusted to this change</li>
 <li>functions <code>logit_model_nonprobsvy</code>, <code>probit_model_nonprobsvy</code> and <code>cloglog_model_nonprobsvy</code> removed in the favour of more readable <code>method_ps</code> function that specifies the propensity score model</li>
-<li>for doubly robust estimator: variables in selection and outcome model are combined i.e. if say <code>selection=~x1+x2</code> and <code>y~x1+x3</code> then the following models are fitted <code>selection=~x1+x2+x3</code> and <code>y~x1+x2+x3</code>. If this not suitable it can be changed using <code>control_inference=control_inf(vars_combine=FALSE)</code>. Note that this behaviour is assumed independently from variable selection.</li>
+<li>new option <code>control_inference=control_inf(vars_combine=TRUE)</code> which allows doubly robust estimator to combine variables prior estimation i.e. if <code>selection=~x1+x2</code> and <code>y~x1+x3</code> then the following models are fitted <code>selection=~x1+x2+x3</code> and <code>y~x1+x2+x3</code>. By default we set <code>control_inference=control_inf(vars_combine=FALSE)</code>. Note that this behaviour is assumed independently from variable selection.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="features-0-2-0">Features<a class="anchor" aria-label="anchor" href="#features-0-2-0"></a></h4>
@@ -130,6 +130,11 @@
 <div class="section level4">
 <h4 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h4>
 <ul><li>annotation has been added that arguments such as <code>strata</code>, <code>subset</code> and <code>na_action</code> are not supported for the time being.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="replication-materials-0-2-0">Replication materials<a class="anchor" aria-label="anchor" href="#replication-materials-0-2-0"></a></h4>
+<ul><li>to verify the quality of the software please refer to the replication materials available here: <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link uri">https://github.com/ncn-foreigners/software-tutorials</a>
+</li>
 </ul></div>
 </div>
     <div class="section level2">

@@ -163,15 +163,15 @@
 <p>Analytical variance</p>
 <p>The variance of the mean is estimated based on the following approach</p>
 <p>(a) non-probability part (S_A)</p>
-<p>V_2 = 1n_A^2_i=1^n_A e_i  h(x_i; )^c,</p>
+<p>V_1 = 1n_A^2_i=1^n_A e_i  h(x_i; )^c,</p>
 <p>where e_i = y_i - m(x_i; ) and
 c= n_B^-1 _i  B m(x_i ; ^*) h(x_i ; ^*)^^-1 N^-1 _i  A w_i m(x_i ; ^*).</p>
 <p>Under the linear regression model h(x_i ; )=x_i and c=(n_A^-1 _i  A x_i x_i^)^-1 N^-1 _i  B w_i x_i .</p>
 <p>(b) probability part (S_B)</p>
 <p>This part uses functionalities of the <code>{survey}</code> package and the variance is estimated using the following
 equation:</p>
-<p>V_1=1N^2 _i=1^n_B _j=1^n_B _i j-_i _j_i j
-y_i_i y_j_j</p>
+<p>V_2=1N^2 _i=1^n_B _j=1^n_B _i j-_i _j_i j
+m(x_i; )_i m(x_i; )_j.</p>
     </div>
 
     <div class="section level2">
