@@ -9,29 +9,33 @@
 #' @importFrom stats loess
 #'
 #' @description
-#' Model for the outcome for the mass imputation estimator (for continous or semi-continous variables only!)
+#' Model for the outcome for the mass imputation estimator using loess via `stats::loess`.
 #'
 #'
 #' @details Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 #'
-#' (a) probability part
+#' (a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as `var_nonprob` in the result)
+#'
+#' \mjsdeqn{
+#' \hat{V}_1 = \frac{1}{N^2} \sum_{i=1}^{n_A} \left\lbrace\hat{g}_B(\boldsymbol{x}_i)\right\rbrace^{2} \hat{e}_i^2,
+#' }
+#'
+#' where \mjseqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \mjseqn{\hat{g}_B(\boldsymbol{x}_i) = \left\lbrace \pi_B(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
+#' various ways. In our case we estimate it using \mjseqn{\pi_B(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). Currently, this is estimated using `stats::loess` with `"gaussian"` family.
+#'
+#' (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as `var_prob` in the result)
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
 #'
 #' \mjsdeqn{
-#' \hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-#' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}
+#' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \frac{y_i}{\pi_i} \frac{y_j}{\pi_j}.
 #' }
 #'
-#' (b) non-probability part
-#'
-#' \mjsdeqn{
-#' \hat{V}_2 = ..
-#' }
-#'
+#' Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 #'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
@@ -51,7 +55,7 @@
 #' @returns an `nonprob_method` class which is a `list` with the following entries
 #'
 #' \describe{
-#'   \item{model_fitted}{fitted model either an `glm.fit` or `cv.ncvreg` object}
+#'   \item{model_fitted}{fitted model object returned by `stats::loess`}
 #'   \item{y_nons_pred}{predicted values for the non-probablity sample}
 #'   \item{y_rand_pred}{predicted values for the probability sample or population totals}
 #'   \item{coefficients}{coefficients for the model (if available)}
@@ -85,7 +89,7 @@ method_npar <- function(y_nons,
   }
 
   if (missing(svydesign) | is.null(svydesign)) {
-    stop("The NN method is suited only for the unit-level data.")
+    stop("The NPAR method is suited only for the unit-level data.")
   }
 
   if (vars_selection) {
@@ -105,9 +109,9 @@ method_npar <- function(y_nons,
   X <- rbind(X_rand, X_nons)
   R <- rep(c(0, 1), times = c(nrow(X_rand), nrow(X_nons)))
 
-  # This is left for the case if we would like to switch to np instead of loess
-  #if (verbose) message("Estimation based on `np::npregbw` started")
-  #model_fitted <- np::npregbw(xdat = X_nons[,-1], ydat = y_nons, ckertype="gaussian")
+  # NOTE: This is left for the case if we would like to switch to np instead of loess
+  # if (verbose) message("Estimation based on `np::npregbw` started")
+  # model_fitted <- np::npregbw(xdat = X_nons[,-1], ydat = y_nons, ckertype="gaussian")
 
   model_fitted <- stats::loess(
     formula = y_nons ~ X_nons[, -1],
@@ -132,13 +136,11 @@ method_npar <- function(y_nons,
         family = family_outcome,
         control = control_outcome$npar_loess)
 
-      #g_hat <- stats::glm.fit(x = X, y = R, family = binomial())
-
       var_nonprob <- 1/pop_size^2*sum( g_hat$fitted[R==1]^{-2}*residuals^2)
 
       var_total <- var_prob + var_nonprob
 
-      # This is for further development if we would like to use np instead of loess
+      # NOTE: This is for further development if we would like to use np instead of loess
       # if (verbose) message("Estimation of variance started. This may take a while...")
       # g_hat_bw <- npcdensbw(ydat = factor(R), xdat = X[,-1], tol = 0.1, ftol = 0.1, nmulti = 2)
       # g_hat <- np::npconmode(bws = g_hat_bw)

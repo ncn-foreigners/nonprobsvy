@@ -21,7 +21,7 @@ control_out(
   pmm_weights = c("none", "dist"),
   pmm_k_choice = c("none", "min_var"),
   pmm_reg_engine = c("glm", "loess"),
-  npar_loess = stats::loess.control(surface = "interpolate", trace.hat = "approximate")
+  npar_loess = stats::loess.control(surface = "direct", trace.hat = "approximate")
 )
 }
 \arguments{
