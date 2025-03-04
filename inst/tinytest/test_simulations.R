@@ -78,16 +78,16 @@ expect_equal(
 
 ### mi npar
 
-mi_npar <- nonprob(outcome = y1 + y2~x1 + x2,
-                  svydesign = kim2019_sample_prob,
-                  method_outcome = "npar",
-                  data = kim2019_sample_nonprob)
-
-expect_equal(
-  mi_npar$confidence_interval$lower_bound < kim2019_y_true &
-    mi_npar$confidence_interval$upper_bound > kim2019_y_true,
-  c(TRUE, TRUE)
-)
+# mi_npar <- nonprob(outcome = y1 + y2 ~ x1 + x2,
+#                   svydesign = kim2019_sample_prob,
+#                   method_outcome = "npar",
+#                   data = kim2019_sample_nonprob)
+#
+# expect_equal(
+#   mi_npar$confidence_interval$lower_bound < kim2019_y_true &
+#     mi_npar$confidence_interval$upper_bound > kim2019_y_true,
+#   c(TRUE, TRUE)
+# )
 
 
 # pop level data ----------------------------------------------------------

@@ -3,8 +3,8 @@
 #' \loadmathjax
 #'
 #' @description
-#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability) based on predicted values from model \mjseqnm{\boldsymbol{x}_i)} based
-#' either on `method_glm` or `method_npar`.  Estimation of the mean is done using \mjseqn{S_B} sample.
+#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability) based on predicted values from model \mjseqn{\boldsymbol{x}_i} based
+#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \mjseqn{S_B} sample.
 #'
 #' This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
 #'
@@ -17,7 +17,16 @@
 #'  variance minimization procedure (`pmm_k_choice` from the [control_out()] function)}
 #' }
 #'
-#' @details Analytical variance
+#' @details
+#'
+#' Matching
+#'
+#' In the package we support two types of matching:
+#'
+#' 1. \mjseqn{\hat{y} - \hat{y}} matching (default; `control_out(pmm_match_type = 1)`).
+#' 2. \mjseqn{\hat{y} - y} matching (`control_out(pmm_match_type = 2)`).
+#'
+#' Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 
@@ -27,10 +36,11 @@
 #' can be summarized as follows:
 #'
 #' 1. Sample \mjseqn{n_A} units from \mjseqn{S_A} with replacement to create \mjseqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-#' 2. --
-#' 3. --
-#' 4. --
-#' 5. Estimate \mjseqn{\hat{V}_1=\text{var}{\hat{\boldsymbol{\mu}}}} obtained from simulations and save it as `var_nonprob`.
+#' 2. Estimate regression model \mjseqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \mjseqn{S_{A}'} from step 1.
+#' 3. Compute \mjseqn{\hat{\nu}'(i,t)} for \mjseqn{t=1,\dots,k, i\in S_{B}} using estimated \mjseqn{m(\boldsymbol{x}', \cdot)} and \mjseqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
+#' 4. Compute \mjseqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \mjseqn{Y} values from \mjseqn{S_{A}'}.
+#' 5. Repeat steps 1-4 \mjseqn{M} times (we set (hard-coded) \mjseqn{M=50} in our code).
+#' 6. Estimate \mjseqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
 #'
 #' (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as `var_prob` in the result)
 #'

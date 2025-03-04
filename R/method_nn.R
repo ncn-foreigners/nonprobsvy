@@ -40,7 +40,7 @@
 #' 2. Match units from \mjseqn{S_B} to \mjseqn{S_A'} to obtain predictions \mjseqn{y^*}=\mjseqn{{k}^{-1}\sum_{k}y_k}.
 #' 3. Estimate \mjseqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
 #' 4. Repeat steps 1-3 \mjseqn{M} times (we set \mjseqn{M=50} in our simulations; this is hard-coded).
-#' 5. Estimate \mjseqn{\hat{V}_1=\text{var}{\hat{\boldsymbol{\mu}}}} obtained from simulations and save it as `var_nonprob`.
+#' 5. Estimate \mjseqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
 #'
 #'
 #' (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as `var_prob` in the result)
