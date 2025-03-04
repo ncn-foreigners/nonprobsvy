@@ -184,7 +184,7 @@ can be summarized as follows:</p><ol><li><p>Sample n_A units from S_A with repla
 <li><p>Match units from S_B to S_A' to obtain predictions y^*=k^-1_ky_k.</p></li>
 <li><p>Estimate =1N _i  S_B d_i y_i^*.</p></li>
 <li><p>Repeat steps 1-3 M times (we set M=50 in our simulations; this is hard-coded).</p></li>
-<li><p>Estimate V_1=var obtained from simulations and save it as <code>var_nonprob</code>.</p></li>
+<li><p>Estimate V_1=var() obtained from simulations and save it as <code>var_nonprob</code>.</p></li>
 </ol><p>(b) probability part (S_B with size n_B; denoted as <code>var_prob</code> in the result)</p>
 <p>This part uses functionalities of the <code>{survey}</code> package and the variance is estimated using the following
 equation:</p>
