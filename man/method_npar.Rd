@@ -54,7 +54,7 @@ method_npar(
 an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
-\item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}
+\item{model_fitted}{fitted model object returned by \code{stats::loess}}
 \item{y_nons_pred}{predicted values for the non-probablity sample}
 \item{y_rand_pred}{predicted values for the probability sample or population totals}
 \item{coefficients}{coefficients for the model (if available)}
@@ -68,6 +68,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator using loess via \code{stats::loess}.
+Estimation of the mean is done using the \mjseqn{S_B} probability sample.
 }
 \details{
 \loadmathjax
@@ -83,7 +84,8 @@ The variance of the mean is estimated based on the following approach
 }
 
 where \mjseqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \mjseqn{\hat{g}_B(\boldsymbol{x}_i) = \left\lbrace \pi_B(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
-various ways. In our case we estimate it using \mjseqn{\pi_B(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). Currently, this is estimated using \code{stats::loess} with \code{"gaussian"} family.
+various ways. In the package we estimate \mjseqn{\hat{g}_B(\boldsymbol{x}_i)} using \mjseqn{\pi_B(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
+we currently support this using stats::loess\code{with}"gaussian"` family.
 
 (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as \code{var_prob} in the result)
 
@@ -92,8 +94,40 @@ equation:
 
 \mjsdeqn{
 \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-\frac{y_i}{\pi_i} \frac{y_j}{\pi_j}.
+\frac{\hat{m}(x_i)}{\pi_i} \frac{\hat{m}(x_j)}{\pi_j}.
 }
 
 Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+}
+\examples{
+
+set.seed(123123123)
+N <- 10000
+n_a <- 500
+n_b <- 1000
+n_b1 <- 0.7*n_b
+n_b2 <- 0.3*n_b
+x1 <- rnorm(N, 2, 1)
+x2 <- rnorm(N, 2, 1)
+y1 <- rnorm(N, 0.3 + 2*x1+ 2*x2, 1)
+y2 <- rnorm(N, 0.3 + 0.5*x1^2+ 0.5*x2^2, 1)
+strata <- x1 <= 2
+pop <- data.frame(x1, x2, y1, y2, strata)
+sample_a <- pop[sample(1:N, n_a),]
+sample_a$w_a <- N/n_a
+sample_a_svy <- svydesign(ids=~1, weights=~w_a, data=sample_a)
+pop1 <- subset(pop, strata == TRUE)
+pop2 <- subset(pop, strata == FALSE)
+sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+                  pop2[sample(1:nrow(pop2), n_b2), ])
+res_y_npar <- nonprob(outcome = y1 + y2 ~ x1 + x2,
+                      data = sample_b,
+                      svydesign = sample_a_svy,
+                      method_outcome = "npar")
+res_y_npar
+
+}
+\references{
+Chen, S., Yang, S., & Kim, J. K. (2022). Nonparametric mass imputation for data integration.
+Journal of Survey Statistics and Methodology, 10(1), 1-24.
 }

@@ -69,7 +69,9 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Model for the outcome for the mass imputation estimator
+Model for the outcome for the mass imputation estimator using generalized linear
+models via the \code{stats::glm} function. Estimation of the mean is done using \mjseqn{S_B}
+probability sample or known population totals.
 }
 \details{
 \loadmathjax
@@ -78,7 +80,7 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-(a) non-probability part (\mjseqn{S_A})
+(a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as \code{var_nonprob} in the result)
 
 \mjsdeqn{
 \hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace,
@@ -89,7 +91,7 @@ where \mjseqn{\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})} a
 
 Under the linear regression model \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i} and \mjseqn{\widehat{\boldsymbol{c}}=\left(n_A^{-1} \sum_{i \in A} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in B} w_i \boldsymbol{x}_i .}
 
-(b) probability part (\mjseqn{S_B})
+(b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as \code{var_prob} in the result)
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
@@ -98,6 +100,10 @@ equation:
 \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 }
+
+Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+
+Furthermore, if only population totals/means are known and assumed to be fixed we set \mjseqn{\hat{V}_2=0}.
 }
 \examples{
 
@@ -112,4 +118,9 @@ res_glm <- method_glm(y_nons = admin$single_shift,
 
 res_glm
 
+}
+\references{
+Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining non-probability and probability survey samples
+through mass imputation. Journal of the Royal Statistical Society Series A: Statistics in Society,
+184(3), 941-963.
 }

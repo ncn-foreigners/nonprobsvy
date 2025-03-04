@@ -69,20 +69,10 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Mass imputation using nearest neighbours approach as described in Yang (2021).
+Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
-Euclidean distance to matching.
-
-This implementation extends Yang (2021) approach as described in Chlebicki et al. (2025), namely:
-
-\describe{
-\item{pmm_weights}{if k>1 weighted aggregation of the mean for a given unit is used. We use distance
-matrix returned by \link[RANN:nn2]{RANN::nn2} function (\code{pmm_weights} from the \code{\link[=control_out]{control_out()}} function)}
-\item{nn_exact_se}{if the non-probability sample is small we recommend using a mini-bootstrap
-approach to estimate variance from the non-probability sample  (\code{nn_exact_se} from the \code{\link[=control_inf]{control_inf()}} function)}
-\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on the
-variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
-}
+Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability).
+Estimation of the mean is done using \mjseqn{S_B} sample.
 }
 \details{
 \loadmathjax
@@ -91,7 +81,7 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-(a) non-probability part
+(a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as \code{var_nonprob} in the result)
 
 This may be estimated using
 
@@ -99,26 +89,34 @@ This may be estimated using
 \hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i)
 }
 
-or
+where \mjseqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
+we currently estimate using \mjseqn{n_A/N} (constant) and \mjseqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
+estimated using based on the average of \mjseqn{(y_i - y_i^*)^2}.
 
-\mjsdeqn{
-\hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1}{\hat{\pi}_B(\boldsymbol{x}_i)}(y_i - y_i^*)
+Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
+(without assuming that it is consistent) but with good finite population properties.
+This bootstrap can be applied using \code{control_inference(nn_exact_se=TRUE)} and
+can be summarized as follows:
+\enumerate{
+\item Sample \mjseqn{n_A} units from \mjseqn{S_A} with replacement to create \mjseqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+\item Match units from \mjseqn{S_B} to \mjseqn{S_A'} to obtain predictions \mjseqn{y^*}=\mjseqn{{k}^{-1}\sum_{k}y_k}.
+\item Estimate \mjseqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
+\item Repeat steps 1-3 \mjseqn{M} times (we set \mjseqn{M=50} in our simulations; this is hard-coded).
+\item Estimate \mjseqn{\hat{V}_1=\text{var}{\hat{\boldsymbol{\mu}}}} obtained from simulations and save it as \code{var_nonprob}.
 }
 
-or mini-bootstrap
-
-(b) probability part
+(b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as \code{var_prob} in the result)
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
 
 \mjsdeqn{
-\hat{V}_1=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+\hat{V}_2=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j}
 }
 
-where \mjseqn{y^*_i} and \mjseqn{y_j^*} are values imputed imputed as an average of \mjseqn{k}-nearest neighbour,
-i.e. \mjseqn{{k}^{-1}\sum_{k}y_k}.
+where \mjseqn{y^*_i} and \mjseqn{y_j^*} are values imputed imputed as an average
+of \mjseqn{k}-nearest neighbour, i.e. \mjseqn{{k}^{-1}\sum_{k}y_k}. Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 }
 \examples{
 
