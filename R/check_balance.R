@@ -1,8 +1,8 @@
 #' @title Check the variable balance between the probability and non-probability samples
 #'
-#' @param x Formula specifying variables to check
-#' @param object Object of `nonprobsvy` class
-#' @param dig Number of digits for rounding (default = 2)
+#' @param x formula specifying variables to check
+#' @param object object of `nonprob` class
+#' @param dig number of digits for rounding (default = 2)
 #'
 #' @importFrom stats aggregate
 #' @importFrom survey svytotal
@@ -51,8 +51,8 @@ check_balance.nonprob <- function(x, object, dig = 2) {
     stop("The `x` argument must be a formula.")
   }
 
-  if (missing(object) || is.null(object)) {
-    stop("The `object` argument is required.")
+  if (missing(object) || is.null(object) || !inherits(object, "nonprob")) {
+    stop("The `object` argument of class `nonprob` is required.")
   }
 
   if (object$estimator == "mi") {

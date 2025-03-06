@@ -7,11 +7,11 @@
 check_balance(x, object, dig)
 }
 \arguments{
-\item{x}{Formula specifying variables to check}
+\item{x}{formula specifying variables to check}
 
-\item{object}{Object of \code{nonprobsvy} class}
+\item{object}{object of \code{nonprob} class}
 
-\item{dig}{Number of digits for rounding (default = 2)}
+\item{dig}{number of digits for rounding (default = 2)}
 }
 \value{
 A \code{list} containing nonprobability totals, probability totals, and their differences
