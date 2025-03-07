@@ -513,7 +513,7 @@ nonprob_dr <- function(selection,
       X = results_mi$X,
       y = results_mi$y,
       R = results_ipw$R,
-      ps_scores = results_ipw$prop_scores,
+      ps_scores = results_ipw$ps_scores,
       case_weights = results_ipw$case_weights,
       ipw_weights = results_ipw$ipw_weights,
       control = list(
