@@ -42,6 +42,7 @@ nonprobsvy News and Updates
     `control_inference=control_inf(vars_combine=FALSE)`. Note that this
     behaviour is assumed independently from variable selection.
 
+
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
@@ -59,7 +60,7 @@ nonprobsvy News and Updates
     -   `method_nn` -- for the NN method
     -   `method_pmm` -- for the PMM method
     -   `method_npar` -- for the non-parametric method
--   new `print.nonprob` method, i.e.
+-   new `print.nonprob`, `summary.nonprob` and `print.nonprob_summary` methods, i.e.
 
 ``` r
 > result_mi
