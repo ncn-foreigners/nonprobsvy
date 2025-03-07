@@ -7,6 +7,7 @@
 #' @importFrom survey svymean
 #' @importFrom stats loess.control
 #' @importFrom stats loess
+#' @importFrom stats coef
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator using loess via `stats::loess`.

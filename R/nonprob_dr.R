@@ -8,6 +8,7 @@
 #' @importFrom stats binomial
 #' @importFrom stats terms
 #' @importFrom stats reformulate
+#' @importFrom stats coef
 #' @importFrom survey svytotal
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom MASS ginv

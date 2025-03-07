@@ -4,48 +4,20 @@
 \alias{summary.nonprob}
 \title{Summary statistics for model of the \code{nonprob} class.}
 \usage{
-\method{summary}{nonprob}(object, test = c("t", "z"), correlation = FALSE, cov = NULL, ...)
+\method{summary}{nonprob}(object, ...)
 }
 \arguments{
 \item{object}{object of the \code{nonprob} class}
 
-\item{test}{Type of test for significance of parameters \code{"t"} for t-test
-and \code{"z"} for normal approximation of students t distribution, by
-default \code{"z"} is used if there are more than 30 degrees of freedom
-and \code{"t"} is used in other cases.}
-
-\item{correlation}{correlation Logical value indicating whether correlation matrix should
-be computed from covariance matrix by default \code{FALSE}.}
-
-\item{cov}{Covariance matrix corresponding to regression parameters}
-
 \item{...}{Additional optional arguments}
 }
 \value{
-An object of \code{summary_nonprob} class containing:
+An object of \code{nonprob_summary} class containing:
 \itemize{
-\item \code{call} -- A call which created \code{object}.
-\item \code{pop_total} -- A list containing information about the estimated population mean, its standard error and confidence interval.
-\item \code{sample_size} -- The size of the samples used in the model.
-\item \code{population_size} -- The estimated size of the population from which the non--probability sample was drawn.
-\item \code{test} -- Type of statistical test performed.
-\item \code{control} -- A List of control parameters used in fitting the model.
-\item \code{model} -- A descriptive name of the model used, e.g., "Doubly-Robust", "Inverse probability weighted", or "Mass Imputation".
-\item \code{aic} -- Akaike's information criterion.
-\item \code{bic} -- Bayesian (Schwarz's) information criterion.
-\item \code{residuals} -- Residuals from the model, providing information on the difference between observed and predicted values.
-\item \code{likelihood} -- Logarithm of likelihood function evaluated at coefficients.
-\item \code{df_residual} -- Residual degrees of freedom.
-\item \code{weights} -- Distribution of estimated weights obtained from the model.
-\item \code{coef} -- Regression coefficients estimated by the model.
-\item \code{std_err} -- Standard errors of the regression coefficients.
-\item \code{w_val} -- Wald statistic values for the significance testing of coefficients.
-\item \code{p_values} -- P-values corresponding to the Wald statistic values, assessing the significance of coefficients.
-\item \code{crr} -- The correlation matrix of the model coefficients, if requested.
-\item \code{confidence_interval_coef} -- Confidence intervals for the model coefficients.
-\item \code{names} -- Names of the fitted models.
+\item \code{call}
 }
 }
 \description{
-Summary statistics for model of the \code{nonprob} class.
+Summarises the \code{nonprob} class object. The summary depends on the type of
+the estimator (i.e. IPW, MI, DR)
 }
