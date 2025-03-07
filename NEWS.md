@@ -54,6 +54,8 @@ nonprobsvy News and Updates
     totals of the variables based on the weighted weights between the
     non-probability and probability samples.
 -   citation file added.
+-   new generic methods added: 
+    - `weights` -- returns IPW weights
 -   new functions added and exported:
     -   `method_ps` -- for modelling propensity score
     -   `method_glm` -- for modelling y using `glm` function

@@ -51,13 +51,28 @@ pop_size <- function(object) {
 
 # base R methods ----------------------------------------------------------
 
-
 #' @method nobs nonprob
 #' @importFrom stats nobs
 #' @exportS3Method
 nobs.nonprob <- function(object,
-                            ...) {
+                         ...) {
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
+}
+
+#' @title Extract IPW weights
+#' @description A generic function `weights` that returns inverse probability weights (if present)
+#'
+#' @param object a `nonprob` class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @returns A vector of weights or a `NULL` extracted from the `nonprob` object i.e. element `"ipw_weights"`
+#'
+#' @method weights nonprob
+#' @importFrom stats weights
+#' @exportS3Method
+weights.nonprob <- function(object,
+                            ...) {
+  object$ipw_weights
 }
 
 #' @method residuals nonprob
