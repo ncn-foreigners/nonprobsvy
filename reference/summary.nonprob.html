@@ -59,9 +59,69 @@ the estimator (i.e. IPW, MI, DR)</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of <code>nonprob_summary</code> class containing:</p><ul><li><p><code>call</code></p></li>
+    <p>An object of <code>nonprob_summary</code> class containing:</p><ul><li><p><code>call</code> call</p></li>
+<li><p><code>estimator</code> type of estimator</p></li>
+<li><p><code>control</code> list of controls</p></li>
+<li><p><code>ipw_weights</code> estimated IPW weights</p></li>
+<li><p><code>ipw_weights_total</code> estimated IPW total (sum)</p></li>
+<li><p><code>ps_scores_nonprob</code> estimated propensity scores for non-probability sample</p></li>
+<li><p><code>ps_scores_prob</code> estimated propensity scores for probability sample</p></li>
+<li><p><code>case_weights</code> case weights</p></li>
+<li><p><code>output</code> estimated means and standard errors</p></li>
+<li><p><code>SE</code> estimated standard errors of V1 and V2</p></li>
+<li><p><code>confidence_interval</code> confidence intervals</p></li>
+<li><p><code>nonprob_size</code> size of the non-probability sample</p></li>
+<li><p><code>prob_size</code> size of the probability sample</p></li>
+<li><p><code>pop_size</code> population size</p></li>
+<li><p><code>pop_size_fixed</code> whether the population size is treated as fixed</p></li>
+<li><p><code>no_prob</code> whether probability sample was provided</p></li>
+<li><p><code>outcome</code> model details</p></li>
+<li><p><code>selection</code> selection details</p></li>
+<li><p><code>estimator_method</code> estimator method</p></li>
+<li><p><code>selection_formula</code> selection formula</p></li>
+<li><p><code>outcome_formula</code> outcome formula</p></li>
+<li><p><code>vars_selection</code> whether variable selection algorithm was applied</p></li>
+<li><p><code>vars_outcome</code> variables of the outcome models</p></li>
+<li><p><code>ys_rand_pred</code> predicted values for the random sample (if applies)</p></li>
+<li><p><code>ys_nons_pred</code> predicted values for the non-probability sample</p></li>
+<li><p><code>ys_resid</code> residuals for the non-probability sample</p></li>
 </ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">admin</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">jvs</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">jvs_svy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span>,  weights <span class="op">=</span> <span class="op">~</span> <span class="va">weight</span>,</span></span>
+<span class="r-in"><span>strata <span class="op">=</span> <span class="op">~</span> <span class="va">size</span> <span class="op">+</span> <span class="va">nace</span> <span class="op">+</span> <span class="va">region</span>, data <span class="op">=</span> <span class="va">jvs</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">ipw_est1</span> <span class="op">&lt;-</span> <span class="fu"><a href="nonprob.html">nonprob</a></span><span class="op">(</span>selection <span class="op">=</span> <span class="op">~</span> <span class="va">region</span> <span class="op">+</span> <span class="va">private</span> <span class="op">+</span> <span class="va">nace</span> <span class="op">+</span> <span class="va">size</span>,</span></span>
+<span class="r-in"><span>target <span class="op">=</span> <span class="op">~</span> <span class="va">single_shift</span>,</span></span>
+<span class="r-in"><span>svydesign <span class="op">=</span> <span class="va">jvs_svy</span>,</span></span>
+<span class="r-in"><span>data <span class="op">=</span> <span class="va">admin</span>, method_selection <span class="op">=</span> <span class="st">"logit"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ipw_est1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob_summary object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - call: nonprob(data = admin, selection = ~region + private + nace + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: inverse probability weighting</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - nonprob sample size: 9344 (18%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - prob sample size: 6523 (12.6%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - population size: 51870 (false)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - detailed information about models are stored in list element(s): "selection"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - sum of IPW weights: 52898.13 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - distribution of IPW weights (nonprob sample):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - min: 1.1693; mean: 5.6612; median: 4.3334; max: 49.9504</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - distribution of IPW probabilities (nonprob sample):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - min: 0.0189; mean: 0.2894; median: 0.2525; max: 0.8552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - distribution of IPW probabilities (prob sample):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - min: 0.0200; mean: 0.2687; median: 0.2291; max: 0.8552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ----------------------------------------------------------------</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
