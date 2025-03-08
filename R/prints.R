@@ -97,22 +97,71 @@ print.nonprob_summary <- function(x,
                                                 "ipw" = "inverse probability weighting",
                                                 "dr" = "doubly robust")))
 
+  cat(" - nonprob sample size: ", x$nonprob_size, " (", round(x$nonprob_size/x$pop_size*100,1),"%)\n", sep = "")
+
+  if (x$prob_size > 0) {
+    cat(" - prob sample size: ", x$prob_size, " (", round(x$prob_size/x$pop_size*100,1),"%)\n", sep = "")
+  } else {
+    cat(" - prob sample size: none; population totals were provided\n")
+  }
+
+  cat(" - population size: ", as.integer(x$pop_size), " (", tolower(x$pop_size_fixed), ")\n", sep = "")
+
+  model_info <- switch(x$estimator,
+                       "mi" = '"outcome"',
+                       "ipw" = '"selection"',
+                       "dr" = '"outcome" and "selection"')
+  cat(sprintf(
+    " - detailed information about models are stored in list element(s): %s\n",
+    model_info))
+
   if (!is.null(x$ipw_weights)) {
-      cat(" - distribution of IPW weights:\n")
-      print(x$ipw_weights)
-      cat("\n")
-      cat(" - distribution of IPW probabilities:\n")
-      print(x$ps_scores)
-      cat("\n")
+    cat("----------------------------------------------------------------\n")
+      cat(" - sum of IPW weights:", sum(x$ipw_weights_total), "\n")
+      cat(" - distribution of IPW weights (nonprob sample):\n")
+      cat(sprintf(
+        "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+        digits, as.numeric(x$ipw_weights["Min."]),
+        digits, as.numeric(x$ipw_weights["Mean"]),
+        digits, as.numeric(x$ipw_weights["Median"]),
+        digits, as.numeric(x$ipw_weights["Max."])))
+
+      cat(" - distribution of IPW probabilities (nonprob sample):\n")
+      cat(sprintf(
+        "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+        digits, as.numeric(x$ps_scores_nonprob["Min."]),
+        digits, as.numeric(x$ps_scores_nonprob["Mean"]),
+        digits, as.numeric(x$ps_scores_nonprob["Median"]),
+        digits, as.numeric(x$ps_scores_nonprob["Max."])))
+
+      if (!is.null(x$ps_scores_prob)) {
+        cat(" - distribution of IPW probabilities (prob sample):\n")
+        cat(sprintf(
+          "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+          digits, as.numeric(x$ps_scores_prob["Min."]),
+          digits, as.numeric(x$ps_scores_prob["Mean"]),
+          digits, as.numeric(x$ps_scores_prob["Median"]),
+          digits, as.numeric(x$ps_scores_prob["Max."])))
+      }
+      if (is.null(x$ys_resid)) {
+        cat("----------------------------------------------------------------\n")
+      }
   }
 
   if (!is.null(x$ys_resid)) {
-
+    cat("----------------------------------------------------------------\n")
     if (resid) {
       if (length(x$ys_resid) <= 5) {
         cat(" - distribution of outcome residuals:\n")
-        print(do.call("rbind", x$ys_resid), digits = digits)
-        cat("\n")
+        for (y in 1:length(x$ys_resid)) {
+          cat(sprintf(
+            "   - %s: min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+            names(x$ys_resid)[y],
+            digits, as.numeric(x$ys_resid[[y]]["Min."]),
+            digits, as.numeric(x$ys_resid[[y]]["Mean"]),
+            digits, as.numeric(x$ys_resid[[y]]["Median"]),
+            digits, as.numeric(x$ys_resid[[y]]["Max."])))
+        }
       } else {
         cat(" - distribution of outcome residuals:\n")
         cat("   too many variables (more than 5). Details are stored in the `ys_resid` element.")
@@ -120,18 +169,34 @@ print.nonprob_summary <- function(x,
 
     }
     if (pred) {
-      if (length(x$ys_resid) <= 5) {
+      if (length(x$ys_nons_pred) <= 5) {
         cat(" - distribution of outcome predictions (nonprob sample):\n")
-        print(do.call("rbind", x$ys_nons_pred), digits = digits)
-        cat("\n")
+        for (y in 1:length(x$ys_nons_pred)) {
+          cat(sprintf(
+            "   - %s: min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+            names(x$ys_nons_pred)[y],
+            digits, as.numeric(x$ys_nons_pred[[y]]["Min."]),
+            digits, as.numeric(x$ys_nons_pred[[y]]["Mean"]),
+            digits, as.numeric(x$ys_nons_pred[[y]]["Median"]),
+            digits, as.numeric(x$ys_nons_pred[[y]]["Max."])))
+        }
+
         cat(" - distribution of outcome predictions (prob sample):\n")
-        print(do.call("rbind", x$ys_rand_pred), digits = digits)
-        cat("\n")
+        for (y in 1:length(x$ys_rand_pred)) {
+          cat(sprintf(
+            "   - %s: min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+            names(x$ys_rand_pred)[y],
+            digits, as.numeric(x$ys_rand_pred[[y]]["Min."]),
+            digits, as.numeric(x$ys_rand_pred[[y]]["Mean"]),
+            digits, as.numeric(x$ys_rand_pred[[y]]["Median"]),
+            digits, as.numeric(x$ys_rand_pred[[y]]["Max."])))
+        }
       } else {
         cat(" - distribution of outcome predictions:\n")
         cat("   too many variables (more than 5). Details are stored in the `ys_nons_pred` and `ys_rand_pred` elements.")
       }
     }
+    cat("----------------------------------------------------------------\n")
     }
 
   invisible(x)
