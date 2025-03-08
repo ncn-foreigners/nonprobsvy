@@ -14,10 +14,51 @@
 \value{
 An object of \code{nonprob_summary} class containing:
 \itemize{
-\item \code{call}
+\item {\code{call} call}
+\item {\code{estimator} type of estimator}
+\item {\code{control} list of controls}
+\item {\code{ipw_weights} estimated IPW weights}
+\item {\code{ipw_weights_total} estimated IPW total (sum)}
+\item {\code{ps_scores_nonprob} estimated propensity scores for non-probability sample}
+\item {\code{ps_scores_prob} estimated propensity scores for probability sample}
+\item {\code{case_weights} case weights}
+\item {\code{output} estimated means and standard errors}
+\item {\code{SE} estimated standard errors of V1 and V2}
+\item {\code{confidence_interval} confidence intervals}
+\item {\code{nonprob_size} size of the non-probability sample}
+\item {\code{prob_size} size of the probability sample}
+\item {\code{pop_size} population size}
+\item {\code{pop_size_fixed} whether the population size is treated as fixed}
+\item {\code{no_prob} whether probability sample was provided}
+\item {\code{outcome} model details}
+\item {\code{selection} selection details}
+\item {\code{estimator_method} estimator method}
+\item {\code{selection_formula} selection formula}
+\item {\code{outcome_formula} outcome formula}
+\item {\code{vars_selection} whether variable selection algorithm was applied}
+\item {\code{vars_outcome} variables of the outcome models}
+\item {\code{ys_rand_pred} predicted values for the random sample (if applies)}
+\item {\code{ys_nons_pred} predicted values for the non-probability sample}
+\item {\code{ys_resid} residuals for the non-probability sample}
 }
 }
 \description{
 Summarises the \code{nonprob} class object. The summary depends on the type of
 the estimator (i.e. IPW, MI, DR)
+}
+\examples{
+
+data(admin)
+data(jvs)
+
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+strata = ~ size + nace + region, data = jvs)
+
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+target = ~ single_shift,
+svydesign = jvs_svy,
+data = admin, method_selection = "logit"
+)
+summary(ipw_est1)
+
 }

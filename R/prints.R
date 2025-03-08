@@ -134,7 +134,7 @@ print.nonprob_summary <- function(x,
         digits, as.numeric(x$ps_scores_nonprob["Median"]),
         digits, as.numeric(x$ps_scores_nonprob["Max."])))
 
-      if (!is.null(x$ps_scores_prob)) {
+      if (!x$no_prob) {
         cat(" - distribution of IPW probabilities (prob sample):\n")
         cat(sprintf(
           "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
@@ -181,16 +181,19 @@ print.nonprob_summary <- function(x,
             digits, as.numeric(x$ys_nons_pred[[y]]["Max."])))
         }
 
-        cat(" - distribution of outcome predictions (prob sample):\n")
-        for (y in 1:length(x$ys_rand_pred)) {
-          cat(sprintf(
-            "   - %s: min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
-            names(x$ys_rand_pred)[y],
-            digits, as.numeric(x$ys_rand_pred[[y]]["Min."]),
-            digits, as.numeric(x$ys_rand_pred[[y]]["Mean"]),
-            digits, as.numeric(x$ys_rand_pred[[y]]["Median"]),
-            digits, as.numeric(x$ys_rand_pred[[y]]["Max."])))
+        if (!x$no_prob) {
+          cat(" - distribution of outcome predictions (prob sample):\n")
+          for (y in 1:length(x$ys_rand_pred)) {
+            cat(sprintf(
+              "   - %s: min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
+              names(x$ys_rand_pred)[y],
+              digits, as.numeric(x$ys_rand_pred[[y]]["Min."]),
+              digits, as.numeric(x$ys_rand_pred[[y]]["Mean"]),
+              digits, as.numeric(x$ys_rand_pred[[y]]["Median"]),
+              digits, as.numeric(x$ys_rand_pred[[y]]["Max."])))
+          }
         }
+
       } else {
         cat(" - distribution of outcome predictions:\n")
         cat("   too many variables (more than 5). Details are stored in the `ys_nons_pred` and `ys_rand_pred` elements.")

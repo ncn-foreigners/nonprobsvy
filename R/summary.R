@@ -10,9 +10,48 @@
 #'
 #' @return An object of \code{nonprob_summary} class containing:
 #' \itemize{
-#' \item \code{call}
+#' \item {\code{call} call}
+#' \item {\code{estimator} type of estimator}
+#' \item {\code{control} list of controls}
+#' \item {\code{ipw_weights} estimated IPW weights}
+#' \item {\code{ipw_weights_total} estimated IPW total (sum)}
+#' \item {\code{ps_scores_nonprob} estimated propensity scores for non-probability sample}
+#' \item {\code{ps_scores_prob} estimated propensity scores for probability sample}
+#' \item {\code{case_weights} case weights}
+#' \item {\code{output} estimated means and standard errors}
+#' \item {\code{SE} estimated standard errors of V1 and V2}
+#' \item {\code{confidence_interval} confidence intervals}
+#' \item {\code{nonprob_size} size of the non-probability sample}
+#' \item {\code{prob_size} size of the probability sample}
+#' \item {\code{pop_size} population size}
+#' \item {\code{pop_size_fixed} whether the population size is treated as fixed}
+#' \item {\code{no_prob} whether probability sample was provided}
+#' \item {\code{outcome} model details}
+#' \item {\code{selection} selection details}
+#' \item {\code{estimator_method} estimator method}
+#' \item {\code{selection_formula} selection formula}
+#' \item {\code{outcome_formula} outcome formula}
+#' \item {\code{vars_selection} whether variable selection algorithm was applied}
+#' \item {\code{vars_outcome} variables of the outcome models}
+#' \item {\code{ys_rand_pred} predicted values for the random sample (if applies)}
+#' \item {\code{ys_nons_pred} predicted values for the non-probability sample}
+#' \item {\code{ys_resid} residuals for the non-probability sample}
 #' }
 #'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit"
+#' )
+#' summary(ipw_est1)
 #'
 #' @method summary nonprob
 #' @exportS3Method
@@ -46,13 +85,12 @@ summary.nonprob <- function(object, ...) {
          prob_size = object$prob_size,
          pop_size = object$pop_size,
          pop_size_fixed = object$pop_size_fixed,
+         no_prob = is.null(object$svydesign),
          outcome = object$outcome,
          selection = object$selection,
          estimator_method = object$estimator_method,
          selection_formula = object$selection_formula,
          outcome_formula = object$outcome_formula,
-         outcome = object$outcome,
-         selection = object$selection,
          vars_selection = names(object$selection$coefficients),
          vars_outcome = lapply(object$outcome, function(x) names(x$coefficients)),
          ys_rand_pred = summary_ys_rand_pred,
