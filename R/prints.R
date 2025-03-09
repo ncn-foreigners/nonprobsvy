@@ -105,7 +105,7 @@ print.nonprob_summary <- function(x,
     cat(" - prob sample size: none; population totals were provided\n")
   }
 
-  cat(" - population size: ", as.integer(x$pop_size), " (", tolower(x$pop_size_fixed), ")\n", sep = "")
+  cat(" - population size: ", as.integer(x$pop_size), " (fixed: ", tolower(x$pop_size_fixed), ")\n", sep = "")
 
   model_info <- switch(x$estimator,
                        "mi" = '"outcome"',

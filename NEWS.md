@@ -108,7 +108,7 @@ A nonprob_summary object
  - estimator type: mass imputation
  - nonprob sample size: 693011 (69.3%)
  - prob sample size: 1000 (0.1%)
- - population size: 1000000 (false)
+ - population size: 1000000 (fixed: false)
  - detailed information about models are stored in list element(s): "outcome"
 ----------------------------------------------------------------
  - distribution of outcome residuals:
