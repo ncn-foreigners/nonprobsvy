@@ -42,7 +42,6 @@ nonprobsvy News and Updates
     `control_inference=control_inf(vars_combine=FALSE)`. Note that this
     behaviour is assumed independently from variable selection.
 
-
 ### Features
 
 -   two additional datasets have been included: `jvs` (Job Vacancy
@@ -54,15 +53,16 @@ nonprobsvy News and Updates
     totals of the variables based on the weighted weights between the
     non-probability and probability samples.
 -   citation file added.
--   new generic methods added: 
-    - `weights` -- returns IPW weights
+-   new generic methods added:
+    -   `weights` -- returns IPW weights
 -   new functions added and exported:
     -   `method_ps` -- for modelling propensity score
     -   `method_glm` -- for modelling y using `glm` function
     -   `method_nn` -- for the NN method
     -   `method_pmm` -- for the PMM method
     -   `method_npar` -- for the non-parametric method
--   new `print.nonprob`, `summary.nonprob` and `print.nonprob_summary` methods, i.e.
+-   new `print.nonprob`, `summary.nonprob` and `print.nonprob_summary`
+    methods, i.e.
 
 ``` r
 > result_mi
@@ -98,6 +98,29 @@ A nonprob object
  - selected estimators:
    - variable y1: 2.95 (se=0.04, ci=(2.87, 3.03))
    - variable y2: 1.58 (se=0.03, ci=(1.51, 1.64))
+```
+
+``` r
+> summary(result_mi) |> print(digits=2)
+A nonprob_summary object
+ - call: nonprob(data = subset(population, flag_bd1 == 1), outcome = y1 + 
+    y2 ~ x1 + x2, svydesign = sample_prob)
+ - estimator type: mass imputation
+ - nonprob sample size: 693011 (69.3%)
+ - prob sample size: 1000 (0.1%)
+ - population size: 1000000 (false)
+ - detailed information about models are stored in list element(s): "outcome"
+----------------------------------------------------------------
+ - distribution of outcome residuals:
+   - y1: min: -4.79; mean: 0.00; median: 0.00; max: 4.54
+   - y2: min: -4.96; mean: -0.00; median: -0.07; max: 12.25
+ - distribution of outcome predictions (nonprob sample):
+   - y1: min: -2.72; mean: 3.18; median: 3.04; max: 16.28
+   - y2: min: -1.55; mean: 1.81; median: 1.58; max: 13.92
+ - distribution of outcome predictions (prob sample):
+   - y1: min: -0.46; mean: 2.95; median: 2.84; max: 10.31
+   - y2: min: -0.58; mean: 1.58; median: 1.39; max: 7.87
+----------------------------------------------------------------
 ```
 
 ### Bugfixes
