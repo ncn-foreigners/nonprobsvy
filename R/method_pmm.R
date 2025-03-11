@@ -1,10 +1,9 @@
 #' Mass imputation using predictive mean matching method
 #'
-#' \loadmathjax
 #'
 #' @description
-#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability) based on predicted values from model \mjseqn{\boldsymbol{x}_i} based
-#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \mjseqn{S_B} sample.
+#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_A} (nonprobability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
+#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_B} sample.
 #'
 #' This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
 #'
@@ -23,36 +22,36 @@
 #'
 #' In the package we support two types of matching:
 #'
-#' 1. \mjseqn{\hat{y} - \hat{y}} matching (default; `control_out(pmm_match_type = 1)`).
-#' 2. \mjseqn{\hat{y} - y} matching (`control_out(pmm_match_type = 2)`).
+#' 1. \eqn{\hat{y} - \hat{y}} matching (default; `control_out(pmm_match_type = 1)`).
+#' 2. \eqn{\hat{y} - y} matching (`control_out(pmm_match_type = 2)`).
 #'
 #' Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 
-#' (a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as `var_nonprob` in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
+#' (a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as `var_nonprob` in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
 #' Chlebicki et al. (2025, Algorithm 2). It is not proved to be consistent but with good finite population properties.
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \mjseqn{n_A} units from \mjseqn{S_A} with replacement to create \mjseqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-#' 2. Estimate regression model \mjseqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \mjseqn{S_{A}'} from step 1.
-#' 3. Compute \mjseqn{\hat{\nu}'(i,t)} for \mjseqn{t=1,\dots,k, i\in S_{B}} using estimated \mjseqn{m(\boldsymbol{x}', \cdot)} and \mjseqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
-#' 4. Compute \mjseqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \mjseqn{Y} values from \mjseqn{S_{A}'}.
-#' 5. Repeat steps 1-4 \mjseqn{M} times (we set (hard-coded) \mjseqn{M=50} in our code).
-#' 6. Estimate \mjseqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
+#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+#' 2. Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1.
+#' 3. Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{B}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
+#' 4. Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{A}'}.
+#' 5. Repeat steps 1-4 \eqn{M} times (we set (hard-coded) \eqn{M=50} in our code).
+#' 6. Estimate \eqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
 #'
-#' (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as `var_prob` in the result)
+#' (b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as `var_prob` in the result)
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
 #'
-#' \mjsdeqn{
+#' \deqn{
 #' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 #' \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 #' }
 #'
-#' Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+#' Note that \eqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 #'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample

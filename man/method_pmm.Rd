@@ -68,8 +68,8 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability) based on predicted values from model \mjseqn{\boldsymbol{x}_i} based
-either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \mjseqn{S_B} sample.
+Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_A} (nonprobability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
+either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample.
 
 This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
 
@@ -83,43 +83,41 @@ variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=contr
 }
 }
 \details{
-\loadmathjax
-
 Matching
 
 In the package we support two types of matching:
 \enumerate{
-\item \mjseqn{\hat{y} - \hat{y}} matching (default; \code{control_out(pmm_match_type = 1)}).
-\item \mjseqn{\hat{y} - y} matching (\code{control_out(pmm_match_type = 2)}).
+\item \eqn{\hat{y} - \hat{y}} matching (default; \code{control_out(pmm_match_type = 1)}).
+\item \eqn{\hat{y} - y} matching (\code{control_out(pmm_match_type = 2)}).
 }
 
 Analytical variance
 
 The variance of the mean is estimated based on the following approach
-(a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as \code{var_nonprob} in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
+(a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as \code{var_nonprob} in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
 Chlebicki et al. (2025, Algorithm 2). It is not proved to be consistent but with good finite population properties.
 This bootstrap can be applied using \code{control_inference(nn_exact_se=TRUE)} and
 can be summarized as follows:
 \enumerate{
-\item Sample \mjseqn{n_A} units from \mjseqn{S_A} with replacement to create \mjseqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-\item Estimate regression model \mjseqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \mjseqn{S_{A}'} from step 1.
-\item Compute \mjseqn{\hat{\nu}'(i,t)} for \mjseqn{t=1,\dots,k, i\in S_{B}} using estimated \mjseqn{m(\boldsymbol{x}', \cdot)} and \mjseqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
-\item Compute \mjseqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \mjseqn{Y} values from \mjseqn{S_{A}'}.
-\item Repeat steps 1-4 \mjseqn{M} times (we set (hard-coded) \mjseqn{M=50} in our code).
-\item Estimate \mjseqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as \code{var_nonprob}.
+\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+\item Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1.
+\item Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{B}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
+\item Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{A}'}.
+\item Repeat steps 1-4 \eqn{M} times (we set (hard-coded) \eqn{M=50} in our code).
+\item Estimate \eqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as \code{var_nonprob}.
 }
 
-(b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as \code{var_prob} in the result)
+(b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as \code{var_prob} in the result)
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
 
-\mjsdeqn{
+\deqn{
 \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 }
 
-Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+Note that \eqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 }
 \examples{
 
