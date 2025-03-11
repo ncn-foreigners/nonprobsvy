@@ -6,16 +6,15 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Inference Based on Non-Probability Samples • nonprobsvy</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="katex-auto.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Inference Based on Non-Probability Samples">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><link href="deps/KaTex-0.16.10/katex.min.css" rel="stylesheet">
+<script src="deps/KaTex-0.16.10/katex.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Inference Based on Non-Probability Samples">
 <meta name="description" content="Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. The package implements various methods such as inverse probability (propensity score) weighting, mass imputation and doubly robust approach. Details can be found in: Chen et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Yang et al. (2020) &lt;doi:10.1111/rssb.12354&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Yang et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt; and Wu (2022) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;.">
 <meta property="og:description" content="Statistical inference with non-probability samples when auxiliary information from external sources such as probability samples or population totals or means is available. The package implements various methods such as inverse probability (propensity score) weighting, mass imputation and doubly robust approach. Details can be found in: Chen et al. (2020) &lt;doi:10.1080/01621459.2019.1677241&gt;, Yang et al. (2020) &lt;doi:10.1111/rssb.12354&gt;, Kim et al. (2021) &lt;doi:10.1111/rssa.12696&gt;, Yang et al. (2021) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm&gt; and Wu (2022) &lt;https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm&gt;.">
 <meta property="og:image" content="https://ncn-foreigners.github.io/nonprobsvy/logo.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -96,7 +95,7 @@
 <div class="section level2">
 <h2 id="basic-idea">Basic idea<a class="anchor" aria-label="anchor" href="#basic-idea"></a>
 </h2>
-<p>Consider the following setting where two samples are available: non-probability (denoted as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_A</annotation></semantics></math> ) and probability (denoted as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>B</mi></msub><annotation encoding="application/x-tex">S_B</annotation></semantics></math>) where set of auxiliary variables (denoted as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\boldsymbol{X}</annotation></semantics></math>) is available for both sources while <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐝</mi><annotation encoding="application/x-tex">\boldsymbol{d}</annotation></semantics></math> (or <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\boldsymbol{w}</annotation></semantics></math>) is present only in probability sample.</p>
+<p>Consider the following setting where two samples are available: non-probability (denoted as <span class="math inline">S_A</span> ) and probability (denoted as <span class="math inline">S_B</span>) where set of auxiliary variables (denoted as <span class="math inline">\boldsymbol{X}</span>) is available for both sources while <span class="math inline">Y</span> and <span class="math inline">\boldsymbol{d}</span> (or <span class="math inline">\boldsymbol{w}</span>) is present only in probability sample.</p>
 <table class="table">
 <colgroup>
 <col width="20%">
@@ -108,56 +107,56 @@
 <thead><tr class="header">
 <th>Sample</th>
 <th align="right"></th>
-<th align="center">Auxiliary variables <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\boldsymbol{X}</annotation></semantics></math>
+<th align="center">Auxiliary variables <span class="math inline">\boldsymbol{X}</span>
 </th>
-<th align="center">Target variable <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+<th align="center">Target variable <span class="math inline">Y</span>
 </th>
-<th align="center">Design (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐝</mi><annotation encoding="application/x-tex">\boldsymbol{d}</annotation></semantics></math>) or calibrated (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\boldsymbol{w}</annotation></semantics></math>) weights</th>
+<th align="center">Design (<span class="math inline">\boldsymbol{d}</span>) or calibrated (<span class="math inline">\boldsymbol{w}</span>) weights</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_A</annotation></semantics></math> (non-probability)</td>
+<span class="math inline">S_A</span> (non-probability)</td>
 <td align="right">1</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
 </tr>
 <tr class="even">
 <td></td>
 <td align="right">…</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
 </tr>
 <tr class="odd">
 <td></td>
-<td align="right"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>A</mi></msub><annotation encoding="application/x-tex">n_A</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="right"><span class="math inline">n_A</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
 </tr>
 <tr class="even">
 <td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>B</mi></msub><annotation encoding="application/x-tex">S_B</annotation></semantics></math> (probability)</td>
-<td align="right"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>A</mi></msub><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_A+1</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<span class="math inline">S_B</span> (probability)</td>
+<td align="right"><span class="math inline">n_A+1</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 </tr>
 <tr class="odd">
 <td></td>
 <td align="right">…</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 </tr>
 <tr class="even">
 <td></td>
-<td align="right"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>A</mi></msub><mo>+</mo><msub><mi>n</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">n_A+n_B</annotation></semantics></math></td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="right"><span class="math inline">n_A+n_B</span></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 <td align="center">?</td>
-<td align="center"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>✓</mi><annotation encoding="application/x-tex">\checkmark</annotation></semantics></math></td>
+<td align="center"><span class="math inline">\checkmark</span></td>
 </tr>
 </tbody>
 </table>
@@ -165,10 +164,10 @@
 <div class="section level2">
 <h2 id="basic-functionalities">Basic functionalities<a class="anchor" aria-label="anchor" href="#basic-functionalities"></a>
 </h2>
-<p>Suppose <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math> is the target variable, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\boldsymbol{X}</annotation></semantics></math> is a matrix of auxiliary variables, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math> is the inclusion indicator. Then, if we are interested in estimating the mean <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>τ</mi><mo accent="true">‾</mo></mover><mi>Y</mi></msub><annotation encoding="application/x-tex">\bar{\tau}_Y</annotation></semantics></math> or the sum <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mi>Y</mi></msub><annotation encoding="application/x-tex">\tau_Y</annotation></semantics></math> of the of the target variable given the observed data set <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>,</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo>,</mo><msub><mi>R</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_k, \boldsymbol{x}_k, R_k)</annotation></semantics></math>, we can approach this problem with the possible scenarios:</p>
+<p>Suppose <span class="math inline">Y</span> is the target variable, <span class="math inline">\boldsymbol{X}</span> is a matrix of auxiliary variables, <span class="math inline">R</span> is the inclusion indicator. Then, if we are interested in estimating the mean <span class="math inline">\bar{\tau}_Y</span> or the sum <span class="math inline">\tau_Y</span> of the of the target variable given the observed data set <span class="math inline">(y_k, \boldsymbol{x}_k, R_k)</span>, we can approach this problem with the possible scenarios:</p>
 <ul>
-<li>unit-level data is available for the non-probability sample <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_{A}</annotation></semantics></math>, i.e. <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>,</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_{k}, \boldsymbol{x}_{k})</annotation></semantics></math> is available for all units <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><msub><mi>S</mi><mi>A</mi></msub></mrow><annotation encoding="application/x-tex">k \in S_{A}</annotation></semantics></math>, and population-level data is available for <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐱</mi><mn>1</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>𝐱</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}</annotation></semantics></math>, denoted as <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><msub><mi>x</mi><mn>1</mn></msub></msub><mo>,</mo><msub><mi>τ</mi><msub><mi>x</mi><mn>2</mn></msub></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>τ</mi><msub><mi>x</mi><mi>p</mi></msub></msub></mrow><annotation encoding="application/x-tex">\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}</annotation></semantics></math> and population size <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),</li>
-<li>unit-level data is available for the non-probability sample <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_A</annotation></semantics></math> and the probability sample <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>B</mi></msub><annotation encoding="application/x-tex">S_B</annotation></semantics></math>, i.e. <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>,</mo><msub><mi>𝐱</mi><mi>k</mi></msub><mo>,</mo><msub><mi>R</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_k, \boldsymbol{x}_k, R_k)</annotation></semantics></math> is determined by the data. is determined by the data: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>k</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">R_k=1</annotation></semantics></math> if <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><msub><mi>S</mi><mi>A</mi></msub></mrow><annotation encoding="application/x-tex">k \in S_A</annotation></semantics></math> otherwise <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>k</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">R_k=0</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>k</mi></msub><annotation encoding="application/x-tex">y_k</annotation></semantics></math> is observed only for sample <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_A</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\boldsymbol{x}_k</annotation></semantics></math> is observed in both in both <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>A</mi></msub><annotation encoding="application/x-tex">S_A</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>B</mi></msub><annotation encoding="application/x-tex">S_B</annotation></semantics></math>,</li>
+<li>unit-level data is available for the non-probability sample <span class="math inline">S_{A}</span>, i.e. <span class="math inline">(y_{k}, \boldsymbol{x}_{k})</span> is available for all units <span class="math inline">k \in S_{A}</span>, and population-level data is available for <span class="math inline">\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}</span>, denoted as <span class="math inline">\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}</span> and population size <span class="math inline">N</span> is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),</li>
+<li>unit-level data is available for the non-probability sample <span class="math inline">S_A</span> and the probability sample <span class="math inline">S_B</span>, i.e. <span class="math inline">(y_k, \boldsymbol{x}_k, R_k)</span> is determined by the data. is determined by the data: <span class="math inline">R_k=1</span> if <span class="math inline">k \in S_A</span> otherwise <span class="math inline">R_k=0</span>, <span class="math inline">y_k</span> is observed only for sample <span class="math inline">S_A</span> and <span class="math inline">\boldsymbol{x}_k</span> is observed in both in both <span class="math inline">S_A</span> and <span class="math inline">S_B</span>,</li>
 </ul>
 <div class="section level3">
 <h3 id="when-unit-level-data-is-available-for-non-probability-survey-only">When unit-level data is available for non-probability survey only<a class="anchor" aria-label="anchor" href="#when-unit-level-data-is-available-for-non-probability-survey-only"></a>
