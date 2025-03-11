@@ -1,8 +1,5 @@
 #' Mass imputation using nearest neighbours matching method
 #'
-#' \loadmathjax
-#'
-#' @import mathjaxr
 #' @importFrom stats update
 #' @importFrom survey svymean
 #' @importFrom stats weighted.mean
@@ -11,50 +8,50 @@
 #'
 #' @description Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
-#' Euclidean distance for matching units from \mjseqn{S_A} (nonprobability) to \mjseqn{S_B} (probability).
-#' Estimation of the mean is done using \mjseqn{S_B} sample.
+#' Euclidean distance for matching units from \eqn{S_A} (nonprobability) to \eqn{S_B} (probability).
+#' Estimation of the mean is done using \eqn{S_B} sample.
 #'
 #'
 #' @details Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 #'
-#' (a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as `var_nonprob` in the result)
+#' (a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as `var_nonprob` in the result)
 #'
 #' This may be estimated using
 #'
-#' \mjsdeqn{
+#' \deqn{
 #' \hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i)
 #' }
 #'
-#' where \mjseqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
-#' we currently estimate using \mjseqn{n_A/N} (constant) and \mjseqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
-#' estimated using based on the average of \mjseqn{(y_i - y_i^*)^2}.
+#' where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
+#' we currently estimate using \eqn{n_A/N} (constant) and \eqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
+#' estimated using based on the average of \eqn{(y_i - y_i^*)^2}.
 #'
 #' Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 #' (without assuming that it is consistent) but with good finite population properties.
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \mjseqn{n_A} units from \mjseqn{S_A} with replacement to create \mjseqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-#' 2. Match units from \mjseqn{S_B} to \mjseqn{S_A'} to obtain predictions \mjseqn{y^*}=\mjseqn{{k}^{-1}\sum_{k}y_k}.
-#' 3. Estimate \mjseqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
-#' 4. Repeat steps 1-3 \mjseqn{M} times (we set \mjseqn{M=50} in our simulations; this is hard-coded).
-#' 5. Estimate \mjseqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
+#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+#' 2. Match units from \eqn{S_B} to \eqn{S_A'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
+#' 3. Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
+#' 4. Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).
+#' 5. Estimate \eqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
 #'
 #'
-#' (b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as `var_prob` in the result)
+#' (b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as `var_prob` in the result)
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
 #'
-#' \mjsdeqn{
+#' \deqn{
 #' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 #' \frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j}
 #' }
 #'
-#'where \mjseqn{y^*_i} and \mjseqn{y_j^*} are values imputed imputed as an average
-#' of \mjseqn{k}-nearest neighbour, i.e. \mjseqn{{k}^{-1}\sum_{k}y_k}. Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+#'where \eqn{y^*_i} and \eqn{y_j^*} are values imputed imputed as an average
+#' of \eqn{k}-nearest neighbour, i.e. \eqn{{k}^{-1}\sum_{k}y_k}. Note that \eqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 #'
 #'
 #' @param y_nons target variable from non-probability sample

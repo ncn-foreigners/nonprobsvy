@@ -68,36 +68,34 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator using loess via \code{stats::loess}.
-Estimation of the mean is done using the \mjseqn{S_B} probability sample.
+Estimation of the mean is done using the \eqn{S_B} probability sample.
 }
 \details{
-\loadmathjax
-
 Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-(a) non-probability part  (\mjseqn{S_A} with size \mjseqn{n_A}; denoted as \code{var_nonprob} in the result)
+(a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as \code{var_nonprob} in the result)
 
-\mjsdeqn{
+\deqn{
 \hat{V}_1 = \frac{1}{N^2} \sum_{i=1}^{n_A} \left\lbrace\hat{g}_B(\boldsymbol{x}_i)\right\rbrace^{2} \hat{e}_i^2,
 }
 
-where \mjseqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \mjseqn{\hat{g}_B(\boldsymbol{x}_i) = \left\lbrace \pi_B(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
-various ways. In the package we estimate \mjseqn{\hat{g}_B(\boldsymbol{x}_i)} using \mjseqn{\pi_B(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
+where \eqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \eqn{\hat{g}_B(\boldsymbol{x}_i) = \left\lbrace \pi_B(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
+various ways. In the package we estimate \eqn{\hat{g}_B(\boldsymbol{x}_i)} using \eqn{\pi_B(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
 we currently support this using stats::loess\code{with}"gaussian"` family.
 
-(b) probability part (\mjseqn{S_B} with size \mjseqn{n_B}; denoted as \code{var_prob} in the result)
+(b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as \code{var_prob} in the result)
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
 
-\mjsdeqn{
+\deqn{
 \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{\hat{m}(x_i)}{\pi_i} \frac{\hat{m}(x_j)}{\pi_j}.
 }
 
-Note that \mjseqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
+Note that \eqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 }
 \examples{
 
