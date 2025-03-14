@@ -123,6 +123,8 @@ expect_equal(
 
 # unit-level data ---------------------------------------------------------
 
+### if population totals are presented then they should be equal the gee h=1 method when unit-level data are provided
+
 expect_equal(
   nonprob(
     selection = ~region + private + nace + size,
@@ -141,3 +143,36 @@ expect_equal(
     method_selection = "logit")$output$mean
 )
 
+expect_equal(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "logit")$output,
+  structure(list(mean = 0.72236278190985, SE = 0.042077108910903),
+            row.names = "single_shift", class = "data.frame")
+)
+
+expect_equal(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "probit")$output,
+  structure(list(mean = 0.723953845426239, SE = 0.0669519861228996),
+            row.names = "single_shift", class = "data.frame")
+)
+
+## this returns erroneous SE
+expect_equal(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "cloglog")$output,
+  structure(list(mean = 0.722150707253752, SE = 5.31130667324335),
+            row.names = "single_shift", class = "data.frame")
+)
