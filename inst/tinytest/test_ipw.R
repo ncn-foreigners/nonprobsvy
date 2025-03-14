@@ -122,3 +122,22 @@ expect_equal(
 )
 
 # unit-level data ---------------------------------------------------------
+
+expect_equal(
+  nonprob(
+    selection = ~region + private + nace + size,
+  target = ~single_shift,
+  pop_size = pop_totals[1],
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee"))$output$mean,
+
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    pop_totals = pop_totals,
+    data = admin,
+    method_selection = "logit")$output$mean
+)
+

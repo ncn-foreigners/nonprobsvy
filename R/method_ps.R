@@ -22,12 +22,12 @@
 #'   \item{make_link_inv_der}{first derivative of the the inverse link function}
 #'   \item{make_link_inv_rev}{TBA}
 #'   \item{make_link_inv_rev_der}{TBA}
-#'   \item{variance_covariance1}{TBA}
-#'   \item{variance_covariance2}{TBA}
-#'   \item{b_vec_ipw}{TBA}
-#'   \item{b_vec_dr}{TBA}
-#'   \item{t_vec}{TBA}
-#'   \item{var_nonprob}{TBA}
+#'   \item{variance_covariance1}{for the IPW estimator: variance component for the non-probability sample}
+#'   \item{variance_covariance2}{for the IPW estimator: variance component for the probability sample}
+#'   \item{b_vec_ipw}{for the IPW estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.2, eq. (9)-(10); sec 4.1)}
+#'   \item{b_vec_dr}{for the DR estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.3., eq. (14); sec 4.1)}
+#'   \item{t_vec}{for the DR estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.3., eq. (14); sec 4.1)}
+#'   \item{var_nonprob}{for the DR estimator: ???}
 #'   \item{link}{name of the selected link function for the PS model (character)}
 #'   \item{model}{model type (character)}
 #' }

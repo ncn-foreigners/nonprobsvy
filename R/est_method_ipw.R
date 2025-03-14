@@ -89,9 +89,7 @@ u_theta <- function(R,
                     weights,
                     method_selection,
                     gee_h_fun,
-                    N = NULL,
-                    pop_totals = NULL,
-                    pop_size = NULL) {
+                    pop_totals = NULL) {
 
   method <- switch(method_selection,
                    "logit" = method_ps("logit"),
@@ -110,7 +108,6 @@ u_theta <- function(R,
     R_rand <- 1 - R
     ps <- as.vector(ps)
     N_nons <- sum(1 / ps)
-    weights_sum <- sum(weights)
 
     # "1" = t(X0[loc_nons,]) %*% (1/ps[loc_nons]) - t(X0[loc_rand,]) %*% weights[loc_rand],
     # "2" = c(apply(X0 * R * weights - X0 * R_rand * ps * weights, 2, sum))
@@ -132,7 +129,6 @@ u_theta_der <- function(R,
                         weights,
                         method_selection,
                         gee_h_fun,
-                        N = NULL,
                         pop_totals = NULL) {
 
   method <- switch(method_selection,
@@ -155,7 +151,6 @@ u_theta_der <- function(R,
     ps <- as.vector(ps)
     N_nons <- sum(1 / ps)
     R_rand <- 1 - R
-    weights_sum <- sum(weights)
 
     # "1" = t(X0[loc_nons, ]) %*% weights[loc_nons] %*% t(inv_link_rev(eta)[loc_nons]) %*% X0[loc_nons, ],
     # "2" =
@@ -182,8 +177,7 @@ theta_h_estimation <- function(R,
                                nleqslv_global,
                                nleqslv_xscalm,
                                start = NULL,
-                               pop_totals = NULL,
-                               pop_means = NULL) {
+                               pop_totals = NULL) {
 
   if (is.null(start)) start <- rep(0, ncol(X))
 
@@ -484,7 +478,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       )
     }
 
-    make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights, weights_sum) {
+    make_t_comp <- function(X, ps, psd, b, y_rand, y_nons, gee_h_fun, N, method_selection, weights) {
 
       method <- switch(method_selection,
                        "logit" = method_ps("logit"),
@@ -505,7 +499,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
     }
 
     make_var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, gee_h_fun, method_selection,
-                                 weights = weights, weights_sum, pop_totals = NULL) {
+                                 weights = weights, pop_totals = NULL) {
 
       method <- switch(method_selection,
                        "logit" = method_ps("logit"),

@@ -80,7 +80,6 @@ nonprob_ipw <- function(selection,
 
     ps_rand <- svydesign$prob
     weights_rand <- 1 / ps_rand
-    weights_sum <- sum(weights_rand, weights)
 
   } else {
 

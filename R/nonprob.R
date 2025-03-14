@@ -149,6 +149,7 @@ nonprob <- function(data,
   } else if (!is.null(pop_totals)) {
     pop_size <- unname(pop_totals["(Intercept)"])
   } else {
+    ## estimated population size (we may consider for future to use fpc of the svydesing2 object)
     pop_size <- sum(weights(svydesign))
   }
 
