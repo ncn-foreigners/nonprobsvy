@@ -55,6 +55,7 @@ nonprobsvy News and Updates
 -   citation file added.
 -   new generic methods added:
     -   `weights` -- returns IPW weights
+    -   `update` -- allows to update the `nonprob` class object
 -   new functions added and exported:
     -   `method_ps` -- for modelling propensity score
     -   `method_glm` -- for modelling y using `glm` function

@@ -1,275 +1,80 @@
-#
-# # Load test data
-# data(jvs)
-# data(admin)
-#
-# # create objects ----------------------------------------------------------
-#
-# # Setup survey design
-# expect_silent(
-#   jvs_svy <- svydesign(
-#     ids = ~1,
-#     weights = ~weight,
-#     strata = ~size + nace + region,
-#     data = jvs)
-# )
-#
-# # IPW estimator
-# expect_silent(
-#   ipw_result <- nonprob(
-#     selection = ~region + private + nace + size,
-#     target = ~single_shift,
-#     svydesign = jvs_svy,
-#     data = admin,
-#     method_selection = "logit")
-# )
-#
-# # MI Estimator
-#
-# expect_silent(
-#   mi_result <- nonprob(
-#     outcome = single_shift ~ region + private + nace + size,
-#     svydesign = jvs_svy,
-#     data = admin,
-#     method_outcome = "glm",
-#     family_outcome = "binomial"
-#   )
-# )
-#
-# # DR estimator
-#
-# expect_silent(
-#   dr_result <- nonprob(
-#     selection = ~region + private + nace + size,
-#     outcome = single_shift ~ region + private + nace + size,
-#     svydesign = jvs_svy,
-#     data = admin,
-#     method_selection = "logit",
-#     method_outcome = "glm",
-#     family_outcome = "binomial"
-#   )
-# )
-#
-#
-#
-# # methods for the IPW -----------------------------------------------------
-#
-#
-# # expect_silent(
-# #   summary(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   nobs(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   pop_size(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   residuals(ipw_result)
-# # )
-# # #
-# # expect_silent(
-# #   residuals(ipw_result, type = "pearson")
-# # )
-# #
-# # expect_silent(
-# #   residuals(ipw_result, type = "working")
-# # )
-# #
-# # expect_silent(
-# #   residuals(ipw_result, type = "deviance")
-# # )
-# #
-# # ## we should look into the pearsonSTD residuals
-# # # expect_silent(
-# # #   residuals(ipw_result, "pearsonSTD")
-# # # )
-# #
-# # expect_silent(
-# #   cooks.distance(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   hatvalues(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   logLik(ipw_result)
-# # )
-# #
-# # expect_silent(
-# #   AIC(ipw_result)
-# # )
-# # #
-# # expect_silent(
-# #   BIC(ipw_result)
-# # )
-# # #
-# # expect_silent(
-# #   confint(ipw_result)
-# # )
-# # #
-# # expect_silent(
-# #   vcov(ipw_result)
-# # )
-# # #
-# # expect_silent(
-# #   deviance(ipw_result)
-# # )
-#
-#
-# # methods for the MI ------------------------------------------------------
-#
-#
-# # expect_silent(
-# #   summary(mi_result)
-# # )
-# #
-# # expect_silent(
-# #   nobs(mi_result)
-# # )
-# #
-# # expect_silent(
-# #   pop_size(mi_result)
-# # )
-# # #
-# # expect_silent(
-# #   residuals(mi_result)
-# # )
-# #
-# # expect_silent(
-# #   residuals(mi_result, type = "pearson")
-# # )
-# # #
-# # expect_silent(
-# #   residuals(mi_result, type = "working")
-# # )
-# #
-# # expect_silent(
-# #   residuals(mi_result, type = "deviance")
-# # )
-# #
-# # ## we should look into the pearsonSTD residuals
-# # # expect_error(
-# # #   residuals(mi_result, "pearsonSTD")
-# # # )
-# #
-# # # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-# # #   expect_silent(
-# # #     cooks.distance(mi_result)
-# # #   )
-# # #   expect_silent(
-# # #     hatvalues(mi_result)
-# # #   )
-# # # }
-# #
-# # expect_silent(
-# #   logLik(mi_result)
-# # )
-# #
-# # expect_silent(
-# #   AIC(mi_result)
-# # )
-# # #
-# # expect_silent(
-# #   BIC(mi_result)
-# # )
-# # #
-# # expect_silent(
-# #   confint(mi_result)
-# # )
-# # #
-# # expect_silent(
-# #   vcov(mi_result)
-# # )
-# # #
-# # expect_silent(
-# #   deviance(mi_result)
-# # )
-# #
-#
-# # methods for the MI ------------------------------------------------------
-#
-# # expect_silent(
-# #   summary(dr_result)
-# # )
-# #
-# expect_silent(
-#   nobs(dr_result)
-# )
-#
-# expect_silent(
-#   pop_size(dr_result)
-# )
-# #
-# expect_silent(
-#   residuals(dr_result)
-# )
-#
-# expect_silent(
-#   residuals(dr_result, type = "pearson")
-# )
-# #
-# expect_silent(
-#   residuals(dr_result, type = "working")
-# )
-#
-# expect_silent(
-#   residuals(dr_result, type = "deviance")
-# )
-#
-# ## we should look into the pearsonSTD residuals
-# # expect_error(
-# #   residuals(dr_result, "pearsonSTD")
-# # )
-#
-# # if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-# #   expect_silent(
-# #     cooks.distance(dr_result)
-# #   )
-# #
-# #   expect_silent(
-# #     hatvalues(dr_result)
-# #   )
-# # }
-#
-# expect_silent(
-#   logLik(dr_result)
-# )
-#
-# expect_silent(
-#   AIC(dr_result)
-# )
-#
-# expect_silent(
-#   BIC(dr_result)
-# )
-#
-# expect_silent(
-#   confint(dr_result)
-# )
-#
-# expect_silent(
-#   vcov(dr_result)
-# )
-#
-# expect_silent(
-#   deviance(dr_result)
-# )
-#
-#
-# # methods not implemented -------------------------------------------------
-#
-# expect_error(
-#   anova(ipw_result),
-#   "The `anova` method is not implemented for the `nonprob` class"
-# )
-#
-# expect_error(
-#   plot(ipw_result),
-#   "We do not provide tools for visual assessment of the results"
-# )
-#
+source("_code_for_all_.R")
+
+ipw_est0 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    se = T)
+
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    se = F)
+
+set.seed(2025)
+ipw_est2 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    control_inference=control_inf(var_method = "bootstrap",
+                                                  num_boot = 20)
+)
+
+
+# test update --------------------------------------------------------------
+
+
+expect_equal(
+  update(ipw_est1, se = T)$output$SE,
+  0.042077108910903
+)
+
+expect_equal(
+  update(ipw_est1, method_selection = "probit")$output$mean,
+  0.723953845426239
+)
+
+expect_equal(
+  update(ipw_est2, control_inference=control_inf())$output$SE,
+  0.042077108910903
+)
+
+# test confint ------------------------------------------------------------
+
+expect_equal(
+  confint(ipw_est0),
+  structure(list(target = "single_shift", lower_bound = 0.63989316387091,
+                 upper_bound = 0.804832399948789), row.names = 1L, class = "data.frame")
+)
+
+expect_equal(
+  confint(ipw_est0, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.613979331768527,
+                 upper_bound = 0.830746232051172), row.names = 1L, class = "data.frame")
+)
+
+
+expect_equal(
+  confint(ipw_est1),
+  structure(list(target = "single_shift", lower_bound = 0.63989316387091,
+                 upper_bound = 0.804832399948789), row.names = 1L, class = "data.frame")
+)
+
+expect_equal(
+  confint(ipw_est1, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.613979331768527,
+                 upper_bound = 0.830746232051172), row.names = 1L, class = "data.frame")
+)
+
+expect_equal(
+  confint(ipw_est2, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.638949983302244,
+                 upper_bound = 0.791077693520481), row.names = 1L, class = "data.frame")
+)
+
+
+
