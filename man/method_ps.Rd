@@ -22,14 +22,14 @@ A \code{list} of functions and elements for a specific link function with the fo
 \item{make_link_inv}{inverse link function}
 \item{make_link_der}{first derivative of the link function}
 \item{make_link_inv_der}{first derivative of the the inverse link function}
-\item{make_link_inv_rev}{TBA}
-\item{make_link_inv_rev_der}{TBA}
+\item{make_link_inv_rev}{defines 1/inv_link}
+\item{make_link_inv_rev_der}{first derivative of 1/inv_link}
 \item{variance_covariance1}{for the IPW estimator: variance component for the non-probability sample}
 \item{variance_covariance2}{for the IPW estimator: variance component for the probability sample}
 \item{b_vec_ipw}{for the IPW estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.2, eq. (9)-(10); sec 4.1)}
 \item{b_vec_dr}{for the DR estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.3., eq. (14); sec 4.1)}
 \item{t_vec}{for the DR estimator: the \eqn{b} function as defined in the Chen et al. (2020, sec. 3.3., eq. (14); sec 4.1)}
-\item{var_nonprob}{for the DR estimator: ???}
+\item{var_nonprob}{for the DR estimator: non-probability component of the variance for DR estimator}
 \item{link}{name of the selected link function for the PS model (character)}
 \item{model}{model type (character)}
 }
