@@ -151,7 +151,8 @@ nonprob_dr <- function(selection,
 
     y_nons <- subset(data, select=target_vars)
     X_nons <- model.matrix(combined_vars, data)
-    X_rand <- model.matrix(combined_vars, svydesign$variables) ## if design is present
+    ## take into account information that svydesign might be not present...
+    X_rand <- model.matrix(combined_vars, svydesign$variables)
     X_all <- rbind(X_rand, X_nons)
 
     X_nons <- cbind(y_nons, X_nons[, !grepl("Intercept", colnames(X_nons)), drop=FALSE])
@@ -278,23 +279,8 @@ nonprob_dr <- function(selection,
                                 "binomial" = bias_corr_ys_rand_pred[[o]]*(1-bias_corr_ys_rand_pred[[o]]),
                                 "poisson"  = bias_corr_ys_rand_pred[[o]])
 
-            #sw.A<-sw[loc.A]
-            #m.A<-m.est[loc.A]
-            #sigmasqhat.A<-m.est[loc.A]*(1-m.est[loc.A])
-            #infl1<-  (y.AB-m.est)^2*deltaB/(piB.est^2)
-            #infl2<-  (y.AB-m.est)^2*deltaB/piB.est
-            #ve.pdr <-sum((sw.A^2-sw.A)*(m.A)^2)/(N^2)+ (sum((infl1)-2*infl2)+sum( sw.A*sigmasqhat.A  )) /(N^2)
-            #se.pdr<-sqrt(ve.pdr)
-
-            #est.pdr    <- sum( (y.AB-m.est)*deltaB/piB.est )/N+(sum(m.est*(1-deltaB)*sw ) )/N
-            #sw.A<-sw[loc.A]
-            #m.A<-m.est[loc.A]
-            #sigmasqhat<-mean( (y.AB[loc.B]-m.est[loc.B] )^2)
-            #ve.pdr <- sum((sw.A^2 - sw.A) * (m.A)^2)/(N^2) + (sum(deltaB*(1-2*piB.est )/piB.est ^2) + (N )) * sigmasqhat/(N^2)
-            #se.pdr<-sqrt(ve.pdr)
-
-
-            var_nonprob <- 0# sum(sigma_hat/pop_size^2
+            var_nonprob <- 1/pop_size^2*(sum((results_ipw$case_weights^2 - 2*results_ipw$case_weights)*(bias_corr_ys_resid[[o]]^2)) +
+                                           sum(sigma_hat*weights(svydesign_)))
 
             if (is.null(pop_totals)) {
 
