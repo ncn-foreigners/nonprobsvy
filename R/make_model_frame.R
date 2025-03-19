@@ -1,13 +1,15 @@
-# An internal function to create an object with model frames and matrices to preprocess
+#' An internal function to create an object with model frames and matrices to preprocess
 #
-# @param formula a formula for the model
-# @param data data frame
-# @param weights weights for the data
-# @param svydesign survey design object
-# @param pop_totals population totals
-#
-# @return list with model frames and matrices to preprocess
-# @noRd
+#' @param formula a formula for the model
+#' @param data data frame
+#' @param weights weights for the data
+#' @param svydesign survey design object
+#' @param pop_totals population totals
+#'
+#' @return list with model frames and matrices to preprocess
+#' @noRd
+#' @importFrom stats model.response
+#' @importFrom stats delete.response
 make_model_frame <- function(formula,
                              data,
                              weights = NULL,

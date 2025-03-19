@@ -5,6 +5,7 @@
 #' @importFrom stats update
 #' @importFrom stats qnorm
 #' @importFrom stats weighted.mean
+#' @importFrom stats var
 #' @importFrom RANN nn2
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom stats terms

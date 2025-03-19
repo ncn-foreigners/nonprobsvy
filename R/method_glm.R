@@ -3,9 +3,10 @@
 #' @importFrom stats glm.fit
 #' @importFrom stats update
 #' @importFrom stats coef
+#' @importFrom stats predict
 #' @importFrom ncvreg cv.ncvreg
 #' @importFrom survey svymean
-
+#'
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator using generalized linear
