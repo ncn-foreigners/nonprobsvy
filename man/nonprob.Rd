@@ -19,7 +19,7 @@ nonprob(
   subset = NULL,
   strata = NULL,
   case_weights = NULL,
-  na_action = NULL,
+  na_action = na.omit,
   control_selection = control_sel(),
   control_outcome = control_out(),
   control_inference = control_inf(),

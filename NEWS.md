@@ -6,64 +6,68 @@ nonprobsvy News and Updates
 
 ### Breaking changes
 
--   functions `pop.size`, `controlSel`, `controlOut` and `controlInf`
-    were renamed to `pop_size`, `control_sel`, `control_out` and
-    `control_inf` respectively.
--   function `genSimData` removed completely as it is not used anywhere
-    in the package.
--   argument `maxLik_method` renamed to `maxlik_method` in the
-    `control_sel` function.
--   `control_out` function:
-    -   `predictive_match` renamed to `pmm_match_type` to align with the
-        PMM (Predictive Mean Matching) estimator naming convention,
-        where all related parameters start with `pmm_`
--   `control_sel` function:
-    -   argument `method` removed as it was not used
-    -   argument `est_method_sel` renamed to `est_method`
-    -   argument `h` renamed to `gee_h_fun` to make this more readable
-        to the user
-    -   `start_type` now accepts only `zero` and `mle` (for `gee` models
-        only).
--   `control_inf` function:
-    -   `bias_inf` renamed to `vars_combine` and type changed to
-        `logical`. `TRUE` if variables (its levels) should be combined
-        after variable selection algorithm for the doubly robust
-        approach.
-    -   `pi_ij` -- argument removed as it is not used.
--   `nonprobsvy` class renamed to `nonprob` and all related method
-    adjusted to this change
--   functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
-    `cloglog_model_nonprobsvy` removed in the favour of more readable
-    `method_ps` function that specifies the propensity score model
--   new option `control_inference=control_inf(vars_combine=TRUE)` which
-    allows doubly robust estimator to combine variables prior estimation
-    i.e. if `selection=~x1+x2` and `y~x1+x3` then the following models
-    are fitted `selection=~x1+x2+x3` and `y~x1+x2+x3`. By default we set
-    `control_inference=control_inf(vars_combine=FALSE)`. Note that this
-    behaviour is assumed independently from variable selection.
+- functions `pop.size`, `controlSel`, `controlOut` and `controlInf`
+  were renamed to `pop_size`, `control_sel`, `control_out` and
+  `control_inf` respectively.
+- function `genSimData` removed completely as it is not used anywhere
+  in the package.
+- argument `maxLik_method` renamed to `maxlik_method` in the
+  `control_sel` function.
+- `control_out` function:
+  - `predictive_match` renamed to `pmm_match_type` to align with the
+    PMM (Predictive Mean Matching) estimator naming convention,
+    where all related parameters start with `pmm_`
+- `control_sel` function:
+  - argument `method` removed as it was not used
+  - argument `est_method_sel` renamed to `est_method`
+  - argument `h` renamed to `gee_h_fun` to make this more readable
+    to the user
+  - `start_type` now accepts only `zero` and `mle` (for `gee` models
+    only).
+- `control_inf` function:
+  - `bias_inf` renamed to `vars_combine` and type changed to
+    `logical`. `TRUE` if variables (its levels) should be combined
+    after variable selection algorithm for the doubly robust
+    approach.
+  - `pi_ij` -- argument removed as it is not used.
+- `nonprobsvy` class renamed to `nonprob` and all related method
+  adjusted to this change
+- functions `logit_model_nonprobsvy`, `probit_model_nonprobsvy` and
+  `cloglog_model_nonprobsvy` removed in the favour of more readable
+  `method_ps` function that specifies the propensity score model
+- new option `control_inference=control_inf(vars_combine=TRUE)` which
+  allows doubly robust estimator to combine variables prior estimation
+  i.e. if `selection=~x1+x2` and `y~x1+x3` then the following models
+  are fitted `selection=~x1+x2+x3` and `y~x1+x2+x3`. By default we set
+  `control_inference=control_inf(vars_combine=FALSE)`. Note that this
+  behaviour is assumed independently from variable selection.
+- argument `nonprob(weights=NULL)` replaced to `nonprob(case_weights=NULL)`
+  to stress that this refer to case weights not sampling or other weights
+  in non-probability sample
 
 ### Features
 
--   two additional datasets have been included: `jvs` (Job Vacancy
-    Survey; a probability sample survey) and `admin` (Central Job Offers
-    Database; a non-probability sample survey). The units and auxiliary
-    variables have been aligned in a way that allows the data to be
-    integrated using the methods implemented in this package.
--   a `check_balance` function was added to check the balance in the
-    totals of the variables based on the weighted weights between the
-    non-probability and probability samples.
--   citation file added.
--   new generic methods added:
-    -   `weights` -- returns IPW weights
-    -   `update` -- allows to update the `nonprob` class object
--   new functions added and exported:
-    -   `method_ps` -- for modelling propensity score
-    -   `method_glm` -- for modelling y using `glm` function
-    -   `method_nn` -- for the NN method
-    -   `method_pmm` -- for the PMM method
-    -   `method_npar` -- for the non-parametric method
--   new `print.nonprob`, `summary.nonprob` and `print.nonprob_summary`
-    methods, i.e.
+- two additional datasets have been included: `jvs` (Job Vacancy
+  Survey; a probability sample survey) and `admin` (Central Job Offers
+  Database; a non-probability sample survey). The units and auxiliary
+  variables have been aligned in a way that allows the data to be
+  integrated using the methods implemented in this package.
+- a `check_balance` function was added to check the balance in the
+  totals of the variables based on the weighted weights between the
+  non-probability and probability samples.
+- citation file added.
+- argument `na_action` with default `na.omit`
+- new generic methods added:
+  - `weights` -- returns IPW weights
+  - `update` -- allows to update the `nonprob` class object
+- new functions added and exported:
+  - `method_ps` -- for modelling propensity score
+  - `method_glm` -- for modelling y using `glm` function
+  - `method_nn` -- for the NN method
+  - `method_pmm` -- for the PMM method
+  - `method_npar` -- for the non-parametric method
+- new `print.nonprob`, `summary.nonprob` and `print.nonprob_summary`
+  methods
 
 ``` r
 > result_mi
@@ -141,8 +145,7 @@ A nonprob_summary object
 
 ### Documentation
 
--   annotation has been added that arguments such as `strata`, `subset`
-    and `na_action` are not supported for the time being.
+-   annotation has been added that argument `strata` is not supported for the time being.
 
 ### Replication materials
 

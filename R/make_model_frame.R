@@ -2,7 +2,7 @@
 #
 #' @param formula a formula for the model
 #' @param data data frame
-#' @param weights weights for the data
+#' @param weights case weights for the data
 #' @param svydesign survey design object
 #' @param pop_totals population totals
 #'

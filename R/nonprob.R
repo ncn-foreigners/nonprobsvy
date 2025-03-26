@@ -1,4 +1,5 @@
 #' @rdname nonprob
+#' @importFrom stats na.omit
 #' @export
 nonprob <- function(data,
                     selection = NULL,
@@ -14,7 +15,7 @@ nonprob <- function(data,
                     subset = NULL,
                     strata = NULL,
                     case_weights = NULL,
-                    na_action = NULL,
+                    na_action = na.omit,
                     control_selection = control_sel(),
                     control_outcome = control_out(),
                     control_inference = control_inf(),
@@ -30,8 +31,13 @@ nonprob <- function(data,
   method_outcome <- match.arg(method_outcome)
   #stopifnot("We currently support `family_outcome` with a single entry." = NROW(family_outcome) == 1)
 
+  if (!identical(na_action, na.omit)) {
+    stop("We currently support only `na_action=na.omit`.")
+  }
   data <- if (!is.data.frame(data)) data.frame(data) else data
   data <- subset(data, subset = if (is.null(subset)) TRUE else subset)
+  data <- na_action(data)
+
   case_weights <- if (is.null(case_weights)) rep(1, nrow(data)) else case_weights
 
   # Check data

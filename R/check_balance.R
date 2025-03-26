@@ -1,5 +1,9 @@
 #' @title Check the variable balance between the probability and non-probability samples
 #'
+#' @description
+#' Function compares totals for auxiliary variables specified in the `x` argument for an `object` that
+#' contains either IPW or DR estimator.
+#'
 #' @param x formula specifying variables to check
 #' @param object object of `nonprob` class
 #' @param dig number of digits for rounding (default = 2)
@@ -8,7 +12,7 @@
 #' @importFrom survey svytotal
 #' @importFrom stats setNames
 #'
-#' @return A `list` containing nonprobability totals, probability totals, and their differences
+#' @return A `list` containing totals for non-probability and probability samples and their differences
 #'
 #' @examples
 #'
@@ -121,7 +125,7 @@ check_balance.nonprob <- function(x, object, dig = 2) {
       unlist(lapply(vars, function(var) calculate_totals(var, data)))
     },
     error = function(e) {
-      stop(sprintf("Error calculating nonprobability totals: %s.", e$message))
+      stop(sprintf("Error calculating non-probability totals: %s.", e$message))
     }
   )
 

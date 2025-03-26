@@ -8,7 +8,7 @@
 #'
 #' @description Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
-#' Euclidean distance for matching units from \eqn{S_A} (nonprobability) to \eqn{S_B} (probability).
+#' Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
 #' Estimation of the mean is done using \eqn{S_B} sample.
 #'
 #'

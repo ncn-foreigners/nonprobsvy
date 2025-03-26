@@ -59,7 +59,7 @@ nobs.nonprob <- function(object,
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
 
-#' @title Extract IPW weights
+#' @title Extract the inverse probability weights
 #' @description A generic function `weights` that returns inverse probability weights (if present)
 #'
 #' @param object a `nonprob` class object
@@ -81,7 +81,7 @@ weights.nonprob <- function(object,
 #' @description
 #'
 #' The `update` method for the `nonprob` class object that allows to re-estimate
-#' a given model with changed parameter. This is in particular useful if a user
+#' a given model with changed parameters. This is in particular useful if a user
 #' would like to change method or estimate standard errors if they were not
 #' estimated in the first place.
 #'
@@ -135,10 +135,11 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
   }
 }
 
-#' @title Confidence Intervals for Model Parameters
+#' @title Confidence intervals for estimated mean
 #'
-#' @description A function that computes confidence intervals
-#' for selection model coefficients.
+#' @description A generic function that returns the confidence interval
+#' for the estimated mean. If standard errors have not been estimated, the function
+#' updates the `nonprob` object to obtain standard errors.
 #'
 #' @param object object of `nonprob` class.
 #' @param parm names of parameters for which confidence intervals are to be
