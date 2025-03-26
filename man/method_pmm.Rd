@@ -68,7 +68,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 }
 \description{
-Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_A} (nonprobability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
+Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
 either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample.
 
 This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:

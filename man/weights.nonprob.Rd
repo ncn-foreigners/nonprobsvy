@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{weights.nonprob}
 \alias{weights.nonprob}
-\title{Extract IPW weights}
+\title{Extract the inverse probability weights}
 \usage{
 \method{weights}{nonprob}(object, ...)
 }

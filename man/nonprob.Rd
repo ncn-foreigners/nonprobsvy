@@ -31,21 +31,21 @@ nonprob(
 )
 }
 \arguments{
-\item{data}{a \code{data.frame} with dataset containing the non-probability sample.}
+\item{data}{a \code{data.frame} with dataset containing the non-probability sample}
 
-\item{selection}{a \code{formula} (default \code{NULL}) for the selection (propensity) score model.}
+\item{selection}{a \code{formula} (default \code{NULL}) for the selection (propensity) score model}
 
-\item{outcome}{a \code{formula} (default \code{NULL}) for the outcome (target) model.}
+\item{outcome}{a \code{formula} (default \code{NULL}) for the outcome (target) model}
 
-\item{target}{a \code{formula} (default \code{NULL}) with target variable(s). We allow multiple target variables (e.g. \code{~y1 + y2 + y3}).}
+\item{target}{a \code{formula} (default \code{NULL}) with target variable(s). We allow multiple target variables (e.g. \code{~y1 + y2 + y3})}
 
-\item{svydesign}{an optional \code{svydesign2} class object containing a probability sample and design weights.}
+\item{svydesign}{an optional \code{svydesign2} class object containing a probability sample and design weights}
 
-\item{pop_totals}{an optional \verb{named vector} with population totals of the covariates.}
+\item{pop_totals}{an optional \verb{named vector} with population totals of the covariates}
 
-\item{pop_means}{an optional \verb{named vector} with population means of the covariates.}
+\item{pop_means}{an optional \verb{named vector} with population means of the covariates}
 
-\item{pop_size}{an optional \code{double} value with population size.}
+\item{pop_size}{an optional \code{double} value with population size}
 
 \item{method_selection}{a \code{character} (default \code{logit}) indicating the method for the propensity score link function.}
 
@@ -53,102 +53,62 @@ nonprob(
 
 \item{family_outcome}{a \code{character} (default \code{gaussian})  describing the error distribution and the link function to be used in the model. Currently supports: \code{gaussian} with the identity link, \code{poisson} and \code{binomial}.}
 
-\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process - not yet supported.}
+\item{subset}{an optional \code{vector} specifying a subset of observations to be used in the fitting process}
 
-\item{strata}{an optional \code{vector} specifying strata (not yet supported, for further development).}
+\item{strata}{an optional \code{vector} specifying strata (not yet supported, for further development)}
 
 \item{case_weights}{an optional \code{vector} of prior weights to be used in the fitting process.
 It is assumed that this vector contains frequency or analytic weights (i.e. rows of the \code{data} argument are repeated according to the values of the \code{case_weights} argument), not probability/design weights.}
 
-\item{na_action}{a function which indicates what should happen when the data contain \code{NAs} (not yet supported, for further development).}
+\item{na_action}{a function which indicates what should happen when the data contain \code{NAs} (default \code{na.omit} and it is the only method currently supported)}
 
-\item{control_selection}{a \code{list} (default \code{control_sel()} result) indicating parameters to be used when fitting the selection model for propensity scores. To change the parameters one should use the \code{control_sel()} function.}
+\item{control_selection}{a \code{list} (default \code{control_sel()} result) indicating parameters to be used when fitting the selection model for propensity scores. To change the parameters one should use the \code{control_sel()} function}
 
-\item{control_outcome}{a \code{list} (default \code{control_out()} result) indicating parameters to be used when fitting the model for the outcome variable. To change the parameters one should use the \code{control_out()} function.}
+\item{control_outcome}{a \code{list} (default \code{control_out()} result) indicating parameters to be used when fitting the model for the outcome variable. To change the parameters one should use the \code{control_out()} function}
 
-\item{control_inference}{a \code{list} (default \code{control_inf()} result) indicating parameters to be used for inference based on probability and non-probability samples. To change the parameters one should use the \code{control_inf()} function.}
+\item{control_inference}{a \code{list} (default \code{control_inf()} result) indicating parameters to be used for inference based on probability and non-probability samples. To change the parameters one should use the \code{control_inf()} function}
 
-\item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation.}
+\item{start_selection}{an optional \code{vector} with starting values for the parameters of the selection equation}
 
-\item{start_outcome}{an optional \code{vector} with starting values for the parameters of the outcome equation.}
+\item{start_outcome}{an optional \code{vector} with starting values for the parameters of the outcome equation}
 
-\item{verbose}{a numerical value (default \code{TRUE}) whether detailed information on the fitting should be presented.}
+\item{verbose}{a numerical value (default \code{TRUE}) whether detailed information on the fitting should be presented}
 
 \item{se}{Logical value (default \code{TRUE}) indicating whether to calculate and return standard error of estimated mean.}
 
-\item{...}{Additional, optional arguments.}
+\item{...}{Additional, optional arguments}
 }
 \value{
-Returns an object of class \code{c("nonprobsvy", "nonprobsvy_ipw")} in case of inverse probability weighting estimator, \code{c("nonprobsvy", "nonprobsvy_mi")} in case of mass imputation estimator, or \code{c("nonprobsvy", "nonprobsvy_dr")} in case of doubly robust estimator,
-
-of type \code{list} containing:\cr
+Returns an object of the \code{nonprob} class (it is actually a \code{list}) which contains the following elements:\cr
 \itemize{
-\item{\code{X} -- a \code{model.matrix} containing data from probability and non-probability samples if specified at a function call.}
-\item{\code{y} -- a \code{list} of vector of outcome variables if specified at a function call.}
-\item{\code{R} -- a \verb{numeric vector} indicating whether a unit belongs to the probability (0) or non-probability (1) units in the matrix X.}
-\item{\code{prob} -- a \verb{numeric vector} of estimated propensity scores for non-probability sample.}
-\item{\code{weights} -- a \code{vector} of estimated weights for non-probability sample.}
-\item{\code{control} -- a \code{list} of control functions.}
-\item{\code{output} -- an output of the model with information on the estimated population mean and standard errors.}
-\item{\code{SE} -- a \code{data.frame} with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples.}
-\item{\code{confidence_interval} -- a \code{data.frame} with confidence interval of population mean estimator.}
-\item{\code{nonprob_size} -- a scalar \verb{numeric vector} denoting the size of non-probability sample.}
-\item{\code{prob_size} -- a scalar \verb{numeric vector} denoting the size of probability sample.}
-\item{\code{pop_size} -- a scalar \verb{numeric vector} estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample).}
-\item{\code{pop_totals} -- a \verb{numeric vector} with the total values of the auxiliary variables derived from a probability sample or a \verb{numeric vector} of the total/mean values.}
+\item{\code{call} -- the call of the \code{nonprob} function}
+\item{\code{data} -- a \code{data.frame} passed from the \code{nonprob} function \code{data} argument}
+\item{\code{X} -- a \code{model.matrix} containing data from probability (first \eqn{n_{S_B}} rows) and non-probability samples (next \eqn{n_{S_B}} rows) if specified at a function call}
+\item{\code{y} -- a \code{list} of vector of outcome variables if specified at a function call}
+\item{\code{R} -- a \verb{numeric vector} indicating whether a unit belongs to the probability (0) or non-probability (1) units in the matrix X}
+\item{\code{ps_scores} -- a \verb{numeric vector} of estimated propensity scores for probability and non-probability sample}
+\item{\code{case_weights} -- a \code{vector} of case weights for non-probability sample based on the call}
+\item{\code{ipw_weights} -- a \code{vector} of inverse probability weights for non-probability sample (if applicable)}
+\item{\code{control} -- a \code{list} of control functions based on the call}
+\item{\code{output} -- a \code{data.frame} with the estimated means and standard errors for the variables specified in the \code{target} or \code{outcome} arguments}
+\item{\code{SE} -- a \code{data.frame} with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples (if applicable)}
+\item{\code{confidence_interval} -- a \code{data.frame} with confidence interval of population mean estimator}
+\item{\code{nonprob_size} -- a scalar \verb{numeric vector} denoting the size of non-probability sample}
+\item{\code{prob_size} -- a scalar \verb{numeric vector} denoting the size of probability sample}
+\item{\code{pop_size} -- a scalar \verb{numeric vector} estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
+\item{\code{pop_size_fixed} -- a \code{logical} value whether the population size was fixed (known) or estimated (unknown)}
+\item{\code{pop_totals} -- a \verb{numeric vector} with the total values of the auxiliary variables derived from a probability sample or based on the call}
+\item{\code{pop_means} -- a \verb{numeric vector} with the mean values of the auxiliary variables derived from a probability sample or based on the call}
+\item{\code{outcome} -- a \code{list} containing information about the fitting of the mass imputation model. Structure of the object is based on the \code{method_outcome} and \code{family_outcome} arguments which point to specific methods as defined by functions \verb{method_*} (if specified in the call)}
+\item{\code{selection} -- a \code{list} containing information about the fitting of the propensity score model. Structure of the object is based on the \code{method_selection} argument which point to specific methods as defined by functions \code{method_ps} (if specified in the call)}
+\item{\code{boot_sample} -- a \code{matrix} with bootstrap estimates of the target variable(s) (if specified)}
+\item{\code{svydesign} -- a \code{svydesign2} object (if specified)}
+\item{\code{ys_rand_pred} -- a \code{list} of predicted values for the target variable(s) for the probability sample (for the MI and DR estimator)}
+\item{\code{ys_nons_pred} -- a \code{list} of predicted values for the target variable(s) for the non-probability sample (for the MI and DR estimator)}
+\item{\code{ys_resid} -- a \code{list} of residuals for the target variable(s) for the non-probability sample (for the MI and DR estimator)}
 \item{\code{estimator} -- a \verb{character vector} with information what type of estimator was selected (one of \code{c("ipw", "mi", "dr")}).}
-\item{\code{outcome} -- a \code{list} containing information about the fitting of the mass imputation model, in the case of regression model the object containing the list returned by
-\code{\link[stats:glm]{stats::glm()}}, in the case of the nearest neighbour imputation the object containing list returned by \code{\link[RANN:nn2]{RANN::nn2()}}. If \code{bias_correction} in \code{\link[=control_inf]{control_inf()}} is set to \code{TRUE}, the estimation is based on
-the joint estimating equations for the \code{selection} and \code{outcome} model and therefore, the list is different from the one returned by the \code{\link[stats:glm]{stats::glm()}} function and contains elements such as
-\itemize{
-\item{\code{coefficients} -- a \verb{numeric vector} with estimated coefficients of the regression model.}
-\item{\code{std_err} -- a \verb{numeric vector} with standard errors of the estimated coefficients.}
-\item{\code{residuals} -- a \verb{numeric vector} with the response residuals.}
-\item{\code{variance_covariance} -- a \code{matrix} with the variance-covariance matrix of the coefficient estimates.}
-\item{\code{df_residual} -- a scalar \code{vector} with the degrees of freedom for residuals.}
-\item{\code{family} -- a \code{character} that specifies the error distribution and link function to be used in the model.}
-\item{\code{fitted.values} -- a \verb{numeric vector} with the predicted values of the response variable based on the fitted model.}
-\item{\code{linear.predictors} -- a \verb{numeric vector} with the linear fit on link scale.}
-\item{\code{X} -- a \code{matrix} with the design matrix (\code{model.matrix})}
-\item{\code{method} -- set on \code{glm}, since the regression method.}
-\item{\code{model_frame} -- a \code{model.matrix} of data from probability sample used for mass imputation.}
-}
-}
-In addition, if the variable selection model for the outcome variable is fitting, the list includes the
-\itemize{
-\item{\code{cve} -- the error for each value of \code{lambda}, averaged across the cross-validation folds.}
-}
-\item{\code{selection} -- a \code{list} containing information about fitting of propensity score model, such as
-\itemize{
-\item{\code{coefficients} -- a \verb{numeric vector} of coefficients.}
-\item{\code{std_err} -- a \verb{numeric vector} with standard errors of the estimated model coefficients.}
-\item{\code{residuals} -- a \verb{numeric vector} with the response residuals.}
-\item{\code{variance} -- a scalar \verb{numeric vector} the root mean square error.}
-\item{\code{fitted_values} -- a \verb{numeric vector} with the fitted mean values, obtained by transforming the linear predictors by the inverse of the link function.}
-\item{\code{link} -- the \code{link} object used.}
-\item{\code{linear_predictors} -- a \verb{numeric vector} with the linear fit on link scale.}
-\item{\code{aic} --	A version of Akaike's An Information Criterion, minus twice the maximized log-likelihood plus twice the number of parameters.}
-\item{\code{weights} -- a \verb{numeric vector} with estimated weights for non-probability sample.}
-\item{\code{prior.weights} -- a \verb{numeric vector} with the frequency weights initially supplied, a vector of 1s if none were.}
-\item{\code{est_totals} -- a \verb{numeric vector} with the estimated total values of auxiliary variables derived from a non-probability sample}.
-\item{\code{formula} -- the formula supplied.}
-\item{\code{df_residual} -- the residual degrees of freedom.}
-\item{\code{log_likelihood} -- value of log-likelihood function if \code{mle} method, in the other case \code{NA}.}
-\item{\code{cve} -- the error for each value of the \code{lambda}, averaged across the cross-validation folds for the variable selection model
-when the propensity score model is fitting. Returned only if selection of variables for the model is used.}
-\item{\code{method_selection} -- Link function, e.g. \code{logit}, \code{cloglog} or \code{probit}.}
-\item{\code{hessian} -- Hessian Gradient of the log-likelihood function from \code{mle} method}.
-\item{\code{gradient} -- Gradient of the log-likelihood function from \code{mle} method.}
-\item{\code{method} -- An estimation method for selection model, e.g. \code{mle} or \code{gee}.}
-\item{\code{prob_der} -- Derivative of the inclusion probability function for units in a non--probability sample.}
-\item{\code{prob_rand} -- Inclusion probabilities for unit from a probability sample from the \code{svydesign} object.}
-\item{\code{prob_rand_est} -- Inclusion probabilities to a non-probability sample for unit from probability sample.}
-\item{\code{prob_rand_est_der} -- Derivative of the inclusion probabilities to a non--probability sample for unit from probability sample.}
-}
-}
-\item{\code{stat} -- a \code{matrix} of the estimated population means in each bootstrap iteration.
-Returned only if a bootstrap method is used to estimate the variance and \code{keep_boot} in
-\code{\link[=control_inf]{control_inf()}} is set on \code{TRUE}.}
+\item{\code{selection_formula} -- a \code{formula} based on the \code{selection} argument (if specified)}
+\item{\code{estimator_method} -- a \verb{character vector} with information on the detailed method applied (for the \code{print} method)}
 }
 }
 \description{
@@ -157,19 +117,19 @@ Returned only if a bootstrap method is used to estimate the variance and \code{k
 The package implements state-of-the-art approaches recently proposed in the literature: Chen et al. (2020),
 Yang et al. (2020), Wu (2022) and uses the \href{https://CRAN.R-project.org/package=survey}{Lumley 2004} \code{survey} package for inference (if a reference probability sample is provided).
 
-It provides various propensity score weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour, predictive mean matching) and  doubly robust estimators (e.g. that take into account minimisation of the asymptotic bias of the population mean estimators).
+It provides various inverse probability weighting (e.g. with calibration constraints), mass imputation (e.g. nearest neighbour, predictive mean matching) and doubly robust estimators (e.g. that take into account minimisation of the asymptotic bias of the population mean estimators).
 
 The package uses the \code{survey} package functionality when a probability sample is available.
 
 All optional parameters are set to \code{NULL}. The obligatory ones include \code{data} as well as one of the following three:
 \code{selection}, \code{outcome}, or \code{target} -- depending on which method has been selected.
-In the case of \code{outcome} and \code{target} multiple \mjseqn{y} variables can be specified.
+In the case of \code{outcome} and \code{target} multiple \eqn{y} variables can be specified.
 }
 \details{
-Let \mjseqn{y} be the response variable for which we want to estimate the population mean,
-given by \mjsdeqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purpose we consider data integration
-with the following structure. Let \mjseqn{S_A} be the non-probability sample with the design matrix of covariates as
-\mjsdeqn{
+Let \eqn{y} be the response variable for which we want to estimate the population mean,
+given by \deqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purpose we consider data integration
+with the following structure. Let \eqn{S_A} be the non-probability sample with the design matrix of covariates as
+\deqn{
 \boldsymbol{X}_A =
   \begin{bmatrix}
 x_{11} & x_{12} & \cdots & x_{1p} \cr
@@ -179,7 +139,7 @@ x_{n_{A}1} & x_{n_{A}2} & \cdots & x_{n_{A}p} \cr
 \end{bmatrix}
 }
 and vector of outcome variable
-\mjsdeqn{
+\deqn{
 \boldsymbol{y} =
   \begin{bmatrix}
 y_{1} \cr
@@ -188,8 +148,8 @@ y_{2} \cr
 y_{n_{A}}.
 \end{bmatrix}
 }
-On the other hand, let \mjseqn{S_B} be the probability sample with design matrix of covariates be
-\mjsdeqn{
+On the other hand, let \eqn{S_B} be the probability sample with design matrix of covariates be
+\deqn{
 \boldsymbol{X}_B =
   \begin{bmatrix}
 x_{11} & x_{12} & \cdots & x_{1p} \cr
@@ -198,52 +158,52 @@ x_{21} & x_{22} & \cdots & x_{2p} \cr
 x_{n_{B}1} & x_{n_{B}2} & \cdots & x_{n_{B}p}. \cr
 \end{bmatrix}
 }
-Instead of a sample of units we can consider a vector of population sums in the form of \mjseqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
-\mjseqn{\frac{\tau_x}{N}}, where \mjseqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \mjseqn{S_B}.
+Instead of a sample of units we can consider a vector of population sums in the form of \eqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
+\eqn{\frac{\tau_x}{N}}, where \eqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \eqn{S_B}.
 In general we make the following assumptions:
 \enumerate{
-\item The selection indicator of belonging to non-probability sample \mjseqn{R_{i}} and the response variable \mjseqn{y_i} are independent given the set of covariates \mjseqn{\boldsymbol{x}_i}.
-\item All units have a non-zero propensity score, i.e., \mjseqn{\pi_{i}^{A} > 0} for all i.
-\item The indicator variables \mjseqn{R_{i}^{A}} and \mjseqn{R_{j}^{A}} are independent for given \mjseqn{\boldsymbol{x}_i} and \mjseqn{\boldsymbol{x}_j} for \mjseqn{i \neq j}.
+\item The selection indicator of belonging to non-probability sample \eqn{R_{i}} and the response variable \eqn{y_i} are independent given the set of covariates \eqn{\boldsymbol{x}_i}.
+\item All units have a non-zero propensity score, i.e., \eqn{\pi_{i}^{A} > 0} for all i.
+\item The indicator variables \eqn{R_{i}^{A}} and \eqn{R_{j}^{A}} are independent for given \eqn{\boldsymbol{x}_i} and \eqn{\boldsymbol{x}_j} for \eqn{i \neq j}.
 }
 
 There are three possible approaches to the problem of estimating population mean using non-probability samples:
 \enumerate{
-\item Inverse probability weighting -- The main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
+\item Inverse probability weighting -- the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 is available and therefore we can estimate the propensity score of the selection mechanism.
 The estimator has the following form:
-\mjsdeqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
+\deqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
 For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 log-likelihood function, which is given by the following formula
-\mjsdeqn{
+\deqn{
  \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{A}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{B}}d_{i}^{B}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.}
 In the literature, the main approach to modelling propensity scores is based on the logit link function.
 However, we extend the propensity score model with the additional link functions such as cloglog and probit.
 The pseudo-score equations derived from ML methods can be replaced by the idea of generalised estimating equations
 with calibration constraints defined by equations.
-\mjsdeqn{
+\deqn{
  \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_A} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_B} d_i^B \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
-Notice that for \mjseqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} We do not need a probability sample and can use a vector of population totals/means.
+Notice that for \eqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} We do not need a probability sample and can use a vector of population totals/means.
 \item Mass imputation -- This method is based on a framework where imputed values of outcome variables are created for the entire probability sample. In this case, we treat the large sample as a training data set that is used to build an imputation model.
 Using the imputed values for the probability sample and the (known) design weights,
 we can build a population mean estimator of the form:
-\mjsdeqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
+\deqn{\hat{\mu}_{MI} = \frac{1}{N^B}\sum_{i \in S_{B}} d_{i}^{B} \hat{y}_i.}
 It opens the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
 the nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.
 To this end, so-called doubly robust methods are presented that take these problems into account.
 It is a simple idea to combine propensity score and imputation models during inference, leading to the following estimator
-\mjsdeqn{\hat{\mu}_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
+\deqn{\hat{\mu}_{DR} = \frac{1}{N^A}\sum_{i \in S_A} \hat{d}_i^A (y_i - \hat{y}_i) + \frac{1}{N^B}\sum_{i \in S_B} d_i^B \hat{y}_i.}
 In addition, an approach based directly on bias minimisation has been implemented. The following formula
-\mjsdeqn{
+\deqn{
    \begin{aligned}
    bias(\hat{\mu}_{DR}) = & \mathbb{E} (\hat{\mu}_{DR} - \mu) \cr = & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (\frac{R_i^A}{\pi_i^A (\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\theta})}
    - 1 ) (y_i - \operatorname{m}(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta})) \right\rbrace \cr + & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (R_i^B d_i^B - 1) \operatorname{m}( \boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta}) \right\rbrace,
    \end{aligned}
    }
 lead us to system of equations
-\mjsdeqn{
+\deqn{
    \begin{aligned}
    J(\theta, \beta) =
    \left\lbrace
@@ -257,8 +217,8 @@ lead us to system of equations
   \end{array} \right\rbrace,
   \end{aligned}
   }
-where \mjseqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is a mass imputation (regression) model for the outcome variable and
-propensity scores \mjseqn{\pi_i^A} are estimated using a \code{logit} function for the model. As with the \code{MLE} and \code{GEE} approaches we have extended
+where \eqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is a mass imputation (regression) model for the outcome variable and
+propensity scores \eqn{\pi_i^A} are estimated using a \code{logit} function for the model. As with the \code{MLE} and \code{GEE} approaches we have extended
 this method to \code{cloglog} and \code{probit} links.
 }
 
@@ -268,15 +228,19 @@ In addition, the bootstrap approach can be used for variance estimation.
 
 The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
 In the presence of high-dimensional data, variable selection is important, because it can reduce the variability in the estimate that results from using irrelevant variables to build the model.
-Let \mjseqn{\operatorname{U}\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)} be the joint estimating function for \mjseqn{\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)}. We define the
+Let \eqn{\operatorname{U}\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)} be the joint estimating function for \eqn{\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)}. We define the
 penalized estimating functions as
-\mjsdeqn{
-  \operatorname{U}^p \left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) = \operatorname{U}\left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) - \left\lbrace \begin{array}{c}
+\deqn{
+  \operatorname{U}^p \left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) =
+  \operatorname{U}\left(\boldsymbol{\theta}, \boldsymbol{\beta}\right) -
+  \left\lbrace
+  \begin{array}{c}
   q_{\lambda_\theta}(|\boldsymbol{\theta}|) \operatorname{sgn}(\boldsymbol{\theta}) \\
-  q_{\lambda_\beta}(|\\boldsymbol{\beta}|) \operatorname{sgn}(\boldsymbol{\beta})
-  \end{array} \right\rbrace,
+  q_{\lambda_\beta}(|\boldsymbol{\beta}|) \operatorname{sgn}(\boldsymbol{\beta})
+  \end{array}
+  \right\rbrace,
   }
-where \mjseqn{\lambda_{\theta}} and \mjseqn{q_{\lambda_{\beta}}} are some smooth functions. We let \mjseqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \mjseqn{p_{\lambda}} is some penalization function.
+where \eqn{\lambda_{\theta}} and \eqn{q_{\lambda_{\beta}}} are some smooth functions. We let \eqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \eqn{p_{\lambda}} is some penalization function.
 Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
 To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=control_inf]{control_inf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=control_sel]{control_sel()}} and \code{\link[=control_out]{control_out()}}
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
@@ -333,28 +297,28 @@ svyprob <- svydesign(
 ) ## probability sample
 
 ## mass imputation estimator
-MI_res <- nonprob(
+mi_res <- nonprob(
   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
   data = nonprob_df,
   svydesign = svyprob
 )
-MI_res
+mi_res
 ## inverse probability weighted estimator
-IPW_res <- nonprob(
+ipw_res <- nonprob(
   selection = ~ x1 + x2 + x3 + x4,
   target = ~y30 + y50 + y80,
   data = nonprob_df,
   svydesign = svyprob
 )
-IPW_res
+ipw_res
 ## doubly robust estimator
-DR_res <- nonprob(
+dr_res <- nonprob(
   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
   selection = ~ x1 + x2 + x3 + x4,
   data = nonprob_df,
   svydesign = svyprob
 )
-DR_res
+dr_res
 }
 }
 \references{
@@ -398,6 +362,4 @@ estimation process of the bias minimization approach.
 }
 \author{
 Łukasz Chrostowski, Maciej Beręsewicz, Piotr Chlebicki
-
-\loadmathjax
 }

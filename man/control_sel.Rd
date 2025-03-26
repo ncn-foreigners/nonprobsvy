@@ -52,7 +52,7 @@ control_sel(
 
 \item{a_MCP}{The tuning parameter of the MCP penalty for selection model. Default is 3.}
 
-\item{lambda}{A user-specified \mjseqn{\lambda} value during variable selection model fitting.}
+\item{lambda}{A user-specified \eqn{\lambda} value during variable selection model fitting.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of \code{lambda.max}. Default is .001.}
 
@@ -88,14 +88,12 @@ List with selected parameters.
 for selection model.
 }
 \details{
-\loadmathjax
-
 Smooth function (\code{gee_h_fun}) for the generalized estimating equations (GEE) method taking the following values
 
 \itemize{
-\item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+\item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
-\item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
+\item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 }
 }
 \seealso{

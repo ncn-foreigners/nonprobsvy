@@ -70,7 +70,7 @@ print.nonprob <- function(x, digits=4,...) {
   #print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)
 }
-#' @title Print method for the `nonprob_summary` object
+#' @title Print method for the nonprob_summary object
 #'
 #' @description
 #' Print method for the `nonprob_summary` object which allows for specification

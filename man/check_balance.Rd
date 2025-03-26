@@ -14,10 +14,11 @@ check_balance(x, object, dig)
 \item{dig}{number of digits for rounding (default = 2)}
 }
 \value{
-A \code{list} containing nonprobability totals, probability totals, and their differences
+A \code{list} containing totals for non-probability and probability samples and their differences
 }
 \description{
-Check the variable balance between the probability and non-probability samples
+Function compares totals for auxiliary variables specified in the \code{x} argument for an \code{object} that
+contains either IPW or DR estimator.
 }
 \examples{
 

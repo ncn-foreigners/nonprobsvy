@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{confint.nonprob}
 \alias{confint.nonprob}
-\title{Confidence Intervals for Model Parameters}
+\title{Confidence intervals for estimated mean}
 \usage{
 \method{confint}{nonprob}(object, parm, level = 0.95, ...)
 }
@@ -20,6 +20,7 @@ computed, if missing all parameters will be considered.}
 returns a \code{data.frame} with confidence intervals for the target variables
 }
 \description{
-A function that computes confidence intervals
-for selection model coefficients.
+A generic function that returns the confidence interval
+for the estimated mean. If standard errors have not been estimated, the function
+updates the \code{nonprob} object to obtain standard errors.
 }

@@ -437,7 +437,7 @@ p2 <- exp(-0.5+0.5*(x2-2)^2)/(1+exp(-0.5+0.5*(x2-2)^2))
 flag_bd1 <- rbinom(n = N, size = 1, prob = p1)
 flag_srs <- as.numeric(1:N %in% sample(1:N, size = n))
 base_w_srs <- N/n
-population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs)
+population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs, pop_size = N)
 base_w_bd <- N/sum(population$flag_bd1)
 ```
 
@@ -445,12 +445,13 @@ Declare `svydesign` object with `survey` package
 
 ``` r
 sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs, 
-                         data = subset(population, flag_srs == 1))
+                         data = subset(population, flag_srs == 1),
+                         fpc = ~ pop_size)
 
 sample_prob
-#> Independent Sampling design (with replacement)
+#> Independent Sampling design
 #> svydesign(ids = ~1, weights = ~base_w_srs, data = subset(population, 
-#>     flag_srs == 1))
+#>     flag_srs == 1), fpc = ~pop_size)
 ```
 
 or with the `srvyr` package
@@ -498,8 +499,8 @@ result_dr
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))
-#>    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))
+#>    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))
+#>    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))
 ```
 
 Mass imputation estimator
@@ -527,8 +528,8 @@ result_mi
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))
-#>    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))
+#>    - variable y1: 2.9498 (se=0.0420, ci=(2.8675, 3.0321))
+#>    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6398))
 ```
 
 Inverse probability weighting estimator

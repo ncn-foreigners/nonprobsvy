@@ -19,15 +19,15 @@
 #' @param pmm_match_type (Only for the PMM Estimator)
 #' Indicates how to select 'closest' unit from non-probability sample for each
 #' unit in probability sample. Either \code{1} (default) or \code{2} where
-#' \code{2} is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
-#' \mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{1}
-#' is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
-#' \mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.
+#' \code{2} is matching by minimizing distance between \eqn{\hat{y}_{i}} for
+#' \eqn{i \in S_{A}} and \eqn{y_{j}} for \eqn{j \in S_{B}} and \code{1}
+#' is matching by minimizing distance between \eqn{\hat{y}_{i}} for
+#' \eqn{i \in S_{A}} and \eqn{\hat{y}_{i}} for \eqn{i \in S_{A}}.
 #' @param pmm_weights (Only for the PMM Estimator)
-#' Indicate how to weight \code{k} nearest neighbours in \mjseqn{S_{B}} to
-#' create imputed value for units in \mjseqn{S_{A}}. The default value
-#' \code{"none"} indicates that mean of \code{k} nearest \mjseqn{y}'s from
-#' \mjseqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+#' Indicate how to weight \code{k} nearest neighbours in \eqn{S_{B}} to
+#' create imputed value for units in \eqn{S_{A}}. The default value
+#' \code{"none"} indicates that mean of \code{k} nearest \eqn{y}'s from
+#' \eqn{S_{B}} should be used whereas \code{"prop_dist"} results in
 #' weighted mean of these \code{k} values where weights are inversely
 #' proportional to distance between matched values.
 #' @param pmm_k_choice (Only for the PMM Estimator) Character value indicating how \code{k} hyper-parameter

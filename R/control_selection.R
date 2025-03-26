@@ -1,7 +1,3 @@
-#' \loadmathjax
-#'
-#' @import mathjaxr
-#'
 #' @title Control parameters for the selection model
 #'
 #' @description \code{control_sel} constructs a list with all necessary control parameters
@@ -11,9 +7,9 @@
 #' Smooth function (`gee_h_fun`) for the generalized estimating equations (GEE) method taking the following values
 #'
 #' \itemize{
-#'   \item{if \code{1} then \mjseqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+#'   \item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
 #'   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
-#'   \item{if \code{2} then \mjseqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
+#'   \item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 #'   }
 #'
 #' @param est_method Method of estimation for propensity score model (`"mle"` or `"gee"`; default is `"mle"`).
@@ -27,7 +23,7 @@
 #' @param penalty The penalization function used during variables selection.
 #' @param a_SCAD The tuning parameter of the SCAD penalty for selection model. Default is 3.7.
 #' @param a_MCP The tuning parameter of the MCP penalty for selection model. Default is 3.
-#' @param lambda A user-specified \mjseqn{\lambda} value during variable selection model fitting.
+#' @param lambda A user-specified \eqn{\lambda} value during variable selection model fitting.
 #' @param lambda_min The smallest value for lambda, as a fraction of `lambda.max`. Default is .001.
 #' @param nlambda The number of `lambda` values. Default is 50.
 #' @param nfolds The number of folds for cross validation. Default is 10.

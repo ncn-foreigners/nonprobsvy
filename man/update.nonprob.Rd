@@ -18,7 +18,7 @@ returns \code{nonprob} object
 }
 \description{
 The \code{update} method for the \code{nonprob} class object that allows to re-estimate
-a given model with changed parameter. This is in particular useful if a user
+a given model with changed parameters. This is in particular useful if a user
 would like to change method or estimate standard errors if they were not
 estimated in the first place.
 }
