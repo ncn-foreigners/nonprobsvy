@@ -135,8 +135,8 @@ with the following structure. Let \eqn{S_A} be the non-probability sample with t
 x_{11} & x_{12} & \cdots & x_{1p} \cr
 x_{21} & x_{22} & \cdots & x_{2p} \cr
 \vdots & \vdots & \ddots & \vdots \cr
-x_{n_{A}1} & x_{n_{A}2} & \cdots & x_{n_{A}p} \cr
-\end{bmatrix}
+x_{n_{A1}} & x_{n_{A2}} & \cdots & x_{n_{Ap}} \cr
+\end{bmatrix},
 }
 and vector of outcome variable
 \deqn{
@@ -145,8 +145,8 @@ and vector of outcome variable
 y_{1} \cr
 y_{2} \cr
 \vdots \cr
-y_{n_{A}}.
-\end{bmatrix}
+y_{n_{A}}
+\end{bmatrix}.
 }
 On the other hand, let \eqn{S_B} be the probability sample with design matrix of covariates be
 \deqn{
@@ -155,8 +155,8 @@ On the other hand, let \eqn{S_B} be the probability sample with design matrix of
 x_{11} & x_{12} & \cdots & x_{1p} \cr
 x_{21} & x_{22} & \cdots & x_{2p} \cr
 \vdots & \vdots & \ddots & \vdots \cr
-x_{n_{B}1} & x_{n_{B}2} & \cdots & x_{n_{B}p}. \cr
-\end{bmatrix}
+x_{n_{B1}} & x_{n_{B2}} & \cdots & x_{n_{Bp}}\cr
+\end{bmatrix}.
 }
 Instead of a sample of units we can consider a vector of population sums in the form of \eqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
 \eqn{\frac{\tau_x}{N}}, where \eqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \eqn{S_B}.

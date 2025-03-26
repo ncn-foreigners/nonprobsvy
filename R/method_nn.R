@@ -21,7 +21,7 @@
 #' This may be estimated using
 #'
 #' \deqn{
-#' \hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i)
+#' \hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i),
 #' }
 #'
 #' where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
@@ -47,7 +47,7 @@
 #'
 #' \deqn{
 #' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-#' \frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j}
+#' \frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j},
 #' }
 #'
 #'where \eqn{y^*_i} and \eqn{y_j^*} are values imputed imputed as an average

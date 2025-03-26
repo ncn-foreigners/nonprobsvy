@@ -85,7 +85,7 @@ The variance of the mean is estimated based on the following approach
 }
 
 where \eqn{\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})} and
-\deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum_{i \in B} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)}.
+\deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum_{i \in B} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).}
 
 Under the linear regression model \eqn{\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i} and \eqn{\widehat{\boldsymbol{c}}=\left(n_A^{-1} \sum_{i \in A} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in B} w_i \boldsymbol{x}_i .}
 
