@@ -20,9 +20,8 @@ nonprob_ipw <- function(selection,
                         pop_means,
                         pop_size,
                         method_selection,
-                        subset,
                         strata,
-                        weights,
+                        case_weights,
                         na_action,
                         control_selection,
                         control_inference,
@@ -105,7 +104,7 @@ nonprob_ipw <- function(selection,
   if (!is.null(svydesign)) {
     if (var_selection == TRUE) {
       X_stand <- ncvreg::std(X) # intercept is removed
-      prior_weights <- c(weights_rand, weights)
+      prior_weights <- c(weights_rand, case_weights)
 
       method <- switch(method_selection,
                        "logit" = method_ps("logit"),
@@ -153,7 +152,7 @@ nonprob_ipw <- function(selection,
         X = X,
         X_nons = X_nons,
         X_rand = X_rand,
-        weights = weights,
+        weights = case_weights,
         weights_rand = weights_rand,
         R = R,
         method_selection = method_selection,
@@ -182,7 +181,7 @@ nonprob_ipw <- function(selection,
 
     names(theta_hat) <- names(selection_model$theta_hat) <- colnames(X)
     weights_nons <- 1 / ps_nons
-    N <- sum(weights * weights_nons)
+    N <- sum(case_weights * weights_nons)
 
   } else {
     if (var_selection == TRUE) {
@@ -198,7 +197,7 @@ nonprob_ipw <- function(selection,
       cv <- cv_nonprobsvy_rcpp(
         X = X_stand,
         R = R,
-        weights_X = weights,
+        weights_X = case_weights,
         method_selection = method_selection,
         gee_h_fun = gee_h_fun,
         maxit = maxit,
@@ -232,7 +231,7 @@ nonprob_ipw <- function(selection,
       R = R,
       X = X,
       weights_rand = weights_rand,
-      weights = weights,
+      weights = case_weights,
       gee_h_fun = gee_h_fun,
       method_selection = method_selection,
       start = if (is.null(start_selection)) numeric(ncol(X)) else start_selection,
@@ -270,7 +269,7 @@ nonprob_ipw <- function(selection,
     var_cov2 <- method$variance_covariance2
     df_residual <- NROW(X_nons) - length(theta_hat)
     weights_nons <- 1 / ps_nons
-    N <- sum(weights * weights_nons)
+    N <- sum(case_weights * weights_nons)
     residuals <- as.vector(rep(1, n_nons) - ps_nons)
 
     selection_model <- list(
@@ -298,20 +297,20 @@ nonprob_ipw <- function(selection,
         formula = outcomes$outcome[[o]],
         data = data,
         svydesign = svydesign,
-        weights = weights
+        weights = case_weights
       )$y_nons
     } else {
       y_nons <- make_model_frame(
         formula = outcomes$outcome[[o]],
         data = data,
         pop_totals = pop_totals,
-        weights = weights
+        weights = case_weights
       )$y_nons
     }
     ys[[o]] <- as.numeric(y_nons)
     mu_hats[o] <- mu_hatIPW(
       y = y_nons,
-      weights = weights,
+      weights = case_weights,
       weights_nons = weights_nons,
       N = ifelse(is.null(pop_size), N, pop_size)
     )
@@ -332,7 +331,7 @@ nonprob_ipw <- function(selection,
           X_nons = X_nons,
           X_rand = X_rand,
           y_nons = ys[[o]],
-          weights = weights,
+          weights = case_weights,
           ps_nons = ps_nons,
           mu_hat = mu_hats[o],
           hess = hess,
@@ -368,7 +367,7 @@ nonprob_ipw <- function(selection,
           svydesign = svydesign,
           ys = ys, #
           num_boot = num_boot,
-          weights = weights,
+          case_weights = case_weights,
           weights_rand = weights_rand,
           R = R,
           theta_hat = theta_hat,
@@ -395,7 +394,7 @@ nonprob_ipw <- function(selection,
           svydesign = svydesign,
           ys = ys, #
           num_boot = num_boot,
-          weights = weights,
+          case_weights = case_weights,
           weights_rand = weights_rand,
           R = R,
           theta_hat = theta_hat,
@@ -480,8 +479,8 @@ nonprob_ipw <- function(selection,
     link = selection_model$method,
     linear_predictors = selection_model$eta,
     aic = selection_model$aic,
-    weights = as.vector(weights_nons),
-    prior.weights = weights,
+    ipw_weights = as.vector(weights_nons),
+    case_weights = case_weights,
     pop_totals = pop_totals,
     formula = selection,
     df_residual = selection_model$df_residual,
@@ -509,7 +508,7 @@ nonprob_ipw <- function(selection,
       y = ys,
       R = R,
       ps_scores = prop_scores,
-      case_weights = weights,
+      case_weights = case_weights,
       ipw_weights = as.vector(weights_nons),
       control = list(
         control_selection = control_selection,

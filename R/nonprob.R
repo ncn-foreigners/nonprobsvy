@@ -13,7 +13,7 @@ nonprob <- function(data,
                     family_outcome = c("gaussian", "binomial", "poisson"),
                     subset = NULL,
                     strata = NULL,
-                    weights = NULL,
+                    case_weights = NULL,
                     na_action = NULL,
                     control_selection = control_sel(),
                     control_outcome = control_out(),
@@ -31,7 +31,8 @@ nonprob <- function(data,
   #stopifnot("We currently support `family_outcome` with a single entry." = NROW(family_outcome) == 1)
 
   data <- if (!is.data.frame(data)) data.frame(data) else data
-  weights <- if (is.null(weights)) rep(1, nrow(data)) else weights
+  data <- subset(data, subset = if (is.null(subset)) TRUE else subset)
+  case_weights <- if (is.null(case_weights)) rep(1, nrow(data)) else case_weights
 
   # Check data
   if (is.data.frame(data) && ncol(data) == 0) {
@@ -77,12 +78,12 @@ nonprob <- function(data,
     stop("The `pop_size` argument cannot be smaller than sample size.")
   }
 
-  ## for weights
-  if (!is.null(weights) && !is.numeric(weights)) {
-    stop("The `weights` argument must be a numeric vector.")
+  ## for case_weights
+  if (!is.null(case_weights) && !is.numeric(case_weights)) {
+    stop("The `case_weights` argument must be a numeric vector.")
   }
-  if (!is.null(weights) && length(weights) != nrow(data)) {
-    stop("Length of the `weights` argument must match the number of rows in data.")
+  if (!is.null(case_weights) && length(case_weights) != nrow(data)) {
+    stop("Length of the `case_weights` argument must match the number of rows in data.")
   }
 
   ## selection and outcome should be specified
@@ -105,6 +106,7 @@ nonprob <- function(data,
       stop("Key variable for overlapping units must be defined with the same name in prob and nonprob sample.")
     }
   }
+
 
   ## specification of the methods and validation
   if (inherits(selection, "formula")) {
@@ -130,6 +132,12 @@ nonprob <- function(data,
     } else {
       # Case: DR method
       estimator <- "dr"
+
+      if (isTRUE(control_inference$bias_correction) & isFALSE(control_inference$vars_combine) & isTRUE(control_inference$vars_selection)) {
+        stop("Bias correction (joint estimation) with variable selection can only be used when variables
+         are combined after they are selected (change `vars_combine` to `TRUE`).")
+      }
+
     }
   } else if (inherits(outcome, "formula")) {
     # Case: MI method
@@ -137,10 +145,6 @@ nonprob <- function(data,
   }
 
   pop_size_fixed <- !is.null(pop_size) | (!is.null(pop_totals) && names(pop_totals)[1] == "(Intercept)")  ## for variance estimation
-
-  if (pop_size_fixed) {
-    message("Caution: since `pop_size' is provided, the variance is estimated assuming that `pop_size' is known (not estimated). If this assumption is wrong, specify the appropriate `var_method' in the `control_inf()` function.\n")
-  }
 
   ## processing data for all methods
   if (is.null(pop_totals) && !is.null(pop_means) && !is.null(pop_size)) {
@@ -172,9 +176,8 @@ nonprob <- function(data,
       pop_means = pop_means,
       pop_size = pop_size,
       method_selection = method_selection,
-      subset = subset,
       strata = strata,
-      weights = weights,
+      case_weights = case_weights,
       na_action = na_action,
       control_selection = control_selection,
       control_inference = control_inference,
@@ -193,9 +196,8 @@ nonprob <- function(data,
       pop_size = pop_size,
       method_outcome = method_outcome,
       family_outcome = family_outcome,
-      subset = subset,
       strata = strata,
-      weights = weights,
+      case_weights = case_weights,
       na_action = na_action,
       control_outcome = control_outcome,
       control_inference = control_inference,
@@ -216,9 +218,8 @@ nonprob <- function(data,
       method_selection = method_selection,
       method_outcome = method_outcome,
       family_outcome = family_outcome,
-      subset = subset,
       strata = strata,
-      weights = weights,
+      case_weights = case_weights,
       na_action = na_action,
       control_selection = control_selection,
       control_outcome = control_outcome,

@@ -30,7 +30,8 @@ NULL
 #' @param family_outcome a `character` (default `gaussian`)  describing the error distribution and the link function to be used in the model. Currently supports: `gaussian` with the identity link, `poisson` and `binomial`.
 #' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process - not yet supported.
 #' @param strata an optional `vector` specifying strata (not yet supported, for further development).
-#' @param weights an optional `vector` of prior weights to be used in the fitting process. It is assumed that this vector contains frequency or analytic weights (i.e. rows of the `data` argument are repeated according to the values of the `weights` argument), not probability/design weights.
+#' @param case_weights an optional `vector` of prior weights to be used in the fitting process.
+#' It is assumed that this vector contains frequency or analytic weights (i.e. rows of the `data` argument are repeated according to the values of the `case_weights` argument), not probability/design weights.
 #' @param na_action a function which indicates what should happen when the data contain `NAs` (not yet supported, for further development).
 #' @param control_selection a `list` (default `control_sel()` result) indicating parameters to be used when fitting the selection model for propensity scores. To change the parameters one should use the `control_sel()` function.
 #' @param control_outcome a `list` (default `control_out()` result) indicating parameters to be used when fitting the model for the outcome variable. To change the parameters one should use the `control_out()` function.
@@ -320,7 +321,7 @@ NULL
 #'
 #' ## mass imputation estimator
 #' MI_res <- nonprob(
-#'   outcome = y80 ~ x1 + x2 + x3 + x4,
+#'   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
 #'   data = nonprob_df,
 #'   svydesign = svyprob
 #' )
@@ -328,14 +329,14 @@ NULL
 #' ## inverse probability weighted estimator
 #' IPW_res <- nonprob(
 #'   selection = ~ x1 + x2 + x3 + x4,
-#'   target = ~y80,
+#'   target = ~y30 + y50 + y80,
 #'   data = nonprob_df,
 #'   svydesign = svyprob
 #' )
 #' IPW_res
 #' ## doubly robust estimator
 #' DR_res <- nonprob(
-#'   outcome = y80 ~ x1 + x2 + x3 + x4,
+#'   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
 #'   selection = ~ x1 + x2 + x3 + x4,
 #'   data = nonprob_df,
 #'   svydesign = svyprob

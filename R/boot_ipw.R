@@ -2,7 +2,7 @@
 boot_ipw <- function(X_rand,
                      X_nons,
                      svydesign,
-                     weights,
+                     case_weights,
                      ys,
                      R,
                      theta_hat,
@@ -52,7 +52,7 @@ boot_ipw <- function(X_rand,
     while (k <= num_boot) {
       tryCatch(
         {
-          strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+          strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
           # using svy package
           strap_rand_svy <- which(rep_weights[, k] != 0)
@@ -77,7 +77,7 @@ boot_ipw <- function(X_rand,
               X = X,
               X_nons = X_nons_strap,
               X_rand = X_rand_strap,
-              weights = weights[strap_nons],
+              weights = case_weights[strap_nons],
               weights_rand = weights_strap_rand,
               R = R,
               method_selection = method_selection,
@@ -95,12 +95,12 @@ boot_ipw <- function(X_rand,
 
           ps_nons <- est_method_obj$ps_nons
           weights_nons <- 1 / ps_nons
-          N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
+          N_est_nons <- ifelse(is.null(pop_size), sum(case_weights[strap_nons] * weights_nons), pop_size)
 
           for (l in 1:mu_len) {
             mu_hats_boot[k, l] <- mu_hatIPW(
               y = ys[[l]][strap_nons],
-              weights = weights[strap_nons],
+              weights = case_weights[strap_nons],
               weights_nons = weights_nons,
               N = N_est_nons
             ) # IPW estimator
@@ -124,11 +124,11 @@ boot_ipw <- function(X_rand,
     while (k <= num_boot) {
       tryCatch(
         {
-          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+          strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
           X_strap <- X_nons[strap, , drop = FALSE]
           R_strap <- R[strap]
-          weights_strap <- weights[strap]
+          weights_strap <- case_weights[strap]
 
           h_object_strap <- theta_h_estimation(
             R = R_strap,
@@ -197,7 +197,7 @@ boot_ipw <- function(X_rand,
 boot_ipw_multicore <- function(X_rand,
                                X_nons,
                                svydesign,
-                               weights,
+                               case_weights,
                                ys,
                                R,
                                theta_hat,
@@ -255,7 +255,7 @@ boot_ipw_multicore <- function(X_rand,
     obj = foreach::foreach(k = k, .combine = c),
     ex = {
       if (is.null(pop_totals)) {
-        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+        strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
         # using svy package
         strap_rand_svy <- which(rep_weights[, k] != 0)
@@ -280,7 +280,7 @@ boot_ipw_multicore <- function(X_rand,
             X = X,
             X_nons = X_nons_strap,
             X_rand = X_rand_strap,
-            weights = weights[strap_nons],
+            weights = case_weights[strap_nons],
             weights_rand = weights_strap_rand,
             R = R,
             method_selection = method_selection,
@@ -298,23 +298,23 @@ boot_ipw_multicore <- function(X_rand,
 
         ps_nons <- est_method_obj$ps_nons
         weights_nons <- 1 / ps_nons
-        N_est_nons <- ifelse(is.null(pop_size), sum(weights[strap_nons] * weights_nons), pop_size)
+        N_est_nons <- ifelse(is.null(pop_size), sum(case_weights[strap_nons] * weights_nons), pop_size)
         mu_hats_this_boot <- numeric(mu_len)
 
         for (l in 1:mu_len) {
           mu_hats_this_boot[l] <- mu_hatIPW(
             y = ys[[l]][strap_nons],
-            weights = weights[strap_nons],
+            weights = case_weights[strap_nons],
             weights_nons = weights_nons,
             N = N_est_nons
           ) # IPW estimator
         }
         mu_hats_this_boot
       } else {
-        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / weights)
+        strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
         X_strap <- X_nons[strap, , drop = FALSE]
         R_strap <- R[strap]
-        weights_strap <- weights[strap]
+        weights_strap <- case_weights[strap]
 
         h_object_strap <- theta_h_estimation(
           R = R_strap,

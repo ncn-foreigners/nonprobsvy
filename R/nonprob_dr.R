@@ -26,9 +26,8 @@ nonprob_dr <- function(selection,
                        method_selection,
                        method_outcome,
                        family_outcome,
-                       subset,
                        strata,
-                       weights,
+                       case_weights,
                        na_action,
                        control_selection,
                        control_outcome,
@@ -63,11 +62,6 @@ nonprob_dr <- function(selection,
 
   bias_corr <- control_inference$bias_correction
 
-  if (isTRUE(bias_corr) & isFALSE(control_inference$vars_combine) & isTRUE(control_inference$vars_selection)) {
-    stop("Bias correction (joint estimation) with variable selection can only be used when variables
-         are combined after they are selected (change `vars_combine` to `TRUE`).")
-  }
-
   # variable selection and combination --------------------------------------
 
   if (control_inference$vars_selection & control_inference$vars_combine) {
@@ -87,7 +81,7 @@ nonprob_dr <- function(selection,
                              family_outcome = family_outcome,
                              subset = subset,
                              strata = strata,
-                             weights = weights,
+                             case_weights = case_weights,
                              na_action = na_action,
                              control_outcome = control_outcome,
                              control_inference = control_inference,
@@ -110,7 +104,7 @@ nonprob_dr <- function(selection,
                                method_selection = method_selection,
                                subset = subset,
                                strata = strata,
-                               weights = weights,
+                               case_weights = case_weights,
                                na_action = na_action,
                                control_selection = control_selection,
                                control_inference = control_inference,
@@ -122,7 +116,7 @@ nonprob_dr <- function(selection,
     ## doubly robust estimator
     mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
                        y_resid = do.call("cbind", results_mi$ys_resid),
-                       weights = weights,
+                       weights = case_weights,
                        weights_nons = results_ipw$ipw_weights,
                        N_nons = pop_size)
 
@@ -191,7 +185,7 @@ nonprob_dr <- function(selection,
           R = results_ipw$R,
           X = X_all,
           y = c(rep(0, sum(results_ipw$R==0)), y_nons[, o]),
-          weights = c(weights(svydesign_), results_ipw$case_weights),#c(weights(svydesign_), weights),
+          weights = c(weights(svydesign_), results_ipw$case_weights),
           method_selection = method_selection,
           family_outcome = family_outcome
         )
@@ -207,7 +201,7 @@ nonprob_dr <- function(selection,
 
         mu_hat[[o]] <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_)),
                                 y_resid = as.matrix(bias_corr_mu_resid),
-                                weights = rep(1, sum(results_ipw$R)),
+                                weights = results_ipw$case_weights,
                                 weights_nons = bias_corr_ipw_weights,
                                 N_nons = pop_size)
 
@@ -226,9 +220,8 @@ nonprob_dr <- function(selection,
                                                  pop_means = pop_means,
                                                  pop_size = pop_size,
                                                  method_selection = method_selection,
-                                                 subset = subset,
                                                  strata = strata,
-                                                 weights = weights,
+                                                 case_weights = case_weights,
                                                  na_action = na_action,
                                                  control_selection = control_selection,
                                                  control_inference = control_inference_,
@@ -245,9 +238,8 @@ nonprob_dr <- function(selection,
                                                pop_size = pop_size,
                                                method_outcome = method_outcome,
                                                family_outcome = family_outcome,
-                                               subset = subset,
                                                strata = strata,
-                                               weights = weights,
+                                               case_weights = case_weights,
                                                na_action = na_action,
                                                control_outcome = control_outcome,
                                                control_inference = control_inference_,
@@ -259,7 +251,7 @@ nonprob_dr <- function(selection,
         ## estimate in loop
         mu_hat[[o]] <- mu_hatDR(y_hat = results_mi_combined[[o]]$output$mean,
                                 y_resid = do.call("cbind", results_mi_combined[[o]]$ys_resid),
-                                weights = weights,
+                                weights = case_weights,
                                 weights_nons = results_ipw_combined[[o]]$ipw_weights,
                                 N_nons = pop_size)
       }
@@ -310,7 +302,7 @@ nonprob_dr <- function(selection,
               eta = as.numeric(X_ %*% as.matrix(results_ipw_combined[[o]]$selection$coefficients)),
               h_n = h_n_,
               y_pred = y_pred_,
-              weights = weights,
+              weights = case_weights,
               verbose = verbose
             )
 
@@ -325,7 +317,7 @@ nonprob_dr <- function(selection,
               N = pop_size,
               gee_h_fun = control_selection$gee_h_fun,
               method_selection = method_selection,
-              weights = weights,
+              weights = case_weights,
               pop_totals = pop_totals
             )
 
@@ -341,7 +333,7 @@ nonprob_dr <- function(selection,
                 y_nons = results_mi_combined[[o]]$ys_nons_pred[[1]],
                 N = pop_size,
                 method_selection = method_selection,
-                weights = weights
+                weights = case_weights
               )
 
               svydesign__ <- stats::update(svydesign_, t_comp = t_comp)
@@ -379,9 +371,8 @@ nonprob_dr <- function(selection,
                               method_selection = method_selection,
                               method_outcome = method_outcome,
                               family_outcome = family_outcome,
-                              subset = subset,
                               strata = strata,
-                              weights = weights,
+                              case_weights = case_weights,
                               na_action = na_action,
                               control_selection = control_selection,
                               control_outcome = control_outcome,
@@ -420,9 +411,8 @@ nonprob_dr <- function(selection,
                              pop_size = pop_size,
                              method_outcome = method_outcome,
                              family_outcome = family_outcome,
-                             subset = subset,
                              strata = strata,
-                             weights = weights,
+                             case_weights = case_weights,
                              na_action = na_action,
                              control_outcome = control_outcome,
                              control_inference = control_inference,
@@ -439,9 +429,8 @@ nonprob_dr <- function(selection,
                                pop_means = pop_means,
                                pop_size = pop_size,
                                method_selection = method_selection,
-                               subset = subset,
                                strata = strata,
-                               weights = weights,
+                               case_weights = case_weights,
                                na_action = na_action,
                                control_selection = control_selection,
                                control_inference = control_inference,
@@ -453,7 +442,7 @@ nonprob_dr <- function(selection,
     ## doubly robust estimator
     mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
                        y_resid = do.call("cbind", results_mi$ys_resid),
-                       weights = weights,
+                       weights = case_weights,
                        weights_nons = results_ipw$ipw_weights,
                        N_nons = pop_size)
 
@@ -477,7 +466,7 @@ nonprob_dr <- function(selection,
             eta = as.numeric(X_ %*% as.matrix(results_ipw$selection$coefficients)),
             h_n = h_n_,
             y_pred = y_pred_,
-            weights = weights,
+            weights = case_weights,
             verbose = verbose
           )
 
@@ -492,7 +481,7 @@ nonprob_dr <- function(selection,
             N = pop_size,
             gee_h_fun = control_selection$gee_h_fun,
             method_selection = method_selection,
-            weights = weights,
+            weights = case_weights,
             pop_totals = pop_totals
           )
 
@@ -509,7 +498,7 @@ nonprob_dr <- function(selection,
               y_nons = results_mi$ys_nons_pred[[o]],
               N = pop_size,
               method_selection = method_selection,
-              weights = weights
+              weights = case_weights
             )
 
             svydesign_ <- stats::update(svydesign, t_comp = t_comp)
@@ -545,9 +534,8 @@ nonprob_dr <- function(selection,
                             method_selection = method_selection,
                             method_outcome = method_outcome,
                             family_outcome = family_outcome,
-                            subset = subset,
                             strata = strata,
-                            weights = weights,
+                            case_weights = case_weights,
                             na_action = na_action,
                             control_selection = control_selection,
                             control_outcome = control_outcome,

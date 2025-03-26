@@ -129,9 +129,9 @@ expect_error(
     target = ~single_shift,
     svydesign = jvs_svy,
     data = admin,
-    weights = bad_weights
+    case_weights = bad_weights
   ),
-  "Length of the `weights` argument must match"
+  "Length of the `case_weights` argument must match"
 )
 
 expect_error(
@@ -140,9 +140,9 @@ expect_error(
     target = ~single_shift,
     svydesign = jvs_svy,
     data = admin,
-    weights = "not_numeric"
+    case_weights = "not_numeric"
   ),
-  "The `weights` argument must be a numeric vector"
+  "The `case_weights` argument must be a numeric vector"
 )
 
 

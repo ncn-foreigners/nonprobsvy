@@ -15,7 +15,7 @@ boot_mi <- function(model_obj,
                     y_nons,
                     X_nons,
                     X_rand,
-                    weights,
+                    case_weights,
                     pop_totals,
                     pop_size,
                     family_outcome,
@@ -70,13 +70,13 @@ boot_mi <- function(model_obj,
             svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
 
             # Non-probability part
-            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
 
             model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
                                           X_nons = X_nons[strap_nons, , drop = FALSE],
                                           X_rand = X_rand[strap_rand_svy, , drop = FALSE],
                                           svydesign = svydesign_rep_b,
-                                          weights = weights[strap_nons],
+                                          weights = case_weights[strap_nons],
                                           family_outcome = family_outcome,
                                           start_outcome = model_obj$coefficients,
                                           vars_selection = model_obj$vars_selection,
@@ -108,13 +108,13 @@ boot_mi <- function(model_obj,
         tryCatch(
           {
             # Non-probability part
-            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
 
             model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
                                           X_nons = X_nons[strap_nons, , drop = FALSE],
                                           X_rand = X_rand,
                                           svydesign = svydesign,
-                                          weights = weights[strap_nons],
+                                          weights = case_weights[strap_nons],
                                           family_outcome = family_outcome,
                                           start_outcome = model_obj$coefficients,
                                           vars_selection = model_obj$vars_selection,
@@ -166,13 +166,13 @@ boot_mi <- function(model_obj,
           svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
 
           # Non-probability part
-          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
 
           model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
                                         X_nons = X_nons[strap_nons, , drop = FALSE],
                                         X_rand = X_rand[strap_rand_svy, , drop = FALSE],
                                         svydesign = svydesign_rep_b,
-                                        weights = weights[strap_nons],
+                                        weights = case_weights[strap_nons],
                                         family_outcome = family_outcome,
                                         start_outcome = model_obj$coefficients,
                                         vars_selection = model_obj$vars_selection,
@@ -190,13 +190,13 @@ boot_mi <- function(model_obj,
       boot_obj <- foreach::`%dopar%`(
         obj = foreach::foreach(b = 1:num_boot, .combine = c),
         ex = {
-          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / weights)
+          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
 
           model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
                                         X_nons = X_nons[strap_nons, , drop = FALSE],
                                         X_rand = X_rand,
                                         svydesign = svydesign,
-                                        weights = weights[strap_nons],
+                                        weights = case_weights[strap_nons],
                                         family_outcome = family_outcome,
                                         start_outcome = model_obj$coefficients,
                                         vars_selection = model_obj$vars_selection,

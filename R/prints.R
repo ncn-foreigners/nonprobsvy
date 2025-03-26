@@ -62,6 +62,10 @@ print.nonprob <- function(x, digits=4,...) {
     cat(" - too many variables (more than 5) to summary. See details in the `output` and `confidence_interval` elements.\n")
   }
 
+  if (x$pop_size_fixed) {
+    cat(" - caution: since `pop_size' is provided, the variance is estimated assuming that `pop_size' is known (not estimated). If this assumption is wrong, specify the appropriate `var_method' in the `control_inf()` function.\n")
+  }
+
   #cat("Estimated population mean with overall std.err and confidence interval:\n\n")
   #print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)

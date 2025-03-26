@@ -18,7 +18,7 @@ nonprob(
   family_outcome = c("gaussian", "binomial", "poisson"),
   subset = NULL,
   strata = NULL,
-  weights = NULL,
+  case_weights = NULL,
   na_action = NULL,
   control_selection = control_sel(),
   control_outcome = control_out(),
@@ -57,7 +57,8 @@ nonprob(
 
 \item{strata}{an optional \code{vector} specifying strata (not yet supported, for further development).}
 
-\item{weights}{an optional \code{vector} of prior weights to be used in the fitting process. It is assumed that this vector contains frequency or analytic weights (i.e. rows of the \code{data} argument are repeated according to the values of the \code{weights} argument), not probability/design weights.}
+\item{case_weights}{an optional \code{vector} of prior weights to be used in the fitting process.
+It is assumed that this vector contains frequency or analytic weights (i.e. rows of the \code{data} argument are repeated according to the values of the \code{case_weights} argument), not probability/design weights.}
 
 \item{na_action}{a function which indicates what should happen when the data contain \code{NAs} (not yet supported, for further development).}
 
@@ -333,7 +334,7 @@ svyprob <- svydesign(
 
 ## mass imputation estimator
 MI_res <- nonprob(
-  outcome = y80 ~ x1 + x2 + x3 + x4,
+  outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
   data = nonprob_df,
   svydesign = svyprob
 )
@@ -341,14 +342,14 @@ MI_res
 ## inverse probability weighted estimator
 IPW_res <- nonprob(
   selection = ~ x1 + x2 + x3 + x4,
-  target = ~y80,
+  target = ~y30 + y50 + y80,
   data = nonprob_df,
   svydesign = svyprob
 )
 IPW_res
 ## doubly robust estimator
 DR_res <- nonprob(
-  outcome = y80 ~ x1 + x2 + x3 + x4,
+  outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,
   selection = ~ x1 + x2 + x3 + x4,
   data = nonprob_df,
   svydesign = svyprob
