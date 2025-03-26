@@ -64,12 +64,15 @@
 <code>nonprobsvy</code> class renamed to <code>nonprob</code> and all related method adjusted to this change</li>
 <li>functions <code>logit_model_nonprobsvy</code>, <code>probit_model_nonprobsvy</code> and <code>cloglog_model_nonprobsvy</code> removed in the favour of more readable <code>method_ps</code> function that specifies the propensity score model</li>
 <li>new option <code>control_inference=control_inf(vars_combine=TRUE)</code> which allows doubly robust estimator to combine variables prior estimation i.e. if <code>selection=~x1+x2</code> and <code>y~x1+x3</code> then the following models are fitted <code>selection=~x1+x2+x3</code> and <code>y~x1+x2+x3</code>. By default we set <code>control_inference=control_inf(vars_combine=FALSE)</code>. Note that this behaviour is assumed independently from variable selection.</li>
+<li>argument <code>nonprob(weights=NULL)</code> replaced to <code>nonprob(case_weights=NULL)</code> to stress that this refer to case weights not sampling or other weights in non-probability sample</li>
 </ul></div>
 <div class="section level4">
 <h4 id="features-0-2-0">Features<a class="anchor" aria-label="anchor" href="#features-0-2-0"></a></h4>
 <ul><li>two additional datasets have been included: <code>jvs</code> (Job Vacancy Survey; a probability sample survey) and <code>admin</code> (Central Job Offers Database; a non-probability sample survey). The units and auxiliary variables have been aligned in a way that allows the data to be integrated using the methods implemented in this package.</li>
 <li>a <code>check_balance</code> function was added to check the balance in the totals of the variables based on the weighted weights between the non-probability and probability samples.</li>
 <li>citation file added.</li>
+<li>argument <code>na_action</code> with default <code>na.omit</code>
+</li>
 <li>new generic methods added:
 <ul><li>
 <code>weights</code> – returns IPW weights</li>
@@ -88,7 +91,7 @@
 <li>
 <code>method_npar</code> – for the non-parametric method</li>
 </ul></li>
-<li>new <code>print.nonprob</code>, <code>summary.nonprob</code> and <code>print.nonprob_summary</code> methods, i.e.</li>
+<li>new <code>print.nonprob</code>, <code>summary.nonprob</code> and <code>print.nonprob_summary</code> methods</li>
 </ul><div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">&gt;</span> result_mi</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>A nonprob object</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a> <span class="sc">-</span> estimator type<span class="sc">:</span> mass imputation</span>
@@ -155,7 +158,7 @@
 </ul></div>
 <div class="section level4">
 <h4 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h4>
-<ul><li>annotation has been added that arguments such as <code>strata</code>, <code>subset</code> and <code>na_action</code> are not supported for the time being.</li>
+<ul><li>annotation has been added that argument <code>strata</code> is not supported for the time being.</li>
 </ul></div>
 <div class="section level4">
 <h4 id="replication-materials-0-2-0">Replication materials<a class="anchor" aria-label="anchor" href="#replication-materials-0-2-0"></a></h4>

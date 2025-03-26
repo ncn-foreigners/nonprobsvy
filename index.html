@@ -460,17 +460,18 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="va">flag_bd1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">N</span>, size <span class="op">=</span> <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">p1</span><span class="op">)</span></span>
 <span><span class="va">flag_srs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span>, size <span class="op">=</span> <span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">base_w_srs</span> <span class="op">&lt;-</span> <span class="va">N</span><span class="op">/</span><span class="va">n</span></span>
-<span><span class="va">population</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">x1</span>,<span class="va">x2</span>,<span class="va">y1</span>,<span class="va">y2</span>,<span class="va">p1</span>,<span class="va">p2</span>,<span class="va">base_w_srs</span>, <span class="va">flag_bd1</span>, <span class="va">flag_srs</span><span class="op">)</span></span>
+<span><span class="va">population</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">x1</span>,<span class="va">x2</span>,<span class="va">y1</span>,<span class="va">y2</span>,<span class="va">p1</span>,<span class="va">p2</span>,<span class="va">base_w_srs</span>, <span class="va">flag_bd1</span>, <span class="va">flag_srs</span>, pop_size <span class="op">=</span> <span class="va">N</span><span class="op">)</span></span>
 <span><span class="va">base_w_bd</span> <span class="op">&lt;-</span> <span class="va">N</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">population</span><span class="op">$</span><span class="va">flag_bd1</span><span class="op">)</span></span></code></pre></div>
 <p>Declare <code>svydesign</code> object with <code>survey</code> package</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sample_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids<span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, weights <span class="op">=</span> <span class="op">~</span> <span class="va">base_w_srs</span>, </span>
-<span>                         data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>                         data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>                         fpc <span class="op">=</span> <span class="op">~</span> <span class="va">pop_size</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sample_prob</span></span>
-<span><span class="co">#&gt; Independent Sampling design (with replacement)</span></span>
+<span><span class="co">#&gt; Independent Sampling design</span></span>
 <span><span class="co">#&gt; svydesign(ids = ~1, weights = ~base_w_srs, data = subset(population, </span></span>
-<span><span class="co">#&gt;     flag_srs == 1))</span></span></code></pre></div>
+<span><span class="co">#&gt;     flag_srs == 1), fpc = ~pop_size)</span></span></code></pre></div>
 <p>or with the <code>srvyr</code> package</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sample_prob</span> <span class="op">&lt;-</span> <span class="fu">srvyr</span><span class="fu">::</span><span class="fu">as_survey_design</span><span class="op">(</span>.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">population</span>, <span class="va">flag_srs</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
@@ -504,8 +505,8 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
 <span><span class="co">#&gt;  - selected estimators:</span></span>
-<span><span class="co">#&gt;    - variable y1: 2.9500 (se=0.0415, ci=(2.8687, 3.0313))</span></span>
-<span><span class="co">#&gt;    - variable y2: 1.5765 (se=0.0497, ci=(1.4791, 1.6739))</span></span></code></pre></div>
+<span><span class="co">#&gt;    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
@@ -527,8 +528,8 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
 <span><span class="co">#&gt;  - selected estimators:</span></span>
-<span><span class="co">#&gt;    - variable y1: 2.9498 (se=0.0420, ci=(2.8674, 3.0322))</span></span>
-<span><span class="co">#&gt;    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6399))</span></span></code></pre></div>
+<span><span class="co">#&gt;    - variable y1: 2.9498 (se=0.0420, ci=(2.8675, 3.0321))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6398))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>

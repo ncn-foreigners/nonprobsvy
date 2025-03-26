@@ -116,7 +116,7 @@ for selection model.</p>
 
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>A user-specified  value during variable selection model fitting.</p></dd>
+<dd><p>A user-specified \(\lambda\) value during variable selection model fitting.</p></dd>
 
 
 <dt id="arg-lambda-min">lambda_min<a class="anchor" aria-label="anchor" href="#arg-lambda-min"></a></dt>
@@ -168,11 +168,10 @@ for selection model.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p></p>
-<p>Smooth function (<code>gee_h_fun</code>) for the generalized estimating equations (GEE) method taking the following values</p>
-<ul><li><p>if <code>1</code> then h(x, ) =
-  (x, )x,</p></li>
-<li><p>if <code>2</code> then  h(x, ) = x</p></li>
+    <p>Smooth function (<code>gee_h_fun</code>) for the generalized estimating equations (GEE) method taking the following values</p>
+<ul><li><p>if <code>1</code> then \(\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}\),</p></li>
+<li><p>if <code>2</code> then \( \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}\)</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -116,20 +116,20 @@ for outcome model.</p>
 
 <dt id="arg-pmm-match-type">pmm_match_type<a class="anchor" aria-label="anchor" href="#arg-pmm-match-type"></a></dt>
 <dd><p>(Only for the PMM Estimator)
-Indicates how to select 'closest' unit from nonprobability sample for each
+Indicates how to select 'closest' unit from non-probability sample for each
 unit in probability sample. Either <code>1</code> (default) or <code>2</code> where
-<code>2</code> is matching by minimizing distance between y_i for
-i  S_A and y_j for j  S_B and <code>1</code>
-is matching by minimizing distance between y_i for
-i  S_A and y_i for i  S_A.</p></dd>
+<code>2</code> is matching by minimizing distance between \(\hat{y}_{i}\) for
+\(i \in S_{A}\) and \(y_{j}\) for \(j \in S_{B}\) and <code>1</code>
+is matching by minimizing distance between \(\hat{y}_{i}\) for
+\(i \in S_{A}\) and \(\hat{y}_{i}\) for \(i \in S_{A}\).</p></dd>
 
 
 <dt id="arg-pmm-weights">pmm_weights<a class="anchor" aria-label="anchor" href="#arg-pmm-weights"></a></dt>
 <dd><p>(Only for the PMM Estimator)
-Indicate how to weight <code>k</code> nearest neighbours in S_B to
-create imputed value for units in S_A. The default value
-<code>"none"</code> indicates that mean of <code>k</code> nearest y's from
-S_B should be used whereas <code>"prop_dist"</code> results in
+Indicate how to weight <code>k</code> nearest neighbours in \(S_{B}\) to
+create imputed value for units in \(S_{A}\). The default value
+<code>"none"</code> indicates that mean of <code>k</code> nearest \(y\)'s from
+\(S_{B}\) should be used whereas <code>"prop_dist"</code> results in
 weighted mean of these <code>k</code> values where weights are inversely
 proportional to distance between matched values.</p></dd>
 
