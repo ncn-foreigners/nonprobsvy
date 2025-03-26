@@ -225,8 +225,8 @@ $$
 x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1p} \cr
 x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2p} \cr
 \vdots &amp; \vdots &amp; \ddots &amp; \vdots \cr
-x_{n_{A}1} &amp; x_{n_{A}2} &amp; \cdots &amp; x_{n_{A}p} \cr
-\end{bmatrix}
+x_{n_{A1}} &amp; x_{n_{A2}} &amp; \cdots &amp; x_{n_{Ap}} \cr
+\end{bmatrix},
 $$
 and vector of outcome variable
 $$
@@ -235,8 +235,8 @@ $$
 y_{1} \cr
 y_{2} \cr
 \vdots \cr
-y_{n_{A}}.
-\end{bmatrix}
+y_{n_{A}}
+\end{bmatrix}.
 $$
 On the other hand, let \(S_B\) be the probability sample with design matrix of covariates be
 $$
@@ -245,8 +245,8 @@ $$
 x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1p} \cr
 x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2p} \cr
 \vdots &amp; \vdots &amp; \ddots &amp; \vdots \cr
-x_{n_{B}1} &amp; x_{n_{B}2} &amp; \cdots &amp; x_{n_{B}p}. \cr
-\end{bmatrix}
+x_{n_{B1}} &amp; x_{n_{B2}} &amp; \cdots &amp; x_{n_{Bp}}\cr
+\end{bmatrix}.
 $$
 Instead of a sample of units we can consider a vector of population sums in the form of \(\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})\) or means
 \(\frac{\tau_x}{N}\), where \(\mathcal{U}\) refers to a finite population. Note that we do not assume access to the response variable for \(S_B\).

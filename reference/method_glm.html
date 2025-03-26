@@ -172,7 +172,7 @@ probability sample or known population totals.</p>
 \hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace,
 $$</p>
 <p>where \(\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})\) and
-$$\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum_{i \in B} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)$$.</p>
+$$\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum_{i \in B} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).$$</p>
 <p>Under the linear regression model \(\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i\) and \(\widehat{\boldsymbol{c}}=\left(n_A^{-1} \sum_{i \in A} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in B} w_i \boldsymbol{x}_i .\)</p>
 <p>(b) probability part (\(S_B\) with size \(n_B\); denoted as <code>var_prob</code> in the result)</p>
 <p>This part uses functionalities of the <code>{survey}</code> package and the variance is estimated using the following

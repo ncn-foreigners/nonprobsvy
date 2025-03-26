@@ -173,7 +173,7 @@ Estimation of the mean is done using \(S_B\) sample.</p>
 <p>(a) non-probability part  (\(S_A\) with size \(n_A\); denoted as <code>var_nonprob</code> in the result)</p>
 <p>This may be estimated using</p>
 <p>$$
-\hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i)
+\hat{V}_1 = \frac{1}{N^2}\sum_{i=1}^{S_A}\frac{1-\hat{\pi}_B(\boldsymbol{x}_i)}{\hat{\pi}_B(\boldsymbol{x}_i)}\hat{\sigma}^2(\boldsymbol{x}_i),
 $$</p>
 <p>where \(\hat{\pi}_B(\boldsymbol{x}_i)\) is an estimator of propensity scores which
 we currently estimate using \(n_A/N\) (constant) and \(\hat{\sigma}^2(\boldsymbol{x}_i)\) is
@@ -191,7 +191,7 @@ can be summarized as follows:</p><ol><li><p>Sample \(n_A\) units from \(S_A\) wi
 equation:</p>
 <p>$$
 \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^n \sum_{j=1}^n \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
-\frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j}
+\frac{y_i^*}{\pi_i} \frac{y_j^*}{\pi_j},
 $$</p>
 <p>where \(y^*_i\) and \(y_j^*\) are values imputed imputed as an average
 of \(k\)-nearest neighbour, i.e. \({k}^{-1}\sum_{k}y_k\). Note that \(\hat{V}_2\) in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.</p>
