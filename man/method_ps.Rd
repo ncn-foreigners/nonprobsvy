@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_ps.R
 \name{method_ps}
 \alias{method_ps}
-\title{Propensity score model}
+\title{Propensity score model functions}
 \usage{
 method_ps(link = c("logit", "probit", "cloglog"), ...)
 }
@@ -37,8 +37,26 @@ A \code{list} of functions and elements for a specific link function with the fo
 \description{
 Function to specify the propensity score (PS) model for the inverse probability weighting estimator.
 This function provides basic functions logistic regression with a given link function (currently
-we support \code{logit}, \code{probit} and \code{cloglog}) with additional information about the analytic variance estimator
-of the mean.
+we support \code{logit}, \code{probit} and \code{cloglog}) with additional information about the analytic variance estimator of the mean.
+
+This is a function returns a \code{list} of functions that refer to specific estimation methods and variance estimators
+when whether the IPW alone or the DR estimator is applied. The export of this function is mainly because
+the functions are used in the variable selection algorithms.
+
+Functions starting with \code{make_log_like}, \code{make_gradient} and \code{make_hessian} refer to the maximum likelihood estimation
+as described in the Chen et al. (2020) paper. These functions take into account different link functions defined through
+the \code{link} argument.
+
+Functions \code{make_link}, \code{make_link_inv}, \code{make_link_der}, \code{make_link_inv_der}, \code{make_link_inv_rev}, and \code{make_link_inv_rev_der}
+refer to specific link functions and are used in the estimation process.
+
+Functions \code{variance_covariance1} and \code{variance_covariance2} refer to the variance estimator of the IPW estimator as
+defined by Chen et al. (2020).
+
+Functions \code{b_vec_ipw}, \code{b_vec_dr} and \code{t_vec} are specific functions defined in the Chen et al. (2020) that are used
+in the variance estimator of the IPW or the DR.
+
+Finally, \code{var_nonprob} is the non-probability component of the DR estimator as defined by Chen et al. (2020).
 }
 \examples{
 # Printing information on the model selected

@@ -1,11 +1,32 @@
-#' @title Propensity score model
+#' @title Propensity score model functions
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
 #' @description
 #' Function to specify the propensity score (PS) model for the inverse probability weighting estimator.
 #' This function provides basic functions logistic regression with a given link function (currently
-#' we support `logit`, `probit` and `cloglog`) with additional information about the analytic variance estimator
-#' of the mean.
+#' we support `logit`, `probit` and `cloglog`) with additional information about the analytic variance estimator of the mean.
+#'
+#' @description
+#' This is a function returns a `list` of functions that refer to specific estimation methods and variance estimators
+#' when whether the IPW alone or the DR estimator is applied. The export of this function is mainly because
+#' the functions are used in the variable selection algorithms.
+#'
+#' Functions starting with `make_log_like`, `make_gradient` and `make_hessian` refer to the maximum likelihood estimation
+#' as described in the Chen et al. (2020) paper. These functions take into account different link functions defined through
+#' the `link` argument.
+#'
+#' Functions `make_link`, `make_link_inv`, `make_link_der`, `make_link_inv_der`, `make_link_inv_rev`, and `make_link_inv_rev_der`
+#' refer to specific link functions and are used in the estimation process.
+#'
+#' Functions `variance_covariance1` and `variance_covariance2` refer to the variance estimator of the IPW estimator as
+#' defined by Chen et al. (2020).
+#'
+#' Functions `b_vec_ipw`, `b_vec_dr` and `t_vec` are specific functions defined in the Chen et al. (2020) that are used
+#' in the variance estimator of the IPW or the DR.
+#'
+#' Finally, `var_nonprob` is the non-probability component of the DR estimator as defined by Chen et al. (2020).
+#'
+#'
 #'
 #' @param link link for the PS model
 #' @param ... Additional, optional arguments.
