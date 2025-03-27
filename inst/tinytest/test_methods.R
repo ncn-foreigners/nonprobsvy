@@ -1,216 +1,80 @@
-# S3methods tests
-# test simulate
-# set.seed(123)
-source_nonprob_p <- read.csv("test1_nonprob.csv")
-sample_a <- read.csv("test1_prob.csv")
-svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
+source("_code_for_all_.R")
 
-test1a <- nonprob(selection = ~ x,
-                  target = ~ y1,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
+ipw_est0 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    se = T)
 
-expect_silent(
-  summary(test1a)
-)
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    se = F)
 
-expect_silent(
-  nobs(test1a)
-)
-
-expect_silent(
-  pop_size(test1a)
-)
-
-expect_silent(
-  residuals(test1a)
-)
-#
-expect_silent(
-  residuals(test1a, type = "pearson")
+set.seed(2025)
+ipw_est2 <- nonprob(selection = ~ region + private + nace + size,
+                    target = ~ single_shift,
+                    svydesign = jvs_svy,
+                    data = admin,
+                    method_selection = "logit",
+                    control_inference=control_inf(var_method = "bootstrap",
+                                                  num_boot = 20)
 )
 
-expect_silent(
-  residuals(test1a, type = "working")
+
+# test update --------------------------------------------------------------
+
+
+expect_equal(
+  update(ipw_est1, se = T)$output$SE,
+  0.042077108910903
 )
 
-expect_silent(
-  residuals(test1a, type = "deviance")
+expect_equal(
+  update(ipw_est1, method_selection = "probit")$output$mean,
+  0.723953845426239
 )
 
-expect_silent(
-  residuals(test1a, "pearsonSTD")
+expect_equal(
+  update(ipw_est2, control_inference=control_inf())$output$SE,
+  0.042077108910903
 )
 
-expect_silent(
-  cooks.distance(test1a)
+# test confint ------------------------------------------------------------
+
+expect_equal(
+  confint(ipw_est0),
+  structure(list(target = "single_shift", lower_bound = 0.63989316387091,
+                 upper_bound = 0.804832399948789), row.names = 1L, class = "data.frame")
 )
 
-expect_silent(
-  hatvalues(test1a)
+expect_equal(
+  confint(ipw_est0, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.613979331768527,
+                 upper_bound = 0.830746232051172), row.names = 1L, class = "data.frame")
 )
 
-expect_silent(
-  logLik(test1a)
+
+expect_equal(
+  confint(ipw_est1),
+  structure(list(target = "single_shift", lower_bound = 0.63989316387091,
+                 upper_bound = 0.804832399948789), row.names = 1L, class = "data.frame")
 )
 
-expect_silent(
-  AIC(test1a)
-)
-#
-expect_silent(
-  BIC(test1a)
-)
-#
-expect_silent(
-  confint(test1a)
-)
-#
-expect_silent(
-  vcov(test1a)
-)
-#
-expect_silent(
-  deviance(test1a)
+expect_equal(
+  confint(ipw_est1, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.613979331768527,
+                 upper_bound = 0.830746232051172), row.names = 1L, class = "data.frame")
 )
 
-test2a <- nonprob(outcome = y1 ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
-expect_silent(
-  summary(test2a)
-)
-#
-expect_silent(
-  nobs(test2a)
+expect_equal(
+  confint(ipw_est2, level = 0.99),
+  structure(list(target = "single_shift", lower_bound = 0.638949983302244,
+                 upper_bound = 0.791077693520481), row.names = 1L, class = "data.frame")
 )
 
-expect_silent(
-  pop_size(test2a)
-)
-#
-expect_silent(
-  residuals(test2a)
-)
 
-expect_silent(
-  residuals(test2a, type = "pearson")
-)
-#
-expect_silent(
-  residuals(test2a, type = "working")
-)
 
-expect_silent(
-  residuals(test2a, type = "deviance")
-)
-
-expect_silent(
-  residuals(test2a, "pearsonSTD")
-)
-
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-  expect_silent(
-    cooks.distance(test2a)
-  )
-  expect_silent(
-    hatvalues(test2a)
-  )
-}
-
-expect_silent(
-  logLik(test2a)
-)
-
-expect_silent(
-  AIC(test2a)
-)
-#
-expect_silent(
-  BIC(test2a)
-)
-#
-expect_silent(
-  confint(test2a)
-)
-#
-expect_silent(
-  vcov(test2a)
-)
-#
-expect_silent(
-  deviance(test2a)
-)
-#
-test3a <- nonprob(outcome = y1 ~ x,
-                  selection = ~ x,
-                  data = source_nonprob_p,
-                  method_selection = "logit",
-                  svydesign = svy_a)
-expect_silent(
-  summary(test3a)
-)
-#
-expect_silent(
-  nobs(test3a)
-)
-
-expect_silent(
-  pop_size(test3a)
-)
-#
-expect_silent(
-  residuals(test3a)
-)
-
-expect_silent(
-  residuals(test3a, type = "pearson")
-)
-#
-expect_silent(
-  residuals(test3a, type = "working")
-)
-
-expect_silent(
-  residuals(test3a, type = "deviance")
-)
-
-expect_silent(
-  residuals(test3a, "pearsonSTD")
-)
-
-if (isTRUE(tolower(Sys.getenv("TEST_NONPROBSVY_MULTICORE_DEVELOPER")) == "true")) {
-  expect_silent(
-    cooks.distance(test3a)
-  )
-
-  expect_silent(
-    hatvalues(test3a)
-  )
-}
-
-expect_silent(
-  logLik(test3a)
-)
-
-expect_silent(
-  AIC(test3a)
-)
-
-expect_silent(
-  BIC(test3a)
-)
-
-expect_silent(
-  confint(test3a)
-)
-
-expect_silent(
-  vcov(test3a)
-)
-
-expect_silent(
-  deviance(test3a)
-)

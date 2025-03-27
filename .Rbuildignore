@@ -10,3 +10,9 @@ playground
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^vignettes/\.quarto$
+^vignettes/articles/\.quarto$
+^vignettes/articles/*_files$
+^vignettes/articles$
+^vignettes/*_files$
+

@@ -27,12 +27,14 @@ for non-probability samples when auxiliary information from the
 population or probability sample is available:
 
 - inverse probability weighting estimators with possible calibration
-  constraints ([Chen, Li, and Wu 2020](#ref-chen2020)),
+  constraints ([Y. Chen, Li, and Wu 2020](#ref-chen2020)),
 - mass imputation estimators based on nearest neighbours ([Yang, Kim,
-  and Hwang 2021](#ref-yang2021)), predictive mean matching and
+  and Hwang 2021](#ref-yang2021)), predictive mean matching ([Chlebicki,
+  Chrostowski, and Beręsewicz 2025](#ref-chlebicki2025)), non-parametric
+  ([S. Chen, Yang, and Kim 2022](#ref-chen2022nonparametric)) and
   regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators with bias minimization Yang, Kim, and Song
-  ([2020](#ref-yang2020)).
+- doubly robust estimators ([Y. Chen, Li, and Wu 2020](#ref-chen2020))
+  with bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
 
 The package allows for:
 
@@ -41,8 +43,10 @@ The package allows for:
   `Rcpp`, `RcppArmadillo` packages),
 - estimation of variance using analytical and bootstrap approach (see Wu
   ([2023](#ref-wu2023))),
-- integration with the `survey` package when probability sample is
-  available Lumley ([2023](#ref-Lumley2023)),
+- integration with the `survey` and `srvyr` packages when probability
+  sample is available ([Lumley 2004](#ref-Lumley2004),
+  [2023](#ref-Lumley2023); [Freedman Ellis and Schneider
+  2024](#ref-srvyr2024)),
 - different links for selection (`logit`, `probit` and `cloglog`) and
   outcome (`gaussian`, `binomial` and `poisson`) variables.
 
@@ -85,14 +89,14 @@ where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
 
-| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
-|-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
-| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|----|---:|:--:|:--:|:--:|
+| $S_A$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
+|  | … | $\checkmark$ | $\checkmark$ | ? |
+|  | $n_A$ | $\checkmark$ | $\checkmark$ | ? |
+| $S_B$ (probability) | $n_A+1$ | $\checkmark$ | ? | $\checkmark$ |
+|  | … | $\checkmark$ | ? | $\checkmark$ |
+|  | $n_A+n_B$ | $\checkmark$ | ? | $\checkmark$ |
 
 ## Basic functionalities
 
@@ -189,7 +193,7 @@ nonprob(
                  ..., 
                  xk = tau_xk), 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 
@@ -262,7 +266,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "nn", 
   family_outcome = "gaussian", 
-  control_outcome = controlOutcome(k = 2)
+  control_outcome = control_outcome(k = 2)
 )
 ```
 
@@ -300,8 +304,8 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_outcome = controlOut(penalty = "lasso"), 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_outcome = control_out(penalty = "lasso"), 
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 
@@ -338,7 +342,7 @@ nonprob(
   data = nonprob, 
   svydesign = prob, 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 
@@ -359,7 +363,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 
@@ -399,7 +403,7 @@ nonprob(
   svydesign = prob,
   method_outcome = "glm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(
+  control_inference = control_inf(
     vars_selection = TRUE, 
     bias_correction = TRUE
   )
@@ -433,7 +437,7 @@ p2 <- exp(-0.5+0.5*(x2-2)^2)/(1+exp(-0.5+0.5*(x2-2)^2))
 flag_bd1 <- rbinom(n = N, size = 1, prob = p1)
 flag_srs <- as.numeric(1:N %in% sample(1:N, size = n))
 base_w_srs <- N/n
-population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs)
+population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs, pop_size = N)
 base_w_bd <- N/sum(population$flag_bd1)
 ```
 
@@ -441,16 +445,40 @@ Declare `svydesign` object with `survey` package
 
 ``` r
 sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs, 
-                         data = subset(population, flag_srs == 1))
+                         data = subset(population, flag_srs == 1),
+                         fpc = ~ pop_size)
+
+sample_prob
+#> Independent Sampling design
+#> svydesign(ids = ~1, weights = ~base_w_srs, data = subset(population, 
+#>     flag_srs == 1), fpc = ~pop_size)
+```
+
+or with the `srvyr` package
+
+``` r
+sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
+                                       weights = base_w_srs)
+
+sample_prob
+```
+
+``` r
+Independent Sampling design (with replacement)
+Called via srvyr
+Sampling variables:
+Data variables: 
+  - x1 (dbl), x2 (dbl), y1 (dbl), y2 (dbl), p1 (dbl), p2 (dbl), base_w_srs (dbl), flag_bd1 (int), flag_srs (dbl)
 ```
 
 Estimate population mean of `y1` based on doubly robust estimator using
-IPW with calibration constraints.
+IPW with calibration constraints and we specify that auxiliary variables
+should not be combined for the inference.
 
 ``` r
 result_dr <- nonprob(
   selection = ~ x2,
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -459,64 +487,27 @@ result_dr <- nonprob(
 Results
 
 ``` r
-summary(result_dr)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
-#>     outcome = y1 ~ x1 + x2, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.95 with overall std.err of: 0.04195
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.000783 and 0.04195
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.867789     3.03224
-#> 
-#> 
-#> Based on: Doubly-Robust method
-#> For a population of estimate size: 1025063
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on outcome variable:
-#>             Estimate Std. Error z value P(>|z|)    
-#> (Intercept) 0.996282   0.002139   465.8  <2e-16 ***
-#> x1          1.001931   0.001200   835.3  <2e-16 ***
-#> x2          0.999125   0.001098   910.2  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> -----------------------
-#> For glm regression on selection variable:
-#>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
-#> x2           1.885629   0.005303   355.6  <2e-16 ***
-#> -------------------------
-#> 
-#> Weights:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.071   1.313   1.479   1.798   2.647 
-#> -------------------------
-#> 
-#> Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
-#> 
-#> AIC: 1010622
-#> BIC: 1010645
-#> Log-Likelihood: -505309 on 694009 Degrees of freedom
+result_dr
+#> A nonprob object
+#>  - estimator type: doubly robust
+#>  - method: glm (gaussian)
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - population size fixed: false
+#>  - naive (uncorrected) estimators:
+#>    - variable y1: 3.1817
+#>    - variable y2: 1.8087
+#>  - selected estimators:
+#>    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))
+#>    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))
 ```
 
 Mass imputation estimator
 
 ``` r
 result_mi <- nonprob(
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -525,38 +516,20 @@ result_mi <- nonprob(
 Results
 
 ``` r
-summary(result_mi)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), outcome = y1 ~ 
-#>     x1 + x2, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.95 with overall std.err of: 0.04203
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.001227 and 0.04201
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.867433    3.032186
-#> 
-#> 
-#> Based on: Mass Imputation method
-#> For a population of estimate size: 1e+06
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on outcome variable:
-#>             Estimate Std. Error z value P(>|z|)    
-#> (Intercept) 0.996282   0.002139   465.8  <2e-16 ***
-#> x1          1.001931   0.001200   835.3  <2e-16 ***
-#> x2          0.999125   0.001098   910.2  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> -------------------------
+result_mi
+#> A nonprob object
+#>  - estimator type: mass imputation
+#>  - method: glm (gaussian)
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - population size fixed: false
+#>  - naive (uncorrected) estimators:
+#>    - variable y1: 3.1817
+#>    - variable y2: 1.8087
+#>  - selected estimators:
+#>    - variable y1: 2.9498 (se=0.0420, ci=(2.8675, 3.0321))
+#>    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6398))
 ```
 
 Inverse probability weighting estimator
@@ -564,7 +537,7 @@ Inverse probability weighting estimator
 ``` r
 result_ipw <- nonprob(
   selection = ~ x2,
-  target = ~y1,
+  target = ~y1+y2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob)
 ```
@@ -572,50 +545,20 @@ result_ipw <- nonprob(
 Results
 
 ``` r
-summary(result_ipw)
-#> 
-#> Call:
-#> nonprob(data = subset(population, flag_bd1 == 1), selection = ~x2, 
-#>     target = ~y1, svydesign = sample_prob)
-#> 
-#> -------------------------
-#> Estimated population mean: 2.925 with overall std.err of: 0.04999
-#> And std.err for nonprobability and probability samples being respectively:
-#> 0.001325 and 0.04997
-#> 
-#> 95% Confidence inverval for popualtion mean:
-#>    lower_bound upper_bound
-#> y1    2.826805    3.022761
-#> 
-#> 
-#> Based on: Inverse probability weighted method
-#> For a population of estimate size: 1025063
-#> Obtained on a nonprobability sample of size: 693011
-#> With an auxiliary probability sample of size: 1000
-#> -------------------------
-#> 
-#> Regression coefficients:
-#> -----------------------
-#> For glm regression on selection variable:
-#>              Estimate Std. Error z value P(>|z|)    
-#> (Intercept) -0.498997   0.003702  -134.8  <2e-16 ***
-#> x2           1.885629   0.005303   355.6  <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> -------------------------
-#> 
-#> Weights:
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.071   1.313   1.479   1.798   2.647 
-#> -------------------------
-#> 
-#> Residuals:
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99999  0.06603  0.23778  0.26046  0.44358  0.62222 
-#> 
-#> AIC: 1010622
-#> BIC: 1010645
-#> Log-Likelihood: -505309 on 694009 Degrees of freedom
+result_ipw
+#> A nonprob object
+#>  - estimator type: inverse probability weighting
+#>  - method: logit (mle)
+#>  - auxiliary variables source: survey
+#>  - vars selection: false
+#>  - variance estimator: analytic
+#>  - population size fixed: false
+#>  - naive (uncorrected) estimators:
+#>    - variable y1: 3.1817
+#>    - variable y2: 1.8087
+#>  - selected estimators:
+#>    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))
+#>    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))
 ```
 
 ## Funding
@@ -625,7 +568,16 @@ Work on this package is supported by the National Science Centre, OPUS
 
 ## References (selected)
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-chen2022nonparametric" class="csl-entry">
+
+Chen, Sixia, Shu Yang, and Jae Kwang Kim. 2022. “Nonparametric Mass
+Imputation for Data Integration.” *Journal of Survey Statistics and
+Methodology* 10 (1): 1–24.
+
+</div>
 
 <div id="ref-chen2020" class="csl-entry">
 
@@ -633,6 +585,22 @@ Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference
 With Nonprobability Survey Samples.” *Journal of the American
 Statistical Association* 115 (532): 2011–21.
 <https://doi.org/10.1080/01621459.2019.1677241>.
+
+</div>
+
+<div id="ref-chlebicki2025" class="csl-entry">
+
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data
+Integration of Non-Probability and Probability Samples with Predictive
+Mean Matching.” <https://arxiv.org/abs/2403.13750>.
+
+</div>
+
+<div id="ref-srvyr2024" class="csl-entry">
+
+Freedman Ellis, Greg, and Ben Schneider. 2024. *Srvyr: ’Dplyr’-Like
+Syntax for Summary Statistics of Survey Data*.
+<https://CRAN.R-project.org/package=srvyr>.
 
 </div>
 

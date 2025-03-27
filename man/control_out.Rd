@@ -8,19 +8,20 @@ control_out(
   epsilon = 1e-04,
   maxit = 100,
   trace = FALSE,
-  k = 1,
+  k = 5,
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
   lambda_min = 0.001,
   nlambda = 100,
   nfolds = 10,
-  treetype = "kd",
-  searchtype = "standard",
-  predictive_match = 1:2,
-  pmm_weights = c("none", "prop_dist"),
+  treetype = c("kd", "rp", "ball"),
+  searchtype = c("standard", "priority"),
+  pmm_match_type = 1,
+  pmm_weights = c("none", "dist"),
   pmm_k_choice = c("none", "min_var"),
-  pmm_reg_engine = c("glm", "loess")
+  pmm_reg_engine = c("glm", "loess"),
+  npar_loess = stats::loess.control(surface = "direct", trace.hat = "approximate")
 )
 }
 \arguments{
@@ -44,34 +45,37 @@ control_out(
 
 \item{nfolds}{The number of folds during cross-validation for variables selection model.}
 
-\item{treetype}{Type of tree for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
+\item{treetype}{Type of tree for nearest neighbour imputation (for the NN and PMM estimator) passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
 
-\item{searchtype}{Type of search for nearest neighbour imputation passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
+\item{searchtype}{Type of search for nearest neighbour imputation (for the NN and PMM estimator) passed to \code{\link[RANN:nn2]{RANN::nn2()}} function.}
 
-\item{predictive_match}{(Only for predictive mean matching)
-Indicates how to select 'closest' unit from nonprobability sample for each
+\item{pmm_match_type}{(Only for the PMM Estimator)
+Indicates how to select 'closest' unit from non-probability sample for each
 unit in probability sample. Either \code{1} (default) or \code{2} where
-\code{2} is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
-\mjseqn{i \in S_{A}} and \mjseqn{y_{j}} for \mjseqn{j \in S_{B}} and \code{1}
-is matching by minimizing distance between \mjseqn{\hat{y}_{i}} for
-\mjseqn{i \in S_{A}} and \mjseqn{\hat{y}_{i}} for \mjseqn{i \in S_{A}}.}
+\code{2} is matching by minimizing distance between \eqn{\hat{y}_{i}} for
+\eqn{i \in S_{A}} and \eqn{y_{j}} for \eqn{j \in S_{B}} and \code{1}
+is matching by minimizing distance between \eqn{\hat{y}_{i}} for
+\eqn{i \in S_{A}} and \eqn{\hat{y}_{i}} for \eqn{i \in S_{A}}.}
 
-\item{pmm_weights}{(Only for predictive mean matching)
-Indicate how to weight \code{k} nearest neighbours in \mjseqn{S_{B}} to
-create imputed value for units in \mjseqn{S_{A}}. The default value
-\code{"none"} indicates that mean of \code{k} nearest \mjseqn{y}'s from
-\mjseqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+\item{pmm_weights}{(Only for the PMM Estimator)
+Indicate how to weight \code{k} nearest neighbours in \eqn{S_{B}} to
+create imputed value for units in \eqn{S_{A}}. The default value
+\code{"none"} indicates that mean of \code{k} nearest \eqn{y}'s from
+\eqn{S_{B}} should be used whereas \code{"prop_dist"} results in
 weighted mean of these \code{k} values where weights are inversely
 proportional to distance between matched values.}
 
-\item{pmm_k_choice}{Character value indicating how \code{k} hyper-parameter
+\item{pmm_k_choice}{(Only for the PMM Estimator) Character value indicating how \code{k} hyper-parameter
 should be chosen, by default \code{"none"} meaning \code{k} provided in
 \code{control_outcome} argument will be used. For now the only other
 option \code{"min_var"} means that \code{k}  will be chosen by minimizing
 estimated variance of estimator for mean. Parameter \code{k} provided in
 this control list will be chosen as starting point.}
 
-\item{pmm_reg_engine}{TODO}
+\item{pmm_reg_engine}{(Only for the PMM Estimator) whether to use parametric (\code{"glm"})
+or non-parametric (\code{"loess"}) regression model for the outcome. The default is \code{"glm"}.}
+
+\item{npar_loess}{control parameters for the \link[stats:loess]{stats::loess} via the \link[stats:loess.control]{stats::loess.control} function.}
 }
 \value{
 List with selected parameters.

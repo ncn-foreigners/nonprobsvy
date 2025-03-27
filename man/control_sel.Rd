@@ -2,20 +2,17 @@
 % Please edit documentation in R/control_selection.R
 \name{control_sel}
 \alias{control_sel}
-\title{Control parameters for selection model}
+\title{Control parameters for the selection model}
 \usage{
 control_sel(
-  method = "glm.fit",
+  est_method = c("mle", "gee"),
+  gee_h_fun = 1,
+  optimizer = c("maxLik", "optim"),
+  maxlik_method = c("NR", "BFGS", "NM"),
+  optim_method = c("BFGS", "Nelder-Mead"),
   epsilon = 1e-04,
   maxit = 500,
   trace = FALSE,
-  optimizer = c("maxLik", "optim"),
-  maxLik_method = "NR",
-  optim_method = "BFGS",
-  dependence = FALSE,
-  key = NULL,
-  est_method_sel = c("mle", "gee"),
-  h = c(1, 2),
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
@@ -24,14 +21,24 @@ control_sel(
   nlambda = 50,
   nfolds = 10,
   print_level = 0,
-  start_type = c("glm", "naive", "zero"),
+  start_type = c("zero", "mle", "naive"),
   nleqslv_method = c("Broyden", "Newton"),
   nleqslv_global = c("dbldog", "pwldog", "cline", "qline", "gline", "hook", "none"),
-  nleqslv_xscalm = c("fixed", "auto")
+  nleqslv_xscalm = c("fixed", "auto"),
+  dependence = FALSE,
+  key = NULL
 )
 }
 \arguments{
-\item{method}{estimation method.}
+\item{est_method}{Method of estimation for propensity score model (\code{"mle"} or \code{"gee"}; default is \code{"mle"}).}
+
+\item{gee_h_fun}{Smooth function for the generalized estimating equations (GEE) method.}
+
+\item{optimizer}{(for the \code{est_method="mle"} only) optimization function for maximum likelihood estimation.}
+
+\item{maxlik_method}{(for the \code{est_method="mle"} only) maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
+
+\item{optim_method}{(for the \code{est_method="mle"} only) maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
 \item{epsilon}{Tolerance for fitting algorithms by default \code{1e-6}.}
 
@@ -39,34 +46,13 @@ control_sel(
 
 \item{trace}{logical value. If \code{TRUE} trace steps of the fitting algorithms. Default is \code{FALSE}}
 
-\item{optimizer}{\itemize{
-\item optimization function for maximum likelihood estimation.
-}}
-
-\item{maxLik_method}{maximisation method that will be passed to \code{\link[maxLik:maxLik]{maxLik::maxLik()}} function. Default is \code{NR}.}
-
-\item{optim_method}{maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
-
-\item{dependence}{logical value - \code{TRUE} if samples are dependent.}
-
-\item{key}{binary key variable}
-
-\item{est_method_sel}{Method of estimation for propensity score model.}
-
-\item{h}{Smooth function for the generalized estimating equations methods taking the following values
-\itemize{
-\item if \code{1} then \mjseqn{\mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) =
-  \frac{\pi(\mathbf{x}, \boldsymbol{\theta})}{\mathbf{x}}}
-\item if \code{2} then \mjseqn{ \mathbf{h}\left(\mathbf{x}, \boldsymbol{\theta}\right) = \mathbf{x}}
-}}
-
 \item{penalty}{The penalization function used during variables selection.}
 
 \item{a_SCAD}{The tuning parameter of the SCAD penalty for selection model. Default is 3.7.}
 
 \item{a_MCP}{The tuning parameter of the MCP penalty for selection model. Default is 3.}
 
-\item{lambda}{A user-specified \mjseqn{\lambda} value during variable selection model fitting.}
+\item{lambda}{A user-specified \eqn{\lambda} value during variable selection model fitting.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of \code{lambda.max}. Default is .001.}
 
@@ -79,17 +65,20 @@ control_sel(
 \item{start_type}{\itemize{
 \item Type of method for start points for model fitting taking the following values
 \itemize{
-\item if \code{glm} then start taken from the glm function called on samples.
-\item if \code{naive} then start consists of a vector which has the value of an estimated parameter for one-dimensional data (on intercept) and 0 for the rest.
-\item if \code{zero} then start is a vector of zeros.
+\item if \code{zero} then start is a vector of zeros (default for all methods).
+\item if \code{mle} (for \code{est_method="gee"} only) starting parameters are taken from the result of the \code{est_method="mle"} method.
 }
 }}
 
-\item{nleqslv_method}{The method that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_method}{(for the \code{est_method="gee"} only) The method that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
-\item{nleqslv_global}{The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_global}{(for the \code{est_method="gee"} only) The global strategy that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
 
-\item{nleqslv_xscalm}{The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+\item{nleqslv_xscalm}{(for the \code{est_method="gee"} only) The type of x scaling that will be passed to \code{\link[nleqslv:nleqslv]{nleqslv::nleqslv()}} function.}
+
+\item{dependence}{logical value (default \code{TRUE}) informing whether samples overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).}
+
+\item{key}{binary key variable allowing to identify the overlap (NOT YET IMPLEMENTED, FOR FUTURE DEVELOPMENT).}
 }
 \value{
 List with selected parameters.
@@ -97,6 +86,15 @@ List with selected parameters.
 \description{
 \code{control_sel} constructs a list with all necessary control parameters
 for selection model.
+}
+\details{
+Smooth function (\code{gee_h_fun}) for the generalized estimating equations (GEE) method taking the following values
+
+\itemize{
+\item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+\item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
+}
 }
 \seealso{
 \code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.

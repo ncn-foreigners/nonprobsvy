@@ -1,80 +1,8 @@
-# These functions are only used internally in the package, so there is no need for documenting them.
-#' @importFrom stats model.frame
-#' @importFrom stats model.matrix
-#' @importFrom Matrix Matrix
-#' @importFrom stats delete.response
-#' @importFrom stats model.response
-#' @importFrom stats summary.glm
-#' @importFrom stats contrasts
-#' @importFrom nleqslv nleqslv
-#' @importFrom stats get_all_vars
-#' @importFrom stats cov
-#' @importFrom stats var
-#' @importFrom stats predict
-
-# Selection model object
-internal_selection <- function(X,
-                               X_nons,
-                               X_rand,
-                               weights,
-                               weights_rand,
-                               R,
-                               method_selection,
-                               optim_method,
-                               h,
-                               est_method,
-                               maxit,
-                               control_selection,
-                               start,
-                               verbose,
-                               bias_correction = FALSE,
-                               varcov = FALSE,
-                               ...) {
-  if (bias_correction == TRUE) est_method <- "mm"
-  estimation_method <- get_method(est_method)
-  estimation_method$model_selection(
-    X = X,
-    X_nons = X_nons,
-    X_rand = X_rand,
-    weights = weights,
-    weights_rand = weights_rand,
-    R = R,
-    method_selection = method_selection,
-    optim_method = optim_method,
-    h = h,
-    est_method = est_method,
-    maxit = maxit,
-    varcov = varcov,
-    control_selection = control_selection,
-    start = start,
-    verbose = verbose,
-    ...
-  )
-}
-
-# Outcome model object
-internal_outcome <- function(outcome,
-                             data,
-                             weights,
-                             family_outcome,
-                             start_outcome) {
-  # estimation
-  model_nons <- nonprobMI_fit(
-    outcome = outcome,
-    data = data,
-    weights = weights,
-    family_outcome = family_outcome,
-    start = start_outcome
-  )
-  model_nons_summary <- summary(model_nons)
-
-  list(
-    glm = model_nons,
-    glm_summary = model_nons_summary
-  )
-}
-
-# code for the function comes from the ncvreg package
+##' @title Setup lambda parameter for the {ncvreg} package
+##' @param X a `matrix` of auxiliary variables
+##' @param y a `vector` of target variables
+##'
+##' @noRd
 setup_lambda <- function(X,
                          y,
                          weights,
@@ -85,7 +13,6 @@ setup_lambda <- function(X,
                          alpha = 1,
                          log_lambda = FALSE,
                          ...) {
-  # TODO
   # consider penalty factor here
   # consider for pop_totals/pop_means
   if (is.null(pop_totals)) {
@@ -119,43 +46,21 @@ setup_lambda <- function(X,
   lambda
 }
 
-start_fit <- function(X,
-                      R,
-                      weights,
-                      weights_rand,
-                      method_selection,
-                      control_selection = control_sel()) {
-  weights_to_glm <- c(weights_rand, weights)
-  start_model <- stats::glm.fit(
-    x = X, # glm model for initial values in propensity score estimation
-    y = R,
-    weights = weights_to_glm, # to fix
-    family = binomial(link = method_selection),
-    control = list(
-      epsilon = control_selection$epsilon,
-      maxit = control_selection$maxit,
-      trace = control_selection$trace
-    )
-  )
-  start_model$coefficients
-}
 
-# Function for getting function from the selected method
-get_method <- function(method) {
-  if (is.character(method)) {
-    method <- get(method, mode = "function", envir = parent.frame())
-  }
-  if (is.function(method)) {
-    method <- method()
-  }
-  method
-}
 
-ff <- function(formula) {
+##' @title Function that create formulas for multiple outcomes
+##'
+##' @param formula a formula specifying the outcome ~ auxiliary variables (e.g. `y1 + y2 ~ x1 + x2`).
+##'
+##' @description
+##' The function takes an outcome formula such as `y1 + y2 ~ x1 + x2` and creates
+##' separate models i.e. `y1 ~ x1 + x2` and `y2 ~ x1 + x2`
+##' @noRd
+make_outcomes <- function(formula) {
   formula_string <- paste(deparse(formula), collapse = " ")
   formula_parts <- strsplit(formula_string, "~")[[1]]
   if (length(formula_parts) != 2) {
-    stop("The formula must contain exactly one '~' operator.")
+    stop("The `formula` must contain exactly one '~' operator.")
   }
 
   lhs <- trimws(formula_parts[1])
@@ -165,7 +70,7 @@ ff <- function(formula) {
   independent_vars <- strsplit(rhs, "\\s*\\+\\s*")[[1]]
 
   if (any(duplicated(dependent_vars))) {
-    warning("Duplicate dependent variable names detected. They have been made unique.")
+    warning("Duplicate dependent variable names have been detected. They have been made unique.")
     dependent_vars <- unique(dependent_vars)
   }
   outcome_formulas <- vector("list", length(dependent_vars))
@@ -180,19 +85,16 @@ ff <- function(formula) {
   )
 }
 
-mu_hatDR <- function(y,
-                     y_nons,
-                     y_rand,
+mu_hatDR <- function(y_hat,
+                     y_resid,
                      weights,
                      weights_nons,
-                     weights_rand,
-                     N_nons,
-                     N_rand) {
-  correction_term <- sum(weights * weights_nons * (y - y_nons)) / N_nons
-  probability_estimate <- sum(weights_rand * y_rand) / N_rand
-  correction_term + probability_estimate
+                     N_nons) {
+
+  colSums(weights * weights_nons * y_resid) / N_nons + y_hat
 }
 
+## replace with weighted.mean -- maybe it can be removed
 mu_hatIPW <- function(y,
                       weights,
                       weights_nons,
@@ -201,67 +103,20 @@ mu_hatIPW <- function(y,
   mu_hat
 }
 
-nonprobMI_fit <- function(outcome,
-                          data,
-                          weights,
-                          svydesign = NULL,
-                          family_outcome = "gaussian",
-                          start = NULL,
-                          control_outcome = control_out(),
-                          verbose = FALSE,
-                          model = TRUE,
-                          x = FALSE,
-                          y = FALSE) {
-  # Process family specification
-  family <- process_family(family_outcome)
 
-  # Process control parameters
-  control_list <- list(
-    epsilon = control_outcome$epsilon,
-    maxit = control_outcome$maxit,
-    trace = control_outcome$trace
-  )
 
-  # Create model environment to avoid modifying original data
-  model_data <- data
-  model_data$weights <- weights
+merge_formulas <- function(outcome, selection) {
 
-  # Fit the model
-  tryCatch({
-    model_fit <- stats::glm(
-      formula = outcome,
-      data = model_data,
-      weights = weights,
-      family = family,
-      start = start,
-      control = control_list,
-      model = model,
-      x = x,
-      y = y
-    )
+  lhs1 <- formula.tools::lhs(outcome)  # Left hand side of formula1
+  rhs1 <- formula.tools::rhs(outcome)  # Right hand side of formula1
+  rhs2 <- formula.tools::rhs(selection)  # Right hand side of formula2
 
-    if (verbose) {
-      cat("Model fitting completed:\n")
-      cat("Convergence status:", ifelse(model_fit$converged, "converged", "not converged"), "\n")
-      cat("Number of iterations:", model_fit$iter, "\n")
-    }
+  # Combine right hand sides (unique terms)
+  combined_rhs <- unique(c(all.vars(rhs1), all.vars(rhs2)))
+  rhs_terms <- paste(combined_rhs, collapse = " + ")
 
-    return(model_fit)
+  outcome <- as.formula(paste(deparse(lhs1), "~", rhs_terms))
+  selection <- as.formula(paste("~", rhs_terms))
 
-  }, error = function(e) {
-    stop("Error in model fitting: ", e$message)
-  })
-}
-
-process_family <- function(family_spec) {
-  if (is.character(family_spec)) {
-    family <- get(family_spec, mode = "function", envir = parent.frame())
-  } else if (is.function(family_spec)) {
-    family <- family_spec()
-  } else if (inherits(family_spec, "family")) {
-    family <- family_spec
-  } else {
-    stop("Invalid family specification")
-  }
-  return(family)
+  return(list(outcome, selection))
 }

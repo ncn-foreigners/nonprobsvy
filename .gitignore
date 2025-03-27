@@ -4,7 +4,6 @@
 .RData
 .Ruserdata
 playground
-.Rdata
 .httr-oauth
 .DS_Store
 src/*.o
@@ -12,3 +11,5 @@ src/*.so
 src/Makevars
 srs/*.dll
 docs
+inst/doc
+**/.quarto/

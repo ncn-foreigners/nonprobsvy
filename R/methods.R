@@ -1,0 +1,196 @@
+
+# my methods --------------------------------------------------------------
+
+#' @method pop_size nonprob
+#' @exportS3Method
+pop_size.nonprob <- function(object) {
+  object$pop_size
+}
+
+#' @title Returns population size (estimated or fixed)
+#' @description Returns population size that is assumed to be
+#'\itemize{
+#'  \item{\code{fixed} -- if it is based on the `pop_size` argument,}
+#'  \item{\code{estimated} -- if it is based on the probability survey specified in the `svydesign` or based on the estimated propensity scores for the non-probability sample.}
+#'}
+#' @param object object returned by the `nonprob` function.
+#' @return a scalar returning the value of the population size.
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit"
+#' )
+#'
+#' ipw_est2 <- nonprob(
+#' selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit",
+#' control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
+#'
+#' ## estimated population size based on the non-calibrated IPW (MLE)
+#' pop_size(ipw_est1)
+#'
+#' ## estimated population size based on the calibrated IPW (GEE)
+#' pop_size(ipw_est2)
+#'
+#'
+#' @export
+pop_size <- function(object) {
+  UseMethod("pop_size")
+}
+
+
+# base R methods ----------------------------------------------------------
+
+#' @method nobs nonprob
+#' @importFrom stats nobs
+#' @exportS3Method
+nobs.nonprob <- function(object,
+                         ...) {
+  c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
+}
+
+#' @title Extract the inverse probability weights
+#' @description A generic function `weights` that returns inverse probability weights (if present)
+#'
+#' @param object a `nonprob` class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @returns A vector of weights or a `NULL` extracted from the `nonprob` object i.e. element `"ipw_weights"`
+#'
+#' @method weights nonprob
+#' @importFrom stats weights
+#' @exportS3Method
+weights.nonprob <- function(object,
+                            ...) {
+  object$ipw_weights
+}
+
+#' @title The update method for the nonprob object with changed arguments or parameters
+#' @author Maciej Beręsewicz
+#'
+#' @description
+#'
+#' The `update` method for the `nonprob` class object that allows to re-estimate
+#' a given model with changed parameters. This is in particular useful if a user
+#' would like to change method or estimate standard errors if they were not
+#' estimated in the first place.
+#'
+#' @param object the `nonprob` class object
+#' @param ... arguments passed to the `nonprob` class object
+#' @param evaluate If true evaluate the new call else return the call
+#'
+#' @method update nonprob
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' ipw_est1
+#'
+#' update(ipw_est1, se = TRUE)
+#'
+#' @return returns `nonprob` object
+#' @importFrom stats update
+#' @exportS3Method
+update.nonprob <- function(object, ..., evaluate=TRUE) {
+  call <- object$call
+
+  # Handle additional arguments
+  extras <- match.call(expand.dots = FALSE)$...
+  if (length(extras)) {
+    existing <- !is.na(match(names(extras), names(call)))
+    for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
+    if (any(!existing)) {
+      call <- c(as.list(call), extras[!existing])
+      call <- as.call(call)
+    }
+  }
+
+  # Either evaluate the call and return a new model,
+  # or return the call itself
+  if (evaluate) {
+    eval(call, parent.frame())
+  } else {
+    call
+  }
+}
+
+#' @title Confidence intervals for estimated mean
+#'
+#' @description A generic function that returns the confidence interval
+#' for the estimated mean. If standard errors have not been estimated, the function
+#' updates the `nonprob` object to obtain standard errors.
+#'
+#' @param object object of `nonprob` class.
+#' @param parm names of parameters for which confidence intervals are to be
+#' computed, if missing all parameters will be considered.
+#' @param level confidence level for intervals.
+#' @param ... additional arguments
+#'
+#' @method confint nonprob
+#' @return returns a `data.frame` with confidence intervals for the target variables
+#' @importFrom stats confint
+#' @importFrom stats quantile
+#' @exportS3Method
+confint.nonprob <- function(object,
+                            parm,
+                            level = 0.95,
+                            ...) {
+
+  call <- object$call
+
+  if ("se" %in% names(call)) {
+    if (!eval(call$se))  {
+      message("Calculating standard errors...")
+      object <- update(object, se = T)
+    }
+  }
+
+  if (missing(parm)) parm <- rownames(object$output)
+
+  if (level == 0.95) {
+    CIs <- object$confidence_interval
+    CIs$target <- rownames(CIs)
+    rownames(CIs) <- NULL
+  } else {
+    if (is.null(object$boot_sample)) {
+      CIs <- object$output
+      z <- stats::qnorm(1 - (1-level) / 2)
+      # confidence interval based on the normal approximation
+      CIs$lower_bound <- CIs$mean - z * CIs$SE
+      CIs$upper_bound <- CIs$mean + z * CIs$SE
+      CIs$target <- rownames(CIs)
+      rownames(CIs) <- NULL
+    } else {
+      CIs <- object$output
+      alpha <- 1-level
+      SE_q <- apply(object$boot_sample, 2, stats::quantile, probs = c(alpha/2, 1-alpha/2))
+      CIs$lower_bound <- SE_q[1,]
+      CIs$upper_bound <- SE_q[2,]
+      CIs$target <- rownames(CIs)
+      rownames(CIs) <- NULL
+    }
+  }
+  return(CIs[CIs$target %in% parm, c("target", "lower_bound", "upper_bound")])
+}
+

@@ -1,0 +1,13 @@
+citHeader("To cite nonprobsvy in publications use:")
+
+bibentry(
+  key = "nonprobsy",
+  bibtype = "Manual",
+  title = "Inference Based on Non-Probability Samples",
+  author = c(person("Łukasz", "Chrostowski"),
+             person("Maciej", "Beręsewicz"),
+             person("Piotr", "Chlebicki")),
+  note = "R package version 0.2",
+  year = "2025",
+  url = "https://github.com/ncn-foreigners/nonprobsvy"
+)

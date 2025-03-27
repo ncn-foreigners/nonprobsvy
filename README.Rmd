@@ -45,9 +45,8 @@ population or probability sample is available:
 -   inverse probability weighting estimators with possible calibration
     constraints [@chen2020],
 -   mass imputation estimators based on nearest neighbours [@yang2021],
-    predictive mean matching and regression imputation [@kim2021],
--   doubly robust estimators with bias minimization [@chen2020,
-    @yang2020].
+    predictive mean matching [@chlebicki2025], non-parametric [@chen2022nonparametric] and regression imputation [@kim2021],
+-   doubly robust estimators [@chen2020] with bias minimization [@yang2020].
 
 The package allows for:
 
@@ -56,8 +55,8 @@ The package allows for:
     packages),
 -   estimation of variance using analytical and bootstrap approach (see
     @wu2023),
--   integration with the `survey` package when probability sample is
-    available [@Lumley2004, @Lumley2023],
+-   integration with the `survey` and `srvyr` packages when probability sample is
+    available [@Lumley2004; @Lumley2023; @srvyr2024],
 -   different links for selection (`logit`, `probit` and `cloglog`) and
     outcome (`gaussian`, `binomial` and `poisson`) variables.
 
@@ -193,7 +192,7 @@ nonprob(
                  ..., 
                  xk = tau_xk), 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 </td>
@@ -253,7 +252,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "nn", 
   family_outcome = "gaussian", 
-  control_outcome = controlOutcome(k = 2)
+  control_outcome = control_outcome(k = 2)
 )
 ```
 </td>
@@ -286,8 +285,8 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_outcome = controlOut(penalty = "lasso"), 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_outcome = control_out(penalty = "lasso"), 
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 </td>
@@ -320,7 +319,7 @@ nonprob(
   data = nonprob, 
   svydesign = prob, 
   method_selection = "logit", 
-  control_selection = controlSel(est_method_sel = "gee", h = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 )
 ```
 </td>
@@ -338,7 +337,7 @@ nonprob(
   svydesign = prob, 
   method_outcome = "pmm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(vars_selection = TRUE)
+  control_inference = control_inf(vars_selection = TRUE)
 )
 ```
 </td>
@@ -362,6 +361,7 @@ nonprob(
 <tr>
 <tr>
 <td>
+
 Doubly robust estimator with variable selection (SCAD) and bias minimization
 </td>
 <td>
@@ -373,7 +373,7 @@ nonprob(
   svydesign = prob,
   method_outcome = "glm", 
   family_outcome = "gaussian", 
-  control_inference = controlInf(
+  control_inference = control_inf(
     vars_selection = TRUE, 
     bias_correction = TRUE
   )
@@ -381,7 +381,8 @@ nonprob(
 ```
 </td>
 <tr>
-</table>                                                                                      
+</table>    
+
 ## Examples
 
 Simulate example data from the following paper: Kim, Jae Kwang, and
@@ -405,7 +406,7 @@ p2 <- exp(-0.5+0.5*(x2-2)^2)/(1+exp(-0.5+0.5*(x2-2)^2))
 flag_bd1 <- rbinom(n = N, size = 1, prob = p1)
 flag_srs <- as.numeric(1:N %in% sample(1:N, size = n))
 base_w_srs <- N/n
-population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs)
+population <- data.frame(x1,x2,y1,y2,p1,p2,base_w_srs, flag_bd1, flag_srs, pop_size = N)
 base_w_bd <- N/sum(population$flag_bd1)
 ```
 
@@ -413,16 +414,36 @@ Declare `svydesign` object with `survey` package
 
 ```{r}
 sample_prob <- svydesign(ids= ~1, weights = ~ base_w_srs, 
-                         data = subset(population, flag_srs == 1))
+                         data = subset(population, flag_srs == 1),
+                         fpc = ~ pop_size)
+
+sample_prob
+```
+
+or with the `srvyr` package
+
+```r
+sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
+                                       weights = base_w_srs)
+
+sample_prob
+```
+
+```r
+Independent Sampling design (with replacement)
+Called via srvyr
+Sampling variables:
+Data variables: 
+  - x1 (dbl), x2 (dbl), y1 (dbl), y2 (dbl), p1 (dbl), p2 (dbl), base_w_srs (dbl), flag_bd1 (int), flag_srs (dbl)
 ```
 
 Estimate population mean of `y1` based on doubly robust estimator using
-IPW with calibration constraints.
+IPW with calibration constraints and we specify that auxiliary variables should not be combined for the inference. 
 
 ```{r}
 result_dr <- nonprob(
   selection = ~ x2,
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -431,14 +452,14 @@ result_dr <- nonprob(
 Results
 
 ```{r}
-summary(result_dr)
+result_dr
 ```
 
 Mass imputation estimator
 
 ```{r}
 result_mi <- nonprob(
-  outcome = y1 ~ x1 + x2,
+  outcome = y1 + y2 ~ x1 + x2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob
 )
@@ -447,7 +468,7 @@ result_mi <- nonprob(
 Results
 
 ```{r}
-summary(result_mi)
+result_mi
 ```
 
 Inverse probability weighting estimator
@@ -455,7 +476,7 @@ Inverse probability weighting estimator
 ```{r}
 result_ipw <- nonprob(
   selection = ~ x2,
-  target = ~y1,
+  target = ~y1+y2,
   data = subset(population, flag_bd1 == 1),
   svydesign = sample_prob)
 ```
@@ -463,7 +484,7 @@ result_ipw <- nonprob(
 Results
 
 ```{r}
-summary(result_ipw)
+result_ipw
 ```
 
 ## Funding
