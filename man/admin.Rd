@@ -22,7 +22,7 @@ admin
 \description{
 This is a subset of the Central Job Offers Database, a voluntary administrative data set (non-probability sample).
 The data was slightly manipulated to ensure the relationships were preserved, and then aligned.
-For more information about the CBOP, please refer to: \url{https://oferty.praca.gov.pl/}.
+For more information about the CBOP, please refer to: \url{https://oferty.praca.gov.pl/portal}.
 }
 \examples{
 
