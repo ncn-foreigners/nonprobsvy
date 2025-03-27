@@ -21,7 +21,7 @@ In the case of outcome and target multiple \(y\) variables can be specified."><m
 
     <a class="navbar-brand me-2" href="../index.html">nonprobsvy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ In the case of outcome and target multiple \(y\) variables can be specified."><m
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Inference with non-probability survey samples</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a></small>
       <div class="d-none name"><code>nonprob.Rd</code></div>
     </div>
 
@@ -305,7 +305,7 @@ where \(m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)\) is a mass imputat
 propensity scores \(\pi_i^A\) are estimated using a <code>logit</code> function for the model. As with the <code>MLE</code> and <code>GEE</code> approaches we have extended
 this method to <code>cloglog</code> and <code>probit</code> links.</p></li>
 </ol><p>As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
-Details can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book/intro.html">here</a>.
+Details can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book">here</a>.
 In addition, the bootstrap approach can be used for variance estimation.</p>
 <p>The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
 In the presence of high-dimensional data, variable selection is important, because it can reduce the variability in the estimate that results from using irrelevant variables to build the model.
@@ -322,7 +322,7 @@ $$
   \right\rbrace,
   $$
 where \(\lambda_{\theta}\) and \(q_{\lambda_{\beta}}\) are some smooth functions. We let \(q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}\), where \(p_{\lambda}\) is some penalization function.
-Details of penalization functions and techniques for solving this type of equation can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html">here</a>.
+Details of penalization functions and techniques for solving this type of equation can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book">here</a>.
 To use the variable selection model, set the <code>vars_selection</code> parameter in the <code><a href="control_inf.html">control_inf()</a></code> function to <code>TRUE</code>. In addition, in the other control functions such as <code><a href="control_sel.html">control_sel()</a></code> and <code><a href="control_out.html">control_out()</a></code>
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 in the documentation of the control functions for <code>nonprob</code>.</p>
