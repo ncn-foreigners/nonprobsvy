@@ -223,7 +223,7 @@ this method to \code{cloglog} and \code{probit} links.
 }
 
 As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
-Details can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/intro.html}{here}.
+Details can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book}{here}.
 In addition, the bootstrap approach can be used for variance estimation.
 
 The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
@@ -241,7 +241,7 @@ penalized estimating functions as
   \right\rbrace,
   }
 where \eqn{\lambda_{\theta}} and \eqn{q_{\lambda_{\beta}}} are some smooth functions. We let \eqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \eqn{p_{\lambda}} is some penalization function.
-Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/variableselection.html}{here}.
+Details of penalization functions and techniques for solving this type of equation can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book}{here}.
 To use the variable selection model, set the \code{vars_selection} parameter in the \code{\link[=control_inf]{control_inf()}} function to \code{TRUE}. In addition, in the other control functions such as \code{\link[=control_sel]{control_sel()}} and \code{\link[=control_out]{control_out()}}
 you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 in the documentation of the control functions for \code{nonprob}.
