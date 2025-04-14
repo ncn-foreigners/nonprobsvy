@@ -1,6 +1,40 @@
 
 # my methods --------------------------------------------------------------
 
+#' @method extract nonprob
+#' @exportS3Method extract nonprob
+extract.nonprob <- function(object, what=c("mean", "se")) {
+
+  what_selected <- match.arg(what)
+
+  ext <- switch(what_selected,
+                "mean" = object$output$mean,
+                "se" = object$output$SE)
+  return(ext)
+}
+#' @title Extracts estimated mean or its standard errors from the nonprob object
+#' @description Returns a vector of point or standard error estimates
+#' @param object object returned by the `nonprob` function.
+#' @param what what to extract: estimated mean (\code{"mean"}) or its standard errors (\code{"se"})
+#' @examples
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit"
+#' )
+#' extract(ipw_est1)
+#' extract(ipw_est1, "se")
+#' @export
+extract <- function(object, what) {
+  UseMethod("extract")
+}
+
 #' @method pop_size nonprob
 #' @exportS3Method
 pop_size.nonprob <- function(object) {

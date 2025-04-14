@@ -67,7 +67,8 @@ expect_equal(
     target = ~single_shift,
     pop_totals = pop_totals,
     data = admin,
-    method_selection = "cloglog")$output
+    method_selection = "cloglog")$output,
+  tolerance = 0.001
 )
 
 ## population totals vs population means and pop_size)

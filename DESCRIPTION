@@ -44,8 +44,7 @@ Imports:
 Suggests: 
     tinytest,
     covr,
-    sampling,
-    spelling,
+    spelling
 LinkingTo: 
     Rcpp,
     RcppArmadillo

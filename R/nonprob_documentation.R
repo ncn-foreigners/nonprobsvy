@@ -135,7 +135,7 @@
 #'   this method to `cloglog` and `probit` links.
 #'
 #'   As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
-#'   Details can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book).
+#'   Details can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/).
 #'   In addition, the bootstrap approach can be used for variance estimation.
 #'
 #'   The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
@@ -153,7 +153,7 @@
 #'   \right\rbrace,
 #'   }
 #'   where \eqn{\lambda_{\theta}} and \eqn{q_{\lambda_{\beta}}} are some smooth functions. We let \eqn{q_{\lambda} \left(x\right) = \frac{\partial p_{\lambda}}{\partial x}}, where \eqn{p_{\lambda}} is some penalization function.
-#'   Details of penalization functions and techniques for solving this type of equation can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book).
+#'   Details of penalization functions and techniques for solving this type of equation can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/).
 #'   To use the variable selection model, set the `vars_selection` parameter in the [control_inf()] function to `TRUE`. In addition, in the other control functions such as [control_sel()] and [control_out()]
 #'   you can set parameters for the selection of the relevant variables, such as the number of folds during cross-validation algorithm or the lambda value for penalizations. Details can be found
 #'   in the documentation of the control functions for `nonprob`.
@@ -235,7 +235,6 @@
 #' \donttest{
 #' # generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)
 #' # Yilin Chen , Pengfei Li & Changbao Wu
-#' library(sampling)
 #' set.seed(123)
 #' # sizes of population and probability sample
 #' N <- 20000 # population
@@ -269,11 +268,11 @@
 #'
 #' # inclusion probabilities for probability sample
 #' z_prob <- x3 + 0.2051
-#' sim_data$p_prob <- inclusionprobabilities(z_prob, n = n_b)
+#' sim_data$p_prob <- n_b* z_prob/sum(z_prob)
 #'
 #' # data
-#' sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
-#' sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
+#' sim_data$flag_nonprob <- as.numeric(runif(N) < rho) ## sampling nonprob
+#' sim_data$flag_prob <- as.numeric(runif(n_b) < sim_data$p_prob) ## sampling prob
 #' nonprob_df <- subset(sim_data, flag_nonprob == 1) ## non-probability sample
 #' svyprob <- svydesign(
 #'   ids = ~1, probs = ~p_prob,

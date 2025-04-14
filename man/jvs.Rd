@@ -3,7 +3,7 @@
 \docType{data}
 \name{jvs}
 \alias{jvs}
-\title{Job Vacancy Survey}
+\title{Job vacancy survey}
 \format{
 A single data.frame with 6,523 rows and 6 columns
 
