@@ -21,7 +21,7 @@ In the case of outcome and target multiple \(y\) variables can be specified."><m
 
     <a class="navbar-brand me-2" href="../index.html">nonprobsvy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ In the case of outcome and target multiple \(y\) variables can be specified."><m
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Inference with non-probability survey samples</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/main/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob.R" class="external-link"><code>R/nonprob.R</code></a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/blob/dev/R/nonprob_documentation.R" class="external-link"><code>R/nonprob_documentation.R</code></a></small>
       <div class="d-none name"><code>nonprob.Rd</code></div>
     </div>
 
@@ -367,12 +367,6 @@ estimation process of the bias minimization approach.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)</span></span></span>
 <span class="r-in"><span><span class="co"># Yilin Chen , Pengfei Li &amp; Changbao Wu</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">sampling</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Attaching package: ‘sampling’</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The following objects are masked from ‘package:survival’:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>     cluster, strata</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># sizes of population and probability sample</span></span></span>
 <span class="r-in"><span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">20000</span> <span class="co"># population</span></span></span>
@@ -406,11 +400,11 @@ estimation process of the bias minimization approach.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># inclusion probabilities for probability sample</span></span></span>
 <span class="r-in"><span><span class="va">z_prob</span> <span class="op">&lt;-</span> <span class="va">x3</span> <span class="op">+</span> <span class="fl">0.2051</span></span></span>
-<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/inclusionprobabilities.html" class="external-link">inclusionprobabilities</a></span><span class="op">(</span><span class="va">z_prob</span>, n <span class="op">=</span> <span class="va">n_b</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span> <span class="op">&lt;-</span> <span class="va">n_b</span><span class="op">*</span> <span class="va">z_prob</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">z_prob</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># data</span></span></span>
-<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_nonprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="co">## sampling nonprob</span></span></span>
-<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sampling/man/UPpoisson.html" class="external-link">UPpoisson</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span><span class="op">)</span> <span class="co">## sampling prob</span></span></span>
+<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_nonprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">rho</span><span class="op">)</span> <span class="co">## sampling nonprob</span></span></span>
+<span class="r-in"><span><span class="va">sim_data</span><span class="op">$</span><span class="va">flag_prob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n_b</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">sim_data</span><span class="op">$</span><span class="va">p_prob</span><span class="op">)</span> <span class="co">## sampling prob</span></span></span>
 <span class="r-in"><span><span class="va">nonprob_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">flag_nonprob</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## non-probability sample</span></span></span>
 <span class="r-in"><span><span class="va">svyprob</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  ids <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, probs <span class="op">=</span> <span class="op">~</span><span class="va">p_prob</span>,</span></span>
@@ -437,9 +431,9 @@ estimation process of the bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 11.9242</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 11.9797</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimators:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.4137 (se=0.3955, ci=(8.6385, 10.1889))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.4817 (se=0.2248, ci=(9.0411, 9.9223))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.5183 (se=0.1510, ci=(9.2223, 9.8143))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.4791 (se=0.3927, ci=(8.7094, 10.2488))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.5458 (se=0.2241, ci=(9.1067, 9.9850))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.5818 (se=0.1517, ci=(9.2845, 9.8791))</span>
 <span class="r-in"><span><span class="co">## inverse probability weighted estimator</span></span></span>
 <span class="r-in"><span><span class="va">ipw_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
@@ -460,9 +454,9 @@ estimation process of the bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 11.9242</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 11.9797</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimators:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.2717 (se=0.5555, ci=(8.1830, 10.3605))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.4143 (se=0.5555, ci=(8.3256, 10.5030))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.4911 (se=0.5555, ci=(8.4023, 10.5798))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.3798 (se=0.5655, ci=(8.2714, 10.4881))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.5155 (se=0.5655, ci=(8.4071, 10.6238))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.5886 (se=0.5655, ci=(8.4802, 10.6969))</span>
 <span class="r-in"><span><span class="co">## doubly robust estimator</span></span></span>
 <span class="r-in"><span><span class="va">dr_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  outcome <span class="op">=</span> <span class="va">y30</span> <span class="op">+</span> <span class="va">y50</span> <span class="op">+</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>
@@ -483,9 +477,9 @@ estimation process of the bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 11.9242</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 11.9797</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimators:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.2626 (se=0.4379, ci=(8.4043, 10.1209))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.4062 (se=0.2499, ci=(8.9164, 9.8960))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.4835 (se=0.1702, ci=(9.1500, 9.8170))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.3388 (se=0.4548, ci=(8.4473, 10.2302))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.4757 (se=0.2578, ci=(8.9704, 9.9810))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.5494 (se=0.1745, ci=(9.2075, 9.8913))</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
