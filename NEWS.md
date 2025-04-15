@@ -6,7 +6,7 @@ nonprobsvy News and Updates
 ------------------------------------------------------------------------
  
 + title corrected 
-+ new S3 method `extract` added which allows to extract point estimates or standard errors 
++ new S3 method `extract` added which allows to extract results from the `nonprob` object
 + fixed CRAN notes (unit tests for the IPW estimator `cloglog`) 
 + removed `sampling` package from suggested package 
 + added simple `plot` method
