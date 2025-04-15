@@ -90,31 +90,31 @@ contains either IPW or DR estimator.</p>
 <span class="r-in"><span><span class="co">## check the balance for the standard IPW</span></span></span>
 <span class="r-in"><span><span class="fu">check_balance</span><span class="op">(</span><span class="op">~</span><span class="va">size</span>, <span class="va">ipw_est1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $nonprob_totals</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sizeL     sizeM     sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8193.376 13529.550 31175.205 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    52898.13    13529.55    31175.21 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $prob_totals</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sizeL sizeM sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8561 13758 29551 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       51870       13758       29551 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $balance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sizeL   sizeM   sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -367.62 -228.45 1624.21 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     1028.13     -228.45     1624.21 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## check the balance for the calibrated IPW</span></span></span>
 <span class="r-in"><span><span class="fu">check_balance</span><span class="op">(</span><span class="op">~</span><span class="va">size</span>, <span class="va">ipw_est2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $nonprob_totals</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sizeL sizeM sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8561 13758 29551 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       51870       13758       29551 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $prob_totals</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sizeL sizeM sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8561 13758 29551 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       51870       13758       29551 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $balance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sizeL sizeM sizeS </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     0     0     0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)       sizeM       sizeS </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           0           0           0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

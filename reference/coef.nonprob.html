@@ -56,9 +56,67 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>a <code>list</code> with two entries: <code>"coef_sel"</code> a vector of coefficients for the selection equation and <code>"coef_dr"</code> a matrix of coefficients for the outcome equation(s) if possible.</p>
-    </div>
+    <p>a <code>list</code> with two entries:</p><ul><li><p><code>"coef_sel"</code> a matrix of coefficients for the selection equation if possible, else NULL</p></li>
+<li><p><code>"coef_dr"</code> a matrix of coefficients for the outcome equation(s) if possible, else NULL</p></li>
+</ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">admin</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">jvs</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">jvs_svy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span>,  weights <span class="op">=</span> <span class="op">~</span> <span class="va">weight</span>,</span></span>
+<span class="r-in"><span>strata <span class="op">=</span> <span class="op">~</span> <span class="va">size</span> <span class="op">+</span> <span class="va">nace</span> <span class="op">+</span> <span class="va">region</span>, data <span class="op">=</span> <span class="va">jvs</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">ipw_est1</span> <span class="op">&lt;-</span> <span class="fu"><a href="nonprob.html">nonprob</a></span><span class="op">(</span>selection <span class="op">=</span> <span class="op">~</span> <span class="va">region</span> <span class="op">+</span> <span class="va">private</span> <span class="op">+</span> <span class="va">nace</span> <span class="op">+</span> <span class="va">size</span>,</span></span>
+<span class="r-in"><span>target <span class="op">=</span> <span class="op">~</span> <span class="va">single_shift</span>,</span></span>
+<span class="r-in"><span>svydesign <span class="op">=</span> <span class="va">jvs_svy</span>,</span></span>
+<span class="r-in"><span>data <span class="op">=</span> <span class="va">admin</span>, method_selection <span class="op">=</span> <span class="st">"logit"</span>, se <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">ipw_est1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $coef_sel</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    [,1]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.65277121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region04     0.83779549</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region06     0.19953188</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region08     0.10479761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region10    -0.15756693</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region12    -0.60987005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region14    -0.84150300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region16     0.76385615</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region18     1.17810496</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region20     0.22251032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region22    -0.03753066</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region24    -0.40670702</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region26     0.20287478</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region28     0.57862243</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region30    -0.61021662</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> region32     0.32742204</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> private      0.05899377</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceD.E      0.77273741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceF       -0.37783229</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceG       -0.33370352</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceH       -0.65174566</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceI        0.41179116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceJ       -1.42636886</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceK.L      0.06171389</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceM       -0.40677813</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceN        0.80034162</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceO       -0.69354695</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceP        1.25095429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceQ        0.30286775</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> naceR.S      0.22227967</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sizeM       -0.36412124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sizeS       -1.02915884</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $coef_out</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
