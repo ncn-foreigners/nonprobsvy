@@ -42,10 +42,10 @@ data = admin, method_selection = "logit",
 control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
 
 ## check the balance for the standard IPW
-check_balance(~size+public, ipw_est1)
+check_balance(~size+private, ipw_est1)
 
 ## check the balance for the calibrated IPW
-check_balance(~size+public, ipw_est2)
+check_balance(~size+private, ipw_est2)
 
 ## check balance for a more complicated example
 check_balance(~ I(size=="M") + I(nace == "C"), ipw_est1)
