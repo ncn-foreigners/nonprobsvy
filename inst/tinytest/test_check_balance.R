@@ -19,6 +19,26 @@ expect_silent(ipw_est2 <- nonprob(
   control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
 ))
 
+# population totals
+
+expect_silent(ipw_est1_totals <- nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  pop_totals = pop_totals,
+  data = admin,
+  method_selection = "logit"
+))
+
+expect_silent(ipw_est1_means <- nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  pop_means = pop_means,
+  pop_size = N,
+  data = admin,
+  method_selection = "logit"
+))
+
+
 
 # Test basic functionality with size variable for standard IPW
 expect_silent(result1 <- check_balance(~size, ipw_est1))
@@ -78,11 +98,11 @@ expect_true(all(c("nonprob_totals", "prob_totals", "balance") %in% names(result1
             "Result should contain all required elements")
 
 expect_equal(result1$nonprob_totals,
-             c(sizeL = 8193.38469497343, sizeM = 13529.6006895995, sizeS = 31175.1408206473),
+             c(`(Intercept)` = 52898.1310959942, sizeM = 13529.5497750274, sizeS = 31175.2052120894),
              tolerance = 0.01)
 
 expect_equal(result1$balance,
-             c(sizeL = -367.62, sizeM = -228.4, sizeS = 1624.14),
+             c(`(Intercept)` = 1028.13, sizeM = -228.45, sizeS = 1624.21),
              tolerance = 0.01)
 
 
@@ -91,11 +111,11 @@ expect_equal(result1$balance,
 
 
 expect_equal(result2$nonprob_totals,
-             c(sizeL = 8561.00000000027, sizeM = 13758, sizeS = 29550.9999999996),
+             c(`(Intercept)` = 51870.0000000003, sizeM = 13758.0000000002, sizeS = 29550.9999999995),
              tolerance = 0.01)
 
 expect_equal(result2$balance,
-             c(sizeL = 0, sizeM = 0, sizeS = 0),
+             c(`(Intercept)` = 0, sizeM = 0, sizeS = 0),
              tolerance = 0.01)
 
 
@@ -114,3 +134,21 @@ expect_true(length(result_multi$balance) > 1,
 result_multi_cat <- check_balance(~region + size + nace, ipw_est1)
 expect_true(length(result_multi_cat$balance) > 3,
             "Multiple categorical variables should produce multiple balance values")
+
+# check comparison to provided totals -------------------------------------
+
+
+expect_silent(
+  check_balance(~size, ipw_est1_totals)
+)
+
+expect_silent(
+  check_balance(~size, ipw_est1_means)
+)
+
+
+expect_equal(
+  check_balance(~size, ipw_est1_totals)$balance,
+  c(`(Intercept)` = 0, sizeM = 0, sizeS = 0),
+  tolerance = 0.01
+)

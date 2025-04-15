@@ -12,8 +12,29 @@
 \item{...}{other arguments passed to methods (currently not supported)}
 }
 \value{
-a \code{list} with two entries: \code{"coef_sel"} a vector of coefficients for the selection equation and \code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible.
+a \code{list} with two entries:
+\itemize{
+\item{\code{"coef_sel"} a matrix of coefficients for the selection equation if possible, else NULL}
+\item{\code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible, else NULL}
+}
 }
 \description{
 Returns a \code{list} of coefficients for the selection and the outcome models
+}
+\examples{
+
+data(admin)
+data(jvs)
+
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+strata = ~ size + nace + region, data = jvs)
+
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+target = ~ single_shift,
+svydesign = jvs_svy,
+data = admin, method_selection = "logit", se = FALSE
+)
+
+coef(ipw_est1)
+
 }

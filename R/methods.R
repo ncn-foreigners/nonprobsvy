@@ -253,13 +253,50 @@ confint.nonprob <- function(object,
 #' @param object a \code{nonprob} class object
 #' @param ... other arguments passed to methods (currently not supported)
 #'
-#' @return a \code{list} with two entries: \code{"coef_sel"} a vector of coefficients for the selection equation and \code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible.
+#' @return a \code{list} with two entries:
+#' \itemize{
+#' \item{\code{"coef_sel"} a matrix of coefficients for the selection equation if possible, else NULL}
+#' \item{\code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible, else NULL}
+#' }
 #'
 #' @method coef nonprob
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' coef(ipw_est1)
+#'
 #' @importFrom stats coef
 #' @exportS3Method
 coef.nonprob <- function(object,
                          ...) {
-  list(coef_sel = coef(object$selection),
-       coef_out = sapply(object$outcome, coef))
+
+  if (is.null(object$selection)) {
+    coef_sel <- NULL
+  } else if (isTRUE(object$control$control_inference$bias_correction)) {
+    coef_sel <- sapply(object$selection,"[[", "x")
+  } else {
+    coef_sel <- as.matrix(coef(object$selection))
+  }
+
+  if (is.null(object$outcome) || grepl("^(nn|npar)", object$estimator_method)) {
+    coef_out <- NULL
+  } else if (isTRUE(object$control$control_inference$bias_correction)) {
+    coef_out <- sapply(object$outcome, "[[", "x")
+  } else {
+    coef_out <- as.matrix(sapply(object$outcome, coef))
+  }
+
+  return(list(coef_sel=coef_sel, coef_out = coef_out))
 }

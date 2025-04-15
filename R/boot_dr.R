@@ -169,10 +169,10 @@ boot_dr <- function(selection,
                 theta_hat <- bias_corr_result_b$x[1:NCOL(X_all)]
                 beta_hat <- bias_corr_result_b$x[(NCOL(X_all) + 1):(2 * NCOL(X_all))]
 
-                bias_corr_ps <- method$make_link_inv(unname(drop(crossprod(X_all, theta_hat))))
+                bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
                 bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw_b$R == 1]
-                bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(crossprod(X_all[results_ipw_b$R == 0, ],beta_hat)))
-                bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(crossprod(X_all[results_ipw_b$R == 1, ],beta_hat)))
+                bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 0, ] %*% beta_hat))
+                bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 1, ] %*% beta_hat))
                 bias_corr_mu_resid <- bias_corr_mu_nons_pred - y_nons
 
                 boot_obj[b, ] <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_b_)),
@@ -434,10 +434,10 @@ boot_dr <- function(selection,
               theta_hat <- bias_corr_result_b$x[1:NCOL(X_all)]
               beta_hat <- bias_corr_result_b$x[(NCOL(X_all) + 1):(2 * NCOL(X_all))]
 
-              bias_corr_ps <- method$make_link_inv(unname(drop(crossprod(X_all,theta_hat))))
+              bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
               bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw_b$R == 1]
-              bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(crossprod(X_all[results_ipw_b$R == 0, ],beta_hat)))
-              bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(crossprod(X_all[results_ipw_b$R == 1, ],beta_hat)))
+              bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 0, ] %*% beta_hat))
+              bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 1, ] %*% beta_hat))
               bias_corr_mu_resid <- bias_corr_mu_nons_pred - y_nons
 
               boot_obj_b <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_b_)),

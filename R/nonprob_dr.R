@@ -154,7 +154,7 @@ nonprob_dr <- function(selection,
     svydesign_ <- svydesign
     svydesign_$variables <- cbind(svydesign_$variables, X_rand)
 
-    bias_corr_results <- results_mi_combined <- results_ipw_combined <- list()
+    bias_corr_results_ipw <- bias_corr_results_mi <- results_mi_combined <- results_ipw_combined <- list()
 
     bias_corr_ys_rand_pred  <- bias_corr_ys_nons_pred <- bias_corr_ys_resid <- list()
 
@@ -190,8 +190,11 @@ nonprob_dr <- function(selection,
           family_outcome = family_outcome
         )
 
-        theta_hat <- bias_corr_result$x[1:NCOL(X_all)]
-        beta_hat <- bias_corr_result$x[(NCOL(X_all) + 1):(2 * NCOL(X_all))]
+        coefs_ipw_inds <- 1:NCOL(X_all)
+        coefs_mi_inds <- (NCOL(X_all) + 1):(2 * NCOL(X_all))
+
+        theta_hat <- bias_corr_result$x[coefs_ipw_inds]
+        beta_hat <- bias_corr_result$x[coefs_mi_inds]
 
         bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
         bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw$R == 1]
@@ -205,7 +208,20 @@ nonprob_dr <- function(selection,
                                 weights_nons = bias_corr_ipw_weights,
                                 N_nons = pop_size)
 
-        bias_corr_results[[o]] <- bias_corr_result
+
+        bias_corr_results_mi[[o]] <- bias_corr_result
+        bias_corr_results_ipw[[o]] <- bias_corr_result
+
+        bias_corr_results_mi[[o]]$x <- bias_corr_results_mi[[o]]$x[coefs_mi_inds]
+        bias_corr_results_mi[[o]]$fvec <- bias_corr_results_mi[[o]]$fvec[coefs_mi_inds]
+        bias_corr_results_mi[[o]]$scalex <- bias_corr_results_mi[[o]]$scalex[coefs_mi_inds]
+        bias_corr_results_mi[[o]]$jac <- bias_corr_results_mi[[o]]$jac[coefs_mi_inds, coefs_mi_inds]
+
+        bias_corr_results_ipw[[o]]$x <- bias_corr_results_ipw[[o]]$x[coefs_ipw_inds]
+        bias_corr_results_ipw[[o]]$fvec <- bias_corr_results_ipw[[o]]$fvec[coefs_ipw_inds]
+        bias_corr_results_ipw[[o]]$scalex <- bias_corr_results_ipw[[o]]$scalex[coefs_ipw_inds]
+        bias_corr_results_ipw[[o]]$jac <- bias_corr_results_ipw[[o]]$jac[coefs_ipw_inds, coefs_ipw_inds]
+
         bias_corr_ys_rand_pred[[o]] <- bias_corr_mu_rand_pred
         bias_corr_ys_nons_pred[[o]] <- bias_corr_mu_nons_pred
         bias_corr_ys_resid[[o]] <- bias_corr_mu_resid
@@ -608,8 +624,8 @@ nonprob_dr <- function(selection,
       pop_size_fixed = pop_size_fixed,
       pop_totals = pop_totals,
       pop_means = pop_means,
-      outcome = if (bias_corr) bias_corr_results else results_mi$outcome,
-      selection = if (bias_corr) bias_corr_results else results_ipw$selection,
+      outcome = if (bias_corr) bias_corr_results_mi else results_mi$outcome,
+      selection = if (bias_corr) bias_corr_results_ipw else results_ipw$selection,
       boot_sample = boot_sample,
       svydesign = if (is.null(pop_totals)) svydesign else NULL,
       ys_rand_pred = if (bias_corr) bias_corr_ys_rand_pred else results_mi$ys_rand_pred,
