@@ -32,6 +32,7 @@
 plot.nonprob <- function(x, ...) {
 
   est <- extract(x)
+  est$naive <- sapply(x$y, mean)
 
   x_positions <- 1:nrow(est)
   y_range <- c(min(c(est$lower_bound), est$naive) * 0.95,
