@@ -252,9 +252,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_ipw <- function(y, mu, ps, X, hess, pop_size, weights, verbose, psd = NULL, eta = NULL) {
       # get hessian inverse
       hess_inv_neg <- tryCatch(
-        solve(-hess),
+        chol2inv(chol(-hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(-hess)
         }
       )
@@ -273,9 +273,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
       # get hessian inverse
       hess_inv <- tryCatch(
-        solve(hess),
+        chol2inv(chol(hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(hess)
         }
       )
@@ -464,9 +464,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose) {
       # try matrix inversion - if fails, use ginv
       hess_inv_neg <- tryCatch(
-        solve(-hess),
+        chol2inv(chol(-hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(-hess)
         }
       )
@@ -485,9 +485,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
       # get hess inverse
       hess_inv <- tryCatch(
-        solve(hess),
+        chol2inv(chol(hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(hess)
         }
       )
@@ -708,9 +708,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose) {
       # get hessian inverse
       hess_inv_neg <- tryCatch(
-        solve(-hess),
+        chol2inv(chol(-hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(-hess)
         }
       )
@@ -729,9 +729,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
       # get hessian inverse
       hess_inv <- tryCatch(
-        solve(hess),
+        chol2inv(chol(hess)),
         error = function(e) {
-          if (verbose) message("solve() failed, using ginv() instead.")
+          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
           MASS::ginv(hess)
         }
       )

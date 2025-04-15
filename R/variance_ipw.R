@@ -78,9 +78,9 @@ internal_varIPW <- function(svydesign,
 
   # sparse matrix
   b_vec <- cbind(-1, b_obj$b)
-  H_mx <- try(cbind(0, N * solve(hess)), silent = TRUE)
+  H_mx <- try(cbind(0, N * chol2inv(chol(hess))), silent = TRUE)
   if (inherits(H_mx, "try-error")) {
-    if (verbose) message("solve() failed, using ginv() instead.")
+    if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
     H_mx <- cbind(0, N * ginv(hess))
   }
   sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)

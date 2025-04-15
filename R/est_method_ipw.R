@@ -383,10 +383,10 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       eta_rand <- theta_hat %*% t(as.matrix(X_rand))
       ps_nons <- inv_link(eta_nons)
       est_ps_rand <- inv_link(eta_rand)
-      variance_covariance <- try(solve(-hess), silent = TRUE)
+      variance_covariance <- try(chol2inv(chol(-hess)), silent = TRUE)
 
       if (inherits(variance_covariance, "try-error")) {
-        if (verbose) message("solve() failed, using ginv() instead.")
+        if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
         variance_covariance <- MASS::ginv(-hess)
       }
 
