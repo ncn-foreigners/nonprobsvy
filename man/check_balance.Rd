@@ -2,7 +2,7 @@
 % Please edit documentation in R/check_balance.R
 \name{check_balance}
 \alias{check_balance}
-\title{Check the variable balance between the probability and non-probability samples}
+\title{Checks the variable balance between the probability and non-probability samples}
 \usage{
 check_balance(x, object, dig)
 }

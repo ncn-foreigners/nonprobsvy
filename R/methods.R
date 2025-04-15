@@ -110,13 +110,29 @@ nobs.nonprob <- function(object,
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
 
-#' @title Extract the inverse probability weights
+#' @title Extracts the inverse probability weights
 #' @description A generic function `weights` that returns inverse probability weights (if present)
 #'
 #' @param object a \code{nonprob} class object
 #' @param ... other arguments passed to methods (currently not supported)
 #'
 #' @returns A vector of weights or a `NULL` extracted from the `nonprob` object i.e. element `"ipw_weights"`
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' summary(weights(ipw_est1))
 #'
 #' @method weights nonprob
 #' @importFrom stats weights
@@ -186,7 +202,7 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
   }
 }
 
-#' @title Confidence intervals for estimated mean
+#' @title Returns confidence intervals for estimated mean
 #'
 #' @description A generic function that returns the confidence interval
 #' for the estimated mean. If standard errors have not been estimated, the function
@@ -197,6 +213,21 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
 #' computed, if missing all parameters will be considered.
 #' @param level confidence level for intervals.
 #' @param ... additional arguments
+#'
+#' @examples
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' confint(ipw_est1)
 #'
 #' @method confint nonprob
 #' @return returns a `data.frame` with confidence intervals for the target variables

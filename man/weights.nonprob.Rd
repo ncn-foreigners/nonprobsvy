@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{weights.nonprob}
 \alias{weights.nonprob}
-\title{Extract the inverse probability weights}
+\title{Extracts the inverse probability weights}
 \usage{
 \method{weights}{nonprob}(object, ...)
 }
@@ -16,4 +16,21 @@ A vector of weights or a \code{NULL} extracted from the \code{nonprob} object i.
 }
 \description{
 A generic function \code{weights} that returns inverse probability weights (if present)
+}
+\examples{
+
+data(admin)
+data(jvs)
+
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+strata = ~ size + nace + region, data = jvs)
+
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+target = ~ single_shift,
+svydesign = jvs_svy,
+data = admin, method_selection = "logit", se = FALSE
+)
+
+summary(weights(ipw_est1))
+
 }

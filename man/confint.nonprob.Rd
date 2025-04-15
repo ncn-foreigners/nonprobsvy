@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{confint.nonprob}
 \alias{confint.nonprob}
-\title{Confidence intervals for estimated mean}
+\title{Returns confidence intervals for estimated mean}
 \usage{
 \method{confint}{nonprob}(object, parm, level = 0.95, ...)
 }
@@ -23,4 +23,20 @@ returns a \code{data.frame} with confidence intervals for the target variables
 A generic function that returns the confidence interval
 for the estimated mean. If standard errors have not been estimated, the function
 updates the \code{nonprob} object to obtain standard errors.
+}
+\examples{
+data(admin)
+data(jvs)
+
+jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+strata = ~ size + nace + region, data = jvs)
+
+ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+target = ~ single_shift,
+svydesign = jvs_svy,
+data = admin, method_selection = "logit", se = FALSE
+)
+
+confint(ipw_est1)
+
 }
