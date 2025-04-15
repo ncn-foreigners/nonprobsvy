@@ -12,10 +12,10 @@ extract.nonprob <- function(object, what=c("mean", "se")) {
                 "se" = object$output$SE)
   return(ext)
 }
-#' @title Extracts estimated mean or its standard errors from the nonprob object
-#' @description Returns a vector of point or standard error estimates
-#' @param object object returned by the `nonprob` function.
-#' @param what what to extract: estimated mean (\code{"mean"}) or its standard errors (\code{"se"})
+#' @title Extracts the estimated mean(s) or their standard error(s) from the nonprob object
+#' @description Returns a vector of estimated mean(s) or standard error(s)
+#' @param object object of of the \code{nonprob} class
+#' @param what what to extract: estimated mean(s) (\code{"mean"}, default) or their standard error(s) (\code{"se"})
 #' @examples
 #' data(admin)
 #' data(jvs)
