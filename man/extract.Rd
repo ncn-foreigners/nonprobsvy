@@ -9,7 +9,10 @@ extract(object, what)
 \arguments{
 \item{object}{object of of the \code{nonprob} class}
 
-\item{what}{what to extract: estimated mean(s) (\code{"mean"}, default) or their standard error(s) (\code{"se"})}
+\item{what}{what to extract: all estimates (mean(s), SE(s) and CI(s); \code{"all"}; default), estimated mean(s) (\code{"mean"}) or their standard error(s) (\code{"se"})}
+}
+\value{
+a \code{data.frame} with selected information
 }
 \description{
 Returns a vector of estimated mean(s) or standard error(s)

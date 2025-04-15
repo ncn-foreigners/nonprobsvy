@@ -3,19 +3,28 @@
 
 #' @method extract nonprob
 #' @exportS3Method extract nonprob
-extract.nonprob <- function(object, what=c("mean", "se")) {
+extract.nonprob <- function(object, what=c("all", "mean", "se")) {
 
   what_selected <- match.arg(what)
 
   ext <- switch(what_selected,
-                "mean" = object$output$mean,
-                "se" = object$output$SE)
+                "all" = cbind(target = rownames(object$output),
+                              object$output,
+                              object$confidence_interval),
+                "mean" = data.frame(target = rownames(object$output),
+                                    mean=object$output$mean),
+                "se" = data.frame(target = rownames(object$output),
+                                  SE=object$output$SE))
+
+  rownames(ext) <- NULL
+
   return(ext)
 }
 #' @title Extracts the estimated mean(s) or their standard error(s) from the nonprob object
 #' @description Returns a vector of estimated mean(s) or standard error(s)
 #' @param object object of of the \code{nonprob} class
-#' @param what what to extract: estimated mean(s) (\code{"mean"}, default) or their standard error(s) (\code{"se"})
+#' @param what what to extract: all estimates (mean(s), SE(s) and CI(s); \code{"all"}; default), estimated mean(s) (\code{"mean"}) or their standard error(s) (\code{"se"})
+#' @return a \code{data.frame} with selected information
 #' @examples
 #' data(admin)
 #' data(jvs)

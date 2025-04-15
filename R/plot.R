@@ -31,9 +31,7 @@
 #' @exportS3Method
 plot.nonprob <- function(x, ...) {
 
-  est <- confint(x)
-  est$mean <- extract(x)
-  est$naive <- unname(sapply(x$y, mean))
+  est <- extract(x)
 
   x_positions <- 1:nrow(est)
   y_range <- c(min(c(est$lower_bound), est$naive) * 0.95,

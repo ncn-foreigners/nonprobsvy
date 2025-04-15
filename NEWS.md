@@ -10,6 +10,7 @@ nonprobsvy News and Updates
 + fixed CRAN notes (unit tests for the IPW estimator `cloglog`) 
 + removed `sampling` package from suggested package 
 + added simple `plot` method
++ improvements in the linear algebra
 
 # nonprobsvy 0.2.0
 
