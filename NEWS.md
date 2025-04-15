@@ -12,7 +12,7 @@ nonprobsvy News and Updates
 + removed `sampling` package from suggested package 
 + added simple `plot` method
 + improvements in the linear algebra
-+ corrected the `check_balance` error as in 
++ corrected the `check_balance` error (closes #75)
 + code cleaning
 
 # nonprobsvy 0.2.0
