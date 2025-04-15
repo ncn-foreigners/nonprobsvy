@@ -14,7 +14,7 @@
 \item{evaluate}{If true evaluate the new call else return the call}
 }
 \value{
-returns \code{nonprob} object
+returns a \code{nonprob} object
 }
 \description{
 The \code{update} method for the \code{nonprob} class object that allows to re-estimate

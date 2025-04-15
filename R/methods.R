@@ -94,6 +94,14 @@ pop_size <- function(object) {
 
 # base R methods ----------------------------------------------------------
 
+#' @title Returns the number of rows in samples
+#' @description
+#' Returns information on the number of rows of the probability sample (if provided)
+#' and non-probability sample.
+#' @param object a \code{nonprob} class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @return a named \code{vector} with row numbers
 #' @method nobs nonprob
 #' @importFrom stats nobs
 #' @exportS3Method
@@ -105,7 +113,7 @@ nobs.nonprob <- function(object,
 #' @title Extract the inverse probability weights
 #' @description A generic function `weights` that returns inverse probability weights (if present)
 #'
-#' @param object a `nonprob` class object
+#' @param object a \code{nonprob} class object
 #' @param ... other arguments passed to methods (currently not supported)
 #'
 #' @returns A vector of weights or a `NULL` extracted from the `nonprob` object i.e. element `"ipw_weights"`
@@ -152,7 +160,7 @@ weights.nonprob <- function(object,
 #'
 #' update(ipw_est1, se = TRUE)
 #'
-#' @return returns `nonprob` object
+#' @return returns a `nonprob` object
 #' @importFrom stats update
 #' @exportS3Method
 update.nonprob <- function(object, ..., evaluate=TRUE) {
@@ -237,3 +245,21 @@ confint.nonprob <- function(object,
   return(CIs[CIs$target %in% parm, c("target", "lower_bound", "upper_bound")])
 }
 
+
+#' @title Returns coefficients of the underlying models
+#' @description
+#' Returns a \code{list} of coefficients for the selection and the outcome models
+#'
+#' @param object a \code{nonprob} class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @return a \code{list} with two entries: \code{"coef_sel"} a vector of coefficients for the selection equation and \code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible.
+#'
+#' @method coef nonprob
+#' @importFrom stats coef
+#' @exportS3Method
+coef.nonprob <- function(object,
+                         ...) {
+  list(coef_sel = coef(object$selection),
+       coef_out = sapply(object$outcome, coef))
+}

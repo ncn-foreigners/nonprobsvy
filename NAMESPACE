@@ -2,6 +2,7 @@
 
 S3method(anova,nonprob)
 S3method(check_balance,nonprob)
+S3method(coef,nonprob)
 S3method(confint,nonprob)
 S3method(extract,nonprob)
 S3method(nobs,nonprob)
