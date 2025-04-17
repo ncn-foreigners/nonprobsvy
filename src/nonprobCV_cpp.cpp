@@ -49,7 +49,7 @@ inline double loss_theta(const vec& par,
       loss = 0;
     }
   } else {
-   // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
+    // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
     temp = X.each_col() % (R % weights / ps / N_nons);
     //vec colSums_result = sum(temp, 0);
 
@@ -419,5 +419,5 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                       _["min"] = loss_theta_av.min(),
                       _["lambda"] = lambda,
                       _["cv_error"] = loss_theta_av
-                      );
+  );
 }
