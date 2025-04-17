@@ -158,8 +158,8 @@ u_theta_der <- function(R,
       mxDer <- t(R * X0 * weights * inv_link_rev(eta)) %*% X0
     } else {
       mxDer <- switch(gee_h_fun,
-                      "1" = t(R * X0 * weights * inv_link_rev(eta)) %*% X0, # TODO bug here when solve for some data - probably because of inv_link_rev
-                      "2" = -t(R_rand * X0 * weights * dinv_link(eta)) %*% X0
+                      "1" = crossprod(R * X0 * weights * inv_link_rev(eta),X0),
+                      "2" = -crossprod(R_rand * X0 * weights * dinv_link(eta),X0)
       )
     }
     as.matrix(mxDer, nrow = p) # consider division by N_nons
@@ -292,7 +292,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
                             method_selection, weights) {
       # common calculations
       mean_nons <- sum(weights * y_nons) / N
-      Xb <- X %*% t(as.matrix(b))
+      Xb <- tcrossprod(X, as.matrix(b))
 
       # choose formula based on gee_h_fun
       if (gee_h_fun == 1) {
@@ -310,7 +310,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
 
       # common terms
       resid <- weights * (y - y_pred - h_n)
-      model_adj <- b %*% t(X)
+      model_adj <- tcrossprod(b, X)
 
       # variance calculation based on h
       if (gee_h_fun == 2) {
@@ -379,8 +379,8 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       theta_hat <- h_object$theta_h
       hess <- h_object$hess
       grad <- h_object$grad
-      eta_nons <- theta_hat %*% t(as.matrix(X_nons))
-      eta_rand <- theta_hat %*% t(as.matrix(X_rand))
+      eta_nons <- tcrossprod(theta_hat, as.matrix(X_nons))
+      eta_rand <- tcrossprod(theta_hat, as.matrix(X_rand))
       ps_nons <- inv_link(eta_nons)
       est_ps_rand <- inv_link(eta_rand)
       variance_covariance <- try(chol2inv(chol(-hess)), silent = TRUE)
@@ -393,12 +393,12 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       resids <- R - c(est_ps_rand, ps_nons)
 
       df_reduced <- nrow(X) - length(theta_hat)
-      variance <- as.vector((t(resids) %*% resids) / df_reduced)
+      variance <- as.vector( crossprod(resids) / df_reduced)
 
       if (method_selection == "probit") { # for probit model, propensity score derivative is required
         dinv_link <- method$make_link_inv_der
-        ps_nons_der <- dinv_link(theta_hat %*% t(as.matrix(X_nons)))
-        est_ps_rand_der <- dinv_link(theta_hat %*% t(as.matrix(X_rand)))
+        ps_nons_der <- dinv_link(tcrossprod(theta_hat, as.matrix(X_nons)))
+        est_ps_rand_der <- dinv_link(tcrossprod(theta_hat, as.matrix(X_rand)))
       }
 
       list(
@@ -561,8 +561,8 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
       )
 
       theta <- maxLik_nons_obj$theta_hat
-      eta_nons <- theta %*% t(X_nons)
-      eta_rand <- theta %*% t(X_rand)
+      eta_nons <- tcrossprod(theta, X_nons)
+      eta_rand <- tcrossprod(theta, X_rand)
 
       ps_nons <- inv_link(eta_nons)
       est_ps_rand <- inv_link(eta_rand)
@@ -572,7 +572,7 @@ est_method_ipw <- function(est_method = c("gee", "mle"), ...) {
 
       resids <- R - c(est_ps_rand, ps_nons)
 
-      variance <- (t(resids) %*% resids) / df_reduced
+      variance <- as.numeric(crossprod(resids) / df_reduced)
 
       list(
         maxLik_nons_obj = maxLik_nons_obj,

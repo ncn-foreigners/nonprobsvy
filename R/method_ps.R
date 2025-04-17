@@ -134,19 +134,31 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        t(t(X_nons) %*% (weights * exp(eta1) / invLink1) - t(X_rand) %*% (weights_rand * exp(eta2)))
+        t(crossprod(X_nons, weights * exp(eta1) / invLink1) - crossprod(X_rand, weights_rand * exp(eta2)))
+
       }
     }
 
     hessian <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
-        eta1 <- as.matrix(X_nons) %*% theta
-        eta2 <- as.matrix(X_rand) %*% theta
+        eta1 <- drop(as.matrix(X_nons) %*% theta)
+        eta2 <- drop(as.matrix(X_rand) %*% theta)
         invLink1 <- inv_link(eta1)
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        t(as.data.frame(X_nons) * (weights * exp(eta1) / (invLink1) * (1 - exp(eta1) / invLink1 + exp(eta1)))) %*% as.matrix(X_nons) - t(as.data.frame(X_rand) * weights_rand * exp(eta2)) %*% as.matrix(X_rand)
+        # Compute the weight vectors first for clarity
+        w_nons <- weights * exp(eta1) / invLink1 * (1 - exp(eta1) / invLink1 + exp(eta1))
+        w_rand <- weights_rand * exp(eta2)
+        mat1 <- crossprod(as.matrix(X_nons), diag(w_nons) %*% as.matrix(X_nons))
+        mat2 <- crossprod(as.matrix(X_rand), diag(w_rand) %*% as.matrix(X_rand))
+
+        mat1-mat2
+        #mat1 <- crossprod(X_nons * (weights * exp(eta1) / (invLink1) * (1 - exp(eta1) / invLink1 + exp(eta1))),
+        #                  as.matrix(X_nons))
+        #mat2 <- crossprod(X_rand * weights_rand * exp(eta2), as.matrix(X_rand))
+        #mat1-mat2
+
       }
     }
 
@@ -171,7 +183,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         # MLE specific calculations
         log_ps <- log1p(-ps) # more stable than log(1-ps)
         v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- -((w1 * log_ps * y_adj) %*% X) / N^2 # TODO: check sign
+        v1_ <- -((w1 * log_ps * y_adj) %*% X) / N^2
 
         # matrix calculations with standard ops
         v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
@@ -265,7 +277,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       y_adj <- if (is.null(pop_size)) y - mu else y
 
       # compute b vector
-      b <- -(w * y_adj) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
+      b <- -(w * y_adj) %*% X %*% hess_inv_neg
 
       list(b = b)
     }
@@ -290,7 +302,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
-      as.vector(log(1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
+      as.vector(log(1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
     var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
@@ -416,7 +428,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       # calc v_2 with explicit loop instead of lapply
       v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
       for (i in 1:n) {
-        v_2 <- v_2 + w2[i] * (X[i, ] %*% t(X[i, ]))
+        v_2 <- v_2 + w2[i] * tcrossprod(X[i, ], X[i, ])
       }
       v_2 <- v_2 / N^2
 
@@ -505,7 +517,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       mean_nons <- sum(weights * y_nons) / N
 
       # matrix mult and scaling
-      Xb <- X %*% t(as.matrix(b)) # ensure b is matrix
+      Xb <- tcrossprod(X, as.matrix(b)) # ensure b is matrix
       ps_vec <- as.vector(ps) # ensure ps is vector
       Xb_scaled <- ps_vec * Xb # element-wise mult
 
@@ -518,7 +530,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       resid <- weights * (y - y_pred - h_n)
 
       # diff between weighted residuals and model correction
-      adj_diff <- resid / ps - drop(b %*% t(X))
+      adj_diff <- resid / ps - drop(tcrossprod(b, X))
 
       # final variance calc
       sum((1 - ps) * adj_diff^2) / N^2
@@ -580,31 +592,42 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
     gradient <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
-        eta1 <- as.matrix(X_nons) %*% theta # linear predictor
-        eta2 <- as.matrix(X_rand) %*% theta
+        eta1 <- drop(as.matrix(X_nons) %*% theta)
+        eta2 <- drop(as.matrix(X_rand) %*% theta)
         invLink1 <- inv_link(eta1)
         invLink2 <- inv_link(eta2)
         dlink1 <- dinv_link(eta1)
         dlink2 <- dinv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        t(t(X_nons) %*% (weights * dlink1 / (invLink1 * (1 - invLink1))) - t(X_rand) %*% (weights_rand * (dlink2 / (1 - invLink2))))
+        w_nons <- weights * dlink1 / (invLink1 * (1 - invLink1))
+        w_rand <- weights_rand * (dlink2 / (1 - invLink2))
+        t(crossprod(X_nons, w_nons) - crossprod(X_rand, w_rand))
+
       }
     }
 
     hessian <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
-        eta1 <- as.matrix(X_nons) %*% theta
-        eta2 <- as.matrix(X_rand) %*% theta
+        eta1 <- drop(as.matrix(X_nons) %*% theta)
+        eta2 <- drop(as.matrix(X_rand) %*% theta)
         invLink1 <- inv_link(eta1)
         invLink2 <- inv_link(eta2)
         dlink1 <- dinv_link(eta1)
         dlink2 <- dinv_link(eta2)
-        # weights_sum <- sum(weights, weights_rand)
 
-        hess1 <- t(as.data.frame(X_nons) * weights * ((-eta1 * dlink1) / (invLink1 * (1 - invLink1)) - dlink1^2 * (1 - 2 * invLink1) / ((invLink1^2) * ((1 - invLink1)^2)))) %*% as.matrix(X_nons)
-        hess2 <- t(as.data.frame(X_rand) * weights_rand * ((-eta2 * dlink2) / (1 - invLink2) + dlink2^2 / ((1 - invLink2)^2))) %*% as.matrix(X_rand)
-        hess1 - hess2
+        w_nons <- weights * (
+          (-eta1 * dlink1) / (invLink1 * (1 - invLink1)) -
+            dlink1^2 * (1 - 2 * invLink1) / ((invLink1^2) * ((1 - invLink1)^2))
+        )
+
+        w_rand <- weights_rand * (
+          (-eta2 * dlink2) / (1 - invLink2) +
+            dlink2^2 / ((1 - invLink2)^2)
+        )
+
+        crossprod(X_nons, X_nons * w_nons) - crossprod(X_rand,  X_rand * w_rand)
+
       }
     }
 
@@ -721,7 +744,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       y_adj <- if (is.null(pop_size)) y - mu else y - mu + 1
 
       # compute b vector with standard matrix mult
-      b <- -(w * y_adj) %*% X %*% hess_inv_neg # TODO opposite sign here (?)
+      b <- -(w * y_adj) %*% X %*% hess_inv_neg
 
       list(b = b)
     }
@@ -746,7 +769,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) { # TODO
-      as.vector(psd / (1 - ps)) * X %*% t(as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
+      as.vector(psd / (1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
     var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
@@ -754,7 +777,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       resid_part <- weights * (y - y_pred - h_n) / ps
 
       # model adjustment
-      model_part <- b %*% t(as.matrix(psd / (ps * (1 - ps)) * as.data.frame(X)))
+      model_part <- tcrossprod(b, as.matrix(psd / (ps * (1 - ps)) * as.data.frame(X)))
 
       # final calculation
       1 / N^2 * sum((1 - ps) * (resid_part - model_part)^2)

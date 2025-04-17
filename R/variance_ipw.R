@@ -108,8 +108,8 @@ internal_varIPW <- function(svydesign,
   )
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
-  V_mx_nonprob <- sparse_mx %*% V1 %*% t(as.matrix(sparse_mx)) # non-probability component
-  V_mx_prob <- sparse_mx %*% V2 %*% t(as.matrix(sparse_mx)) # probability component
+  V_mx_nonprob <- sparse_mx %*% tcrossprod(V1,as.matrix(sparse_mx)) # non-probability component
+  V_mx_prob <- sparse_mx %*% tcrossprod(V2, as.matrix(sparse_mx)) # probability component
   V_mx <- V_mx_nonprob + V_mx_prob
 
   var_nonprob <- as.vector(V_mx_nonprob[1, 1])
