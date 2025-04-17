@@ -1,7 +1,7 @@
 nonprobsvy News and Updates
 
 
-# nonprobsvy 0.2.0.9001 (development)
+# nonprobsvy 0.2.1
 
 ------------------------------------------------------------------------
  
