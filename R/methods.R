@@ -20,8 +20,8 @@ extract.nonprob <- function(object, what=c("all", "mean", "se")) {
 
   return(ext)
 }
-#' @title Extracts the estimated mean(s) or their standard error(s) from the nonprob object
-#' @description Returns a vector of estimated mean(s) or standard error(s)
+#' @title Extracts estimates from the nonprob class object
+#' @description Returns a \code{data.frame} of estimated mean(s) or standard error(s)
 #' @param object object of of the \code{nonprob} class
 #' @param what what to extract: all estimates (mean(s), SE(s) and CI(s); \code{"all"}; default), estimated mean(s) (\code{"mean"}) or their standard error(s) (\code{"se"})
 #' @return a \code{data.frame} with selected information

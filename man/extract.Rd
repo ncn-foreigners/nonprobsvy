@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{extract}
 \alias{extract}
-\title{Extracts the estimated mean(s) or their standard error(s) from the nonprob object}
+\title{Extracts estimates from the nonprob class object}
 \usage{
 extract(object, what)
 }
@@ -15,7 +15,7 @@ extract(object, what)
 a \code{data.frame} with selected information
 }
 \description{
-Returns a vector of estimated mean(s) or standard error(s)
+Returns a \code{data.frame} of estimated mean(s) or standard error(s)
 }
 \examples{
 data(admin)
