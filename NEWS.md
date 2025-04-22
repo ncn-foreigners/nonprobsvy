@@ -1,5 +1,10 @@
 nonprobsvy News and Updates
 
+# development
+
+------------------------------------------------------------------------
+
++ new hex sticker
 
 # nonprobsvy 0.2.1
 
