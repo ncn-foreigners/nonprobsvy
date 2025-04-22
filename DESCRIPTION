@@ -1,7 +1,7 @@
 Package: nonprobsvy
 Type: Package
 Title: Inference Based on Non-Probability Samples
-Version: 0.2.0
+Version: 0.2.1
 Authors@R:
     c(person(given = "Łukasz",
              family = "Chrostowski",
@@ -44,8 +44,7 @@ Imports:
 Suggests: 
     tinytest,
     covr,
-    sampling,
-    spelling,
+    spelling
 LinkingTo: 
     Rcpp,
     RcppArmadillo

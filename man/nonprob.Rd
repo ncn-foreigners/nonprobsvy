@@ -250,7 +250,6 @@ in the documentation of the control functions for \code{nonprob}.
 \donttest{
 # generate data based on Doubly Robust Inference With Non-probability Survey Samples (2021)
 # Yilin Chen , Pengfei Li & Changbao Wu
-library(sampling)
 set.seed(123)
 # sizes of population and probability sample
 N <- 20000 # population
@@ -284,11 +283,11 @@ rho <- plogis(eta)
 
 # inclusion probabilities for probability sample
 z_prob <- x3 + 0.2051
-sim_data$p_prob <- inclusionprobabilities(z_prob, n = n_b)
+sim_data$p_prob <- n_b* z_prob/sum(z_prob)
 
 # data
-sim_data$flag_nonprob <- UPpoisson(rho) ## sampling nonprob
-sim_data$flag_prob <- UPpoisson(sim_data$p_prob) ## sampling prob
+sim_data$flag_nonprob <- as.numeric(runif(N) < rho) ## sampling nonprob
+sim_data$flag_prob <- as.numeric(runif(n_b) < sim_data$p_prob) ## sampling prob
 nonprob_df <- subset(sim_data, flag_nonprob == 1) ## non-probability sample
 svyprob <- svydesign(
   ids = ~1, probs = ~p_prob,

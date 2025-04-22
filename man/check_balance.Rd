@@ -2,7 +2,7 @@
 % Please edit documentation in R/check_balance.R
 \name{check_balance}
 \alias{check_balance}
-\title{Check the variable balance between the probability and non-probability samples}
+\title{Checks the variable balance between the probability and non-probability samples}
 \usage{
 check_balance(x, object, dig)
 }
@@ -42,9 +42,12 @@ data = admin, method_selection = "logit",
 control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
 
 ## check the balance for the standard IPW
-check_balance(~size, ipw_est1)
+check_balance(~size+private, ipw_est1)
 
 ## check the balance for the calibrated IPW
-check_balance(~size, ipw_est2)
+check_balance(~size+private, ipw_est2)
+
+## check balance for a more complicated example
+check_balance(~ I(size=="M") + I(nace == "C"), ipw_est1)
 
 }

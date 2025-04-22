@@ -49,7 +49,7 @@ inline double loss_theta(const vec& par,
       loss = 0;
     }
   } else {
-   // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
+    // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
     temp = X.each_col() % (R % weights / ps / N_nons);
     //vec colSums_result = sum(temp, 0);
 
@@ -211,16 +211,7 @@ arma::vec q_lambda_cpp(const arma::vec& par,
       }
     }
   } else if (penalty == "lasso") {
-    for (std::size_t i = 0; i < par.size(); i++) { // int i = 0; i < par.size(); i++
-      if (par[i] < 0) {
-        penaltyd[i] = - lambda;
-      } else if (par[i] > 0) {
-        penaltyd[i] = lambda;
-      } else {
-        penaltyd[i] = 0;
-      }
-    }
-    // penaltyd = lambda * arma::sign(par);
+    penaltyd = lambda * arma::sign(par);
   } else if (penalty == "MCP") {
     for (std::size_t i = 0; i < par.size(); i++) { // int i = 0; i < par.size(); i++
       if (std::abs(par[i]) <= a*lambda) {
@@ -277,9 +268,6 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
     LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
     //LAMBDA = arma::abs(q_lambda_output);
     // LAMBDA = q_lambda_output;
-
-    // use efficient Armadillo functions
-    //par = par0 + solve(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA), u_theta0v - arma::diagmat(LAMBDA) * par0);
     par = par0 + inv(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA)) * (u_theta0v - arma::diagmat(LAMBDA) * par0);
 
     if (arma::sum(arma::abs(par - par0)) < eps) break;
@@ -431,5 +419,5 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                       _["min"] = loss_theta_av.min(),
                       _["lambda"] = lambda,
                       _["cv_error"] = loss_theta_av
-                      );
+  );
 }

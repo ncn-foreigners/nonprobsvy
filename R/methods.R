@@ -1,6 +1,49 @@
 
 # my methods --------------------------------------------------------------
 
+#' @method extract nonprob
+#' @exportS3Method extract nonprob
+extract.nonprob <- function(object, what=c("all", "mean", "se")) {
+
+  what_selected <- match.arg(what)
+
+  ext <- switch(what_selected,
+                "all" = cbind(target = rownames(object$output),
+                              object$output,
+                              object$confidence_interval),
+                "mean" = data.frame(target = rownames(object$output),
+                                    mean=object$output$mean),
+                "se" = data.frame(target = rownames(object$output),
+                                  SE=object$output$SE))
+
+  rownames(ext) <- NULL
+
+  return(ext)
+}
+#' @title Extracts estimates from the nonprob class object
+#' @description Returns a \code{data.frame} of estimated mean(s) or standard error(s)
+#' @param object object of of the \code{nonprob} class
+#' @param what what to extract: all estimates (mean(s), SE(s) and CI(s); \code{"all"}; default), estimated mean(s) (\code{"mean"}) or their standard error(s) (\code{"se"})
+#' @return a \code{data.frame} with selected information
+#' @examples
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit"
+#' )
+#' extract(ipw_est1)
+#' extract(ipw_est1, "se")
+#' @export
+extract <- function(object, what) {
+  UseMethod("extract")
+}
+
 #' @method pop_size nonprob
 #' @exportS3Method
 pop_size.nonprob <- function(object) {
@@ -51,6 +94,14 @@ pop_size <- function(object) {
 
 # base R methods ----------------------------------------------------------
 
+#' @title Returns the number of rows in samples
+#' @description
+#' Returns information on the number of rows of the probability sample (if provided)
+#' and non-probability sample.
+#' @param object a \code{nonprob} class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @return a named \code{vector} with row numbers
 #' @method nobs nonprob
 #' @importFrom stats nobs
 #' @exportS3Method
@@ -59,13 +110,29 @@ nobs.nonprob <- function(object,
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
 
-#' @title Extract the inverse probability weights
+#' @title Extracts the inverse probability weights
 #' @description A generic function `weights` that returns inverse probability weights (if present)
 #'
-#' @param object a `nonprob` class object
+#' @param object a \code{nonprob} class object
 #' @param ... other arguments passed to methods (currently not supported)
 #'
 #' @returns A vector of weights or a `NULL` extracted from the `nonprob` object i.e. element `"ipw_weights"`
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' summary(weights(ipw_est1))
 #'
 #' @method weights nonprob
 #' @importFrom stats weights
@@ -109,7 +176,7 @@ weights.nonprob <- function(object,
 #'
 #' update(ipw_est1, se = TRUE)
 #'
-#' @return returns `nonprob` object
+#' @return returns a `nonprob` object
 #' @importFrom stats update
 #' @exportS3Method
 update.nonprob <- function(object, ..., evaluate=TRUE) {
@@ -135,7 +202,7 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
   }
 }
 
-#' @title Confidence intervals for estimated mean
+#' @title Returns confidence intervals for estimated mean
 #'
 #' @description A generic function that returns the confidence interval
 #' for the estimated mean. If standard errors have not been estimated, the function
@@ -146,6 +213,21 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
 #' computed, if missing all parameters will be considered.
 #' @param level confidence level for intervals.
 #' @param ... additional arguments
+#'
+#' @examples
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' confint(ipw_est1)
 #'
 #' @method confint nonprob
 #' @return returns a `data.frame` with confidence intervals for the target variables
@@ -194,3 +276,58 @@ confint.nonprob <- function(object,
   return(CIs[CIs$target %in% parm, c("target", "lower_bound", "upper_bound")])
 }
 
+
+#' @title Returns coefficients of the underlying models
+#' @description
+#' Returns a \code{list} of coefficients for the selection and the outcome models
+#'
+#' @param object a \code{nonprob} class object
+#' @param ... other arguments passed to methods (currently not supported)
+#'
+#' @return a \code{list} with two entries:
+#' \itemize{
+#' \item{\code{"coef_sel"} a matrix of coefficients for the selection equation if possible, else NULL}
+#' \item{\code{"coef_dr"} a matrix of coefficients for the outcome equation(s) if possible, else NULL}
+#' }
+#'
+#' @method coef nonprob
+#'
+#' @examples
+#'
+#' data(admin)
+#' data(jvs)
+#'
+#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
+#' strata = ~ size + nace + region, data = jvs)
+#'
+#' ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
+#' target = ~ single_shift,
+#' svydesign = jvs_svy,
+#' data = admin, method_selection = "logit", se = FALSE
+#' )
+#'
+#' coef(ipw_est1)
+#'
+#' @importFrom stats coef
+#' @exportS3Method
+coef.nonprob <- function(object,
+                         ...) {
+
+  if (is.null(object$selection)) {
+    coef_sel <- NULL
+  } else if (isTRUE(object$control$control_inference$bias_correction)) {
+    coef_sel <- sapply(object$selection,"[[", "x")
+  } else {
+    coef_sel <- as.matrix(coef(object$selection))
+  }
+
+  if (is.null(object$outcome) || grepl("^(nn|npar)", object$estimator_method)) {
+    coef_out <- NULL
+  } else if (isTRUE(object$control$control_inference$bias_correction)) {
+    coef_out <- sapply(object$outcome, "[[", "x")
+  } else {
+    coef_out <- as.matrix(sapply(object$outcome, coef))
+  }
+
+  return(list(coef_sel=coef_sel, coef_out = coef_out))
+}

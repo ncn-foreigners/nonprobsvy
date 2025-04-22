@@ -254,13 +254,13 @@ nonprob_ipw <- function(selection,
 
     inv_link <- method$make_link_inv
     dinv_link <- method$make_link_inv_der
-    eta_nons <- theta_hat %*% t(X_nons)
+    eta_nons <- tcrossprod(theta_hat,X_nons)
     ps_nons <- inv_link(eta_nons)
     ps_nons_der <- dinv_link(eta_nons)
-    variance_covariance <- try(solve(-hess), silent = TRUE)
+    variance_covariance <- try(chol2inv(chol(-hess)), silent = TRUE)
 
     if (inherits(variance_covariance, "try-error")) {
-      if (verbose) message("solve() failed, using ginv() instead.")
+      if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
       variance_covariance <- MASS::ginv(-hess)
     }
 

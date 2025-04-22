@@ -78,9 +78,9 @@ internal_varIPW <- function(svydesign,
 
   # sparse matrix
   b_vec <- cbind(-1, b_obj$b)
-  H_mx <- try(cbind(0, N * solve(hess)), silent = TRUE)
+  H_mx <- try(cbind(0, N * chol2inv(chol(hess))), silent = TRUE)
   if (inherits(H_mx, "try-error")) {
-    if (verbose) message("solve() failed, using ginv() instead.")
+    if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
     H_mx <- cbind(0, N * ginv(hess))
   }
   sparse_mx <- Matrix::Matrix(rbind(b_vec, H_mx), sparse = TRUE)
@@ -108,8 +108,8 @@ internal_varIPW <- function(svydesign,
   )
 
   # variance-covariance matrix for set of parameters (mu_hat and theta_hat)
-  V_mx_nonprob <- sparse_mx %*% V1 %*% t(as.matrix(sparse_mx)) # non-probability component
-  V_mx_prob <- sparse_mx %*% V2 %*% t(as.matrix(sparse_mx)) # probability component
+  V_mx_nonprob <- sparse_mx %*% tcrossprod(V1,as.matrix(sparse_mx)) # non-probability component
+  V_mx_prob <- sparse_mx %*% tcrossprod(V2, as.matrix(sparse_mx)) # probability component
   V_mx <- V_mx_nonprob + V_mx_prob
 
   var_nonprob <- as.vector(V_mx_nonprob[1, 1])

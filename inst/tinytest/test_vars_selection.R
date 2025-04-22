@@ -1,32 +1,30 @@
-# source("_code_for_all_.R")
-# # here are some mismatches
-# # unit-level data ---------------------------------------------------------
-#
-# # standard IPW estimator --------------------------------------------------
-#
-# # logit
-# expect_silent(ipw_logit <- nonprob(
-#   selection = ~region + private + nace + size,
-#   target = ~single_shift,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "logit",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(ipw_logit$output$mean, 0.6853859, tolerance = 0.001)
-#
-# expect_equal(
-#   ipw_logit$selection$coefficients,
-#   c(`(Intercept)` = -0.746740247160264, region04 = 0.709927827998818,
-#     region12 = -0.693090922802716, region14 = -0.975520984462548,
-#     region16 = 0.615151686977819, region18 = 1.0467887853497, region24 = -0.501529440033271,
-#     region30 = -0.688049693572948, private = 0.0860519722632052,
-#     naceF = -0.465093531447446, naceG = -0.404200446737029, naceH = -0.739427457726262,
-#     naceP = 1.2018515590305, sizeS = -0.761686775600482),
-#   tolerance = 0.001
-# )
+source("_code_for_all_.R")
+
+# unit-level data ---------------------------------------------------------
+
+# standard IPW estimator --------------------------------------------------
+# logit
+set.seed(2024)
+
+expect_silent(ipw_logit <- nonprob(
+  selection = ~nace,
+  target = ~single_shift,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5, penalty = "SCAD")
+))
+
+expect_equal(ipw_logit$output$mean, 0.66695569885237, tolerance = 0.001)
+
+expect_equal(
+  coef(ipw_logit)$coef_sel[,1],
+  c(`(Intercept)` = -1.3115892989764, naceD.E = 0.961915550496649,
+    naceF = -0.603377050732427, naceG = -0.498229926003555, naceH = -0.684371136226331,
+    naceP = 1.27255233616817),
+  tolerance = 0.001
+)
 #
 # # probit
 # expect_silent(ipw_probit <- nonprob(
@@ -73,32 +71,32 @@
 # )
 #
 #
-# # calibrated IPW ----------------------------------------------------------
-#
-# # logit
-# expect_silent(suppressWarnings(ipw_logit_cal <- nonprob(
-#   selection = ~region + private + nace + size,
-#   target = ~single_shift,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "logit",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee")
-# )))
-#
-# expect_equal(ipw_logit_cal$output$mean, 0.6843197, tolerance = 0.001)
-#
-# expect_equal(
-#   ipw_logit_cal$selection$coefficients,
-#   c(`(Intercept)` = -0.699264351113231, region04 = 0.933635957089132,
-#     region12 = -0.548719550158794, region14 = -0.962970249540409,
-#     region16 = 0.75005102435249, region18 = 0.947097239014217, region24 = -0.513757248986002,
-#     region30 = -0.64282232460463, private = -0.0467338125126788,
-#     naceF = -0.463517888825395, naceG = -0.364794828853261, naceH = -0.636526456766652,
-#     naceP = 1.04116577738839, sizeS = -0.691496079236264),
-#   tolerance = 0.001
-# )
-#
+# calibrated IPW ----------------------------------------------------------
+# logit
+
+set.seed(2024)
+
+expect_silent(suppressWarnings(ipw_logit_cal <- nonprob(
+  selection = ~nace,
+  target = ~single_shift,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5,
+                                  est_method = "gee", penalty = "SCAD")
+)))
+
+expect_equal(ipw_logit_cal$output$mean, 0.6669557, tolerance = 0.001)
+
+expect_equal(
+  coef(ipw_logit_cal)$coef_sel[, 1],
+  c(`(Intercept)` = -1.31158929897838, naceD.E = 0.961915550449876,
+    naceF = -0.603377050714868, naceG = -0.498229926007702, naceH = -0.684371136220024,
+    naceP = 1.27255233608576),
+  tolerance = 0.001
+)
+
 # # probit
 # expect_silent(suppressWarnings(
 #   ipw_probit_cal <- nonprob(

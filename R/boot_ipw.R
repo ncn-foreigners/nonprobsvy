@@ -144,7 +144,7 @@ boot_ipw <- function(X_rand,
             nleqslv_xscalm = control_selection$nleqslv_xscalm
           )
           theta_hat_strap <- h_object_strap$theta_h
-          ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
+          ps_nons <- inv_link(tcrossprod(theta_hat_strap,X_strap))
 
           weights_nons <- 1 / ps_nons
           N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
@@ -331,7 +331,7 @@ boot_ipw_multicore <- function(X_rand,
           nleqslv_xscalm = control_selection$nleqslv_xscalm
         )
         theta_hat_strap <- h_object_strap$theta_h
-        ps_nons <- inv_link(theta_hat_strap %*% t(X_strap))
+        ps_nons <- inv_link(tcrossprod(theta_hat_strap,X_strap))
 
         weights_nons <- 1 / ps_nons
         N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)

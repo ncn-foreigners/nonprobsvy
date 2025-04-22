@@ -1,4 +1,4 @@
-#' Job Vacancy Survey
+#' Job vacancy survey
 #'
 #' @description
 #' This is a subset of the Job Vacancy Survey from Poland (for one quarter).

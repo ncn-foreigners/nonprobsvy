@@ -1,4 +1,4 @@
-#' @title Check the variable balance between the probability and non-probability samples
+#' @title Checks the variable balance between the probability and non-probability samples
 #'
 #' @description
 #' Function compares totals for auxiliary variables specified in the `x` argument for an `object` that
@@ -36,10 +36,13 @@
 #' control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
 #'
 #' ## check the balance for the standard IPW
-#' check_balance(~size, ipw_est1)
+#' check_balance(~size+private, ipw_est1)
 #'
 #' ## check the balance for the calibrated IPW
-#' check_balance(~size, ipw_est2)
+#' check_balance(~size+private, ipw_est2)
+#'
+#' ## check balance for a more complicated example
+#' check_balance(~ I(size=="M") + I(nace == "C"), ipw_est1)
 #'
 #' @export
 check_balance <- function(x, object, dig) {
@@ -90,82 +93,18 @@ check_balance.nonprob <- function(x, object, dig = 2) {
     ))
   }
 
-  # Function to calculate totals for one variable
-  calculate_totals <- function(var, data) {
-    # Check for NAs
-    if (sum(is.na(data[[var]])) > 0) {
-      warning(sprintf("NA values found in variable %s.", var))
-    }
 
-    # For categorical variables, handle each level
-    if (is.factor(data[[var]]) || is.character(data[[var]])) {
-      levels <- unique(data[[var]][!is.na(data[[var]])])
-      totals <- sapply(levels, function(lvl) {
-        data_subset <- data[data[[var]] == lvl, ]
-        if (nrow(data_subset) < 5) {
-          warning(sprintf("Small group size (< 5) for level %s in variable %s.", lvl, var))
-        }
-        sum(data_subset$ipw_weights)
-      })
-      names(totals) <- paste0(var, levels)
-      return(totals)
-    } else {
-      # For numeric variables
-      return(setNames(sum(data$ipw_weights * data[[var]], na.rm = TRUE), var))
-    }
-  }
+  nonprob_totals <- colSums(model.matrix(x, object$data)*weights(object))
+  totals_names <- names(nonprob_totals)
 
-  # Prepare data
-  data <- object$data
-  data$ipw_weights <- object$ipw_weights
+  prob_totals <- if (!is.null(object$pop_totals)) object$pop_totals else
+    colSums(model.matrix(x, object$svydesign$variables)*weights(object$svydesign))
 
-  # Calculate nonprob totals
-  nonprob_totals <- tryCatch(
-    {
-      unlist(lapply(vars, function(var) calculate_totals(var, data)))
-    },
-    error = function(e) {
-      stop(sprintf("Error calculating non-probability totals: %s.", e$message))
-    }
-  )
 
-  # Calculate probability totals
-  if (!is.null(object$svydesign)) {
-    # If svydesign exists
-    prob_totals <- tryCatch(
-      {
-        svy_total <- svytotal(x, object$svydesign)
-        svy_totals <- as.vector(svy_total)
-        names(svy_totals) <- names(svy_total)
-        svy_totals
-      },
-      error = function(e) {
-        stop(sprintf("Error calculating survey totals: %s.", e$message))
-      }
-    )
-  } else {
-    # Use population totals
-    prob_totals <- object$selection$pop_totals
-    if (is.null(prob_totals)) {
-      stop("The `pop_totals` argument is null.")
-    }
-  }
-
-  # Calculate and round differences
-  diff <- tryCatch(
-    {
-      round(nonprob_totals - prob_totals[names(nonprob_totals)], digits = dig)
-    },
-    error = function(e) {
-      stop(sprintf("Error calculating differences: %s.", e$message))
-    }
-  )
-
-  # Return results with meaningful names
   result <- list(
     nonprob_totals = nonprob_totals,
-    prob_totals = prob_totals,
-    balance = diff
+    prob_totals = prob_totals[totals_names],
+    balance = round(nonprob_totals - prob_totals[totals_names], digits = dig)
   )
   return(result)
 }

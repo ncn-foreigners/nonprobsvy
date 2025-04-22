@@ -1,6 +1,20 @@
 nonprobsvy News and Updates
 
 
+# nonprobsvy 0.2.1
+
+------------------------------------------------------------------------
+ 
++ titles corrected 
++ new S3 method `extract` added which allows to extract results from the `nonprob` object
++ new S3 method `coef` added which allows to obtain the coefficients of underlying models (if possible)
++ fixed CRAN notes (unit tests for the IPW estimator `cloglog`) 
++ removed `sampling` package from suggested package 
++ added simple `plot` method
++ improvements in the linear algebra
++ corrected the `check_balance` error (closes #75)
++ code cleaning
+
 # nonprobsvy 0.2.0
 
 ------------------------------------------------------------------------
