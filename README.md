@@ -89,14 +89,26 @@ where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
 
-| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+| Sample |  | Auxiliary variables $\bold
+symbol{X}$ | Target variable $Y$ | Design ($\
+boldsymbol{d}$) or calibrated ($\
+boldsymbol{w}$) weights |
 |----|---:|:--:|:--:|:--:|
-| $S_A$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
-|  | … | $\checkmark$ | $\checkmark$ | ? |
-|  | $n_A$ | $\checkmark$ | $\checkmark$ | ? |
-| $S_B$ (probability) | $n_A+1$ | $\checkmark$ | ? | $\checkmark$ |
-|  | … | $\checkmark$ | ? | $\checkmark$ |
-|  | $n_A+n_B$ | $\checkmark$ | ? | $\checkmark$ |
+| $S_A$ (non-pr obability) | 1 | $\
+checkmark$ | $\
+checkmark$ | ? |
+|  | … | $\
+checkmark$ | $\
+checkmark$ | ? |
+|  | $n_A$ | $\
+checkmark$ | $\
+checkmark$ | ? |
+| $S_B$ (pr obability) | $n_A+1$ | $\
+checkmark$ | ? | $\checkmark$ |
+|  | … | $\
+checkmark$ | ? | $\checkmark$ |
+|  | $n_A+n_B$ | $\
+checkmark$ | ? | $\checkmark$ |
 
 ## Basic functionalities
 
@@ -123,296 +135,41 @@ possible scenarios:
 
 ### When unit-level data is available for non-probability survey only
 
-<table class='table'>
-<tr>
-<th>
-Estimator
-</th>
-<th>
-Example code
-</th>
-<tr>
-<tr>
-<td>
-Mass imputation based on regression imputation
-</td>
-<td>
-
-``` r
-nonprob(
-  outcome = y ~ x1 + x2 + ... + xk,
-  data = nonprob,
-  pop_totals = c(`(Intercept)`= N,
-                 x1 = tau_x1,
-                 x2 = tau_x2,
-                 ...,
-                 xk = tau_xk),
-  method_outcome = "glm",
-  family_outcome = "gaussian"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Inverse probability weighting
-</td>
-<td>
-
-``` r
-nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  pop_totals = c(`(Intercept)` = N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  method_selection = "logit"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint
-</td>
-<td>
-
-``` r
-nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  pop_totals = c(`(Intercept)`= N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  method_selection = "logit", 
-  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Doubly robust estimator
-</td>
-<td>
-
-``` r
-nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + …, + xk, 
-  pop_totals = c(`(Intercept)` = N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  svydesign = prob, 
-  method_outcome = "glm", 
-  family_outcome = "gaussian"
-)
-```
-
-</td>
-<tr>
-</table>
+| Estimator | Example code |
+|----|----|
+|  |  |
+| Mass imputation based on regression imputation | \`\`\`{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, pop_totals = c(\`(Intercept)\`= N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_outcome = “glm”, family_outcome = “gaussian” ) \`\`\` |
+|  |  |
+| Inverse probability weighting | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, pop_totals = c(\`(Intercept)\` = N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_selection = “logit” ) \`\`\` |
+|  |  |
+| Inverse probability weighting with calibration constraint | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, pop_totals = c(\`(Intercept)\`= N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), method_selection = “logit”, control_selection = control_sel(est_method = “gee”, gee_h_fun = 1) ) \`\`\` |
+|  |  |
+| Doubly robust estimator | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + …, + xk, pop_totals = c(\`(Intercept)\` = N, x1 = tau_x1, x2 = tau_x2, …, xk = tau_xk), svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) \`\`\` |
+|  |  |
 
 ### When unit-level data are available for both surveys
 
-<table class='table'>
-<tr>
-<th>
-Estimator
-</th>
-<th>
-Example code
-</th>
-<tr>
-<tr>
-<td>
-Mass imputation based on regression imputation
-</td>
-<td>
-
-``` r
-nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "glm", 
-  family_outcome = "gaussian"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Mass imputation based on nearest neighbour imputation
-</td>
-<td>
-
-``` r
-nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "nn", 
-  family_outcome = "gaussian", 
-  control_outcome = control_outcome(k = 2)
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Mass imputation based on predictive mean matching
-</td>
-<td>
-
-``` r
-nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "pmm", 
-  family_outcome = "gaussian"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Mass imputation based on regression imputation with variable selection
-(LASSO)
-</td>
-<td>
-
-``` r
-nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "pmm", 
-  family_outcome = "gaussian", 
-  control_outcome = control_out(penalty = "lasso"), 
-  control_inference = control_inf(vars_selection = TRUE)
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Inverse probability weighting
-</td>
-<td>
-
-``` r
-nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_selection = "logit"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint
-</td>
-<td>
-
-``` r
-nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_selection = "logit", 
-  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Inverse probability weighting with calibration constraint with variable
-selection (SCAD)
-</td>
-<td>
-
-``` r
-nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "pmm", 
-  family_outcome = "gaussian", 
-  control_inference = control_inf(vars_selection = TRUE)
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Doubly robust estimator
-</td>
-<td>
-
-``` r
-nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "glm", 
-  family_outcome = "gaussian"
-)
-```
-
-</td>
-<tr>
-<tr>
-<td>
-Doubly robust estimator with variable selection (SCAD) and bias
-minimization
-</td>
-<td>
-
-``` r
-nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob,
-  method_outcome = "glm", 
-  family_outcome = "gaussian", 
-  control_inference = control_inf(
-    vars_selection = TRUE, 
-    bias_correction = TRUE
-  )
-)
-```
-
-</td>
-<tr>
-</table>
+| Estimator | Example code |
+|----|----|
+|  |  |
+| Mass imputation based on regression imputation | \`\`\`{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) \`\`\` |
+|  |  |
+| Mass imputation based on nearest neighbour imputation | \`\`\`{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “nn”, family_outcome = “gaussian”, control_outcome = control_outcome(k = 2) ) \`\`\` |
+|  |  |
+| Mass imputation based on predictive mean matching | \`\`\`{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian” ) \`\`\` |
+|  |  |
+| Mass imputation based on regression imputation with variable selection (LASSO) | \`\`\`{r, eval = FALSE} nonprob( outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian”, control_outcome = control_out(penalty = “lasso”), control_inference = control_inf(vars_selection = TRUE) ) \`\`\` |
+|  |  |
+| Inverse probability weighting | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_selection = “logit” ) \`\`\` |
+|  |  |
+| Inverse probability weighting with calibration constraint | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_selection = “logit”, control_selection = control_sel(est_method = “gee”, gee_h_fun = 1) ) \`\`\` |
+|  |  |
+| Inverse probability weighting with calibration constraint with variable selection (SCAD) | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, target = ~ y, data = nonprob, svydesign = prob, method_outcome = “pmm”, family_outcome = “gaussian”, control_inference = control_inf(vars_selection = TRUE) ) \`\`\` |
+|  |  |
+| Doubly robust estimator | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian” ) \`\`\` |
+|  |  |
+| Doubly robust estimator with variable selection (SCAD) and bias minimization | \`\`\`{r, eval = FALSE} nonprob( selection = ~ x1 + x2 + … + xk, outcome = y ~ x1 + x2 + … + xk, data = nonprob, svydesign = prob, method_outcome = “glm”, family_outcome = “gaussian”, control_inference = control_inf( vars_selection = TRUE, bias_correction = TRUE ) ) \`\`\` |
+|  |  |
 
 ## Examples
 
