@@ -236,8 +236,8 @@ method_pmm <- function(y_nons,
                                               control_inference=control_inference,
                                               verbose=FALSE,
                                               se=FALSE),
-                              "2" =  method_nn(y_nons=y_nons,
-                                               X_nons=y_nons,
+                              "2" =  method_nn(y_nons=y_nons_b,
+                                               X_nons=y_nons_b,
                                                X_rand=method_results_boot$y_rand_pred,
                                                svydesign=svydesign,
                                                weights=weights,
@@ -247,6 +247,9 @@ method_pmm <- function(y_nons,
                                                control_inference=control_inference,
                                                verbose=FALSE,
                                                se=FALSE))
+        if (verbose) {
+          print(pmm_results_boot$y_mi_hat)
+        }
 
         dd[jj] <- pmm_results_boot$y_mi_hat
       }

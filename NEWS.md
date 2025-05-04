@@ -1,10 +1,14 @@
 nonprobsvy News and Updates
 
-# development
+# nonprobsvy (development version)
 
 ------------------------------------------------------------------------
 
-+ new hex sticker
+# nonprobsvy 0.2.2
+
++ new hex sticker by [Oliwia Awuku](https://www.instagram.com/abenakrzywo/)
++ minor changes
++ fixing a bug in the bootstrap variance estimator the `method_nn` and `method_pmm`
 
 # nonprobsvy 0.2.1
 

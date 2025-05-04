@@ -1,4 +1,4 @@
-#' @title Propensity score model functions
+#' @title Propensity Score Model Functions
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
 #' @description
