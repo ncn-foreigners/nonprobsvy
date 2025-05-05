@@ -139,7 +139,7 @@ method_pmm <- function(y_nons,
                                                  control_outcome=control_outcome,
                                                  control_inference=control_inference,
                                                  verbose=verbose,
-                                                 se=verbose))
+                                                 se=se))
 
   ## passing results to method_nn depending on how the matching should be done
   ## 1 - yhat - yhat matching (y_nons_pred, y_rand_pred)
