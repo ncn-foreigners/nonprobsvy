@@ -193,12 +193,12 @@ method_nn <- function(y_nons,
 
       message("The `nn_exact_se=TRUE` option used. Remember to set the seed for reproducibility.")
 
+      loop_size <- 50
+
       if (verbose) {
         message("Estimating variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
-
-      loop_size <- 50
 
       dd <- numeric(loop_size)
       for (jj in 1:loop_size) {
