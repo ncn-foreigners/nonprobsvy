@@ -155,7 +155,7 @@ method_pmm <- function(y_nons,
                                         control_outcome=control_outcome,
                                         control_inference=control_inference,
                                         verbose=verbose,
-                                        se=FALSE),
+                                        se=se),
                         "2" =  method_nn(y_nons=y_nons,
                                          X_nons=y_nons,
                                          X_rand=method_results$y_rand_pred,
@@ -166,7 +166,7 @@ method_pmm <- function(y_nons,
                                          control_outcome=control_outcome,
                                          control_inference=control_inference,
                                          verbose=verbose,
-                                         se=FALSE))
+                                         se=se))
 
 
   if (se) {

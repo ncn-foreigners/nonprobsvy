@@ -182,7 +182,28 @@ nonprob_mi <- function(outcome,
                             control_inference=control_inference,
                             verbose = verbose)
 
-        var_total <- var(boot_obj)
+        if (isTRUE(control_inference$nn_exact_se) & method_outcome %in% c("pmm", "nn")) {
+          boot_obj_comp2 <- outcome_method(y_nons = y_nons,
+                                           X_nons = X_nons,
+                                           X_rand = X_rand,
+                                           svydesign = svydesign,
+                                           weights=case_weights,
+                                           family_outcome=family_outcome,
+                                           start_outcome=start_outcome,
+                                           vars_selection=vars_selection,
+                                           pop_totals=pop_totals,
+                                           pop_size=pop_size,
+                                           control_outcome=control_outcome,
+                                           control_inference=control_inference,
+                                           verbose=verbose,
+                                           se=se)
+
+          comp2 <- boot_obj_comp2$var_nonprob
+        } else {
+          comp2 <- 0
+        }
+
+        var_total <- var(boot_obj) + comp2
         stat_boot[, o] <- boot_obj
         SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         SE <- sqrt(var_total)
@@ -211,12 +232,12 @@ nonprob_mi <- function(outcome,
   names(outcome_list) <- outcomes$f
   names(ys) <- all.vars(outcome_init[[2]])
 
-  boot_sample <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    list(stat = stat_boot, comp2 = 0)
+  boot_sample <- if (isTRUE(se) & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    colnames(stat_boot) <- names(ys)
+    list(stat = stat_boot, comp2 = comp2)
   } else {
     NULL
   }
-  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   structure(
     list(
