@@ -127,7 +127,7 @@ method_pmm <- function(y_nons,
                                               control_outcome=control_outcome,
                                               control_inference=control_inference,
                                               verbose=verbose,
-                                              se=se),
+                                              se=FALSE),
                            "loess" = method_npar(y_nons=y_nons,
                                                  X_nons=X_nons,
                                                  X_rand=X_rand,
@@ -139,7 +139,11 @@ method_pmm <- function(y_nons,
                                                  control_outcome=control_outcome,
                                                  control_inference=control_inference,
                                                  verbose=verbose,
-                                                 se=se))
+                                                 se=FALSE))
+
+  ## Disable `nn_exact_se` during the estimation for PMM
+  control_inference_ <- control_inference
+  if (isTRUE(control_inference_$nn_exact_se))  control_inference_$nn_exact_se <- FALSE
 
   ## passing results to method_nn depending on how the matching should be done
   ## 1 - yhat - yhat matching (y_nons_pred, y_rand_pred)
@@ -153,7 +157,7 @@ method_pmm <- function(y_nons,
                                         vars_selection=vars_selection,
                                         pop_size=pop_size,
                                         control_outcome=control_outcome,
-                                        control_inference=control_inference,
+                                        control_inference=control_inference_,
                                         verbose=verbose,
                                         se=se),
                         "2" =  method_nn(y_nons=y_nons,
@@ -164,7 +168,7 @@ method_pmm <- function(y_nons,
                                          vars_selection=vars_selection,
                                          pop_size=pop_size,
                                          control_outcome=control_outcome,
-                                         control_inference=control_inference,
+                                         control_inference=control_inference_,
                                          verbose=verbose,
                                          se=se))
 
@@ -233,7 +237,7 @@ method_pmm <- function(y_nons,
                                               vars_selection=vars_selection,
                                               pop_size=pop_size,
                                               control_outcome=control_outcome,
-                                              control_inference=control_inference,
+                                              control_inference=control_inference_,
                                               verbose=FALSE,
                                               se=FALSE),
                               "2" =  method_nn(y_nons=y_nons_b,
@@ -244,12 +248,9 @@ method_pmm <- function(y_nons,
                                                vars_selection=vars_selection,
                                                pop_size=pop_size,
                                                control_outcome=control_outcome,
-                                               control_inference=control_inference,
+                                               control_inference=control_inference_,
                                                verbose=FALSE,
                                                se=FALSE))
-        if (verbose) {
-          print(pmm_results_boot$y_mi_hat)
-        }
 
         dd[jj] <- pmm_results_boot$y_mi_hat
       }

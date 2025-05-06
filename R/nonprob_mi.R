@@ -114,6 +114,10 @@ nonprob_mi <- function(outcome,
         var_prev <- var_now
       }
 
+      if (isTRUE(verbose)) {
+        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", kk))
+      }
+
       control_outcome$k <- kk
       model_obj <- outcome_method(y_nons = y_nons,
                                   X_nons = X_nons,
@@ -153,6 +157,7 @@ nonprob_mi <- function(outcome,
       if (control_inference$var_method == "bootstrap") {
         num_boot <- control_inference$num_boot
         stat_boot <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+        var_comp2 <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
       }
 
       if (control_inference$var_method == "analytic")  {
@@ -183,6 +188,7 @@ nonprob_mi <- function(outcome,
                             verbose = verbose)
 
         if (isTRUE(control_inference$nn_exact_se) & method_outcome %in% c("pmm", "nn")) {
+          ## mini-bootstrap as suggested in the MI-PMM paper
           boot_obj_comp2 <- outcome_method(y_nons = y_nons,
                                            X_nons = X_nons,
                                            X_rand = X_rand,
@@ -205,6 +211,7 @@ nonprob_mi <- function(outcome,
 
         var_total <- var(boot_obj) + comp2
         stat_boot[, o] <- boot_obj
+        var_comp2[, o] <- comp2
         SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         SE <- sqrt(var_total)
         alpha <- control_inference$alpha
@@ -233,8 +240,8 @@ nonprob_mi <- function(outcome,
   names(ys) <- all.vars(outcome_init[[2]])
 
   boot_sample <- if (isTRUE(se) & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    colnames(stat_boot) <- names(ys)
-    list(stat = stat_boot, comp2 = comp2)
+    colnames(var_comp2) <- colnames(stat_boot) <- names(ys)
+    list(stat = stat_boot, comp2 = var_comp2)
   } else {
     NULL
   }
