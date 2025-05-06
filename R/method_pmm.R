@@ -185,7 +185,7 @@ method_pmm <- function(y_nons,
       loop_size <- 50
 
       if (verbose) {
-        message("Estimating variance component using mini-bootstrap...")
+        message("Estimating nonprob variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
 
@@ -266,8 +266,8 @@ method_pmm <- function(y_nons,
     structure(
       list(
         model_fitted = method_results$model_fitted,
-        y_nons_pred = pmm_results$y_nons_pred,
-        y_rand_pred = pmm_results$y_rand_pred,
+        y_nons_pred = method_results$y_nons_pred,
+        y_rand_pred = method_results$y_rand_pred,
         coefficients = NULL,
         svydesign = pmm_results$svydesign,
         y_mi_hat = pmm_results$y_mi_hat,

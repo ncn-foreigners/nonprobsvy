@@ -149,11 +149,6 @@ nonprob_mi <- function(outcome,
 
     if (se) {
 
-      if (method_outcome == "pmm") {
-        control_inference$var_method <- "bootstrap"
-        message("Bootstrap variance only for the `pmm` method, analytical version during implementation.")
-      }
-
       if (control_inference$var_method == "bootstrap") {
         num_boot <- control_inference$num_boot
         stat_boot <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
