@@ -7,8 +7,9 @@ nonprobsvy News and Updates
 # nonprobsvy 0.2.2
 
 + new hex sticker by [Oliwia Awuku](https://www.instagram.com/abenakrzywo/)
-+ minor changes
++ minor changes to the code, e.g. `control_out(eps=1e-8)`
 + fixing a bug in the bootstrap variance estimator the `method_nn` and `method_pmm`
+
 
 # nonprobsvy 0.2.1
 

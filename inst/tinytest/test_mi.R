@@ -8,7 +8,7 @@ expect_equal(
     pop_totals = pop_totals,
     method_outcome = "glm",
     data = admin)$output,
-  structure(list(mean = 0.703858701257595, SE = 0.00497911011639041),
+  structure(list(mean = 0.703858701257595, SE = 0.00497911011639031),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -20,7 +20,7 @@ expect_equal(
     method_outcome = "glm",
     family_outcome = "binomial",
     data = admin)$output,
-  structure(list(mean = 0.757503252931428, SE = 7.86513028903337e-18),
+  structure(list(mean = 0.757542385494505, SE = 0.00650869641371614),
             row.names = "single_shift", class = "data.frame")
 )
 

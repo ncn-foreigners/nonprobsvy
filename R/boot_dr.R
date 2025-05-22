@@ -111,8 +111,13 @@ boot_dr <- function(selection,
                                      pop_size_fixed=pop_size_fixed)
 
             ## combination of variables after bootstrap
-            if (vars_combine) {
-
+            if (!vars_combine) {
+              boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b$output$mean,
+                                        y_resid = do.call("cbind", results_mi_b$ys_resid),
+                                        weights = case_weights[strap_nons],
+                                        weights_nons = results_ipw_b$ipw_weights,
+                                        N_nons = sum(results_ipw_b$ipw_weights))
+            } else {
               if (verbose) message("\nCombining variables...")
 
               ipw_coefs_sel <- names(results_ipw_b$selection$coefficients)
@@ -225,12 +230,6 @@ boot_dr <- function(selection,
 
               }
             }
-
-
-            if (verbose) {
-              utils::setTxtProgressBar(pb_boot, b)
-            }
-            b <- b + 1
           },
           error = function(e) {
             if (verbose) {
@@ -239,6 +238,10 @@ boot_dr <- function(selection,
             }
           }
         )
+        if (verbose) {
+          utils::setTxtProgressBar(pb_boot, b)
+        }
+        b <- b + 1
       }
     } else {
       # Bootstrap for non-probability samples only
@@ -554,7 +557,5 @@ boot_dr <- function(selection,
     }
   }
 
-
-  # Return results
   return(boot_obj)
 }

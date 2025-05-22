@@ -253,8 +253,10 @@ method_pmm <- function(y_nons,
                                                se=FALSE))
 
         dd[jj] <- pmm_results_boot$y_mi_hat
+
       }
       var_nonprob <- var(dd)
+
     }
     var_total <- var_prob + var_nonprob
 

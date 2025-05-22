@@ -5,7 +5,7 @@
 \title{Control parameters for outcome model}
 \usage{
 control_out(
-  epsilon = 1e-04,
+  epsilon = 1e-08,
   maxit = 100,
   trace = FALSE,
   k = 5,

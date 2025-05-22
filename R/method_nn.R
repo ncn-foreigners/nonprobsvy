@@ -140,7 +140,7 @@ method_nn <- function(y_nons,
   model_fitted_nons <- RANN::nn2(
     data = X_nons,
     query = X_nons,
-    #k = control_outcome$k,
+    k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
@@ -148,7 +148,7 @@ method_nn <- function(y_nons,
   model_fitted <- RANN::nn2(
     data = X_nons,
     query = X_rand,
-    #k = control_outcome$k,
+    k = control_outcome$k,
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
@@ -214,12 +214,12 @@ method_nn <- function(y_nons,
         YY <- RANN::nn2(
           data = X_nons_b,
           query = X_rand,
-          #k = control_outcome$k,
+          k = control_outcome$k,
           treetype = control_outcome$treetype,
           searchtype = control_outcome$searchtype
         )
 
-        k_range <- 1:control_outcome$k
+        k_range <- 1:control_outcome$k ## left for future developments
 
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
                                         "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons_b[x])),

@@ -31,13 +31,15 @@ expect_equal(
 
 ### ipw gee ---------------------------------------------------------------------
 
-ipw_gee <- nonprob(
+suppressWarnings(
+  ipw_gee <- nonprob(
   selection = ~x1 + x2,
   target = ~y1 + y2,
   svydesign = kim2019_sample_prob,
   data = kim2019_sample_nonprob,
   method_selection = "logit",
   control_selection = control_sel(est_method = "gee"))
+)
 
 expect_equal(
   ipw_gee$confidence_interval$lower_bound < kim2019_y_true &
@@ -134,8 +136,7 @@ expect_equal(
 mi_pmm <- nonprob(outcome = y1 + y2~x1 + x2,
                  svydesign = kim2019_sample_prob,
                  method_outcome = "pmm",
-                 data = kim2019_sample_nonprob,
-                 control_inference = control_inf(num_boot = 5))
+                 data = kim2019_sample_nonprob)
 
 expect_equal(
   mi_pmm$confidence_interval$lower_bound < kim2019_y_true &
@@ -150,7 +151,7 @@ expect_equal(
 
 expect_equal(
   mi_pmm$output$SE,
-  c(0.0365318428337102, 0.0618009882119864)
+  c(0.0650693852678778, 0.0550763525250931)
 )
 
 
@@ -173,12 +174,14 @@ expect_equal(
 
 ### ipw mle (is gee) ---------------------------------------------------------------------
 
+suppressWarnings(
 ipw_mle <- nonprob(
   selection = ~x1 + x2,
   target = ~y1 + y2,
   pop_total = kim2019_totals,
   data = kim2019_sample_nonprob,
   method_selection = "logit")
+)
 
 expect_equal(
   ipw_mle$confidence_interval$lower_bound < kim2019_y_true &
