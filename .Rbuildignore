@@ -16,3 +16,4 @@ playground
 ^vignettes/articles$
 ^vignettes/*_files$
 
+^CITATION\.cff$
