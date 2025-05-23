@@ -2,6 +2,9 @@ source("_code_for_all_.R")
 
 set.seed(2024)
 
+
+# svydesign is available --------------------------------------------------
+
 # check if dr estimators run smoothly --------------------------------------
 
 expect_silent(
@@ -146,5 +149,49 @@ expect_equal(
 #   verbose = T
 # )
 
+
+# only totals are known ---------------------------------------------------
+
+expect_silent(
+  model_dr_basic_totals <- nonprob(
+    selection = ~region + private + nace + size,
+    outcome = single_shift ~region + private + nace + size,
+    pop_totals = c(
+      "(Intercept)" = sum(weights(jvs_svy)),
+      svytotal(~region + private + nace + size, jvs_svy)
+    ),
+    data = admin,
+    method_selection = "logit")
+)
+
+
+expect_silent(
+  suppressWarnings(model_dr_basic_totals_boot <- nonprob(
+    selection = ~region + private + nace + size,
+    outcome = single_shift ~region + private + nace + size,
+    pop_totals = c(
+      "(Intercept)" = sum(weights(jvs_svy)),
+      svytotal(~region + private + nace + size, jvs_svy)
+    ),
+    data = admin,
+    control_inference = control_inf(var_method = "bootstrap",
+                                    num_boot = 10),
+    method_selection = "logit")
+  )
+)
+
+expect_silent(
+  suppressWarnings(model_dr_basic_totals_boot <- nonprob(
+    selection = ~region + private + nace,
+    outcome = single_shift ~region + nace + size,
+    pop_totals = c(
+      "(Intercept)" = sum(weights(jvs_svy)),
+      svytotal(~region + private + nace + size, jvs_svy)
+    ),
+    data = admin,
+    control_inference = control_inf(vars_combine = T),
+    method_selection = "logit")
+  )
+)
 
 

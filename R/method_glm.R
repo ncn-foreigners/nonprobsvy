@@ -162,7 +162,7 @@ method_glm <- function(y_nons,
       y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
       y_rand_pred <- NA
       residuals <- as.vector(y_nons - y_nons_pred)
-      eta <- drop(pop_totals %*% model_fitted$coefficients / pop_totals[1])
+      eta <- drop((pop_totals %*% model_fitted$coefficients) / pop_totals[1])
       y_mi_hat <- model_fitted$family$linkinv(eta)
     }
   } else {
