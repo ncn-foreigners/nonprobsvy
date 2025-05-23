@@ -23,7 +23,8 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions)
-[![Codecov test coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
+[![Codecov test
+coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10280114.svg)](https://doi.org/10.5281/zenodo.10280114)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project.org/package=nonprobsvy)
@@ -31,8 +32,8 @@ status](https://www.r-pkg.org/badges/version/nonprobsvy)](https://CRAN.R-project
 downloads](https://cranlogs.r-pkg.org/badges/grand-total/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
 [![CRAN
 downloads](https://cranlogs.r-pkg.org/badges/nonprobsvy)](https://cran.r-project.org/package=nonprobsvy)
-[![Mentioned in Awesome Official Statistics](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software)
-
+[![Mentioned in Awesome Official
+Statistics](https://awesome.re/mentioned-badge.svg)](https://github.com/SNStatComp/awesome-official-statistics-software)
 
 <!-- badges: end -->
 
@@ -45,8 +46,10 @@ population or probability sample is available:
 -   inverse probability weighting estimators with possible calibration
     constraints [@chen2020],
 -   mass imputation estimators based on nearest neighbours [@yang2021],
-    predictive mean matching [@chlebicki2025], non-parametric [@chen2022nonparametric] and regression imputation [@kim2021],
--   doubly robust estimators [@chen2020] with bias minimization [@yang2020].
+    predictive mean matching [@chlebicki2025], non-parametric
+    [@chen2022nonparametric] and regression imputation [@kim2021],
+-   doubly robust estimators [@chen2020] with bias minimization
+    [@yang2020].
 
 The package allows for:
 
@@ -55,15 +58,18 @@ The package allows for:
     packages),
 -   estimation of variance using analytical and bootstrap approach (see
     @wu2023),
--   integration with the `survey` and `srvyr` packages when probability sample is
-    available [@Lumley2004; @Lumley2023; @srvyr2024],
+-   integration with the `survey` and `srvyr` packages when probability
+    sample is available [@Lumley2004; @Lumley2023; @srvyr2024],
 -   different links for selection (`logit`, `probit` and `cloglog`) and
     outcome (`gaussian`, `binomial` and `poisson`) variables.
 
 Details on the use of the package can be found:
 
--   in the draft (and not proofread) version of the book [Modern inference
-    methods for non-probability samples with
+-   see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2025). 
+    *nonprobsvy--An R package for modern methods for non-probability surveys*. 
+    arXiv preprint [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
+-   in the draft (and not proofread) version of the book [Modern
+    inference methods for non-probability samples with
     R](https://ncn-foreigners.github.io/nonprobsvy-book/),
 -   in example codes that reproduce papers available on github in the
     repository [software
@@ -94,7 +100,7 @@ remotes::install_github("ncn-foreigners/nonprobsvy@dev")
 ## Basic idea
 
 Consider the following setting where two samples are available:
-non-probability (denoted as $S_A$ ) and probability (denoted as $S_B$)
+non-probability (denoted as $S_A$) and probability (denoted as $S_B$)
 where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
@@ -108,6 +114,7 @@ $\boldsymbol{w}$) is present only in probability sample.
 |                         |       ... |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 |                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 
+
 ## Basic functionalities
 
 Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of
@@ -118,16 +125,16 @@ $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
 -   unit-level data is available for the non-probability sample $S_{A}$,
-    i.e. $(y_{k}, \boldsymbol{x}_{k})$ is available for all units
+    i.e. $(y_k,\boldsymbol{x}_k)$ is available for all units
     $k \in S_{A}$, and population-level data is available for
-    $\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}$, denoted as
-    $\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}$ and population size
+    $\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p$, denoted as
+    $\tau_{x_{1}},\tau_{x_{2}},\ldots,\tau_{x_{p}}$ and population size
     $N$ is known. We can also consider situations where population data
     are estimated (e.g. on the basis of a survey to which we do not have
     access),
 -   unit-level data is available for the non-probability sample $S_A$
     and the probability sample $S_B$, i.e.
-    $(y_k, \boldsymbol{x}_k, R_k)$ is determined by the data. is
+    $(y_k,\boldsymbol{x}_k,R_k)$ is determined by the data. is
     determined by the data: $R_k=1$ if $k \in S_A$ otherwise $R_k=0$,
     $y_k$ is observed only for sample $S_A$ and $\boldsymbol{x}_k$ is
     observed in both in both $S_A$ and $S_B$,
@@ -381,7 +388,7 @@ nonprob(
 ```
 </td>
 <tr>
-</table>    
+</table>
 
 ## Examples
 
@@ -422,14 +429,14 @@ sample_prob
 
 or with the `srvyr` package
 
-```r
+``` r
 sample_prob <- srvyr::as_survey_design(.data = subset(population, flag_srs == 1),
                                        weights = base_w_srs)
 
 sample_prob
 ```
 
-```r
+``` r
 Independent Sampling design (with replacement)
 Called via srvyr
 Sampling variables:
@@ -438,7 +445,8 @@ Data variables:
 ```
 
 Estimate population mean of `y1` based on doubly robust estimator using
-IPW with calibration constraints and we specify that auxiliary variables should not be combined for the inference. 
+IPW with calibration constraints and we specify that auxiliary variables
+should not be combined for the inference.
 
 ```{r}
 result_dr <- nonprob(

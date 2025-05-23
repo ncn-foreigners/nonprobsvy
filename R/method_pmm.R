@@ -127,7 +127,7 @@ method_pmm <- function(y_nons,
                                               control_outcome=control_outcome,
                                               control_inference=control_inference,
                                               verbose=verbose,
-                                              se=se),
+                                              se=FALSE),
                            "loess" = method_npar(y_nons=y_nons,
                                                  X_nons=X_nons,
                                                  X_rand=X_rand,
@@ -139,7 +139,11 @@ method_pmm <- function(y_nons,
                                                  control_outcome=control_outcome,
                                                  control_inference=control_inference,
                                                  verbose=verbose,
-                                                 se=verbose))
+                                                 se=FALSE))
+
+  ## Disable `nn_exact_se` during the estimation for PMM
+  control_inference_ <- control_inference
+  if (isTRUE(control_inference_$nn_exact_se))  control_inference_$nn_exact_se <- FALSE
 
   ## passing results to method_nn depending on how the matching should be done
   ## 1 - yhat - yhat matching (y_nons_pred, y_rand_pred)
@@ -153,9 +157,9 @@ method_pmm <- function(y_nons,
                                         vars_selection=vars_selection,
                                         pop_size=pop_size,
                                         control_outcome=control_outcome,
-                                        control_inference=control_inference,
+                                        control_inference=control_inference_,
                                         verbose=verbose,
-                                        se=FALSE),
+                                        se=se),
                         "2" =  method_nn(y_nons=y_nons,
                                          X_nons=y_nons,
                                          X_rand=method_results$y_rand_pred,
@@ -164,9 +168,9 @@ method_pmm <- function(y_nons,
                                          vars_selection=vars_selection,
                                          pop_size=pop_size,
                                          control_outcome=control_outcome,
-                                         control_inference=control_inference,
+                                         control_inference=control_inference_,
                                          verbose=verbose,
-                                         se=FALSE))
+                                         se=se))
 
 
   if (se) {
@@ -181,7 +185,7 @@ method_pmm <- function(y_nons,
       loop_size <- 50
 
       if (verbose) {
-        message("Estimating variance component using mini-bootstrap...")
+        message("Estimating nonprob variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
 
@@ -233,24 +237,26 @@ method_pmm <- function(y_nons,
                                               vars_selection=vars_selection,
                                               pop_size=pop_size,
                                               control_outcome=control_outcome,
-                                              control_inference=control_inference,
+                                              control_inference=control_inference_,
                                               verbose=FALSE,
                                               se=FALSE),
-                              "2" =  method_nn(y_nons=y_nons,
-                                               X_nons=y_nons,
+                              "2" =  method_nn(y_nons=y_nons_b,
+                                               X_nons=y_nons_b,
                                                X_rand=method_results_boot$y_rand_pred,
                                                svydesign=svydesign,
                                                weights=weights,
                                                vars_selection=vars_selection,
                                                pop_size=pop_size,
                                                control_outcome=control_outcome,
-                                               control_inference=control_inference,
+                                               control_inference=control_inference_,
                                                verbose=FALSE,
                                                se=FALSE))
 
         dd[jj] <- pmm_results_boot$y_mi_hat
+
       }
       var_nonprob <- var(dd)
+
     }
     var_total <- var_prob + var_nonprob
 
@@ -262,8 +268,8 @@ method_pmm <- function(y_nons,
     structure(
       list(
         model_fitted = method_results$model_fitted,
-        y_nons_pred = pmm_results$y_nons_pred,
-        y_rand_pred = pmm_results$y_rand_pred,
+        y_nons_pred = method_results$y_nons_pred,
+        y_rand_pred = method_results$y_rand_pred,
         coefficients = NULL,
         svydesign = pmm_results$svydesign,
         y_mi_hat = pmm_results$y_mi_hat,

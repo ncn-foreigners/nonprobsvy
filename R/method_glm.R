@@ -43,6 +43,15 @@
 #'
 #' Furthermore, if only population totals/means are known and assumed to be fixed we set \eqn{\hat{V}_2=0}.
 #'
+#' Information on the case when `svydesign` is not available:
+#'
+#' 1. variance is estimated only for the non-probability part with \eqn{\hat{V}_1} defined above.
+#' 2. point estimator of \eqn{\hat{\mu}_y} for linear regression is estimated using \eqn{\mu_x^\prime\hat{\boldsymbol{\beta}}}
+#' where \eqn{\mu_x} is the vector of population means
+#' 3. for non-linear functions such as logistic or Poisson regression we use a simplification, i.e. we report
+#' point estimate as \eqn{\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})} for Poisson and \eqn{\frac{\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}{1+\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}} for logistic regression.
+#'
+#'
 #' @param y_nons target variable from non-probability sample
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
@@ -153,7 +162,7 @@ method_glm <- function(y_nons,
       y_nons_pred <- predict.glm.fit(model_fitted, X_nons)
       y_rand_pred <- NA
       residuals <- as.vector(y_nons - y_nons_pred)
-      eta <- drop(pop_totals %*% model_fitted$coefficients / pop_totals[1])
+      eta <- drop((pop_totals %*% model_fitted$coefficients) / pop_totals[1])
       y_mi_hat <- model_fitted$family$linkinv(eta)
     }
   } else {
@@ -174,9 +183,6 @@ method_glm <- function(y_nons,
       )
 
       model_fitted$family <- get(model_fitted$fit$family)()
-      #beta_est <- model_fitted$fit$beta[, model_fitted$min]
-      #beta_selected <- unname(which(abs(beta_est) > 0))
-      #beta_est <- beta_est[beta_selected]
 
       if (is.null(pop_totals)) {
         y_nons_pred <- predict(model_fitted, X_nons[, -1], type = "response")
@@ -219,7 +225,7 @@ method_glm <- function(y_nons,
 
       beta <- coef(model_fitted)
       eta_nons <- drop(X_nons %*% beta)
-      eta_rand <- drop(pop_totals %*% beta)
+      eta_rand <- drop((pop_totals/pop_size) %*% beta)
 
       mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
       c <- MASS::ginv(1 / nrow(X_nons) * crossprod(X_nons * model_fitted$family$mu.eta(eta_nons), X_nons)) %*% mx

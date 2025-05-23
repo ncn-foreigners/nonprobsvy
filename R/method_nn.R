@@ -153,18 +153,20 @@ method_nn <- function(y_nons,
     searchtype = control_outcome$searchtype
   )
 
+  k_range <- 1:control_outcome$k
+
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-         "none" = apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
+         "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x])),
          "dist" = {
            # TODO:: these weights will need to be saved for variance estimation
            if (control_outcome$k == 1) {
-             apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+             apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons[x]))
            } else {
              sapply(1:NROW(model_fitted$nn.idx),
                     FUN = function(x) {
-                      w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
+                      w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
                       w_scaled <- w_scaled/sum(w_scaled)
-                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, k_range]],
                                     w = w_scaled)
                     })
            }
@@ -172,7 +174,7 @@ method_nn <- function(y_nons,
          }
   )
 
-  y_nons_pred <- apply(model_fitted_nons$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+  y_nons_pred <- apply(model_fitted_nons$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x]))
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
   svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
@@ -191,12 +193,12 @@ method_nn <- function(y_nons,
 
       message("The `nn_exact_se=TRUE` option used. Remember to set the seed for reproducibility.")
 
+      loop_size <- 50
+
       if (verbose) {
         message("Estimating variance component using mini-bootstrap...")
         pb <- utils::txtProgressBar(min = 0, max = loop_size, style = 3)
       }
-
-      loop_size <- 50
 
       dd <- numeric(loop_size)
       for (jj in 1:loop_size) {
@@ -217,18 +219,20 @@ method_nn <- function(y_nons,
           searchtype = control_outcome$searchtype
         )
 
+        k_range <- 1:control_outcome$k ## left for future developments
+
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x])),
+                                        "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons_b[x])),
                                         "dist" = {
                                           # TODO:: these weights will need to be saved for variance estimation
                                           if (control_outcome$k == 1) {
-                                            apply(model_fitted$nn.idx, 1, FUN = function(x) mean(y_nons[x]))
+                                            apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons_b[x]))
                                           } else {
                                             sapply(1:NROW(model_fitted$nn.idx),
                                                    FUN = function(x) {
-                                                     w_scaled <- max(model_fitted$nn.dists[x, ]) - model_fitted$nn.dists[x, ]
+                                                     w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
                                                      w_scaled <- w_scaled/sum(w_scaled)
-                                                     stats::weighted.mean(y_nons[model_fitted$nn.idx[x, ]],
+                                                     stats::weighted.mean(y_nons_b[model_fitted$nn.idx[x, k_range]],
                                                                           w = w_scaled)
                                                    })}
                                           })

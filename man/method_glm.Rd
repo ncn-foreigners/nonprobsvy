@@ -102,6 +102,15 @@ equation:
 Note that \eqn{\hat{V}_2} in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.
 
 Furthermore, if only population totals/means are known and assumed to be fixed we set \eqn{\hat{V}_2=0}.
+
+Information on the case when \code{svydesign} is not available:
+\enumerate{
+\item variance is estimated only for the non-probability part with \eqn{\hat{V}_1} defined above.
+\item point estimator of \eqn{\hat{\mu}_y} for linear regression is estimated using \eqn{\mu_x^\prime\hat{\boldsymbol{\beta}}}
+where \eqn{\mu_x} is the vector of population means
+\item for non-linear functions such as logistic or Poisson regression we use a simplification, i.e. we report
+point estimate as \eqn{\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})} for Poisson and \eqn{\frac{\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}{1+\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}} for logistic regression.
+}
 }
 \examples{
 

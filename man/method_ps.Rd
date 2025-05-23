@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_ps.R
 \name{method_ps}
 \alias{method_ps}
-\title{Propensity score model functions}
+\title{Propensity Score Model Functions}
 \usage{
 method_ps(link = c("logit", "probit", "cloglog"), ...)
 }

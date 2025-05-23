@@ -49,7 +49,7 @@
 #'
 #' @export
 
-control_out <- function(epsilon = 1e-4,
+control_out <- function(epsilon = 1e-8,
                         maxit = 100,
                         trace = FALSE,
                         k = 5,

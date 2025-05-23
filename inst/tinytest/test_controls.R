@@ -23,7 +23,7 @@ expect_equal(
 
 expect_equal(
   control_out(),
-  list(epsilon = 1e-04, maxit = 100, trace = FALSE, k = 5, penalty = "SCAD",
+  list(epsilon = 1e-8, maxit = 100, trace = FALSE, k = 5, penalty = "SCAD",
        a_SCAD = 3.7, a_MCP = 3, lambda_min = 0.001, nlambda = 100,
        nfolds = 10, treetype = "kd", searchtype = "standard", pmm_match_type = 1,
        pmm_weights = "none", pmm_k_choice = "none", pmm_reg_engine = "glm",

@@ -67,6 +67,7 @@ nonprob_mi <- function(outcome,
     X_rand <- outcome_model_data$X_rand
     nons_names <- outcome_model_data$nons_names
     y_nons <- outcome_model_data$y_nons
+    pop_totals_ <- outcome_model_data$pop_totals ## match the same as in X_nons
 
     model_obj <- outcome_method(y_nons = y_nons,
                                 X_nons = X_nons,
@@ -76,7 +77,7 @@ nonprob_mi <- function(outcome,
                                 family_outcome=family_outcome,
                                 start_outcome=start_outcome,
                                 vars_selection=vars_selection,
-                                pop_totals=pop_totals,
+                                pop_totals=pop_totals_,
                                 pop_size=pop_size,
                                 control_outcome=control_outcome,
                                 control_inference=control_inference,
@@ -101,7 +102,7 @@ nonprob_mi <- function(outcome,
                                     family_outcome=family_outcome,
                                     start_outcome=start_outcome,
                                     vars_selection=vars_selection,
-                                    pop_totals=pop_totals,
+                                    pop_totals=pop_totals_,
                                     pop_size=pop_size,
                                     control_outcome=control_outcome,
                                     control_inference=control_inference,
@@ -114,6 +115,10 @@ nonprob_mi <- function(outcome,
         var_prev <- var_now
       }
 
+      if (isTRUE(verbose)) {
+        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", kk))
+      }
+
       control_outcome$k <- kk
       model_obj <- outcome_method(y_nons = y_nons,
                                   X_nons = X_nons,
@@ -123,7 +128,7 @@ nonprob_mi <- function(outcome,
                                   family_outcome=family_outcome,
                                   start_outcome=start_outcome,
                                   vars_selection=vars_selection,
-                                  pop_totals=pop_totals,
+                                  pop_totals=pop_totals_,
                                   pop_size=pop_size,
                                   control_outcome=control_outcome,
                                   control_inference=control_inference,
@@ -145,14 +150,10 @@ nonprob_mi <- function(outcome,
 
     if (se) {
 
-      if (method_outcome == "pmm") {
-        control_inference$var_method <- "bootstrap"
-        message("Bootstrap variance only for the `pmm` method, analytical version during implementation.")
-      }
-
       if (control_inference$var_method == "bootstrap") {
         num_boot <- control_inference$num_boot
         stat_boot <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
+        var_comp2 <- matrix(nrow = control_inference$num_boot, ncol = outcomes$l)
       }
 
       if (control_inference$var_method == "analytic")  {
@@ -175,15 +176,38 @@ nonprob_mi <- function(outcome,
                             X_nons=X_nons,
                             X_rand=X_rand,
                             case_weights=case_weights,
-                            pop_totals=pop_totals,
+                            pop_totals=pop_totals_,
                             pop_size = pop_size,
                             family_outcome=family_outcome,
                             control_outcome=control_outcome,
                             control_inference=control_inference,
                             verbose = verbose)
 
-        var_total <- var(boot_obj)
+        if (isTRUE(control_inference$nn_exact_se) & method_outcome %in% c("pmm", "nn")) {
+          ## mini-bootstrap as suggested in the MI-PMM paper
+          boot_obj_comp2 <- outcome_method(y_nons = y_nons,
+                                           X_nons = X_nons,
+                                           X_rand = X_rand,
+                                           svydesign = svydesign,
+                                           weights=case_weights,
+                                           family_outcome=family_outcome,
+                                           start_outcome=start_outcome,
+                                           vars_selection=vars_selection,
+                                           pop_totals=pop_totals_,
+                                           pop_size=pop_size,
+                                           control_outcome=control_outcome,
+                                           control_inference=control_inference,
+                                           verbose=verbose,
+                                           se=se)
+
+          comp2 <- boot_obj_comp2$var_nonprob
+        } else {
+          comp2 <- 0
+        }
+
+        var_total <- var(boot_obj) + comp2
         stat_boot[, o] <- boot_obj
+        var_comp2[, o] <- comp2
         SE_values[[o]] <- data.frame(t(data.frame("SE" = c(nonprob = NA, prob = NA))))
         SE <- sqrt(var_total)
         alpha <- control_inference$alpha
@@ -211,12 +235,12 @@ nonprob_mi <- function(outcome,
   names(outcome_list) <- outcomes$f
   names(ys) <- all.vars(outcome_init[[2]])
 
-  boot_sample <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
-    list(stat = stat_boot, comp2 = 0)
+  boot_sample <- if (isTRUE(se) & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    colnames(var_comp2) <- colnames(stat_boot) <- names(ys)
+    list(stat = stat_boot, comp2 = var_comp2)
   } else {
     NULL
   }
-  if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
   structure(
     list(

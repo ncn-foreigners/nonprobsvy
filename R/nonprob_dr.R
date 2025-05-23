@@ -39,10 +39,6 @@ nonprob_dr <- function(selection,
                        pop_size_fixed,
                        ...) {
 
-  # important parameters:
-  #   bias_correction = FALSE,
-  #   bias_inf = c("union", "div"),
-
   ## setting for the IPW
   method <- switch(method_selection,
                    "logit" = method_ps("logit"),

@@ -52,6 +52,10 @@ The package allows for:
 
 Details on the use of the package can be found:
 
+- see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
+  (2025). *nonprobsvy–An R package for modern methods for
+  non-probability surveys*. arXiv preprint
+  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
   R](https://ncn-foreigners.github.io/nonprobsvy-book/),
@@ -84,7 +88,7 @@ remotes::install_github("ncn-foreigners/nonprobsvy@dev")
 ## Basic idea
 
 Consider the following setting where two samples are available:
-non-probability (denoted as $S_A$ ) and probability (denoted as $S_B$)
+non-probability (denoted as $S_A$) and probability (denoted as $S_B$)
 where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
@@ -108,15 +112,15 @@ $(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
 possible scenarios:
 
 - unit-level data is available for the non-probability sample $S_{A}$,
-  i.e. $(y_{k}, \boldsymbol{x}_{k})$ is available for all units
+  i.e. $(y_k,\boldsymbol{x}_k)$ is available for all units
   $k \in S_{A}$, and population-level data is available for
-  $\boldsymbol{x}_{1}, ..., \boldsymbol{x}_{p}$, denoted as
-  $\tau_{x_{1}}, \tau_{x_{2}}, ..., \tau_{x_{p}}$ and population size
+  $\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p$, denoted as
+  $\tau_{x_{1}},\tau_{x_{2}},\ldots,\tau_{x_{p}}$ and population size
   $N$ is known. We can also consider situations where population data
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample $S_A$ and
-  the probability sample $S_B$, i.e. $(y_k, \boldsymbol{x}_k, R_k)$ is
+  the probability sample $S_B$, i.e. $(y_k,\boldsymbol{x}_k,R_k)$ is
   determined by the data. is determined by the data: $R_k=1$ if
   $k \in S_A$ otherwise $R_k=0$, $y_k$ is observed only for sample $S_A$
   and $\boldsymbol{x}_k$ is observed in both in both $S_A$ and $S_B$,
@@ -124,18 +128,28 @@ possible scenarios:
 ### When unit-level data is available for non-probability survey only
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -153,11 +167,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -175,11 +194,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -198,11 +222,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -221,24 +250,36 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ### When unit-level data are available for both surveys
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -252,11 +293,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on nearest neighbour imputation
 </td>
+
 <td>
 
 ``` r
@@ -271,11 +317,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on predictive mean matching
 </td>
+
 <td>
 
 ``` r
@@ -289,12 +340,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation with variable selection
 (LASSO)
 </td>
+
 <td>
 
 ``` r
@@ -310,11 +366,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -328,11 +389,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -347,12 +413,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint with variable
 selection (SCAD)
 </td>
+
 <td>
 
 ``` r
@@ -368,11 +439,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -387,12 +463,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator with variable selection (SCAD) and bias
 minimization
 </td>
+
 <td>
 
 ``` r
@@ -411,7 +492,9 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ## Examples
