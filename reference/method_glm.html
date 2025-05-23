@@ -183,7 +183,12 @@ equation:</p>
 $$</p>
 <p>Note that \(\hat{V}_2\) in principle can be estimated in various ways depending on the type of the design and whether population size is known or not.</p>
 <p>Furthermore, if only population totals/means are known and assumed to be fixed we set \(\hat{V}_2=0\).</p>
-    </div>
+<p>Information on the case when <code>svydesign</code> is not available:</p><ol><li><p>variance is estimated only for the non-probability part with \(\hat{V}_1\) defined above.</p></li>
+<li><p>point estimator of \(\hat{\mu}_y\) for linear regression is estimated using \(\mu_x^\prime\hat{\boldsymbol{\beta}}\)
+where \(\mu_x\) is the vector of population means</p></li>
+<li><p>for non-linear functions such as logistic or Poisson regression we use a simplification, i.e. we report
+point estimate as \(\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})\) for Poisson and \(\frac{\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}{1+\exp(\mu_x^\prime\hat{\boldsymbol{\beta}})}\) for logistic regression.</p></li>
+</ol></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Kim, J. K., Park, S., Chen, Y., &amp; Wu, C. (2021). Combining non-probability and probability survey samples
