@@ -9,7 +9,9 @@ nonprobsvy News and Updates
 + new hex sticker by [Oliwia Awuku](https://www.instagram.com/abenakrzywo/)
 + minor changes to the code, e.g. `control_out(eps=1e-8)`
 + fixing a bug in the bootstrap variance estimator the `method_nn` and `method_pmm`
-
++ fixing bootstrap for doubly robust estimators
++ more unit-tests for doubly robust estimators
++ more informative vignette for `method_glm`
 
 # nonprobsvy 0.2.1
 

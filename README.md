@@ -124,18 +124,28 @@ possible scenarios:
 ### When unit-level data is available for non-probability survey only
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -153,11 +163,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -175,11 +190,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -198,11 +218,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -221,24 +246,36 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ### When unit-level data are available for both surveys
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -252,11 +289,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on nearest neighbour imputation
 </td>
+
 <td>
 
 ``` r
@@ -271,11 +313,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on predictive mean matching
 </td>
+
 <td>
 
 ``` r
@@ -289,12 +336,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation with variable selection
 (LASSO)
 </td>
+
 <td>
 
 ``` r
@@ -310,11 +362,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -328,11 +385,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -347,12 +409,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint with variable
 selection (SCAD)
 </td>
+
 <td>
 
 ``` r
@@ -368,11 +435,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -387,12 +459,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator with variable selection (SCAD) and bias
 minimization
 </td>
+
 <td>
 
 ``` r
@@ -411,7 +488,9 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ## Examples
