@@ -58,7 +58,7 @@ Details on the use of the package can be found:
   [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
-  R](https://ncn-foreigners.github.io/nonprobsvy-book/),
+  R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
 - in example codes that reproduce papers available on github in the
   repository [software
   tutorials](https://github.com/ncn-foreigners/software-tutorials).

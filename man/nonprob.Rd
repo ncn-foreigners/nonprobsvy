@@ -223,7 +223,7 @@ this method to \code{cloglog} and \code{probit} links.
 }
 
 As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
-Details can be found \href{https://ncn-foreigners.github.io/nonprobsvy-book/}{here}.
+Details can be found \href{https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/}{here}.
 In addition, the bootstrap approach can be used for variance estimation.
 
 The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
