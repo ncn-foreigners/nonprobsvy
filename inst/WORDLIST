@@ -46,6 +46,7 @@ github
 glm
 inv
 jacobian
+ldots
 loess
 loglik
 maximisation
@@ -64,3 +65,5 @@ sampl
 svydesign
 Ł
 ’Dplyr’
+Chrostowski
+chrostowski
