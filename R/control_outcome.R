@@ -1,4 +1,4 @@
-#' @title Control parameters for outcome model
+#' @title Control Parameters for Outcome Model
 #'
 #' @importFrom stats loess.control
 #' @description \code{control_out} constructs a list with all necessary control parameters

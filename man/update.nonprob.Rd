@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{update.nonprob}
 \alias{update.nonprob}
-\title{The update method for the nonprob object with changed arguments or parameters}
+\title{Update Method for the Nonprob Object with Changed Arguments or Parameters}
 \usage{
 \method{update}{nonprob}(object, ..., evaluate = TRUE)
 }

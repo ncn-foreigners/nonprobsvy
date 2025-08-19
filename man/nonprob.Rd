@@ -2,7 +2,7 @@
 % Please edit documentation in R/nonprob.R, R/nonprob_documentation.R
 \name{nonprob}
 \alias{nonprob}
-\title{Inference with non-probability survey samples}
+\title{Inference with Non-Probability Survey Samples}
 \usage{
 nonprob(
   data,

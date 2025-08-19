@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.nonprob}
 \alias{plot.nonprob}
-\title{Plots the estimated mean(s) and their confidence interval(s)}
+\title{Plots the Estimated Mean(s) and Their Confidence Interval(s)}
 \usage{
 \method{plot}{nonprob}(x, ...)
 }

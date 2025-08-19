@@ -1,4 +1,4 @@
-#' @title Inference with non-probability survey samples
+#' @title Inference with Non-Probability Survey Samples
 #' @author Łukasz Chrostowski, Maciej Beręsewicz, Piotr Chlebicki
 #'
 #' @description \code{nonprob} function provides an access to the various methods for inference based on non-probability surveys (including big data). The function allows to estimate the population mean based on the access to a reference probability sample (via the `survey` package),  as well as totals or means of covariates.

@@ -1,4 +1,4 @@
-#' @title Control parameters for the selection model
+#' @title Control Parameters for the Selection Model
 #'
 #' @description \code{control_sel} constructs a list with all necessary control parameters
 #' for selection model.

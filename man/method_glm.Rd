@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_glm.R
 \name{method_glm}
 \alias{method_glm}
-\title{Mass imputation using the generalized linear model method}
+\title{Mass Imputation Using the Generalized Linear Model Method}
 \usage{
 method_glm(
   y_nons,

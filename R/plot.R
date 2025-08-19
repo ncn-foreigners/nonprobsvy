@@ -1,4 +1,4 @@
-#' @title Plots the estimated mean(s) and their confidence interval(s)
+#' @title Plots the Estimated Mean(s) and Their Confidence Interval(s)
 #' @description
 #' Simple plotting method that compares the estimated mean(s) and CI(s) with the naive (uncorrected) estimates.
 #'

@@ -20,7 +20,7 @@ extract.nonprob <- function(object, what=c("all", "mean", "se")) {
 
   return(ext)
 }
-#' @title Extracts estimates from the nonprob class object
+#' @title Extracts Estimates from the Nonprob Class Object
 #' @description Returns a \code{data.frame} of estimated mean(s) or standard error(s)
 #' @param object object of of the \code{nonprob} class
 #' @param what what to extract: all estimates (mean(s), SE(s) and CI(s); \code{"all"}; default), estimated mean(s) (\code{"mean"}) or their standard error(s) (\code{"se"})
@@ -50,7 +50,7 @@ pop_size.nonprob <- function(object) {
   object$pop_size
 }
 
-#' @title Returns population size (estimated or fixed)
+#' @title Returns Population Size (Estimated or Fixed)
 #' @description Returns population size that is assumed to be
 #'\itemize{
 #'  \item{\code{fixed} -- if it is based on the `pop_size` argument,}
@@ -94,7 +94,7 @@ pop_size <- function(object) {
 
 # base R methods ----------------------------------------------------------
 
-#' @title Returns the number of rows in samples
+#' @title Returns the Number of Rows in Samples
 #' @description
 #' Returns information on the number of rows of the probability sample (if provided)
 #' and non-probability sample.
@@ -110,7 +110,7 @@ nobs.nonprob <- function(object,
   c("prob" = object$prob_size, "nonprob" = object$nonprob_size)
 }
 
-#' @title Extracts the inverse probability weights
+#' @title Extracts the Inverse Probability (Propensity Score) Weights
 #' @description A generic function `weights` that returns inverse probability weights (if present)
 #'
 #' @param object a \code{nonprob} class object
@@ -142,7 +142,7 @@ weights.nonprob <- function(object,
   object$ipw_weights
 }
 
-#' @title The update method for the nonprob object with changed arguments or parameters
+#' @title Update Method for the Nonprob Object with Changed Arguments or Parameters
 #' @author Maciej Beręsewicz
 #'
 #' @description
@@ -202,7 +202,7 @@ update.nonprob <- function(object, ..., evaluate=TRUE) {
   }
 }
 
-#' @title Returns confidence intervals for estimated mean
+#' @title Returns Confidence Intervals for Estimated Mean
 #'
 #' @description A generic function that returns the confidence interval
 #' for the estimated mean. If standard errors have not been estimated, the function
@@ -277,7 +277,7 @@ confint.nonprob <- function(object,
 }
 
 
-#' @title Returns coefficients of the underlying models
+#' @title Returns Coefficients of the Underlying Models
 #' @description
 #' Returns a \code{list} of coefficients for the selection and the outcome models
 #'

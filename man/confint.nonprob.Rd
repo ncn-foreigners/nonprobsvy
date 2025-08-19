@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{confint.nonprob}
 \alias{confint.nonprob}
-\title{Returns confidence intervals for estimated mean}
+\title{Returns Confidence Intervals for Estimated Mean}
 \usage{
 \method{confint}{nonprob}(object, parm, level = 0.95, ...)
 }

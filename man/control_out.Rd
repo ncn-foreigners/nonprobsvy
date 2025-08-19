@@ -2,7 +2,7 @@
 % Please edit documentation in R/control_outcome.R
 \name{control_out}
 \alias{control_out}
-\title{Control parameters for outcome model}
+\title{Control Parameters for Outcome Model}
 \usage{
 control_out(
   epsilon = 1e-08,

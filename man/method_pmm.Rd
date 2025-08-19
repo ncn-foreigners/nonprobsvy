@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_pmm.R
 \name{method_pmm}
 \alias{method_pmm}
-\title{Mass imputation using predictive mean matching method}
+\title{Mass Imputation Using Predictive Mean Matching Method}
 \usage{
 method_pmm(
   y_nons,

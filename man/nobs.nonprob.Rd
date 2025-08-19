@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{nobs.nonprob}
 \alias{nobs.nonprob}
-\title{Returns the number of rows in samples}
+\title{Returns the Number of Rows in Samples}
 \usage{
 \method{nobs}{nonprob}(object, ...)
 }

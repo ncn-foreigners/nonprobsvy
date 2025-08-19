@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{pop_size}
 \alias{pop_size}
-\title{Returns population size (estimated or fixed)}
+\title{Returns Population Size (Estimated or Fixed)}
 \usage{
 pop_size(object)
 }

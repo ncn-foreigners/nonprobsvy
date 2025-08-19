@@ -1,4 +1,4 @@
-#' @title Summary statistics for model of the nonprob class
+#' @title Summary Statistics for Models of the Nonprob Class
 #'
 #' @description
 #' Summarises the `nonprob` class object. The summary depends on the type of

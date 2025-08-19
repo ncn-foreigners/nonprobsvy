@@ -2,7 +2,7 @@
 % Please edit documentation in R/control_inference.R
 \name{control_inf}
 \alias{control_inf}
-\title{Control parameters for inference}
+\title{Control Parameters for Inference}
 \usage{
 control_inf(
   var_method = c("analytic", "bootstrap"),
