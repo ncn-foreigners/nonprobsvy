@@ -3,7 +3,7 @@
 \docType{data}
 \name{admin}
 \alias{admin}
-\title{Admin data (non-probability survey)}
+\title{Admin Data (Non-Probability Survey)}
 \format{
 A single data.frame with 9,344 rows and 6 columns
 

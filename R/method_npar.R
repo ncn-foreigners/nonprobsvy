@@ -1,4 +1,4 @@
-#' Mass imputation using non-parametric model method
+#' @title Mass Imputation Using Non-Parametric Model Method
 #'
 #' @importFrom stats update
 #' @importFrom survey svymean

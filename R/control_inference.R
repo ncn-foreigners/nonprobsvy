@@ -1,4 +1,4 @@
-#' @title Control parameters for inference
+#' @title Control Parameters for Inference
 #'
 #' @description \code{control_inf} constructs a `list` with all necessary control parameters
 #' for statistical inference.

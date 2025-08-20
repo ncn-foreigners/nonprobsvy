@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_npar.R
 \name{method_npar}
 \alias{method_npar}
-\title{Mass imputation using non-parametric model method}
+\title{Mass Imputation Using Non-Parametric Model Method}
 \usage{
 method_npar(
   y_nons,

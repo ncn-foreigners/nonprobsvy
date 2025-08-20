@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_nn.R
 \name{method_nn}
 \alias{method_nn}
-\title{Mass imputation using nearest neighbours matching method}
+\title{Mass Imputation Using Nearest Neighbours Matching Method}
 \usage{
 method_nn(
   y_nons,

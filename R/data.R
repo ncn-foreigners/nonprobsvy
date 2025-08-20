@@ -1,4 +1,4 @@
-#' Job vacancy survey
+#' @title Job Vacancy Survey
 #'
 #' @description
 #' This is a subset of the Job Vacancy Survey from Poland (for one quarter).
@@ -29,7 +29,7 @@
 #'
 "jvs"
 
-#' Admin data (non-probability survey)
+#' @title Admin Data (Non-Probability Survey)
 #'
 #' @description
 #' This is a subset of the Central Job Offers Database, a voluntary administrative data set (non-probability sample).

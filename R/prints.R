@@ -1,6 +1,3 @@
-# no print doccumentation
-
-
 # general printing --------------------------------------------------------
 
 #' @method print nonprob
@@ -12,8 +9,6 @@ print.nonprob <- function(x, digits=4,...) {
                                                 "mi"= "mass imputation",
                                                 "ipw" = "inverse probability weighting",
                                                 "dr" = "doubly robust")))
-
-  ## here we should have more information when the doubly robust estimator is applied
 
   cat(sprintf(" - method: %s\n", x$estimator_method))
   cat(sprintf(" - auxiliary variables source: %s\n", ifelse(!is.null(x$svydesign), "survey", "population")))
@@ -66,11 +61,9 @@ print.nonprob <- function(x, digits=4,...) {
     cat(" - caution: since `pop_size' is provided, the variance is estimated assuming that `pop_size' is known (not estimated). If this assumption is wrong, specify the appropriate `var_method' in the `control_inf()` function.\n")
   }
 
-  #cat("Estimated population mean with overall std.err and confidence interval:\n\n")
-  #print(cbind(mean = x$output$mean, SE = x$output$SE, x$confidence_interval))
   invisible(x)
 }
-#' @title Print method for the nonprob_summary object
+#' @title Print Method for the Nonprob_summary Object
 #'
 #' @description
 #' Print method for the `nonprob_summary` object which allows for specification

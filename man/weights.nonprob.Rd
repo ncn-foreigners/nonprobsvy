@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{weights.nonprob}
 \alias{weights.nonprob}
-\title{Extracts the inverse probability weights}
+\title{Extracts the Inverse Probability (Propensity Score) Weights}
 \usage{
 \method{weights}{nonprob}(object, ...)
 }

@@ -1,5 +1,4 @@
-#' Mass imputation using predictive mean matching method
-#'
+#' @title Mass Imputation Using Predictive Mean Matching Method
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based

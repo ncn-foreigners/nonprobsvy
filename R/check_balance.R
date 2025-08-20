@@ -1,4 +1,4 @@
-#' @title Checks the variable balance between the probability and non-probability samples
+#' @title Checks Variable Balance Between the Probability and Non-Probability Samples
 #'
 #' @description
 #' Function compares totals for auxiliary variables specified in the `x` argument for an `object` that

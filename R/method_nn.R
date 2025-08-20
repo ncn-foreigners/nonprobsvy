@@ -1,4 +1,4 @@
-#' Mass imputation using nearest neighbours matching method
+#' @title Mass Imputation Using Nearest Neighbours Matching Method
 #'
 #' @importFrom stats update
 #' @importFrom survey svymean

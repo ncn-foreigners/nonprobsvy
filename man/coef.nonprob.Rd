@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{coef.nonprob}
 \alias{coef.nonprob}
-\title{Returns coefficients of the underlying models}
+\title{Returns Coefficients of the Underlying Models}
 \usage{
 \method{coef}{nonprob}(object, ...)
 }

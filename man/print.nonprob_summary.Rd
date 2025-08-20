@@ -2,7 +2,7 @@
 % Please edit documentation in R/prints.R
 \name{print.nonprob_summary}
 \alias{print.nonprob_summary}
-\title{Print method for the nonprob_summary object}
+\title{Print Method for the Nonprob_summary Object}
 \usage{
 \method{print}{nonprob_summary}(x, resid = TRUE, pred = TRUE, digits = 4, ...)
 }

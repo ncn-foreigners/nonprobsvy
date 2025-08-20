@@ -1,4 +1,4 @@
-#' Mass imputation using the generalized linear model method
+#' @title Mass Imputation Using the Generalized Linear Model Method
 #'
 #' @importFrom stats glm.fit
 #' @importFrom stats update

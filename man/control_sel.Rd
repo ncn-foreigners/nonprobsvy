@@ -2,7 +2,7 @@
 % Please edit documentation in R/control_selection.R
 \name{control_sel}
 \alias{control_sel}
-\title{Control parameters for the selection model}
+\title{Control Parameters for the Selection Model}
 \usage{
 control_sel(
   est_method = c("mle", "gee"),

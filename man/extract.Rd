@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{extract}
 \alias{extract}
-\title{Extracts estimates from the nonprob class object}
+\title{Extracts Estimates from the Nonprob Class Object}
 \usage{
 extract(object, what)
 }

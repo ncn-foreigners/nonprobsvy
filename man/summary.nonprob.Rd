@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary.nonprob}
 \alias{summary.nonprob}
-\title{Summary statistics for model of the nonprob class}
+\title{Summary Statistics for Models of the Nonprob Class}
 \usage{
 \method{summary}{nonprob}(object, ...)
 }
