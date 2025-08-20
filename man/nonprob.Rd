@@ -74,9 +74,9 @@ It is assumed that this vector contains frequency or analytic weights (i.e. rows
 
 \item{verbose}{a numerical value (default \code{TRUE}) whether detailed information on the fitting should be presented}
 
-\item{se}{Logical value (default \code{TRUE}) indicating whether to calculate and return standard error of estimated mean.}
+\item{se}{Logical value (default \code{TRUE}) indicating whether to calculate and return standard error of estimated mean}
 
-\item{...}{Additional, optional arguments}
+\item{...}{Additional, optional arguments (not yet supported)}
 }
 \value{
 Returns an object of the \code{nonprob} class (it is actually a \code{list}) which contains the following elements:\cr

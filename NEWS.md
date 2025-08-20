@@ -5,6 +5,7 @@ nonprobsvy News and Updates
 # nonprobsvy 0.2.3
 
 + changes to the documentation to meet the JSS requirements
++ documentation polishing
 
 ------------------------------------------------------------------------
 

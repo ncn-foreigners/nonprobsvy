@@ -36,8 +36,8 @@
 #' @param start_selection an optional `vector` with starting values for the parameters of the selection equation
 #' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation
 #' @param verbose a numerical value (default `TRUE`) whether detailed information on the fitting should be presented
-#' @param se Logical value (default `TRUE`) indicating whether to calculate and return standard error of estimated mean.
-#' @param ... Additional, optional arguments
+#' @param se Logical value (default `TRUE`) indicating whether to calculate and return standard error of estimated mean
+#' @param ... Additional, optional arguments (not yet supported)
 #'
 #' @details Let \eqn{y} be the response variable for which we want to estimate the population mean,
 #' given by \deqn{\mu_{y} = \frac{1}{N} \sum_{i=1}^N y_{i}.} For this purpose we consider data integration
