@@ -133,54 +133,41 @@ arma::mat u_theta_der(const arma::vec& par,
     psd = as<arma::vec>(inv_link_der(eta_pi));
   }
 
-  int n = X.n_rows;
   int p = X.n_cols;
   arma::mat mxDer(p, p, arma::fill::zeros);
   double N_nons = sum(1/ps);
 
-  arma::rowvec X_row;
-  arma::mat temp;
+  // Vectorized computation: compute weight vector once
+  arma::vec w_vec;
 
   if (gee_h_fun == 1 || !pop_totals.isNull()) {
     if (method_selection == "logit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * (1-ps(i))/ps(i) * X_row.t();
-        mxDer += temp * X_row;
-      }
-      //mxDer = X.t() * X;
+      // Vectorized: w_vec = R * weights * (1-ps)/ps
+      w_vec = R % weights % ((1 - ps) / ps);
+      // Compute X.t() * diag(w_vec) * X efficiently
+      mxDer = X.t() * (X.each_col() % w_vec);
     } else if (method_selection == "cloglog") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * (1-ps(i))/pow(ps(i), 2) * exp(eta_pi(i)) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      // Vectorized: w_vec = R * weights * (1-ps)/ps^2 * exp(eta_pi)
+      w_vec = R % weights % ((1 - ps) / arma::square(ps)) % arma::exp(eta_pi);
+      mxDer = X.t() * (X.each_col() % w_vec);
     } else if (method_selection == "probit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * psd(i)/pow(ps(i), 2) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      // Vectorized: w_vec = R * weights * psd/ps^2
+      w_vec = R % weights % (psd / arma::square(ps));
+      mxDer = X.t() * (X.each_col() % w_vec);
     }
   } else if (gee_h_fun == 2) {
     if (method_selection == "logit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * ps(i)/(exp(eta_pi(i)) + 1) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      // Vectorized: w_vec = R_rand * weights * ps/(exp(eta_pi) + 1)
+      w_vec = R_rand % weights % (ps / (arma::exp(eta_pi) + 1));
+      mxDer = X.t() * (X.each_col() % w_vec);
     } else if (method_selection == "cloglog") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * (1-ps(i)) * exp(eta_pi(i)) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      // Vectorized: w_vec = R_rand * weights * (1-ps) * exp(eta_pi)
+      w_vec = R_rand % weights % (1 - ps) % arma::exp(eta_pi);
+      mxDer = X.t() * (X.each_col() % w_vec);
     } else if (method_selection == "probit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * psd(i) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      // Vectorized: w_vec = R_rand * weights * psd
+      w_vec = R_rand % weights % psd;
+      mxDer = X.t() * (X.each_col() % w_vec);
     }
     else {
       Rcpp::stop("Unknown method selection");

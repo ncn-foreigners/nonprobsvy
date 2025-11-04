@@ -196,7 +196,7 @@ method_pmm <- function(y_nons,
           utils::setTxtProgressBar(pb, jj)
         }
 
-        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
+        boot_samp <- sample.int(NROW(X_nons), size = NROW(X_nons), replace = TRUE)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 

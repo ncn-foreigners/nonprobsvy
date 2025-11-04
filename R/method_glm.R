@@ -213,10 +213,17 @@ method_glm <- function(y_nons,
       eta_nons <- drop(X_nons %*% beta)
       eta_rand <- drop(X_rand %*% beta)
 
+      ## Pre-compute common terms to avoid redundant calculations
+      n_nons <- nrow(X_nons)
+      mu_eta_nons <- model_fitted$family$mu.eta(eta_nons)
+      mu_eta_rand <- model_fitted$family$mu.eta(eta_rand)
+      
       ## is this only for the linear model?
-      mx <- 1 / pop_size * colSums(X_rand * (weights(svydesign_updated) * model_fitted$family$mu.eta(eta_rand)))
-      c <- MASS::ginv(1 / nrow(X_nons) * crossprod(X_nons * model_fitted$family$mu.eta(eta_nons), X_nons)) %*% mx
-      var_nonprob <- drop(1 / nrow(X_nons)^2 * crossprod(as.matrix(residuals^2), (X_nons %*% c)^2))
+      mx <- colSums(X_rand * (weights(svydesign_updated) * mu_eta_rand)) / pop_size
+      X_nons_weighted <- X_nons * mu_eta_nons
+      c <- MASS::ginv(crossprod(X_nons_weighted, X_nons) / n_nons) %*% mx
+      Xc <- X_nons %*% c
+      var_nonprob <- sum(residuals^2 * Xc^2) / n_nons^2
 
       var_total <- var_prob + var_nonprob
 
@@ -227,9 +234,16 @@ method_glm <- function(y_nons,
       eta_nons <- drop(X_nons %*% beta)
       eta_rand <- drop((pop_totals/pop_size) %*% beta)
 
-      mx <- 1 / pop_size * pop_totals * as.vector(model_fitted$family$mu.eta(eta_rand))
-      c <- MASS::ginv(1 / nrow(X_nons) * crossprod(X_nons * model_fitted$family$mu.eta(eta_nons), X_nons)) %*% mx
-      var_nonprob <- drop(1 / nrow(X_nons)^2 * crossprod(as.matrix(residuals^2), (X_nons %*% c)^2))
+      ## Pre-compute common terms
+      n_nons <- nrow(X_nons)
+      mu_eta_nons <- model_fitted$family$mu.eta(eta_nons)
+      mu_eta_rand <- as.vector(model_fitted$family$mu.eta(eta_rand))
+      
+      mx <- pop_totals * mu_eta_rand / pop_size
+      X_nons_weighted <- X_nons * mu_eta_nons
+      c <- MASS::ginv(crossprod(X_nons_weighted, X_nons) / n_nons) %*% mx
+      Xc <- X_nons %*% c
+      var_nonprob <- sum(residuals^2 * Xc^2) / n_nons^2
 
       var_total <- var_prob + var_nonprob
       }

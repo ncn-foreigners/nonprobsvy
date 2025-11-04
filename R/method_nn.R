@@ -156,25 +156,39 @@ method_nn <- function(y_nons,
   k_range <- 1:control_outcome$k
 
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-         "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x])),
+         "none" = {
+           # Vectorized version: use rowMeans for efficiency
+           if (control_outcome$k == 1) {
+             y_nons[model_fitted$nn.idx[, 1]]
+           } else {
+             rowMeans(matrix(y_nons[model_fitted$nn.idx[, k_range]], 
+                            nrow = nrow(model_fitted$nn.idx)))
+           }
+         },
          "dist" = {
            # TODO:: these weights will need to be saved for variance estimation
            if (control_outcome$k == 1) {
-             apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons[x]))
+             y_nons[model_fitted$nn.idx[, 1]]
            } else {
-             sapply(1:NROW(model_fitted$nn.idx),
-                    FUN = function(x) {
-                      w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                      w_scaled <- w_scaled/sum(w_scaled)
-                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, k_range]],
-                                    w = w_scaled)
-                    })
+             # Pre-allocate result vector for efficiency
+             result <- numeric(NROW(model_fitted$nn.idx))
+             for (i in seq_len(NROW(model_fitted$nn.idx))) {
+               w_scaled <- max(model_fitted$nn.dists[i, k_range]) - model_fitted$nn.dists[i, k_range]
+               w_scaled <- w_scaled/sum(w_scaled)
+               result[i] <- sum(y_nons[model_fitted$nn.idx[i, k_range]] * w_scaled)
+             }
+             result
            }
-
          }
   )
 
-  y_nons_pred <- apply(model_fitted_nons$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x]))
+  # Vectorized version for y_nons_pred
+  y_nons_pred <- if (control_outcome$k == 1) {
+    y_nons[model_fitted_nons$nn.idx[, 1]]
+  } else {
+    rowMeans(matrix(y_nons[model_fitted_nons$nn.idx[, k_range]], 
+                   nrow = nrow(model_fitted_nons$nn.idx)))
+  }
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
   svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
@@ -207,7 +221,7 @@ method_nn <- function(y_nons,
           utils::setTxtProgressBar(pb, jj)
         }
 
-        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
+        boot_samp <- sample.int(NROW(X_nons), size = NROW(X_nons), replace = TRUE)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
@@ -222,20 +236,29 @@ method_nn <- function(y_nons,
         k_range <- 1:control_outcome$k ## left for future developments
 
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons_b[x])),
+                                        "none" = {
+                                          if (control_outcome$k == 1) {
+                                            y_nons_b[YY$nn.idx[, 1]]
+                                          } else {
+                                            rowMeans(matrix(y_nons_b[YY$nn.idx[, k_range]], 
+                                                          nrow = nrow(YY$nn.idx)))
+                                          }
+                                        },
                                         "dist" = {
                                           # TODO:: these weights will need to be saved for variance estimation
                                           if (control_outcome$k == 1) {
-                                            apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons_b[x]))
+                                            y_nons_b[YY$nn.idx[, 1]]
                                           } else {
-                                            sapply(1:NROW(model_fitted$nn.idx),
-                                                   FUN = function(x) {
-                                                     w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                                                     w_scaled <- w_scaled/sum(w_scaled)
-                                                     stats::weighted.mean(y_nons_b[model_fitted$nn.idx[x, k_range]],
-                                                                          w = w_scaled)
-                                                   })}
-                                          })
+                                            # Pre-allocate for efficiency
+                                            result <- numeric(NROW(YY$nn.idx))
+                                            for (i in seq_len(NROW(YY$nn.idx))) {
+                                              w_scaled <- max(YY$nn.dists[i, k_range]) - YY$nn.dists[i, k_range]
+                                              w_scaled <- w_scaled/sum(w_scaled)
+                                              result[i] <- sum(y_nons_b[YY$nn.idx[i, k_range]] * w_scaled)
+                                            }
+                                            result
+                                          }
+                                        })
 
         dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
