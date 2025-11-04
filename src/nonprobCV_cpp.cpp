@@ -321,13 +321,16 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
       if (verbose) {
         wcout << "Starting CV fold #" << j+1 << endl;
       }
-      arma::uvec idx_nons = find(folds_nons != sample_nons(j));
-      const arma::mat& X_nons_train = X_nons.rows(idx_nons);
-      const arma::mat& X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));
+      // Cache find results to avoid redundant computation
+      arma::uvec idx_nons_test = find(folds_nons == sample_nons(j));
+      arma::uvec idx_nons_train = find(folds_nons != sample_nons(j));
+      const arma::mat& X_nons_train = X_nons.rows(idx_nons_train);
+      const arma::mat& X_nons_test = X_nons.rows(idx_nons_test);
 
-      arma::uvec idx_rand = find(folds_rand != sample_rand(j));
-      const arma::mat& X_rand_train = X_rand.rows(idx_rand);
-      const arma::mat& X_rand_test = X_rand.rows(find(folds_rand == sample_rand(j)));
+      arma::uvec idx_rand_test = find(folds_rand == sample_rand(j));
+      arma::uvec idx_rand_train = find(folds_rand != sample_rand(j));
+      const arma::mat& X_rand_train = X_rand.rows(idx_rand_train);
+      const arma::mat& X_rand_test = X_rand.rows(idx_rand_test);
 
       // Randomize the columns (features) in the training data
       // arma::uvec col_indices = arma::shuffle(arma::regspace<arma::uvec>(0, X_nons_train.n_cols - 1));
@@ -358,10 +361,12 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                                   pop_totals);
         // cout << theta_est << "\n";
 
-        const arma::mat& X_testloss = X_test.cols(arma::find(theta_est != 0));
+        // Cache find results to avoid redundant computation
+        arma::uvec nonzero_idx = arma::find(theta_est != 0);
+        const arma::mat& X_testloss = X_test.cols(nonzero_idx);
         const arma::vec& R_testloss = X_test.col(ncols - 1);
         const arma::vec& weights_testloss = X_test.col(ncols - 2);
-        const arma::vec& par = theta_est(arma::find(theta_est != 0));
+        const arma::vec& par = theta_est(nonzero_idx);
 
         double loss = loss_theta(par,
                                  R_testloss,
@@ -369,21 +374,20 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                  weights_testloss,
                                  method_selection,
                                  gee_h_fun,
-                                 arma::find(theta_est != 0),
+                                 nonzero_idx,
                                  pop_totals);
         loss_theta_fld(j, i) = loss;
       }
       //loss_theta_av(i) = mean(loss_theta_vec);
     }
 
-    arma::vec loss_theta_vec(nfolds);
-    // Vector to store means, one for each field
+    // More efficient aggregation: direct calculation without temporary vector per lambda
     for (int i = 0; i < nlambda; i++) {
-      // arma::vec loss_theta_vec(nfolds);
+      double sum = 0.0;
       for (int j = 0; j < nfolds; j++) {
-        loss_theta_vec(j) = loss_theta_fld(j, i)(0);
+        sum += loss_theta_fld(j, i)(0);
       }
-      loss_theta_av(i) = mean(loss_theta_vec);
+      loss_theta_av(i) = sum / nfolds;
     }
     lambda = lambdas1(loss_theta_av.index_min());
   }
