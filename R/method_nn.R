@@ -133,6 +133,40 @@ method_nn <- function(y_nons,
   if (is.null(weights)) weights <- rep(1, NROW(X_nons))
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
 
+  predict_from_matches <- function(nn_fit,
+                                   response,
+                                   weighting = "none",
+                                   exclude_self = FALSE) {
+    idx_mat <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
+    dist_mat <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
+
+    vapply(seq_len(NROW(idx_mat)), FUN.VALUE = numeric(1), FUN = function(i) {
+      idx <- idx_mat[i, ]
+      dists <- dist_mat[i, ]
+
+      if (exclude_self) {
+        keep <- idx != i
+        idx <- idx[keep]
+        dists <- dists[keep]
+      }
+
+      if (!length(idx)) {
+        return(response[i])
+      }
+
+      if (weighting == "dist" && length(idx) > 1) {
+        w_scaled <- max(dists) - dists
+        if (sum(w_scaled) == 0) {
+          return(mean(response[idx]))
+        }
+
+        return(stats::weighted.mean(response[idx], w = w_scaled / sum(w_scaled)))
+      }
+
+      mean(response[idx])
+    })
+  }
+
   if (verbose) {
     message("Matching units between samples...")
   }
@@ -140,7 +174,7 @@ method_nn <- function(y_nons,
   model_fitted_nons <- RANN::nn2(
     data = X_nons,
     query = X_nons,
-    k = control_outcome$k,
+    k = min(control_outcome$k + 1L, NROW(X_nons)),
     treetype = control_outcome$treetype,
     searchtype = control_outcome$searchtype
   )
@@ -153,28 +187,13 @@ method_nn <- function(y_nons,
     searchtype = control_outcome$searchtype
   )
 
-  k_range <- 1:control_outcome$k
-
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-         "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x])),
-         "dist" = {
-           # TODO:: these weights will need to be saved for variance estimation
-           if (control_outcome$k == 1) {
-             apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons[x]))
-           } else {
-             sapply(1:NROW(model_fitted$nn.idx),
-                    FUN = function(x) {
-                      w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                      w_scaled <- w_scaled/sum(w_scaled)
-                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, k_range]],
-                                    w = w_scaled)
-                    })
-           }
-
-         }
+                        "none" = predict_from_matches(model_fitted, y_nons),
+                        "dist" = predict_from_matches(model_fitted, y_nons, weighting = "dist")
   )
 
-  y_nons_pred <- apply(model_fitted_nons$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x]))
+  # Use leave-one-out matching for the non-probability variance proxy.
+  y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE)
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
   svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
@@ -219,23 +238,9 @@ method_nn <- function(y_nons,
           searchtype = control_outcome$searchtype
         )
 
-        k_range <- 1:control_outcome$k ## left for future developments
-
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons_b[x])),
-                                        "dist" = {
-                                          # TODO:: these weights will need to be saved for variance estimation
-                                          if (control_outcome$k == 1) {
-                                            apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons_b[x]))
-                                          } else {
-                                            sapply(1:NROW(model_fitted$nn.idx),
-                                                   FUN = function(x) {
-                                                     w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                                                     w_scaled <- w_scaled/sum(w_scaled)
-                                                     stats::weighted.mean(y_nons_b[model_fitted$nn.idx[x, k_range]],
-                                                                          w = w_scaled)
-                                                   })}
-                                          })
+                                        "none" = predict_from_matches(model_fitted, y_nons_b),
+                                        "dist" = predict_from_matches(model_fitted, y_nons_b, weighting = "dist"))
 
         dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }

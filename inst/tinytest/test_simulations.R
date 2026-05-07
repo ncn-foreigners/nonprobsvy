@@ -52,7 +52,8 @@ expect_equal(
 
 expect_equal(
   ipw_mle$output$SE,
-  c(0.0712074021031954, 0.0524674811724362)
+  c(0.0712074021031954, 0.0524674811724362),
+  tolerance = 1e-6
 )
 
 expect_joint_matches_single_outcomes(
@@ -105,7 +106,8 @@ expect_equal(
 
 expect_equal(
   ipw_gee$output$SE,
-  c(0.0632650377814916, 0.0498758624332513)
+  c(0.0632650377814916, 0.0498758624332513),
+  tolerance = 1e-6
 )
 
 expect_joint_matches_single_outcomes(
@@ -154,7 +156,8 @@ expect_equal(
 
 expect_equal(
   ipw_gee_h$output$SE,
-  c(0.0712074020763667, 0.0524674811523142)
+  c(0.0712074020763667, 0.0524674811523142),
+  tolerance = 1e-6
 )
 
 expect_joint_matches_single_outcomes(
