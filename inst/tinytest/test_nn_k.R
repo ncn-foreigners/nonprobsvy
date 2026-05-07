@@ -90,3 +90,49 @@ expect_equal(
   var(dd_manual),
   tolerance = 1e-12
 )
+
+toy_case_weights <- c(1, 10, 100)
+
+set.seed(11)
+fit_nn_exact_weighted <- method_nn(
+  y_nons = c(0, 50, 100),
+  X_nons = matrix(c(0, 5, 10), ncol = 1),
+  X_rand = matrix(c(9, 8), ncol = 1),
+  svydesign = toy_boot_svy,
+  pop_size = 10,
+  weights = toy_case_weights,
+  control_outcome = control_out(k = 1),
+  control_inference = control_inf(nn_exact_se = TRUE),
+  se = TRUE
+)
+
+set.seed(11)
+dd_manual_weighted <- numeric(50)
+for (jj in 1:50) {
+  boot_samp <- sample(1:3, size = 3, replace = TRUE, prob = 1 / toy_case_weights)
+  y_nons_b <- c(0, 50, 100)[boot_samp]
+  X_nons_b <- matrix(c(0, 5, 10)[boot_samp], ncol = 1)
+  boot_matches <- RANN::nn2(data = X_nons_b, query = matrix(c(9, 8), ncol = 1), k = 1)
+  y_pred_boot <- y_nons_b[boot_matches$nn.idx[, 1]]
+  dd_manual_weighted[jj] <- stats::weighted.mean(y_pred_boot, c(2, 3))
+}
+
+expect_equal(
+  fit_nn_exact_weighted$var_nonprob,
+  var(dd_manual_weighted),
+  tolerance = 1e-12
+)
+
+tie_svy <- svydesign(ids = ~1, weights = ~w, data = data.frame(x = c(0.5, 0.5), w = c(1, 1)))
+set.seed(42)
+tie_predictions <- replicate(40, method_nn(
+  y_nons = c(1, 3),
+  X_nons = matrix(c(0, 1), ncol = 1),
+  X_rand = matrix(c(0.5, 0.5), ncol = 1),
+  svydesign = tie_svy,
+  pop_size = 2,
+  control_outcome = control_out(k = 1),
+  se = FALSE
+)$y_rand_pred)
+
+expect_equal(sort(unique(as.numeric(tie_predictions))), c(1, 3))

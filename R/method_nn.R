@@ -9,7 +9,8 @@
 #' @description Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
 #' Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
-#' Estimation of the mean is done using \eqn{S_B} sample.
+#' Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
+#' are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample.
 #'
 #'
 #' @details Analytical variance
@@ -33,7 +34,9 @@
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+#'    If non-constant pseudo-weights are supplied through `weights`, sampling probabilities
+#'    are proportional to their inverses; equal weights use uniform resampling.
 #' 2. Match units from \eqn{S_B} to \eqn{S_A'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
 #' 3. Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
 #' 4. Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).
@@ -58,7 +61,9 @@
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
 #' @param svydesign a svydesign object
-#' @param weights case / frequency weights from non-probability sample
+#' @param weights case / frequency weights from non-probability sample. If `nn_exact_se=TRUE`,
+#'   non-constant weights also define mini-bootstrap sampling probabilities proportional
+#'   to their inverses.
 #' @param family_outcome a placeholder (not used in `method_nn`)
 #' @param start_outcome a placeholder (not used in `method_nn`)
 #' @param vars_selection whether variable selection should be conducted
@@ -130,19 +135,116 @@ method_nn <- function(y_nons,
   if (missing(svydesign) | is.null(svydesign)) {
     stop("The NN method is suited only for the unit-level data.")
   }
+  X_nons <- as.matrix(X_nons)
+  X_rand <- as.matrix(X_rand)
   if (is.null(weights)) weights <- rep(1, NROW(X_nons))
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
+  boot_prob <- if (length(unique(weights)) == 1) NULL else 1 / weights
+
+  randomize_returned_ties <- function(idx_mat, dist_mat) {
+    for (i in seq_len(NROW(idx_mat))) {
+      idx <- idx_mat[i, ]
+      dists <- dist_mat[i, ]
+      keep <- !is.na(idx)
+      if (!any(keep)) next
+      if (!any(duplicated(dists[keep]))) next
+
+      ord <- order(dists[keep], runif(sum(keep)))
+      idx_mat[i, keep] <- idx[keep][ord]
+      dist_mat[i, keep] <- dists[keep][ord]
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  exact_1d_matches <- function(data, query, k, exclude_self = FALSE, response = NULL) {
+    data <- as.numeric(data[, 1])
+    query <- as.numeric(query[, 1])
+    n_data <- length(data)
+    k <- min(k, n_data - as.integer(exclude_self))
+    if (k <= 0) {
+      return(list(
+        idx = matrix(NA_integer_, nrow = length(query), ncol = 1),
+        dists = matrix(NA_real_, nrow = length(query), ncol = 1)
+      ))
+    }
+
+    idx_mat <- matrix(NA_integer_, nrow = length(query), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = length(query), ncol = k)
+    unique_vals <- unique(data)
+    groups <- split(seq_along(data), match(data, unique_vals))
+
+    for (i in seq_along(query)) {
+      d_unique <- abs(unique_vals - query[i])
+      dist_levels <- sort(unique(d_unique))
+      selected <- integer()
+      selected_dists <- numeric()
+
+      for (d in dist_levels) {
+        level_groups <- which(abs(d_unique - d) <= sqrt(.Machine$double.eps))
+        candidates <- unlist(groups[level_groups], use.names = FALSE)
+        if (exclude_self) candidates <- candidates[candidates != i]
+        if (!length(candidates)) next
+
+        if (length(candidates) > 1 &&
+            (is.null(response) || length(unique(response[candidates])) > 1)) {
+          candidates <- sample(candidates, length(candidates))
+        }
+        need <- k - length(selected)
+        take <- head(candidates, need)
+        selected <- c(selected, take)
+        selected_dists <- c(selected_dists, rep(d, length(take)))
+
+        if (length(selected) >= k) break
+      }
+
+      if (length(selected)) {
+        idx_mat[i, seq_along(selected)] <- selected
+        dist_mat[i, seq_along(selected)] <- selected_dists
+      }
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  use_exact_1d_matches <- function(data, query) {
+    data <- as.numeric(data[, 1])
+    n_query <- NROW(query)
+    n_unique <- length(unique(data))
+    exact_work <- as.numeric(n_unique) * as.numeric(n_query)
+
+    as.numeric(NROW(data)) * as.numeric(n_query) <= 2e6 ||
+      (n_unique < NROW(data) && exact_work <= 2e6)
+  }
 
   predict_from_matches <- function(nn_fit,
                                    response,
                                    weighting = "none",
-                                   exclude_self = FALSE) {
-    idx_mat <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
-    dist_mat <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
+                                   exclude_self = FALSE,
+                                   data = NULL,
+                                   query = NULL,
+                                   k = NULL) {
+    if (!is.null(data) && !is.null(query) && NCOL(data) == 1 && !is.null(k) &&
+        use_exact_1d_matches(data, query)) {
+      matches <- exact_1d_matches(data = data, query = query, k = k,
+                                  exclude_self = exclude_self, response = response)
+      idx_mat <- matches$idx
+      dist_mat <- matches$dists
+      exclude_self <- FALSE
+    } else {
+      idx_mat <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
+      dist_mat <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
+      randomized <- randomize_returned_ties(idx_mat, dist_mat)
+      idx_mat <- randomized$idx
+      dist_mat <- randomized$dists
+    }
 
     vapply(seq_len(NROW(idx_mat)), FUN.VALUE = numeric(1), FUN = function(i) {
       idx <- idx_mat[i, ]
       dists <- dist_mat[i, ]
+      keep <- !is.na(idx)
+      idx <- idx[keep]
+      dists <- dists[keep]
 
       if (exclude_self) {
         keep <- idx != i
@@ -188,25 +290,24 @@ method_nn <- function(y_nons,
   )
 
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                        "none" = predict_from_matches(model_fitted, y_nons),
-                        "dist" = predict_from_matches(model_fitted, y_nons, weighting = "dist")
+                        "none" = predict_from_matches(model_fitted, y_nons,
+                                                       data = X_nons, query = X_rand,
+                                                       k = control_outcome$k),
+                        "dist" = predict_from_matches(model_fitted, y_nons, weighting = "dist",
+                                                       data = X_nons, query = X_rand,
+                                                       k = control_outcome$k)
   )
-
-  # Use leave-one-out matching for the non-probability variance proxy.
-  y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE)
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
   svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
   y_mi_hat <- as.numeric(svydesign_mean)
+  y_nons_pred <- NULL
 
   if (se) {
 
     var_prob <- as.vector(attr(svydesign_mean, "var"))
-
-    sigma_hat <- mean((y_nons - y_nons_pred)^2)
-    est_ps <- NROW(X_nons) / pop_size
-    var_nonprob <- 1/ pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
-    var_total <- var_prob + var_nonprob
+    var_nonprob <- 0
+    var_total <- var_prob
 
     if (control_inference$nn_exact_se) {
 
@@ -226,7 +327,7 @@ method_nn <- function(y_nons,
           utils::setTxtProgressBar(pb, jj)
         }
 
-        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
+        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE, prob = boot_prob)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
@@ -239,17 +340,37 @@ method_nn <- function(y_nons,
         )
 
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = predict_from_matches(boot_matches, y_nons_b),
-                                        "dist" = predict_from_matches(boot_matches, y_nons_b, weighting = "dist"))
+                                        "none" = predict_from_matches(boot_matches, y_nons_b,
+                                                                      data = X_nons_b, query = X_rand,
+                                                                      k = control_outcome$k),
+                                        "dist" = predict_from_matches(boot_matches, y_nons_b, weighting = "dist",
+                                                                      data = X_nons_b, query = X_rand,
+                                                                      k = control_outcome$k))
 
         dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
       var_nonprob <- var(dd)
       var_total <- var_prob + var_nonprob
 
+    } else {
+      # Use leave-one-out matching for the non-probability variance proxy.
+      y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE,
+                                          data = X_nons, query = X_nons,
+                                          k = control_outcome$k)
+
+      sigma_hat <- mean((y_nons - y_nons_pred)^2)
+      est_ps <- NROW(X_nons) / pop_size
+      var_nonprob <- 1/ pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
+      var_total <- var_prob + var_nonprob
     }
   } else {
     var_prob <- var_nonprob <- var_total <- NA
+  }
+
+  if (is.null(y_nons_pred)) {
+    y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE,
+                                        data = X_nons, query = X_nons,
+                                        k = control_outcome$k)
   }
 
   return(

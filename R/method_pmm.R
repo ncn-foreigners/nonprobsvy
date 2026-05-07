@@ -3,6 +3,7 @@
 #' @description
 #' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
 #' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_B} sample.
+#' Matching ties are randomized by the nearest-neighbour step before donor values are aggregated.
 #'
 #' This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
 #'
@@ -10,7 +11,9 @@
 #'  \item{pmm_weights}{if k>1 weighted aggregation of the mean for a given unit is used. We use distance
 #'  matrix returned by [RANN::nn2] function (`pmm_weights` from the [control_out()] function)}
 #'  \item{nn_exact_se}{if the non-probability sample is small we recommend using a mini-bootstrap
-#'  approach to estimate variance from the non-probability sample  (`nn_exact_se` from the [control_inf()] function)}
+#'  approach to estimate variance from the non-probability sample  (`nn_exact_se` from the [control_inf()] function).
+#'  If non-constant pseudo-weights are supplied, bootstrap samples are drawn with probabilities
+#'  proportional to inverse weights and the resampled weights are used in each refitted outcome model.}
 #'  \item{pmm_k_choice}{the main `nonprob` function allows for dynamic selection of `k` neighbours based on the
 #'  variance minimization procedure (`pmm_k_choice` from the [control_out()] function)}
 #' }
@@ -33,8 +36,11 @@
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-#' 2. Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1.
+#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+#'    If non-constant pseudo-weights are supplied through `weights`, sampling probabilities
+#'    are proportional to their inverses; equal weights use uniform resampling.
+#' 2. Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1,
+#'    using the resampled weights when supplied.
 #' 3. Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{B}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
 #' 4. Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{A}'}.
 #' 5. Repeat steps 1-4 \eqn{M} times (we set (hard-coded) \eqn{M=50} in our code).
@@ -56,7 +62,9 @@
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
 #' @param svydesign a svydesign object
-#' @param weights case / frequency weights from non-probability sample
+#' @param weights case / frequency weights from non-probability sample. If `nn_exact_se=TRUE`,
+#'   non-constant weights also define mini-bootstrap sampling probabilities proportional
+#'   to their inverses and are resampled for each bootstrap refit.
 #' @param family_outcome family for the glm model
 #' @param start_outcome start parameters
 #' @param vars_selection whether variable selection should be conducted
@@ -111,6 +119,9 @@ method_pmm <- function(y_nons,
                        control_inference=control_inf(),
                        verbose=FALSE,
                        se=TRUE) {
+
+  if (is.null(weights)) weights <- rep(1, NROW(X_nons))
+  boot_prob <- if (length(unique(weights)) == 1) NULL else 1 / weights
 
   ## passing arguments to the specified method of estimation E(Y|X)
   method_results <- switch(control_outcome$pmm_reg_engine,
@@ -196,60 +207,61 @@ method_pmm <- function(y_nons,
           utils::setTxtProgressBar(pb, jj)
         }
 
-        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
+        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE, prob = boot_prob)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
+        weights_b <- weights[boot_samp]
 
         method_results_boot <- switch(control_outcome$pmm_reg_engine,
-                                 "glm" = method_glm(y_nons=y_nons_b,
-                                                    X_nons=X_nons_b,
-                                                    X_rand=X_rand,
+                                      "glm" = method_glm(y_nons=y_nons_b,
+                                                         X_nons=X_nons_b,
+                                                         X_rand=X_rand,
+                                                         svydesign=svydesign,
+                                                         weights=weights_b,
+                                                         family_outcome=family_outcome,
+                                                         start_outcome=start_outcome,
+                                                         vars_selection=vars_selection,
+                                                         pop_size=pop_size,
+                                                         control_outcome=control_outcome,
+                                                         control_inference=control_inference,
+                                                         verbose=FALSE,
+                                                         se=FALSE),
+                                      "loess" = method_npar(y_nons=y_nons_b,
+                                                            X_nons=X_nons_b,
+                                                            X_rand=X_rand,
+                                                            svydesign=svydesign,
+                                                            weights=weights_b,
+                                                            family_outcome=family_outcome,
+                                                            vars_selection=vars_selection,
+                                                            pop_size=pop_size,
+                                                            control_outcome=control_outcome,
+                                                            control_inference=control_inference,
+                                                            verbose=FALSE,
+                                                            se=FALSE))
+
+        pmm_results_boot <- switch(control_outcome$pmm_match_type,
+                                   "1" = method_nn(y_nons=y_nons_b,
+                                                   X_nons=method_results_boot$y_nons_pred,
+                                                   X_rand=method_results_boot$y_rand_pred,
+                                                   svydesign=svydesign,
+                                                   weights=weights_b,
+                                                   vars_selection=vars_selection,
+                                                   pop_size=pop_size,
+                                                   control_outcome=control_outcome,
+                                                   control_inference=control_inference_,
+                                                   verbose=FALSE,
+                                                   se=FALSE),
+                                   "2" =  method_nn(y_nons=y_nons_b,
+                                                    X_nons=y_nons_b,
+                                                    X_rand=method_results_boot$y_rand_pred,
                                                     svydesign=svydesign,
-                                                    weights=weights,
-                                                    family_outcome=family_outcome,
-                                                    start_outcome=start_outcome,
+                                                    weights=weights_b,
                                                     vars_selection=vars_selection,
                                                     pop_size=pop_size,
                                                     control_outcome=control_outcome,
-                                                    control_inference=control_inference,
+                                                    control_inference=control_inference_,
                                                     verbose=FALSE,
-                                                    se=FALSE),
-                                 "loess" = method_npar(y_nons=y_nons_b,
-                                                       X_nons=X_nons_b,
-                                                       X_rand=X_rand,
-                                                       svydesign=svydesign,
-                                                       weights=weights,
-                                                       family_outcome=family_outcome,
-                                                       vars_selection=vars_selection,
-                                                       pop_size=pop_size,
-                                                       control_outcome=control_outcome,
-                                                       control_inference=control_inference,
-                                                       verbose=FALSE,
-                                                       se=FALSE))
-
-        pmm_results_boot <- switch(control_outcome$pmm_match_type,
-                              "1" = method_nn(y_nons=y_nons_b,
-                                              X_nons=method_results_boot$y_nons_pred,
-                                              X_rand=method_results_boot$y_rand_pred,
-                                              svydesign=svydesign,
-                                              weights=weights,
-                                              vars_selection=vars_selection,
-                                              pop_size=pop_size,
-                                              control_outcome=control_outcome,
-                                              control_inference=control_inference_,
-                                              verbose=FALSE,
-                                              se=FALSE),
-                              "2" =  method_nn(y_nons=y_nons_b,
-                                               X_nons=y_nons_b,
-                                               X_rand=method_results_boot$y_rand_pred,
-                                               svydesign=svydesign,
-                                               weights=weights,
-                                               vars_selection=vars_selection,
-                                               pop_size=pop_size,
-                                               control_outcome=control_outcome,
-                                               control_inference=control_inference_,
-                                               verbose=FALSE,
-                                               se=FALSE))
+                                                    se=FALSE))
 
         dd[jj] <- pmm_results_boot$y_mi_hat
 
@@ -259,7 +271,7 @@ method_pmm <- function(y_nons,
     }
     var_total <- var_prob + var_nonprob
 
-    } else {
+  } else {
     var_prob <- var_nonprob <- var_total <- NA
   }
 

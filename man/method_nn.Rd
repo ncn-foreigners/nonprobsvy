@@ -30,7 +30,9 @@ method_nn(
 
 \item{svydesign}{a svydesign object}
 
-\item{weights}{case / frequency weights from non-probability sample}
+\item{weights}{case / frequency weights from non-probability sample. If \code{nn_exact_se=TRUE},
+non-constant weights also define mini-bootstrap sampling probabilities proportional
+to their inverses.}
 
 \item{family_outcome}{a placeholder (not used in \code{method_nn})}
 
@@ -72,7 +74,8 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
 Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
-Estimation of the mean is done using \eqn{S_B} sample.
+Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
+are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample.
 }
 \details{
 Analytical variance
@@ -96,7 +99,9 @@ Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap esti
 This bootstrap can be applied using \code{control_inference(nn_exact_se=TRUE)} and
 can be summarized as follows:
 \enumerate{
-\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+If non-constant pseudo-weights are supplied through \code{weights}, sampling probabilities
+are proportional to their inverses; equal weights use uniform resampling.
 \item Match units from \eqn{S_B} to \eqn{S_A'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
 \item Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
 \item Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).

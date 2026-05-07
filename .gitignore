@@ -13,3 +13,7 @@ srs/*.dll
 docs
 inst/doc
 **/.quarto/
+notes/
+..Rcheck/
+*.Rcheck/
+*.tar.gz
