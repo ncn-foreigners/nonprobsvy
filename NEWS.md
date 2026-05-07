@@ -2,6 +2,12 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits by aligning outcome-specific variance and confidence-interval indexing (closes #87, #88)
++ fixed the NN mass-imputation `k = 1` path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes #92)
++ fixed `nn_exact_se = TRUE` so the mini-bootstrap uses bootstrap-specific nearest-neighbor matches instead of reusing the original donor matches (closes #91)
++ fixed PMM `pmm_k_choice = "min_var"` so the best `k` found so far is returned instead of the first non-improving `k` (closes #93)
++ added regression tests for multi-outcome analytic variance, NN `k` handling, bootstrap-based NN exact SE, and PMM `k` choice
+
 # nonprobsvy 0.2.3
 
 + changes to the documentation to meet the JSS requirements
