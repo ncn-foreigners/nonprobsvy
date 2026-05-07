@@ -4,7 +4,9 @@ Mass imputation using nearest neighbours approach as described in Yang
 et al. (2021). The implementation is currently based on
 [RANN::nn2](https://jefferislab.github.io/RANN/reference/nn2.html)
 function and thus it uses Euclidean distance for matching units from
-\\S_A\\ (non-probability) to \\S_B\\ (probability). Estimation of the
+\\S_A\\ (non-probability) to \\S_B\\ (probability). Matching ties are
+randomized before donor values are aggregated, so tied nearest
+neighbours are not selected only by input row order. Estimation of the
 mean is done using \\S_B\\ sample.
 
 ## Usage
@@ -48,7 +50,9 @@ method_nn(
 
 - weights:
 
-  case / frequency weights from non-probability sample
+  case / frequency weights from non-probability sample. If
+  `nn_exact_se=TRUE`, non-constant weights also define mini-bootstrap
+  sampling probabilities proportional to their inverses.
 
 - family_outcome:
 
@@ -168,8 +172,9 @@ using `control_inference(nn_exact_se=TRUE)` and can be summarized as
 follows:
 
 1.  Sample \\n_A\\ units from \\S_A\\ with replacement to create
-    \\S_A'\\ (if pseudo-weights are present inclusion probabilities
-    should be proportional to their inverses).
+    \\S_A'\\. If non-constant pseudo-weights are supplied through
+    `weights`, sampling probabilities are proportional to their
+    inverses; equal weights use uniform resampling.
 
 2.  Match units from \\S_B\\ to \\S_A'\\ to obtain predictions
     \\y^\*\\=\\{k}^{-1}\sum\_{k}y_k\\.

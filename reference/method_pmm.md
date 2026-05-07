@@ -7,6 +7,8 @@ function and thus it uses Euclidean distance for matching units from
 \\S_A\\ (non-probability) to \\S_B\\ (probability) based on predicted
 values from model \\\boldsymbol{x}\_i\\ based either on `method_glm` or
 `method_npar`. Estimation of the mean is done using \\S_B\\ sample.
+Matching ties are randomized by the nearest-neighbour step before donor
+values are aggregated.
 
 This implementation extends Yang et al. (2021) approach as described in
 Chlebicki et al. (2025), namely:
@@ -26,7 +28,9 @@ Chlebicki et al. (2025), namely:
   mini-bootstrap approach to estimate variance from the non-probability
   sample (`nn_exact_se` from the
   [`control_inf()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_inf.md)
-  function)
+  function). If non-constant pseudo-weights are supplied, bootstrap
+  samples are drawn with probabilities proportional to inverse weights
+  and the resampled weights are used in each refitted outcome model.
 
 - pmm_k_choice:
 
@@ -77,7 +81,10 @@ method_pmm(
 
 - weights:
 
-  case / frequency weights from non-probability sample
+  case / frequency weights from non-probability sample. If
+  `nn_exact_se=TRUE`, non-constant weights also define mini-bootstrap
+  sampling probabilities proportional to their inverses and are
+  resampled for each bootstrap refit.
 
 - family_outcome:
 
@@ -185,12 +192,14 @@ finite population properties. This bootstrap can be applied using
 `control_inference(nn_exact_se=TRUE)` and can be summarized as follows:
 
 1.  Sample \\n_A\\ units from \\S_A\\ with replacement to create
-    \\S_A'\\ (if pseudo-weights are present inclusion probabilities
-    should be proportional to their inverses).
+    \\S_A'\\. If non-constant pseudo-weights are supplied through
+    `weights`, sampling probabilities are proportional to their
+    inverses; equal weights use uniform resampling.
 
 2.  Estimate regression model
     \\\mathbb{E}\[Y\|\boldsymbol{X}\]=m(\boldsymbol{X}, \cdot)\\ based
-    on \\S\_{A}'\\ from step 1.
+    on \\S\_{A}'\\ from step 1, using the resampled weights when
+    supplied.
 
 3.  Compute \\\hat{\nu}'(i,t)\\ for \\t=1,\dots,k, i\in S\_{B}\\ using
     estimated \\m(\boldsymbol{x}', \cdot)\\ and
