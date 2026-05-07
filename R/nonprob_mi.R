@@ -69,57 +69,69 @@ nonprob_mi <- function(outcome,
     y_nons <- outcome_model_data$y_nons
     pop_totals_ <- outcome_model_data$pop_totals ## match the same as in X_nons
 
-    model_obj <- outcome_method(y_nons = y_nons,
-                                X_nons = X_nons,
-                                X_rand = X_rand,
-                                svydesign = svydesign,
-                                weights=case_weights,
-                                family_outcome=family_outcome,
-                                start_outcome=start_outcome,
-                                vars_selection=vars_selection,
-                                pop_totals=pop_totals_,
-                                pop_size=pop_size,
-                                control_outcome=control_outcome,
-                                control_inference=control_inference,
-                                verbose=verbose,
-                                se=se)
-
     if (control_outcome$pmm_k_choice == "min_var" & method_outcome == "pmm") {
       # This can be programmed a lot better possibly with custom method outcome that would
       # store previous k-pmm model and omit the last estimation
       ## TODO:: right now this only goes forward not backwards
-      var_prev <- Inf
+      best_var <- Inf
+      best_k <- 1L
+      best_model_obj <- NULL
       cond <- TRUE
       kk <- 0
-      while (cond) {
+      while (cond && kk < NROW(X_nons)) {
         kk <- kk + 1
         control_outcome$k <- kk
-        model_obj <- outcome_method(y_nons = y_nons,
-                                    X_nons = X_nons,
-                                    X_rand = X_rand,
-                                    svydesign = svydesign,
-                                    weights=case_weights,
-                                    family_outcome=family_outcome,
-                                    start_outcome=start_outcome,
-                                    vars_selection=vars_selection,
-                                    pop_totals=pop_totals_,
-                                    pop_size=pop_size,
-                                    control_outcome=control_outcome,
-                                    control_inference=control_inference,
-                                    verbose=verbose,
-                                    se=TRUE)
+        candidate_model <- outcome_method(y_nons = y_nons,
+                                          X_nons = X_nons,
+                                          X_rand = X_rand,
+                                          svydesign = svydesign,
+                                          weights=case_weights,
+                                          family_outcome=family_outcome,
+                                          start_outcome=start_outcome,
+                                          vars_selection=vars_selection,
+                                          pop_totals=pop_totals_,
+                                          pop_size=pop_size,
+                                          control_outcome=control_outcome,
+                                          control_inference=control_inference,
+                                          verbose=verbose,
+                                          se=TRUE)
 
         # variance
-        var_now <- model_obj$var_total
-        cond <- var_prev > var_now
-        var_prev <- var_now
+        var_now <- candidate_model$var_total
+
+        if (var_now < best_var) {
+          best_var <- var_now
+          best_k <- kk
+          best_model_obj <- candidate_model
+        } else {
+          cond <- FALSE
+        }
       }
 
       if (isTRUE(verbose)) {
-        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", kk))
+        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", best_k))
       }
 
-      control_outcome$k <- kk
+      control_outcome$k <- best_k
+      model_obj <- if (isTRUE(se)) {
+        best_model_obj
+      } else {
+        outcome_method(y_nons = y_nons,
+                       X_nons = X_nons,
+                       X_rand = X_rand,
+                       svydesign = svydesign,
+                       weights=case_weights,
+                       family_outcome=family_outcome,
+                       start_outcome=start_outcome,
+                       vars_selection=vars_selection,
+                       pop_totals=pop_totals_,
+                       pop_size=pop_size,
+                       control_outcome=control_outcome,
+                       control_inference=control_inference,
+                       verbose=verbose,
+                       se=se)
+      }
+    } else {
       model_obj <- outcome_method(y_nons = y_nons,
                                   X_nons = X_nons,
                                   X_rand = X_rand,
