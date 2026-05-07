@@ -230,7 +230,7 @@ method_nn <- function(y_nons,
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
-        YY <- RANN::nn2(
+        boot_matches <- RANN::nn2(
           data = X_nons_b,
           query = X_rand,
           k = control_outcome$k,
@@ -239,8 +239,8 @@ method_nn <- function(y_nons,
         )
 
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = predict_from_matches(model_fitted, y_nons_b),
-                                        "dist" = predict_from_matches(model_fitted, y_nons_b, weighting = "dist"))
+                                        "none" = predict_from_matches(boot_matches, y_nons_b),
+                                        "dist" = predict_from_matches(boot_matches, y_nons_b, weighting = "dist"))
 
         dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
       }
