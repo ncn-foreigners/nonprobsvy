@@ -300,7 +300,8 @@ nonprob_dr <- function(selection,
           } else {
             ps_ <- results_ipw_combined[[o]]$ps_scores[results_ipw_combined[[o]]$R == 1]
             psd_ <- as.numeric(results_ipw_combined[[o]]$selection$selection_model$ps_nons_der)
-            y_ <- results_mi_combined[[o]]$y[[o]]
+            # Each combined MI fit is single-outcome, so its stored lists have length 1.
+            y_ <- results_mi_combined[[o]]$y[[1]]
             X_ <- results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ]
             y_pred_ <- results_mi_combined[[o]]$ys_nons_pred[[1]]
             h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
@@ -322,7 +323,7 @@ nonprob_dr <- function(selection,
               ps = ps_,
               psd = psd_,
               y = y_,
-              y_pred = results_mi_combined[[o]]$ys_nons_pred[[o]],
+              y_pred = results_mi_combined[[o]]$ys_nons_pred[[1]],
               h_n = h_n_,
               X = X_,
               b = b_var,
@@ -363,8 +364,8 @@ nonprob_dr <- function(selection,
           SE_values[[o]] <- data.frame(prob = se_prob, nonprob = se_nonprob)
           z <- stats::qnorm(1 - control_inference$alpha / 2)
           # confidence interval based on the normal approximation
-          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * sqrt(var_total),
-                                                 upper_bound = mu_hat + z * sqrt(var_total))
+          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat[o] - z * sqrt(var_total),
+                                                 upper_bound = mu_hat[o] + z * sqrt(var_total))
           output[[o]] <- data.frame(mean = mu_hat[o], SE = sqrt(var_total))
         }
       }
@@ -466,7 +467,7 @@ nonprob_dr <- function(selection,
           psd_ <- as.numeric(results_ipw$selection$selection_model$ps_nons_der)
           y_ <- results_mi$y[[o]]
           X_ <- results_ipw$X[results_ipw$R == 1, ]
-          y_pred_ <- results_mi$ys_nons_pred[[1]]
+          y_pred_ <- results_mi$ys_nons_pred[[o]]
           h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
 
           b_var <- method$b_vec_dr(
@@ -681,4 +682,3 @@ u_theta_beta_dr <- function(par,
 
   utb
 }
-

@@ -330,10 +330,10 @@ nonprob_ipw <- function(selection,
           svydesign = svydesign,
           X_nons = X_nons,
           X_rand = X_rand,
-          y_nons = ys[[o]],
+          y_nons = ys[[k]],
           weights = case_weights,
           ps_nons = ps_nons,
-          mu_hat = mu_hats[o],
+          mu_hat = mu_hats[k],
           hess = hess,
           ps_nons_der = ps_nons_der,
           N = N,
@@ -355,9 +355,9 @@ nonprob_ipw <- function(selection,
         var_nonprob[k] <- var_obj$var_nonprob
         var_prob[k] <- var_obj$var_prob
         var[k] <- var_obj$var
-        se_nonprob[k] <- sqrt(var_nonprob[o])
-        se_prob[k] <- sqrt(var_prob[o])
-        SE_values[[k]] <- data.frame(prob = se_prob[o], nonprob = se_nonprob[o])
+        se_nonprob[k] <- sqrt(var_nonprob[k])
+        se_prob[k] <- sqrt(var_prob[k])
+        SE_values[[k]] <- data.frame(prob = se_prob[k], nonprob = se_nonprob[k])
       }
     } else if (var_method == "bootstrap") { # TODO add ys, mu_hats instead of y_nons,
       if (control_inference$cores > 1) {
