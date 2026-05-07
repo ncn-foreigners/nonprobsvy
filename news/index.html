@@ -33,7 +33,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="nonprobsvy-development-version">nonprobsvy (development version)<a class="anchor" aria-label="anchor" href="#nonprobsvy-development-version"></a></h2>
-</div>
+<ul><li>fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits by aligning outcome-specific variance and confidence-interval indexing (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/87" class="external-link">#87</a>, <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/88" class="external-link">#88</a>)</li>
+<li>fixed the NN mass-imputation <code>k = 1</code> path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/92" class="external-link">#92</a>)</li>
+<li>fixed <code>nn_exact_se = TRUE</code> so the mini-bootstrap uses bootstrap-specific nearest-neighbor matches instead of reusing the original donor matches (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/91" class="external-link">#91</a>)</li>
+<li>fixed PMM <code>pmm_k_choice = "min_var"</code> so the best <code>k</code> found so far is returned instead of the first non-improving <code>k</code> (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/93" class="external-link">#93</a>)</li>
+<li>added regression tests for multi-outcome analytic variance, NN <code>k</code> handling, bootstrap-based NN exact SE, and PMM <code>k</code> choice</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.3" id="nonprobsvy-023">nonprobsvy 0.2.3<a class="anchor" aria-label="anchor" href="#nonprobsvy-023"></a></h2><p class="text-muted">CRAN release: 2025-08-20</p>
 <ul><li>changes to the documentation to meet the JSS requirements</li>
