@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 //#include <Eigen/Dense>
@@ -10,24 +11,50 @@ using namespace arma;
 using namespace std;
 //using namespace Eigen;
 
-inline arma::vec clamp_probability(const arma::vec& ps) {
-  arma::vec out = ps;
+enum class LinkMethod {
+  logit,
+  probit,
+  cloglog
+};
+
+enum class PenaltyType {
+  SCAD,
+  lasso,
+  MCP
+};
+
+struct EstimatingSystem {
+  arma::vec score;
+  arma::mat derivative;
+};
+
+inline LinkMethod parse_link_method(const std::string& method_selection) {
+  if (method_selection == "logit") return LinkMethod::logit;
+  if (method_selection == "probit") return LinkMethod::probit;
+  if (method_selection == "cloglog") return LinkMethod::cloglog;
+  Rcpp::stop("Unknown method selection");
+}
+
+inline PenaltyType parse_penalty_type(const std::string& penalty) {
+  if (penalty == "SCAD") return PenaltyType::SCAD;
+  if (penalty == "lasso") return PenaltyType::lasso;
+  if (penalty == "MCP") return PenaltyType::MCP;
+  Rcpp::stop("Unknown penalty");
+}
+
+inline double clamp_probability_scalar(double ps) {
   const double eps = std::numeric_limits<double>::epsilon();
   const double upper = 1.0 - eps;
 
-  for (arma::uword i = 0; i < out.n_elem; ++i) {
-    if (std::isnan(out(i)) ||
-        out(i) == -std::numeric_limits<double>::infinity() ||
-        out(i) < eps) {
-      out(i) = eps;
-    } else if (out(i) == std::numeric_limits<double>::infinity()) {
-      out(i) = upper;
-    } else if (out(i) > upper) {
-      out(i) = upper;
-    }
+  if (std::isnan(ps) ||
+      ps == -std::numeric_limits<double>::infinity() ||
+      ps < eps) {
+    return eps;
   }
-
-  return out;
+  if (ps == std::numeric_limits<double>::infinity() || ps > upper) {
+    return upper;
+  }
+  return ps;
 }
 
 inline double stable_cloglog_rate(double eta) {
@@ -47,205 +74,187 @@ inline double stable_logit(double eta) {
   return exp_eta / (1.0 + exp_eta);
 }
 
+inline void fill_link_values(const arma::vec& eta,
+                             const LinkMethod method_selection,
+                             arma::vec& ps,
+                             arma::vec& ps_der,
+                             arma::vec& cloglog_rate) {
+  const arma::uword n = eta.n_elem;
+  ps.set_size(n);
+  ps_der.set_size(n);
+  cloglog_rate.reset();
+
+  switch (method_selection) {
+  case LinkMethod::logit:
+    for (arma::uword i = 0; i < n; ++i) {
+      ps(i) = clamp_probability_scalar(stable_logit(eta(i)));
+      ps_der(i) = ps(i) * (1.0 - ps(i));
+    }
+    break;
+  case LinkMethod::probit:
+    for (arma::uword i = 0; i < n; ++i) {
+      ps(i) = clamp_probability_scalar(R::pnorm5(eta(i), 0.0, 1.0, 1, 0));
+      ps_der(i) = R::dnorm4(eta(i), 0.0, 1.0, 0);
+    }
+    break;
+  case LinkMethod::cloglog:
+    cloglog_rate.set_size(n);
+    for (arma::uword i = 0; i < n; ++i) {
+      cloglog_rate(i) = stable_cloglog_rate(eta(i));
+      ps(i) = clamp_probability_scalar(-std::expm1(-cloglog_rate(i)));
+      ps_der(i) = cloglog_rate(i) * std::exp(-cloglog_rate(i));
+      if (!std::isfinite(ps_der(i))) ps_der(i) = 0.0;
+    }
+    break;
+  }
+}
+
 inline arma::vec inv_link_cpp(const arma::vec& eta,
-                              const std::string& method_selection) {
-  arma::vec ps(eta.n_elem);
-
-  if (method_selection == "logit") {
-    for (arma::uword i = 0; i < eta.n_elem; ++i) {
-      ps(i) = stable_logit(eta(i));
-    }
-  } else if (method_selection == "probit") {
-    for (arma::uword i = 0; i < eta.n_elem; ++i) {
-      ps(i) = R::pnorm5(eta(i), 0.0, 1.0, 1, 0);
-    }
-  } else if (method_selection == "cloglog") {
-    for (arma::uword i = 0; i < eta.n_elem; ++i) {
-      ps(i) = -std::expm1(-stable_cloglog_rate(eta(i)));
-    }
-  } else {
-    Rcpp::stop("Unknown method selection");
-  }
-
-  return clamp_probability(ps);
+                              const LinkMethod method_selection) {
+  arma::vec ps;
+  arma::vec ps_der;
+  arma::vec cloglog_rate;
+  fill_link_values(eta, method_selection, ps, ps_der, cloglog_rate);
+  return ps;
 }
 
-inline arma::vec inv_link_der_cpp(const arma::vec& eta,
-                                  const std::string& method_selection) {
-  arma::vec psd(eta.n_elem);
-
-  if (method_selection == "logit") {
-    arma::vec ps = inv_link_cpp(eta, method_selection);
-    psd = ps % (1.0 - ps);
-  } else if (method_selection == "probit") {
-    for (arma::uword i = 0; i < eta.n_elem; ++i) {
-      psd(i) = R::dnorm4(eta(i), 0.0, 1.0, 0);
-    }
-  } else if (method_selection == "cloglog") {
-    for (arma::uword i = 0; i < eta.n_elem; ++i) {
-      const double exp_eta = stable_cloglog_rate(eta(i));
-      psd(i) = exp_eta * std::exp(-exp_eta);
-      if (!std::isfinite(psd(i))) psd(i) = 0.0;
-    }
-  } else {
-    Rcpp::stop("Unknown method selection");
-  }
-
-  return psd;
-}
-
-inline double loss_theta(const vec& par,
-                         const vec& R,
-                         const mat& X,
-                         const vec& weights,
-                         const std::string& method_selection,
+inline double loss_theta(const arma::vec& par,
+                         const arma::mat& X,
+                         const arma::vec& R,
+                         const arma::vec& weights,
+                         const LinkMethod method_selection,
                          const int& gee_h_fun,
-                         const uvec& idx,
-                         Nullable<arma::vec> pop_totals) { // TODO add weights
+                         const arma::uvec& selected,
+                         const arma::vec& pop_totals,
+                         const bool has_pop_totals) {
+  if (selected.n_elem == 0) {
+    return 0.0;
+  }
 
-  vec eta_pi = X * par;
-  vec ps = inv_link_cpp(eta_pi, method_selection);
-  vec R_rand = 1 - R;
+  arma::vec eta_pi(X.n_rows, arma::fill::zeros);
+  for (arma::uword k = 0; k < selected.n_elem; ++k) {
+    const arma::uword col = selected(k);
+    eta_pi += X.col(col) * par(col);
+  }
 
-  // Preallocate temporary matrix
-  mat temp;
+  const arma::vec ps = inv_link_cpp(eta_pi, method_selection);
+  const arma::vec R_rand = 1.0 - R;
+  const arma::vec inv_ps = 1.0 / ps;
 
-  uvec loc_nons = find(R == 1);
-  uvec loc_rand = find(R == 0);
+  const double N_nons = arma::sum(inv_ps);
+  const double N_rand = arma::sum(weights);
+  arma::vec row_factor;
 
-  double N_nons = sum(1/ps);
-  double N_rand = sum(weights);
-
-  // Calculate the loss using the appropriate method
-  double loss;
-  if (pop_totals.isNull()) {
+  if (!has_pop_totals) {
     if (gee_h_fun == 1) {
-      temp = X.each_col() % (R % weights / ps / N_nons - R_rand % weights / N_rand);
-      loss = accu(square(sum(temp, 0)));
+      row_factor = R % weights % inv_ps / N_nons - R_rand % weights / N_rand;
     } else if (gee_h_fun == 2) {
-      temp = X.each_col() % (R % weights / N_nons - R_rand % weights % ps / N_rand);
-      loss = accu(square(sum(temp, 0)));
+      row_factor = R % weights / N_nons - R_rand % weights % ps / N_rand;
     } else {
-      loss = 0;
+      return 0.0;
     }
   } else {
-    // vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
-    temp = X.each_col() % (R % weights / ps / N_nons);
-    //vec colSums_result = sum(temp, 0);
-
-    // Calculate (colSums(weights * X/pi) - pop_totals)^2
-    vec diff_squared = square(sum(temp, 0).t() - as<vec>(pop_totals)(idx) / N_rand);
-    //loss = accu(square(sum(temp, 0)));
-
-    // Calculate the sum of squared differences
-    loss = accu(diff_squared);
+    row_factor = R % weights % inv_ps / N_nons;
   }
+
+  double loss = 0.0;
+  for (arma::uword k = 0; k < selected.n_elem; ++k) {
+    const arma::uword col = selected(k);
+    double col_balance = arma::dot(X.col(col), row_factor);
+    if (has_pop_totals) {
+      col_balance -= pop_totals(col) / N_rand;
+    }
+    loss += col_balance * col_balance;
+  }
+
   return loss;
 }
 
+inline EstimatingSystem estimating_system(const arma::vec& par,
+                                          const arma::mat& X,
+                                          const arma::vec& R,
+                                          const arma::vec& R_rand,
+                                          const arma::vec& weights,
+                                          const LinkMethod method_selection,
+                                          const int& gee_h_fun,
+                                          const arma::vec& pop_totals,
+                                          const bool has_pop_totals) {
+  const arma::vec eta_pi = X * par;
+  arma::vec ps;
+  arma::vec ps_der;
+  arma::vec cloglog_rate;
+  fill_link_values(eta_pi, method_selection, ps, ps_der, cloglog_rate);
 
-inline arma::vec u_theta(const arma::vec& par,
-                         const arma::vec& R,
-                         const arma::mat& X,
-                         const arma::vec& weights,
-                         const std::string& method_selection,
-                         const int& h,
-                         Nullable<arma::vec> pop_totals,
-                         Nullable<double> pop_size = R_NilValue,
-                         Nullable<int> N = R_NilValue) { // TODO add weights
+  const arma::vec inv_ps = 1.0 / ps;
+  const arma::vec inv_ps_sq = arma::square(inv_ps);
+  const double N_nons = arma::sum(inv_ps);
 
-  vec eta_pi = X * par;
-  vec ps = inv_link_cpp(eta_pi, method_selection);
-  vec R_rand = 1 - R;
-  double N_nons = sum(1/ps);
-
-  vec eq;
-  mat temp;
-  if (pop_totals.isNull()) {
-    switch(h) {
+  arma::vec score_weight;
+  if (!has_pop_totals) {
+    switch (gee_h_fun) {
     case 1:
-      temp = X.each_col() % (R/ps % weights - R_rand % weights);
-      eq = sum(temp, 0).t() / N_nons;
+      score_weight = R % weights % inv_ps - R_rand % weights;
       break;
     case 2:
-      temp = X.each_col() % (R % weights - R_rand % weights % ps);
-      eq = sum(temp, 0).t() / N_nons;
+      score_weight = R % weights - R_rand % weights % ps;
       break;
+    default:
+      Rcpp::stop("Unknown h selection");
     }
   } else {
-    //vec total_pop = join_cols(vec{N_nons}, as<vec>(pop_totals));
-    temp = X.each_col() % (R/ps % weights);
-    eq = (sum(temp, 0).t() - as<vec>(pop_totals)) / N_nons;
-  }
-  return eq;
-}
-
-arma::mat u_theta_der(const arma::vec& par,
-                      const arma::vec& R,
-                      const arma::mat& X,
-                      const arma::vec& weights,
-                      const std::string& method_selection,
-                      const int& gee_h_fun,
-                      Nullable<arma::vec> pop_totals,
-                      Nullable<int> N = R_NilValue) { // TODO add weights
-
-  //int p = X0.n_cols;
-  arma::vec eta_pi = X * par;
-  arma::vec ps = inv_link_cpp(eta_pi, method_selection);
-  arma::vec R_rand = 1 - R;
-  arma::vec psd;
-
-  if (method_selection == "probit") {
-    psd = inv_link_der_cpp(eta_pi, method_selection);
+    score_weight = R % weights % inv_ps;
   }
 
-  int n = X.n_rows;
-  int p = X.n_cols;
-  arma::mat mxDer(p, p, arma::fill::zeros);
-  double N_nons = sum(1/ps);
+  EstimatingSystem out;
+  out.score = X.t() * score_weight;
+  if (has_pop_totals) {
+    out.score -= pop_totals;
+  }
+  out.score /= N_nons;
 
-  arma::vec coeff(n, arma::fill::zeros);
-
-  if (gee_h_fun == 1 || !pop_totals.isNull()) {
-    if (method_selection == "logit") {
-      coeff = R % weights % (1.0 - ps) / ps;
-    } else if (method_selection == "cloglog") {
-      for(int i = 0; i < n; i++) {
-        coeff(i) = R(i) * weights(i) * (1.0 - ps(i)) / std::pow(ps(i), 2) * stable_cloglog_rate(eta_pi(i));
-      }
-    } else if (method_selection == "probit") {
-      coeff = R % weights % psd / arma::square(ps);
+  arma::vec coeff;
+  if (gee_h_fun == 1 || has_pop_totals) {
+    switch (method_selection) {
+    case LinkMethod::logit:
+      coeff = R % weights % (1.0 - ps) % inv_ps;
+      break;
+    case LinkMethod::cloglog:
+      coeff = R % weights % (1.0 - ps) % inv_ps_sq % cloglog_rate;
+      break;
+    case LinkMethod::probit:
+      coeff = R % weights % ps_der % inv_ps_sq;
+      break;
     }
   } else if (gee_h_fun == 2) {
-    if (method_selection == "logit") {
+    switch (method_selection) {
+    case LinkMethod::logit:
       coeff = R_rand % weights % ps % (1.0 - ps);
-    } else if (method_selection == "cloglog") {
-      for(int i = 0; i < n; i++) {
-        coeff(i) = R_rand(i) * weights(i) * (1.0 - ps(i)) * stable_cloglog_rate(eta_pi(i));
-      }
-    } else if (method_selection == "probit") {
-      coeff = R_rand % weights % psd;
-    }
-    else {
-      Rcpp::stop("Unknown method selection");
+      break;
+    case LinkMethod::cloglog:
+      coeff = R_rand % weights % (1.0 - ps) % cloglog_rate;
+      break;
+    case LinkMethod::probit:
+      coeff = R_rand % weights % ps_der;
+      break;
     }
   } else {
     Rcpp::stop("Unknown h selection");
   }
 
-  mxDer = X.t() * (X.each_col() % coeff);
+  out.derivative = X.t() * (X.each_col() % coeff);
+  out.derivative /= N_nons;
 
-  return mxDer / N_nons;
+  return out;
 }
 
 arma::vec q_lambda_cpp(const arma::vec& par,
                        double lambda,
-                       const std::string& penalty,
-                       double a) { // TODO add a to control
-
+                       const PenaltyType penalty,
+                       double a) {
   arma::vec penaltyd(par.size(), arma::fill::zeros);
 
-  if (penalty == "SCAD") {
+  switch (penalty) {
+  case PenaltyType::SCAD: {
     double abs_par_i;
     for (arma::vec::iterator it = penaltyd.begin() + 1; it != penaltyd.end(); ++it) {
       abs_par_i = std::abs(*it);
@@ -256,16 +265,18 @@ arma::vec q_lambda_cpp(const arma::vec& par,
         *it = tmp * (tmp > 0);
       }
     }
-  } else if (penalty == "lasso") {
+    break;
+  }
+  case PenaltyType::lasso:
     penaltyd = lambda * arma::sign(par);
-  } else if (penalty == "MCP") {
-    for (std::size_t i = 0; i < par.size(); i++) { // int i = 0; i < par.size(); i++
-      if (std::abs(par[i]) <= a*lambda) {
+    break;
+  case PenaltyType::MCP:
+    for (std::size_t i = 0; i < par.size(); i++) {
+      if (std::abs(par[i]) <= a * lambda) {
         if (par[i] < 0) {
-          penaltyd[i] = - (lambda - std::abs(par[i]) / a);
-        }
-        else if (par[i] > 0) {
-          penaltyd[i] = (lambda - std::abs(par[i]) / a);
+          penaltyd[i] = -(lambda - std::abs(par[i]) / a);
+        } else if (par[i] > 0) {
+          penaltyd[i] = lambda - std::abs(par[i]) / a;
         } else {
           penaltyd[i] = 0;
         }
@@ -273,7 +284,9 @@ arma::vec q_lambda_cpp(const arma::vec& par,
         penaltyd[i] = 0;
       }
     }
+    break;
   }
+
   return penaltyd;
 }
 
@@ -282,18 +295,20 @@ arma::vec q_lambda_cpp(const arma::vec& par,
 arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
                               const arma::vec& R,
                               const arma::vec& weights,
-                              const std::string& method_selection,
+                              const LinkMethod method_selection,
                               const int& gee_h_fun,
                               double lambda,
                               int maxit,
                               double eps,
-                              const std::string& penalty,
+                              const PenaltyType penalty,
                               double a,
-                              Nullable<arma::vec> pop_totals,
+                              const arma::vec& pop_totals,
+                              const bool has_pop_totals,
                               bool warn = false
 ) {
-  int p = X.n_cols;
-  // preallocate large vectors
+  const int p = X.n_cols;
+  const arma::vec R_rand = 1.0 - R;
+
   arma::vec par0(p, arma::fill::zeros);
   arma::vec LAMBDA(p, arma::fill::zeros);
   arma::vec par(p, arma::fill::zeros);
@@ -305,18 +320,25 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
       Rcpp::warning("Convergence not obtained in %d iterations of fitting algorithm for variables selection", maxit);
       break;
     }
-    // avoid unnecessary computations by saving results
 
-    arma::vec u_theta0v = u_theta(par0, R, X, weights, method_selection, gee_h_fun, pop_totals);
-    arma::mat u_theta0_derv = u_theta_der(par0, R, X, weights, method_selection, gee_h_fun, pop_totals);
+    EstimatingSystem system = estimating_system(
+      par0,
+      X,
+      R,
+      R_rand,
+      weights,
+      method_selection,
+      gee_h_fun,
+      pop_totals,
+      has_pop_totals
+    );
     arma::vec q_lambda_output = q_lambda_cpp(par0, lambda, penalty, a);
 
-    LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
-    //LAMBDA = arma::abs(q_lambda_output);
-    // LAMBDA = q_lambda_output;
+    LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0));
 
-    arma::mat system_matrix = u_theta0_derv + arma::diagmat(LAMBDA);
-    arma::vec rhs = u_theta0v - LAMBDA % par0;
+    arma::mat system_matrix = system.derivative;
+    system_matrix.diag() += LAMBDA;
+    arma::vec rhs = system.score - LAMBDA % par0;
     arma::vec step(p, arma::fill::zeros);
     bool solved = arma::solve(step, system_matrix, rhs);
     if (!solved) {
@@ -350,98 +372,93 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                               double a,
                               Nullable<arma::vec> pop_totals,
                               bool verbose,
-                              double lambda = -1) { // TODO add weights
+                              double lambda = -1) {
 
   Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
   Rcpp::Function setup_lambda_cpp = nonprobsvy_env["setup_lambda"];
 
-  //Rcpp::Function logit = nonprobsvy_env["logit_model_nonprobsvy"];
-  //Rcpp::Function cloglog = nonprobsvy_env["cloglog_model_nonprobsvy"];
-  //Rcpp::Function probit = nonprobsvy_env["probit_model_nonprobsvy"];
+  const LinkMethod link_method = parse_link_method(method_selection);
+  const PenaltyType penalty_type = parse_penalty_type(penalty);
+  const bool has_pop_totals = !pop_totals.isNull();
+  const arma::vec pop_totals_vec = has_pop_totals ? Rcpp::as<arma::vec>(pop_totals) : arma::vec();
 
-  arma::vec weights;
-  arma::vec loss_theta_av(nlambda);
+  arma::vec loss_theta_av(nlambda, arma::fill::zeros);
   const arma::vec& R_ = R;
   const arma::mat& X_ = X;
 
-  if(lambda == -1) {
-    arma::uvec loc_nons = find(R == 1);
-    arma::uvec loc_rand = find(R == 0);
-    const arma::mat& X_nons = join_rows(X.rows(loc_nons), weights_X(loc_nons), R(loc_nons));
-    const arma::mat& X_rand = join_rows(X.rows(loc_rand), weights_X(loc_rand), R(loc_rand));
+  if (lambda == -1) {
+    arma::uvec loc_nons = arma::find(R == 1);
+    arma::uvec loc_rand = arma::find(R == 0);
 
     SEXP lambdas = setup_lambda_cpp(X, R, weights_X, method_selection, lambda_min, nlambda, pop_totals);
     arma::vec lambdas1(Rcpp::as<arma::vec>(lambdas));
 
-    //arma::uvec shuffle_nons = arma::shuffle(arma::linspace<arma::uvec>(0, X_nons.n_rows-1, X_nons.n_rows));
-    //arma::uvec shuffle_rand = arma::shuffle(arma::linspace<arma::uvec>(0, X_rand.n_rows-1, X_rand.n_rows));
+    arma::uvec folds_nons = arma::randi<arma::uvec>(loc_nons.n_elem, arma::distr_param(0, nfolds - 1));
+    arma::uvec folds_rand = arma::randi<arma::uvec>(loc_rand.n_elem, arma::distr_param(0, nfolds - 1));
 
-    arma::uvec folds_nons = arma::randi<arma::uvec>(X_nons.n_rows, arma::distr_param(0, nfolds-1));
-    arma::uvec folds_rand = arma::randi<arma::uvec>(X_rand.n_rows, arma::distr_param(0, nfolds-1));
-
-    arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
-    arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
+    arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds - 1, nfolds));
+    arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds - 1, nfolds));
 
     arma::mat loss_theta_fld(nfolds, nlambda, arma::fill::zeros);
     //#pragma omp parallel for
-    for(int j = 0; j < nfolds; j++) {
+    for (int j = 0; j < nfolds; j++) {
       if (verbose) {
-        wcout << "Starting CV fold #" << j+1 << endl;
+        wcout << "Starting CV fold #" << j + 1 << endl;
       }
-      arma::uvec idx_nons = find(folds_nons != sample_nons(j));
-      const arma::mat& X_nons_train = X_nons.rows(idx_nons);
-      const arma::mat& X_nons_test = X_nons.rows(find(folds_nons == sample_nons(j)));
 
-      arma::uvec idx_rand = find(folds_rand != sample_rand(j));
-      const arma::mat& X_rand_train = X_rand.rows(idx_rand);
-      const arma::mat& X_rand_test = X_rand.rows(find(folds_rand == sample_rand(j)));
+      arma::uvec idx_nons_train = arma::find(folds_nons != sample_nons(j));
+      arma::uvec idx_nons_test = arma::find(folds_nons == sample_nons(j));
+      arma::uvec idx_rand_train = arma::find(folds_rand != sample_rand(j));
+      arma::uvec idx_rand_test = arma::find(folds_rand == sample_rand(j));
 
-      // Randomize the columns (features) in the training data
-      // arma::uvec col_indices = arma::shuffle(arma::regspace<arma::uvec>(0, X_nons_train.n_cols - 1));
-      // arma::mat X_nons_train_randomized = X_nons_train.cols(col_indices);
-      // arma::mat X_rand_train_randomized = X_rand_train.cols(col_indices);
-      // arma::mat X_nons_test_randomized = X_nons_test.cols(col_indices);
-      // arma::mat X_rand_test_randomized = X_rand_test.cols(col_indices);
+      arma::uvec train_rows = arma::join_cols(
+        loc_rand.elem(idx_rand_train),
+        loc_nons.elem(idx_nons_train)
+      );
+      arma::uvec test_rows = arma::join_cols(
+        loc_rand.elem(idx_rand_test),
+        loc_nons.elem(idx_nons_test)
+      );
 
-      const arma::mat& X_train = arma::join_cols(X_rand_train, X_nons_train);
-      const arma::mat& X_test = arma::join_cols(X_rand_test, X_nons_test);
-      int ncols = X_test.n_cols;
-      arma::uvec idxx = arma::regspace<arma::uvec>(0, ncols - 3);
+      arma::mat X_train = X.rows(train_rows);
+      arma::vec R_train = R.elem(train_rows);
+      arma::vec weights_train = weights_X.elem(train_rows);
+
+      arma::mat X_test = X.rows(test_rows);
+      arma::vec R_test = R.elem(test_rows);
+      arma::vec weights_test = weights_X.elem(test_rows);
 
       //#pragma omp parallel for
-      for(int i = 0; i < nlambda; i++) {
-        // lambda = lambdas1(i);
-        //arma::vec loss_theta_vec(nfolds, arma::fill::zeros);
-        arma::vec theta_est = fit_nonprobsvy_rcpp(X_train.cols(idxx),
-                                                  X_train.col(ncols - 1),
-                                                  X_train.col(ncols - 2),
-                                                  method_selection,
-                                                  gee_h_fun,
-                                                  lambdas1(i),
-                                                  maxit,
-                                                  eps,
-                                                  penalty,
-                                                  a,
-                                                  pop_totals);
-        // cout << theta_est << "\n";
+      for (int i = 0; i < nlambda; i++) {
+        arma::vec theta_est = fit_nonprobsvy_rcpp(
+          X_train,
+          R_train,
+          weights_train,
+          link_method,
+          gee_h_fun,
+          lambdas1(i),
+          maxit,
+          eps,
+          penalty_type,
+          a,
+          pop_totals_vec,
+          has_pop_totals
+        );
 
         const arma::uvec selected = arma::find(theta_est != 0);
-        const arma::mat& X_testloss = X_test.cols(selected);
-        const arma::vec& R_testloss = X_test.col(ncols - 1);
-        const arma::vec& weights_testloss = X_test.col(ncols - 2);
-        const arma::vec& par = theta_est(selected);
-
-        double loss = loss_theta(par,
-                                 R_testloss,
-                                 X_testloss,
-                                 weights_testloss,
-                                 method_selection,
-                                 gee_h_fun,
-                                 selected,
-                                 pop_totals);
+        double loss = loss_theta(
+          theta_est,
+          X_test,
+          R_test,
+          weights_test,
+          link_method,
+          gee_h_fun,
+          selected,
+          pop_totals_vec,
+          has_pop_totals
+        );
         loss_theta_fld(j, i) = loss;
       }
-      //loss_theta_av(i) = mean(loss_theta_vec);
     }
 
     for (int i = 0; i < nlambda; i++) {
@@ -449,19 +466,23 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     }
     lambda = lambdas1(loss_theta_av.index_min());
   }
-  arma::vec theta = fit_nonprobsvy_rcpp(X_,
-                                        R_,
-                                        weights_X,
-                                        method_selection,
-                                        gee_h_fun,
-                                        lambda,
-                                        maxit,
-                                        eps,
-                                        penalty,
-                                        a,
-                                        pop_totals);
 
-  arma::uvec theta_selected = find(theta != 0);
+  arma::vec theta = fit_nonprobsvy_rcpp(
+    X_,
+    R_,
+    weights_X,
+    link_method,
+    gee_h_fun,
+    lambda,
+    maxit,
+    eps,
+    penalty_type,
+    a,
+    pop_totals_vec,
+    has_pop_totals
+  );
+
+  arma::uvec theta_selected = arma::find(theta != 0);
 
   return List::create(_["theta_est"] = theta,
                       _["theta_selected"] = theta_selected,
