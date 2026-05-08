@@ -96,6 +96,7 @@ Returns an object of the \code{nonprob} class (it is actually a \code{list}) whi
 \item{\code{ps_scores} -- a \verb{numeric vector} of estimated propensity scores for probability and non-probability sample}
 \item{\code{case_weights} -- a \code{vector} of case weights for non-probability sample based on the call}
 \item{\code{ipw_weights} -- a \code{vector} of inverse probability weights for non-probability sample (if applicable)}
+\item{\code{boot_ipw_weights} -- a \code{matrix} of bootstrap inverse probability weights for the non-probability sample when bootstrap variance estimation is used and bootstrap results are kept (if applicable)}
 \item{\code{control} -- a \code{list} of control functions based on the call}
 \item{\code{output} -- a \code{data.frame} with the estimated means and standard errors for the variables specified in the \code{target} or \code{outcome} arguments}
 \item{\code{SE} -- a \code{data.frame} with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples (if applicable)}

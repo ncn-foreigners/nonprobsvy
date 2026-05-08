@@ -503,6 +503,12 @@ nonprob_ipw <- function(selection,
   }
   if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
+  boot_ipw_weights <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    boot_obj$ipw_weights
+  } else {
+    NULL
+  }
+
 
   selection_list <- list(
     selection_model = selection_model,
@@ -532,6 +538,7 @@ nonprob_ipw <- function(selection,
     prob_rand_est = est_ps_rand,
     prob_rand_est_der = est_ps_rand_der,
     gee_h_fun = gee_h_fun,
+    boot_ipw_weights = boot_ipw_weights,
     cve = if (control_inference$vars_selection == TRUE) {
       cve_selection
     } else {
@@ -548,6 +555,7 @@ nonprob_ipw <- function(selection,
       ps_scores = prop_scores,
       case_weights = case_weights,
       ipw_weights = as.vector(weights_nons),
+      boot_ipw_weights = boot_ipw_weights,
       control = list(
         control_selection = control_selection,
         control_outcome = NULL,

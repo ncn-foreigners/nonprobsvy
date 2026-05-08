@@ -39,6 +39,7 @@ boot_ipw <- function(X_rand,
   rep_type <- control_inference$rep_type
   mu_len <- length(mu_hats)
   mu_hats_boot <- matrix(nrow = num_boot, ncol = mu_len)
+  ipw_weights_boot <- matrix(nrow = num_boot, ncol = n_nons)
   boot_vars <- numeric(length = mu_len)
 
   if (verbose) {
@@ -95,6 +96,7 @@ boot_ipw <- function(X_rand,
 
           ps_nons <- est_method_obj$ps_nons
           weights_nons <- 1 / ps_nons
+          ipw_weights_boot[k, ] <- as.vector(weights_nons)
           N_est_nons <- ifelse(is.null(pop_size), sum(case_weights[strap_nons] * weights_nons), pop_size)
 
           for (l in 1:mu_len) {
@@ -147,6 +149,7 @@ boot_ipw <- function(X_rand,
           ps_nons <- inv_link(tcrossprod(theta_hat_strap,X_strap))
 
           weights_nons <- 1 / ps_nons
+          ipw_weights_boot[k, ] <- as.vector(weights_nons)
           N_est_nons <- ifelse(is.null(pop_size), sum(weights_strap * weights_nons), pop_size)
 
           for (l in 1:mu_len) {
@@ -184,7 +187,8 @@ boot_ipw <- function(X_rand,
   list(
     var = boot_vars,
     # mu = mu_hats_boot_means,
-    stat = mu_hats_boot
+    stat = mu_hats_boot,
+    ipw_weights = ipw_weights_boot
   )
 }
 
@@ -255,8 +259,8 @@ boot_ipw_multicore <- function(X_rand,
       replicates = num_boot
     )$repweights$weights
 
-    mu_hats_boot <- foreach::`%dopar%`(
-      obj = foreach::foreach(k = k, .combine = rbind),
+    boot_reps <- foreach::`%dopar%`(
+      obj = foreach::foreach(k = k),
       ex = {
         strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
@@ -312,12 +316,12 @@ boot_ipw_multicore <- function(X_rand,
             N = N_est_nons
           ) # IPW estimator
         }
-        mu_hats_this_boot
+        list(stat = mu_hats_this_boot, ipw_weights = as.vector(weights_nons))
       }
     )
   } else {
-    mu_hats_boot <- foreach::`%dopar%`(
-      obj = foreach::foreach(k = k, .combine = rbind),
+    boot_reps <- foreach::`%dopar%`(
+      obj = foreach::foreach(k = k),
       ex = {
         strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
         X_strap <- X_nons[strap, , drop = FALSE]
@@ -353,18 +357,22 @@ boot_ipw_multicore <- function(X_rand,
             N = N_est_nons
           ) # IPW estimator
         }
-        mu_hats_this_boot
+        list(stat = mu_hats_this_boot, ipw_weights = as.vector(weights_nons))
       }
     )
   }
 
+  mu_hats_boot <- do.call(rbind, lapply(boot_reps, `[[`, "stat"))
   mu_hats_boot <- matrix(as.numeric(mu_hats_boot), nrow = num_boot, ncol = mu_len)
+  ipw_weights_boot <- do.call(rbind, lapply(boot_reps, `[[`, "ipw_weights"))
+  ipw_weights_boot <- matrix(as.numeric(ipw_weights_boot), nrow = num_boot, ncol = n_nons)
   for (l in 1:mu_len) {
     boot_vars[l] <- 1 / (num_boot - 1) * sum((mu_hats_boot[, l] - mu_hats[l])^2)
   }
   list(
     var = boot_vars,
     # mu = mu_hats_boot_means,
-    stat = mu_hats_boot
+    stat = mu_hats_boot,
+    ipw_weights = ipw_weights_boot
   )
 }

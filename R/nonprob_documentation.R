@@ -212,6 +212,7 @@
 #'  \item{\code{ps_scores} -- a `numeric vector` of estimated propensity scores for probability and non-probability sample}
 #'  \item{\code{case_weights} -- a `vector` of case weights for non-probability sample based on the call}
 #'  \item{\code{ipw_weights} -- a `vector` of inverse probability weights for non-probability sample (if applicable)}
+#'  \item{\code{boot_ipw_weights} -- a `matrix` of bootstrap inverse probability weights for the non-probability sample when bootstrap variance estimation is used and bootstrap results are kept (if applicable)}
 #'  \item{\code{control} -- a `list` of control functions based on the call}
 #'  \item{\code{output} -- a `data.frame` with the estimated means and standard errors for the variables specified in the `target` or `outcome` arguments}
 #'  \item{\code{SE} -- a `data.frame` with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples (if applicable)}
