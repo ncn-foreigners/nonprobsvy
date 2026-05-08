@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed multicore IPW bootstrap for population-totals-only runs and kept bootstrap replicate output shapes consistent (closes [#94](https://github.com/ncn-foreigners/nonprobsvy/issues/94))
 + aligned IPW point-estimator denominators with Horvitz-Thompson vs Hajek estimator behavior, added estimator-family metadata and print output, and documented when each estimator is used (closes [#89](https://github.com/ncn-foreigners/nonprobsvy/issues/89))
 + fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits by aligning outcome-specific variance and confidence-interval indexing (closes [#87](https://github.com/ncn-foreigners/nonprobsvy/issues/87), [#88](https://github.com/ncn-foreigners/nonprobsvy/issues/88))
 + fixed the NN mass-imputation `k = 1` path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes [#92](https://github.com/ncn-foreigners/nonprobsvy/issues/92))
