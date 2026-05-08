@@ -147,10 +147,12 @@ method_ps("cloglog")$make_gradient
 #>         eta2 <- as.matrix(X_rand) %*% theta
 #>         invLink1 <- inv_link(eta1)
 #>         invLink2 <- inv_link(eta2)
-#>         t(crossprod(X_nons, weights * exp(eta1)/invLink1) - crossprod(X_rand, 
-#>             weights_rand * exp(eta2)))
+#>         exp_eta1 <- stable_cloglog_rate(eta1)
+#>         exp_eta2 <- stable_cloglog_rate(eta2)
+#>         t(crossprod(X_nons, weights * exp_eta1/invLink1) - crossprod(X_rand, 
+#>             weights_rand * exp_eta2))
 #>     }
 #> }
-#> <bytecode: 0x56022acb6d98>
-#> <environment: 0x56023571b238>
+#> <bytecode: 0x55626db94c88>
+#> <environment: 0x55627a1b3c48>
 ```

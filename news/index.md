@@ -2,6 +2,10 @@
 
 ## nonprobsvy (development version)
 
+- stabilized extreme-propensity IPW computations by clamping fitted
+  probabilities, using tail-stable log-likelihood formulas, and guarding
+  Rcpp variable-selection weights (closes
+  [\#102](https://github.com/ncn-foreigners/nonprobsvy/issues/102))
 - clarified supported data structures, estimator-by-outcome scope,
   README examples, and `verbose` argument documentation (closes
   [\#95](https://github.com/ncn-foreigners/nonprobsvy/issues/95),
