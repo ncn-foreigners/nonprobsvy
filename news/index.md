@@ -2,6 +2,10 @@
 
 ## nonprobsvy (development version)
 
+- tightened validation for `pop_means`, `case_weights`, and logical
+  inference-control flags so unsupported inputs fail early with clearer
+  messages (closes
+  [\#96](https://github.com/ncn-foreigners/nonprobsvy/issues/96))
 - fixed multicore IPW bootstrap for population-totals-only runs and kept
   bootstrap replicate output shapes consistent (closes
   [\#94](https://github.com/ncn-foreigners/nonprobsvy/issues/94))

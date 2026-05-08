@@ -36,18 +36,18 @@ control_inf(
 
 - vars_selection:
 
-  default `FALSE`; if `TRUE`, then the variables selection model is
-  used.
+  logical scalar (default `FALSE`); if `TRUE`, then the variables
+  selection model is used.
 
 - vars_combine:
 
-  whether variables should be combined after variable selection for
-  doubly robust estimators (default `FALSE`)
+  logical scalar indicating whether variables should be combined after
+  variable selection for doubly robust estimators (default `FALSE`)
 
 - bias_correction:
 
-  default `FALSE`; if `TRUE`, then the bias minimization estimation used
-  during model fitting.
+  logical scalar (default `FALSE`); if `TRUE`, then the bias
+  minimization estimation used during model fitting.
 
 - num_boot:
 

@@ -116,7 +116,7 @@ If finite population correction should affect survey-side variance estimates, in
 
 
 <dt id="arg-pop-means">pop_means<a class="anchor" aria-label="anchor" href="#arg-pop-means"></a></dt>
-<dd><p>an optional <code>named vector</code> with population means of the covariates</p></dd>
+<dd><p>an optional <code>named vector</code> with population means of the covariates; <code>pop_size</code> must be supplied when <code>pop_means</code> is used</p></dd>
 
 
 <dt id="arg-pop-size">pop_size<a class="anchor" aria-label="anchor" href="#arg-pop-size"></a></dt>
@@ -150,7 +150,7 @@ the point estimator is Hajek-type, with the estimated IPW-weight total as its de
 
 
 <dt id="arg-case-weights">case_weights<a class="anchor" aria-label="anchor" href="#arg-case-weights"></a></dt>
-<dd><p>an optional <code>vector</code> of prior weights to be used in the fitting process.
+<dd><p>an optional positive, finite <code>numeric vector</code> of prior weights to be used in the fitting process.
 It is assumed that this vector contains frequency or analytic weights (i.e. rows of the <code>data</code> argument are repeated according to the values of the <code>case_weights</code> argument), not probability/design weights.</p></dd>
 
 

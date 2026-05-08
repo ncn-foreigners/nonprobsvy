@@ -87,7 +87,8 @@ nonprob(
 
 - pop_means:
 
-  an optional `named vector` with population means of the covariates
+  an optional `named vector` with population means of the covariates;
+  `pop_size` must be supplied when `pop_means` is used
 
 - pop_size:
 
@@ -131,11 +132,11 @@ nonprob(
 
 - case_weights:
 
-  an optional `vector` of prior weights to be used in the fitting
-  process. It is assumed that this vector contains frequency or analytic
-  weights (i.e. rows of the `data` argument are repeated according to
-  the values of the `case_weights` argument), not probability/design
-  weights.
+  an optional positive, finite `numeric vector` of prior weights to be
+  used in the fitting process. It is assumed that this vector contains
+  frequency or analytic weights (i.e. rows of the `data` argument are
+  repeated according to the values of the `case_weights` argument), not
+  probability/design weights.
 
 - na_action:
 
