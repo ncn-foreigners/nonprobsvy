@@ -226,6 +226,10 @@ contains the following elements:
 - `ipw_weights` – a `vector` of inverse probability weights for
   non-probability sample (if applicable)
 
+- `boot_ipw_weights` – a `matrix` of bootstrap inverse probability
+  weights for the non-probability sample when bootstrap variance
+  estimation is used and bootstrap results are kept (if applicable)
+
 - `control` – a `list` of control functions based on the call
 
 - `output` – a `data.frame` with the estimated means and standard errors

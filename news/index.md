@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+- returned bootstrap IPW weights in `boot_ipw_weights` when bootstrap
+  variance estimation is used and bootstrap results are kept (closes
+  [\#76](https://github.com/ncn-foreigners/nonprobsvy/issues/76))
 - improved the Rcpp variable-selection cross-validation code and added
   benchmark evidence for the speedup (closes
   [\#103](https://github.com/ncn-foreigners/nonprobsvy/issues/103))

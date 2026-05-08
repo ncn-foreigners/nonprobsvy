@@ -200,6 +200,7 @@ It is assumed that this vector contains frequency or analytic weights (i.e. rows
 <li><p><code>ps_scores</code> – a <code>numeric vector</code> of estimated propensity scores for probability and non-probability sample</p></li>
 <li><p><code>case_weights</code> – a <code>vector</code> of case weights for non-probability sample based on the call</p></li>
 <li><p><code>ipw_weights</code> – a <code>vector</code> of inverse probability weights for non-probability sample (if applicable)</p></li>
+<li><p><code>boot_ipw_weights</code> – a <code>matrix</code> of bootstrap inverse probability weights for the non-probability sample when bootstrap variance estimation is used and bootstrap results are kept (if applicable)</p></li>
 <li><p><code>control</code> – a <code>list</code> of control functions based on the call</p></li>
 <li><p><code>output</code> – a <code>data.frame</code> with the estimated means and standard errors for the variables specified in the <code>target</code> or <code>outcome</code> arguments</p></li>
 <li><p><code>SE</code> – a <code>data.frame</code> with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples (if applicable)</p></li>
