@@ -392,7 +392,7 @@ method_nn <- function(y_nons,
     message("Matching units between samples...")
   }
 
-  model_fitted_nons <- if (!is.null(nn_matches$nons)) {
+  model_fitted_nons <- if (!is.null(nn_matches) && !is.null(nn_matches$nons)) {
     nn_matches$nons
   } else {
     RANN::nn2(
@@ -404,7 +404,7 @@ method_nn <- function(y_nons,
     )
   }
 
-  model_fitted <- if (!is.null(nn_matches$rand)) {
+  model_fitted <- if (!is.null(nn_matches) && !is.null(nn_matches$rand)) {
     nn_matches$rand
   } else {
     RANN::nn2(
