@@ -39,7 +39,7 @@ expect_error(
 expect_equal(
   control_out(),
   list(epsilon = 1e-8, maxit = 100, trace = FALSE, k = 5, penalty = "SCAD",
-       a_SCAD = 3.7, a_MCP = 3, lambda_min = 0.001, nlambda = 100,
+       a_SCAD = 3.7, a_MCP = 3, lambda = -1, lambda_min = 0.001, nlambda = 100,
        nfolds = 10, treetype = "kd", searchtype = "standard", pmm_match_type = 1,
        pmm_weights = "none", pmm_k_choice = "none", pmm_reg_engine = "glm",
        npar_loess = list(surface = "direct", statistics = "approximate",
@@ -47,6 +47,15 @@ expect_equal(
                          iterTrace = FALSE))
 )
 
+expect_error(
+  control_out(lambda = c(0.01, 0.02)),
+  "'lambda' must be a finite numeric scalar"
+)
+
+expect_error(
+  control_out(lambda = -0.01),
+  "'lambda' must be non-negative or -1"
+)
+
 
 # test that control methods actually work ------------------------------------------
-

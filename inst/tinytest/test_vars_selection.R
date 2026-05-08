@@ -120,6 +120,28 @@ for (method_selection in c("probit", "cloglog")) {
   expect_true("(Intercept)" %in% names(coef(ipw_varsel_smoke)$coef_sel[, 1]))
 }
 
+expect_silent(suppressWarnings(
+  mi_varsel_lambda <- nonprob(
+    outcome = single_shift ~ nace,
+    svydesign = jvs_svy,
+    data = admin,
+    method_outcome = "glm",
+    family_outcome = "binomial",
+    control_inference = control_inf(vars_selection = TRUE),
+    control_outcome = control_out(lambda = 0.05, penalty = "lasso"),
+    se = FALSE
+  )
+))
+
+expect_true(is.finite(mi_varsel_lambda$output$mean))
+expect_equal(mi_varsel_lambda$estimator, "mi")
+expect_true(inherits(mi_varsel_lambda$outcome[[1]], "ncvreg"))
+expect_false(inherits(mi_varsel_lambda$outcome[[1]], "cv.ncvreg"))
+expect_equal(
+  mi_varsel_lambda$outcome[[1]]$lambda[2],
+  mi_varsel_lambda$control$control_outcome$lambda
+)
+
 # # probit
 # expect_silent(suppressWarnings(
 #   ipw_probit_cal <- nonprob(

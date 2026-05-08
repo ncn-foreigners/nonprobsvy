@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ allowed outcome variable-selection models to use a user-specified `control_out(lambda = ...)` value instead of always running cross-validation (closes [#66](https://github.com/ncn-foreigners/nonprobsvy/issues/66))
 + returned bootstrap IPW weights in `boot_ipw_weights` when bootstrap variance estimation is used and bootstrap results are kept (closes [#76](https://github.com/ncn-foreigners/nonprobsvy/issues/76))
 + improved the Rcpp variable-selection cross-validation code and added benchmark evidence for the speedup (closes [#103](https://github.com/ncn-foreigners/nonprobsvy/issues/103))
 + added DR regression tests for one-outcome versus multi-outcome analytic uncertainty-component consistency and multi-outcome bootstrap output shapes (addresses part of [#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))

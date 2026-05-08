@@ -12,6 +12,7 @@ control_out(
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
+  lambda = -1,
   lambda_min = 0.001,
   nlambda = 100,
   nfolds = 10,
@@ -38,6 +39,9 @@ control_out(
 \item{a_SCAD}{The tuning parameter of the SCAD penalty for outcome model. Default is 3.7.}
 
 \item{a_MCP}{The tuning parameter of the MCP penalty for outcome model. Default is 3.}
+
+\item{lambda}{A user-specified \eqn{\lambda} value during variable selection model fitting.
+The default value \code{-1} uses cross-validation.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 

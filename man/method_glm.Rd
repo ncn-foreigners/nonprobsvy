@@ -54,7 +54,7 @@ method_glm(
 an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
-\item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}
+\item{model_fitted}{fitted model either a \code{glm.fit}, \code{cv.ncvreg}, or \code{ncvreg} object}
 \item{y_nons_pred}{predicted values for the non-probablity sample}
 \item{y_rand_pred}{predicted values for the probability sample or population totals}
 \item{coefficients}{coefficients for the model (if available)}

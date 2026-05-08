@@ -11,6 +11,8 @@
 #' @param penalty penalty algorithm for variable selection. Default is `SCAD`
 #' @param a_SCAD The tuning parameter of the SCAD penalty for outcome model. Default is 3.7.
 #' @param a_MCP The tuning parameter of the MCP penalty for outcome model. Default is 3.
+#' @param lambda A user-specified \eqn{\lambda} value during variable selection model fitting.
+#'   The default value \code{-1} uses cross-validation.
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
 #' @param nlambda The number of lambda values. Default is 100.
 #' @param nfolds The number of folds during cross-validation for variables selection model.
@@ -57,6 +59,7 @@ control_out <- function(epsilon = 1e-8,
                         penalty = c("SCAD", "lasso", "MCP"),
                         a_SCAD = 3.7,
                         a_MCP = 3,
+                        lambda = -1,
                         lambda_min = .001,
                         nlambda = 100,
                         nfolds = 10,
@@ -94,6 +97,13 @@ control_out <- function(epsilon = 1e-8,
   if (!is.numeric(a_MCP) || a_MCP <= 1)
     stop("'a_MCP' must be greater than 1")
 
+  if (!is.numeric(lambda) || length(lambda) != 1L || is.na(lambda) ||
+      !is.finite(lambda))
+    stop("'lambda' must be a finite numeric scalar")
+
+  if (lambda < 0 && lambda != -1)
+    stop("'lambda' must be non-negative or -1")
+
   if (!is.numeric(lambda_min) || lambda_min <= 0 || lambda_min >= 1)
     stop("'lambda_min' must be between 0 and 1")
 
@@ -114,6 +124,7 @@ control_out <- function(epsilon = 1e-8,
     penalty = penalty,
     a_SCAD = a_SCAD,
     a_MCP = a_MCP,
+    lambda = lambda,
     lambda_min = lambda_min,
     nlambda = nlambda,
     nfolds = nfolds,
