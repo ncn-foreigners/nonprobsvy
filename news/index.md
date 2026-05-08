@@ -2,6 +2,11 @@
 
 ## nonprobsvy (development version)
 
+- clarified supported data structures, estimator-by-outcome scope,
+  README examples, and `verbose` argument documentation (closes
+  [\#95](https://github.com/ncn-foreigners/nonprobsvy/issues/95),
+  [\#97](https://github.com/ncn-foreigners/nonprobsvy/issues/97),
+  [\#98](https://github.com/ncn-foreigners/nonprobsvy/issues/98))
 - tightened validation for `pop_means`, `case_weights`, and logical
   inference-control flags so unsupported inputs fail early with clearer
   messages (closes

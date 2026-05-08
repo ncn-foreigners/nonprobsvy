@@ -179,7 +179,7 @@ It is assumed that this vector contains frequency or analytic weights (i.e. rows
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
-<dd><p>a numerical value (default <code>TRUE</code>) whether detailed information on the fitting should be presented</p></dd>
+<dd><p>a logical value (default <code>FALSE</code>) whether detailed information on the fitting should be presented</p></dd>
 
 
 <dt id="arg-se">se<a class="anchor" aria-label="anchor" href="#arg-se"></a></dt>
@@ -260,7 +260,13 @@ x_{n_{B1}} &amp; x_{n_{B2}} &amp; \cdots &amp; x_{n_{Bp}}\cr
 $$
 Instead of a sample of units we can consider a vector of population sums in the form of \(\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})\) or means
 \(\frac{\tau_x}{N}\), where \(\mathcal{U}\) refers to a finite population. Note that we do not assume access to the response variable for \(S_B\).
-In general we make the following assumptions:</p><ol><li><p>The selection indicator of belonging to non-probability sample \(R_{i}\) and the response variable \(y_i\) are independent given the set of covariates \(\boldsymbol{x}_i\).</p></li>
+The implemented estimators assume that outcome values are observed for the non-probability sample \(S_A\); outcome values observed in the probability sample \(S_B\) are not used.
+Linked overlap handling for units appearing in both samples is not currently implemented; <code><a href="control_sel.html">control_sel()</a></code> arguments <code>dependence</code> and <code>key</code> are placeholders for future development.</p>
+<p>Supported outcome types depend on the estimator family:</p><ul><li><p>IPW: numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted.</p></li>
+<li><p>Mass imputation with <code>method_outcome = "glm"</code>: continuous, count, or binary variables through <code>family_outcome = "gaussian"</code>, <code>"poisson"</code>, or <code>"binomial"</code>.</p></li>
+<li><p>Mass imputation with <code>method_outcome = "nn"</code>, <code>"pmm"</code>, or <code>"npar"</code>: numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported.</p></li>
+<li><p>Doubly robust: GLM outcome models only; use <code>family_outcome = "gaussian"</code>, <code>"poisson"</code>, or <code>"binomial"</code>.</p></li>
+</ul><p>In general we make the following assumptions:</p><ol><li><p>The selection indicator of belonging to non-probability sample \(R_{i}\) and the response variable \(y_i\) are independent given the set of covariates \(\boldsymbol{x}_i\).</p></li>
 <li><p>All units have a non-zero propensity score, i.e., \(\pi_{i}^{A} &gt; 0\) for all i.</p></li>
 <li><p>The indicator variables \(R_{i}^{A}\) and \(R_{j}^{A}\) are independent for given \(\boldsymbol{x}_i\) and \(\boldsymbol{x}_j\) for \(i \neq j\).</p></li>
 </ol><p>There are three possible approaches to the problem of estimating population mean using non-probability samples:</p><ol><li><p>Inverse probability weighting – the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.

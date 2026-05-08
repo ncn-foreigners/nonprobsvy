@@ -185,7 +185,7 @@ nonprob(
 
 - verbose:
 
-  a numerical value (default `TRUE`) whether detailed information on the
+  a logical value (default `FALSE`) whether detailed information on the
   fitting should be presented
 
 - se:
@@ -324,8 +324,33 @@ consider a vector of population sums in the form of \\\tau_x = (\sum\_{i
 \mathcal{U}}\boldsymbol{x}\_{i2}, ..., \sum\_{i \in
 \mathcal{U}}\boldsymbol{x}\_{ip})\\ or means \\\frac{\tau_x}{N}\\, where
 \\\mathcal{U}\\ refers to a finite population. Note that we do not
-assume access to the response variable for \\S_B\\. In general we make
-the following assumptions:
+assume access to the response variable for \\S_B\\. The implemented
+estimators assume that outcome values are observed for the
+non-probability sample \\S_A\\; outcome values observed in the
+probability sample \\S_B\\ are not used. Linked overlap handling for
+units appearing in both samples is not currently implemented;
+[`control_sel()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_sel.md)
+arguments `dependence` and `key` are placeholders for future
+development.
+
+Supported outcome types depend on the estimator family:
+
+- IPW: numeric targets whose population mean is meaningful, including
+  continuous, count, and 0/1 binary variables. No outcome model is
+  fitted.
+
+- Mass imputation with `method_outcome = "glm"`: continuous, count, or
+  binary variables through `family_outcome = "gaussian"`, `"poisson"`,
+  or `"binomial"`.
+
+- Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"`:
+  numeric targets; categorical, ordinal, survival, and other structured
+  outcomes are not supported.
+
+- Doubly robust: GLM outcome models only; use
+  `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.
+
+In general we make the following assumptions:
 
 1.  The selection indicator of belonging to non-probability sample
     \\R\_{i}\\ and the response variable \\y_i\\ are independent given

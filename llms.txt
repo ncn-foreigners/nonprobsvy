@@ -72,9 +72,10 @@ remotes::install_github("ncn-foreigners/nonprobsvy@dev")
 
 Consider the following setting where two samples are available:
 non-probability (denoted as S_A) and probability (denoted as S_B) where
-set of auxiliary variables (denoted as \boldsymbol{X}) is available for
-both sources while Y and \boldsymbol{d} (or \boldsymbol{w}) is present
-only in probability sample.
+a set of auxiliary variables (denoted as \boldsymbol{X}) is available
+for both sources, the target variable Y is observed in the
+non-probability sample, and design or calibrated weights (\boldsymbol{d}
+or \boldsymbol{w}) are observed in the probability sample.
 
 | Sample |  | Auxiliary variables \boldsymbol{X} | Target variable Y | Design (\boldsymbol{d}) or calibrated (\boldsymbol{w}) weights |
 |----|---:|:--:|:--:|:--:|
@@ -84,6 +85,13 @@ only in probability sample.
 | S_B (probability) | n_A+1 | \checkmark | ? | \checkmark |
 |  | … | \checkmark | ? | \checkmark |
 |  | n_A+n_B | \checkmark | ? | \checkmark |
+
+The current implementation does not use target-variable values from the
+probability sample. Data structures where Y is observed in both samples,
+or where overlapping units must be linked across samples, are not
+currently implemented. The `dependence` and `key` arguments in
+[`control_sel()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_sel.md)
+are placeholders for future overlap handling.
 
 ## Basic functionalities
 
@@ -103,10 +111,37 @@ scenarios:
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample S_A and
-  the probability sample S_B, i.e. (y_k,\boldsymbol{x}\_k,R_k) is
-  determined by the data. is determined by the data: R_k=1 if k \in S_A
-  otherwise R_k=0, y_k is observed only for sample S_A and
-  \boldsymbol{x}\_k is observed in both in both S_A and S_B,
+  the probability sample S_B, i.e. (\boldsymbol{x}\_k,R_k) is determined
+  by the data: R_k=1 if k \in S_A otherwise R_k=0, y_k is observed only
+  for sample S_A and \boldsymbol{x}\_k is observed in both S_A and S_B.
+
+Supported target-variable types depend on the estimator family:
+
+| Estimator family | Supported target variable `Y` |
+|----|----|
+| IPW | Numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted. |
+| Mass imputation with `method_outcome = "glm"` | Continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`. |
+| Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"` | Numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported. |
+| Doubly robust | GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`. |
+
+The compact examples below use the built-in `admin` non-probability
+sample and `jvs` probability sample.
+
+``` r
+
+library(survey)
+library(nonprobsvy)
+data(admin)
+data(jvs)
+
+prob <- svydesign(
+  ids = ~1,
+  weights = ~weight,
+  strata = ~size + nace + region,
+  data = jvs
+)
+pop_totals <- colSums(model.matrix(~region + private + nace + size, jvs) * jvs$weight)
+```
 
 ### When unit-level data is available for non-probability survey only
 
