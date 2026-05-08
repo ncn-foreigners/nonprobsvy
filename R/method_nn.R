@@ -114,14 +114,18 @@
 #'
 #' @examples
 #'
-#' data(admin)
-#' data(jvs)
-#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+#' sample_a <- data.frame(y = c(1, 0, 1, 0, 1), x = c(0, 1, 2, 3, 4))
+#' sample_b <- data.frame(x = c(0.5, 1.5, 2.5, 3.5), w = c(4, 4, 4, 4))
+#' sample_b_svy <- svydesign(ids = ~1, weights = ~w, data = sample_b)
 #'
-#' res_nn <- method_nn(y_nons = admin$single_shift,
-#'                     X_nons = model.matrix(~ region + private + nace + size, admin),
-#'                     X_rand = model.matrix(~ region + private + nace + size, jvs),
-#'                     svydesign = jvs_svy)
+#' res_nn <- method_nn(
+#'   y_nons = sample_a$y,
+#'   X_nons = model.matrix(~x, sample_a),
+#'   X_rand = model.matrix(~x, sample_b),
+#'   svydesign = sample_b_svy,
+#'   control_outcome = control_out(k = 1),
+#'   se = FALSE
+#' )
 #'
 #' res_nn
 #'

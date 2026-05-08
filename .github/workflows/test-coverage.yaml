@@ -14,6 +14,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       TEST_NONPROBSVY_MULTICORE_DEVELOPER: "true"
+      NONPROBSVY_FULL_TESTS: "true"
 
     steps:
       - uses: actions/checkout@v3
@@ -34,4 +35,3 @@ jobs:
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-

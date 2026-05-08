@@ -64,7 +64,7 @@ the point estimator is Hajek-type, with the estimated IPW-weight total as its de
 
 \item{strata}{an optional \code{vector} specifying strata (not yet supported, for further development)}
 
-\item{case_weights}{an optional positive, finite \code{numeric vector} of prior weights to be used in the fitting process.
+\item{case_weights}{an optional positive, finite \verb{numeric vector} of prior weights to be used in the fitting process.
 It is assumed that this vector contains frequency or analytic weights (i.e. rows of the \code{data} argument are repeated according to the values of the \code{case_weights} argument), not probability/design weights.}
 
 \item{na_action}{a function which indicates what should happen when the data contain \code{NAs} (default \code{na.omit} and it is the only method currently supported)}

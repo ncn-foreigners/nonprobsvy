@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ shortened CRAN-facing examples, added spelling wordlist entries, and made `R CMD check` run a fast tinytest subset by default while keeping the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`
 + allowed outcome variable-selection models to use a user-specified `control_out(lambda = ...)` value instead of always running cross-validation (closes [#66](https://github.com/ncn-foreigners/nonprobsvy/issues/66))
 + returned bootstrap IPW weights in `boot_ipw_weights` when bootstrap variance estimation is used and bootstrap results are kept (closes [#76](https://github.com/ncn-foreigners/nonprobsvy/issues/76))
 + improved the Rcpp variable-selection cross-validation code and added benchmark evidence for the speedup (closes [#103](https://github.com/ncn-foreigners/nonprobsvy/issues/103))
