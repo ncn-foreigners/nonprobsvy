@@ -55,6 +55,12 @@ An object of `nonprob_summary` class containing:
 
 - `pop_size_fixed` whether the population size is treated as fixed
 
+- `ipw_estimator` IPW point-estimator family (`"ht"` or `"hajek"`)
+
+- `ipw_denominator` denominator used for the IPW point estimator
+
+- `ipw_denominator_source` source of the IPW point-estimator denominator
+
 - `no_prob` whether probability sample was provided
 
 - `outcome` model details
@@ -97,9 +103,10 @@ summary(ipw_est1)
 #>  - call: nonprob(data = admin, selection = ~region + private + nace + 
 #>     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")
 #>  - estimator type: inverse probability weighting
-#>  - nonprob sample size: 9344 (18%)
-#>  - prob sample size: 6523 (12.6%)
-#>  - population size: 51870 (fixed: false)
+#>  - nonprob sample size: 9344 (17.7%)
+#>  - prob sample size: 6523 (12.3%)
+#>  - population size: 52898 (fixed: false)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - detailed information about models are stored in list element(s): "selection"
 #> ----------------------------------------------------------------
 #>  - sum of IPW weights: 52898.13 

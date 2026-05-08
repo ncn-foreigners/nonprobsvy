@@ -121,8 +121,12 @@ If finite population correction should affect survey-side variance estimates, in
 
 <dt id="arg-pop-size">pop_size<a class="anchor" aria-label="anchor" href="#arg-pop-size"></a></dt>
 <dd><p>an optional <code>double</code> value with population size. If omitted when a probability sample is supplied,
-<code>pop_size</code> is estimated as <code>sum(weights(svydesign))</code>. Supplying <code>pop_size</code> fixes the population-size denominator
-used by known-\(N\) estimators; it does not add or modify finite population correction in <code>svydesign</code>.</p></dd>
+the survey-weight denominator defaults to <code>sum(weights(svydesign))</code>. Supplying <code>pop_size</code> fixes the
+population-size denominator used by known-\(N\) estimators such as IPW-MLE; it does not add or modify finite
+population correction in <code>svydesign</code>. For IPW-MLE without a fixed <code>pop_size</code>, <code>pop_totals</code>, or <code>pop_means</code>,
+the point estimator is Hajek-type, with the estimated IPW-weight total as its denominator. For IPW-GEE with
+<code>svydesign</code>, the point estimator uses the survey-weight denominator <code>sum(weights(svydesign))</code>; if a supplied
+<code>pop_size</code> differs from that denominator, a warning is issued.</p></dd>
 
 
 <dt id="arg-method-selection">method_selection<a class="anchor" aria-label="anchor" href="#arg-method-selection"></a></dt>
@@ -204,6 +208,9 @@ It is assumed that this vector contains frequency or analytic weights (i.e. rows
 <li><p><code>prob_size</code> – a scalar <code>numeric vector</code> denoting the size of probability sample</p></li>
 <li><p><code>pop_size</code> – a scalar <code>numeric vector</code> estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)</p></li>
 <li><p><code>pop_size_fixed</code> – a <code>logical</code> value whether the population size was fixed (known) or estimated (unknown)</p></li>
+<li><p><code>ipw_estimator</code> – a <code>character</code> value with the IPW point-estimator family (<code>"ht"</code> or <code>"hajek"</code>, if applicable)</p></li>
+<li><p><code>ipw_denominator</code> – a scalar <code>numeric vector</code> with the denominator used for the IPW point estimator (if applicable)</p></li>
+<li><p><code>ipw_denominator_source</code> – a <code>character</code> value describing the source of the IPW point-estimator denominator (if applicable)</p></li>
 <li><p><code>pop_totals</code> – a <code>numeric vector</code> with the total values of the auxiliary variables derived from a probability sample or based on the call</p></li>
 <li><p><code>pop_means</code> – a <code>numeric vector</code> with the mean values of the auxiliary variables derived from a probability sample or based on the call</p></li>
 <li><p><code>outcome</code> – a <code>list</code> containing information about the fitting of the mass imputation model. Structure of the object is based on the <code>method_outcome</code> and <code>family_outcome</code> arguments which point to specific methods as defined by functions <code>method_*</code> (if specified in the call)</p></li>
@@ -259,8 +266,16 @@ In general we make the following assumptions:</p><ol><li><p>The selection indica
 </ol><p>There are three possible approaches to the problem of estimating population mean using non-probability samples:</p><ol><li><p>Inverse probability weighting – the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 is available and therefore we can estimate the propensity score of the selection mechanism.
-The estimator has the following form:
-$$\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.$$
+With inverse probability weights \(\hat{d}_i^A = 1 / \hat{\pi}_i^A\), the package supports two
+IPW point-estimator families. The Horvitz-Thompson-type estimator uses an external denominator \(N_0\),
+$$\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_A} w_i \hat{d}_i^A y_i,$$
+where \(w_i\) are optional <code>case_weights</code>. The Hajek-type estimator uses the estimated IPW total as the denominator,
+$$\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_A} w_i \hat{d}_i^A y_i}{\sum_{i \in S_A} w_i \hat{d}_i^A}.$$
+For IPW-MLE, omitting a fixed population size (<code>pop_size</code>, <code>pop_totals</code>, or <code>pop_means</code> with <code>pop_size</code>) gives
+the Hajek-type estimator. Supplying a fixed population size or population totals gives the
+Horvitz-Thompson-type estimator. For IPW-GEE with a reference probability sample, the denominator is
+<code>sum(weights(svydesign))</code>; <code>gee_h_fun</code> changes the selection-model estimating equation, not the point-estimator
+family. For IPW-GEE with population totals or means, the denominator comes from those totals.
 For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 log-likelihood function, which is given by the following formula
 $$
@@ -448,6 +463,7 @@ estimation process of the bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> A nonprob object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: inverse probability weighting</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - method: logit (mle)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 21240.5738)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - auxiliary variables source: survey</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - vars selection: false</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - variance estimator: analytic</span>
@@ -457,9 +473,9 @@ estimation process of the bias minimization approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 11.9242</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 11.9797</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - selected estimators:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.3798 (se=0.5576, ci=(8.2868, 10.4727))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.5155 (se=0.5620, ci=(8.4140, 10.6170))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.5886 (se=0.5655, ci=(8.4802, 10.6969))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y30: 9.5067 (se=0.2247, ci=(9.0663, 9.9471))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y50: 9.6443 (se=0.2062, ci=(9.2401, 10.0485))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    - variable y80: 9.7184 (se=0.1986, ci=(9.3292, 10.1076))</span>
 <span class="r-in"><span><span class="co">## doubly robust estimator</span></span></span>
 <span class="r-in"><span><span class="va">dr_res</span> <span class="op">&lt;-</span> <span class="fu">nonprob</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  outcome <span class="op">=</span> <span class="va">y30</span> <span class="op">+</span> <span class="va">y50</span> <span class="op">+</span> <span class="va">y80</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span>,</span></span>

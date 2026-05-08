@@ -92,10 +92,16 @@ nonprob(
 - pop_size:
 
   an optional `double` value with population size. If omitted when a
-  probability sample is supplied, `pop_size` is estimated as
-  `sum(weights(svydesign))`. Supplying `pop_size` fixes the
-  population-size denominator used by known-\\N\\ estimators; it does
-  not add or modify finite population correction in `svydesign`.
+  probability sample is supplied, the survey-weight denominator defaults
+  to `sum(weights(svydesign))`. Supplying `pop_size` fixes the
+  population-size denominator used by known-\\N\\ estimators such as
+  IPW-MLE; it does not add or modify finite population correction in
+  `svydesign`. For IPW-MLE without a fixed `pop_size`, `pop_totals`, or
+  `pop_means`, the point estimator is Hajek-type, with the estimated
+  IPW-weight total as its denominator. For IPW-GEE with `svydesign`, the
+  point estimator uses the survey-weight denominator
+  `sum(weights(svydesign))`; if a supplied `pop_size` differs from that
+  denominator, a warning is issued.
 
 - method_selection:
 
@@ -244,6 +250,15 @@ contains the following elements:
 - `pop_size_fixed` – a `logical` value whether the population size was
   fixed (known) or estimated (unknown)
 
+- `ipw_estimator` – a `character` value with the IPW point-estimator
+  family (`"ht"` or `"hajek"`, if applicable)
+
+- `ipw_denominator` – a scalar `numeric vector` with the denominator
+  used for the IPW point estimator (if applicable)
+
+- `ipw_denominator_source` – a `character` value describing the source
+  of the IPW point-estimator denominator (if applicable)
+
 - `pop_totals` – a `numeric vector` with the total values of the
   auxiliary variables derived from a probability sample or based on the
   call
@@ -331,14 +346,27 @@ population mean using non-probability samples:
     "biased sample" problem. The inverse probability approach is based
     on the assumption that a reference probability sample is available
     and therefore we can estimate the propensity score of the selection
-    mechanism. The estimator has the following form:
-    \$\$\hat{\mu}\_{IPW} = \frac{1}{N^{A}}\sum\_{i \in S\_{A}}
-    \frac{y\_{i}}{\hat{\pi}\_{i}^{A}}.\$\$ For this purpose several
-    estimation methods can be considered. The first approach is maximum
-    likelihood estimation with a corrected log-likelihood function,
-    which is given by the following formula \$\$
-    \ell^{\*}(\boldsymbol{\theta}) = \sum\_{i \in S\_{A}}\log
-    \left\lbrace \frac{\pi(\boldsymbol{x}\_{i},
+    mechanism. With inverse probability weights \\\hat{d}\_i^A = 1 /
+    \hat{\pi}\_i^A\\, the package supports two IPW point-estimator
+    families. The Horvitz-Thompson-type estimator uses an external
+    denominator \\N_0\\, \$\$\hat{\mu}\_{IPW,HT} = \frac{1}{N_0}\sum\_{i
+    \in S_A} w_i \hat{d}\_i^A y_i,\$\$ where \\w_i\\ are optional
+    `case_weights`. The Hajek-type estimator uses the estimated IPW
+    total as the denominator, \$\$\hat{\mu}\_{IPW,H} = \frac{\sum\_{i
+    \in S_A} w_i \hat{d}\_i^A y_i}{\sum\_{i \in S_A} w_i
+    \hat{d}\_i^A}.\$\$ For IPW-MLE, omitting a fixed population size
+    (`pop_size`, `pop_totals`, or `pop_means` with `pop_size`) gives the
+    Hajek-type estimator. Supplying a fixed population size or
+    population totals gives the Horvitz-Thompson-type estimator. For
+    IPW-GEE with a reference probability sample, the denominator is
+    `sum(weights(svydesign))`; `gee_h_fun` changes the selection-model
+    estimating equation, not the point-estimator family. For IPW-GEE
+    with population totals or means, the denominator comes from those
+    totals. For this purpose several estimation methods can be
+    considered. The first approach is maximum likelihood estimation with
+    a corrected log-likelihood function, which is given by the following
+    formula \$\$ \ell^{\*}(\boldsymbol{\theta}) = \sum\_{i \in
+    S\_{A}}\log \left\lbrace \frac{\pi(\boldsymbol{x}\_{i},
     \boldsymbol{\theta})}{1 -
     \pi(\boldsymbol{x}\_{i},\boldsymbol{\theta})}\right\rbrace +
     \sum\_{i \in S\_{B}}d\_{i}^{B}\log \left\lbrace 1 -
@@ -589,6 +617,7 @@ ipw_res
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 21240.5738)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -598,9 +627,9 @@ ipw_res
 #>    - variable y50: 11.9242
 #>    - variable y80: 11.9797
 #>  - selected estimators:
-#>    - variable y30: 9.3798 (se=0.5576, ci=(8.2868, 10.4727))
-#>    - variable y50: 9.5155 (se=0.5620, ci=(8.4140, 10.6170))
-#>    - variable y80: 9.5886 (se=0.5655, ci=(8.4802, 10.6969))
+#>    - variable y30: 9.5067 (se=0.2247, ci=(9.0663, 9.9471))
+#>    - variable y50: 9.6443 (se=0.2062, ci=(9.2401, 10.0485))
+#>    - variable y80: 9.7184 (se=0.1986, ci=(9.3292, 10.1076))
 ## doubly robust estimator
 dr_res <- nonprob(
   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,

@@ -54,21 +54,23 @@ ipw_est1
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 0.6605
-#>  - selected estimator: 0.7224 (se=NA, ci=(NA, NA))
+#>  - selected estimator: 0.7083 (se=NA, ci=(NA, NA))
 
 update(ipw_est1, se = TRUE)
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 0.6605
-#>  - selected estimator: 0.7224 (se=0.0421, ci=(0.6399, 0.8048))
+#>  - selected estimator: 0.7083 (se=0.0094, ci=(0.6898, 0.7268))
 ```

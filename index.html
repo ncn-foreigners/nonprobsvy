@@ -101,11 +101,11 @@
 <p>Consider the following setting where two samples are available: non-probability (denoted as <span class="math inline">S_A</span>) and probability (denoted as <span class="math inline">S_B</span>) where set of auxiliary variables (denoted as <span class="math inline">\boldsymbol{X}</span>) is available for both sources while <span class="math inline">Y</span> and <span class="math inline">\boldsymbol{d}</span> (or <span class="math inline">\boldsymbol{w}</span>) is present only in probability sample.</p>
 <table class="table">
 <colgroup>
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
+<col width="15%">
+<col width="6%">
+<col width="23%">
+<col width="12%">
+<col width="41%">
 </colgroup>
 <thead><tr>
 <th>Sample</th>
@@ -532,6 +532,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y1: 2.9498 (se=0.0420, ci=(2.8675, 3.0321))</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.5760 (se=0.0326, ci=(1.5122, 1.6398))</span></span></code></pre></div>
 <p>Inverse probability weighting estimator</p>
+<p>For IPW, MLE without a fixed <code>pop_size</code>, <code>pop_totals</code>, or <code>pop_means</code> uses the Hajek-type estimator. Supplying a fixed population size uses the Horvitz-Thompson-type estimator, while IPW-GEE with a reference survey uses <code>sum(weights(svydesign))</code> as the denominator.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
 <span>  selection <span class="op">=</span> <span class="op">~</span> <span class="va">x2</span>,</span>
@@ -544,6 +545,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
 <span><span class="co">#&gt;  - method: logit (mle)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1041763.6177)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -552,8 +554,8 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
 <span><span class="co">#&gt;  - selected estimators:</span></span>
-<span><span class="co">#&gt;    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))</span></span>
-<span><span class="co">#&gt;    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))</span></span></code></pre></div>
+<span><span class="co">#&gt;    - variable y1: 2.9017 (se=0.0823, ci=(2.7403, 3.0631))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5287 (se=0.0823, ci=(1.3673, 1.6900))</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>

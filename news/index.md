@@ -2,6 +2,10 @@
 
 ## nonprobsvy (development version)
 
+- aligned IPW point-estimator denominators with Horvitz-Thompson vs
+  Hajek estimator behavior, added estimator-family metadata and print
+  output, and documented when each estimator is used (closes
+  [\#89](https://github.com/ncn-foreigners/nonprobsvy/issues/89))
 - fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits
   by aligning outcome-specific variance and confidence-interval indexing
   (closes

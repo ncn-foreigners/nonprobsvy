@@ -39,9 +39,9 @@ svydesign = jvs_svy,
 data = admin, method_selection = "logit"
 )
 extract(ipw_est1)
-#>         target      mean         SE lower_bound upper_bound
-#> 1 single_shift 0.7223628 0.04207711   0.6398932   0.8048324
+#>         target      mean          SE lower_bound upper_bound
+#> 1 single_shift 0.7083229 0.009436904   0.6898269   0.7268189
 extract(ipw_est1, "se")
-#>         target         SE
-#> 1 single_shift 0.04207711
+#>         target          SE
+#> 1 single_shift 0.009436904
 ```

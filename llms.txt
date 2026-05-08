@@ -243,6 +243,11 @@ result_mi
 
 Inverse probability weighting estimator
 
+For IPW, MLE without a fixed `pop_size`, `pop_totals`, or `pop_means`
+uses the Hajek-type estimator. Supplying a fixed population size uses
+the Horvitz-Thompson-type estimator, while IPW-GEE with a reference
+survey uses `sum(weights(svydesign))` as the denominator.
+
 ``` r
 
 result_ipw <- nonprob(
@@ -260,6 +265,7 @@ result_ipw
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1041763.6177)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -268,8 +274,8 @@ result_ipw
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))
-#>    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))
+#>    - variable y1: 2.9017 (se=0.0823, ci=(2.7403, 3.0631))
+#>    - variable y2: 1.5287 (se=0.0823, ci=(1.3673, 1.6900))
 ```
 
 ## Funding

@@ -74,6 +74,9 @@ the estimator (i.e. IPW, MI, DR)</p>
 <li><p><code>prob_size</code> size of the probability sample</p></li>
 <li><p><code>pop_size</code> population size</p></li>
 <li><p><code>pop_size_fixed</code> whether the population size is treated as fixed</p></li>
+<li><p><code>ipw_estimator</code> IPW point-estimator family (<code>"ht"</code> or <code>"hajek"</code>)</p></li>
+<li><p><code>ipw_denominator</code> denominator used for the IPW point estimator</p></li>
+<li><p><code>ipw_denominator_source</code> source of the IPW point-estimator denominator</p></li>
 <li><p><code>no_prob</code> whether probability sample was provided</p></li>
 <li><p><code>outcome</code> model details</p></li>
 <li><p><code>selection</code> selection details</p></li>
@@ -106,9 +109,10 @@ the estimator (i.e. IPW, MI, DR)</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - call: nonprob(data = admin, selection = ~region + private + nace + </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - estimator type: inverse probability weighting</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - nonprob sample size: 9344 (18%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - prob sample size: 6523 (12.6%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - population size: 51870 (fixed: false)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - nonprob sample size: 9344 (17.7%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - prob sample size: 6523 (12.3%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - population size: 52898 (fixed: false)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - detailed information about models are stored in list element(s): "selection"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ----------------------------------------------------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sum of IPW weights: 52898.13 </span>

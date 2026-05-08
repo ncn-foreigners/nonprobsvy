@@ -2,11 +2,12 @@
 
 Returns population size that is assumed to be
 
-- `fixed` – if it is based on the `pop_size` argument,
+- `fixed` – if it is based on the `pop_size` argument or population
+  totals,
 
 - `estimated` – if it is based on the probability survey specified in
-  the `svydesign` or based on the estimated propensity scores for the
-  non-probability sample.
+  the `svydesign` or, for Hajek-type IPW-MLE, on the estimated IPW total
+  for the non-probability sample.
 
 ## Usage
 
@@ -50,7 +51,7 @@ control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
 ## estimated population size based on the non-calibrated IPW (MLE)
 pop_size(ipw_est1)
 #> pop_size 
-#>    51870 
+#> 52898.13 
 
 ## estimated population size based on the calibrated IPW (GEE)
 pop_size(ipw_est2)
