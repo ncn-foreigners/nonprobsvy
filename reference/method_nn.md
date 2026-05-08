@@ -246,5 +246,5 @@ res_nn <- method_nn(y_nons = admin$single_shift,
                     svydesign = jvs_svy)
 
 res_nn
-#> Mass imputation model (NN approach). Estimated mean: 0.6800 (se: 0.0348)
+#> Mass imputation model (NN approach). Estimated mean: 0.6983 (se: 0.0368)
 ```

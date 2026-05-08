@@ -253,5 +253,5 @@ res_pmm <- method_pmm(y_nons = admin$single_shift,
                       svydesign = jvs_svy)
 
 res_pmm
-#> Mass imputation model (PMM approach). Estimated mean: 0.6969 (se: 0.0360)
+#> Mass imputation model (PMM approach). Estimated mean: 0.6961 (se: 0.0360)
 ```

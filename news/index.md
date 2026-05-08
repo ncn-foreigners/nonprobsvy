@@ -27,8 +27,10 @@
   multi-outcome NN mass-imputation fits (closes
   [\#104](https://github.com/ncn-foreigners/nonprobsvy/issues/104))
 - randomized equal-distance nearest-neighbor tie handling before donor
-  aggregation, including exact small-grid tie handling at the distance
-  cutoff (closes
+  aggregation, including hidden cutoff ties beyond the neighbours
+  initially returned by
+  [`RANN::nn2()`](https://jefferislab.github.io/RANN/reference/nn2.html)
+  (closes
   [\#105](https://github.com/ncn-foreigners/nonprobsvy/issues/105))
 - changed PMM `pmm_k_choice = "min_var"` to perform a full search over
   the candidate `k` grid rather than stopping at the first non-improving
