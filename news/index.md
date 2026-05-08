@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+- improved the Rcpp variable-selection cross-validation code and added
+  benchmark evidence for the speedup (closes
+  [\#103](https://github.com/ncn-foreigners/nonprobsvy/issues/103))
 - added DR regression tests for one-outcome versus multi-outcome
   analytic uncertainty-component consistency and multi-outcome bootstrap
   output shapes (addresses part of
