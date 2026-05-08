@@ -2,6 +2,10 @@
 
 ## nonprobsvy (development version)
 
+- added MI regression tests for one-outcome versus multi-outcome output,
+  confidence-interval, and uncertainty-component consistency across GLM,
+  NN, PMM, and NPAR backends (addresses part of
+  [\#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))
 - added IPW regression tests for one-outcome versus multi-outcome
   analytic variance, HT versus Hajek denominator metadata, and
   probit/cloglog variable-selection smoke coverage (addresses part of
