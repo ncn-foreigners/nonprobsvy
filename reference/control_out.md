@@ -14,6 +14,7 @@ control_out(
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
+  lambda = -1,
   lambda_min = 0.001,
   nlambda = 100,
   nfolds = 10,
@@ -61,6 +62,11 @@ control_out(
 
   The tuning parameter of the MCP penalty for outcome model. Default is
   3.
+
+- lambda:
+
+  A user-specified \\\lambda\\ value during variable selection model
+  fitting. The default value `-1` uses cross-validation.
 
 - lambda_min:
 

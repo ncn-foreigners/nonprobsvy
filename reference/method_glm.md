@@ -92,7 +92,7 @@ an `nonprob_method` class which is a `list` with the following entries
 
 - model_fitted:
 
-  fitted model either an `glm.fit` or `cv.ncvreg` object
+  fitted model either a `glm.fit`, `cv.ncvreg`, or `ncvreg` object
 
 - y_nons_pred:
 
