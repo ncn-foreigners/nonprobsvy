@@ -1,3 +1,23 @@
+clamp_prob <- function(p, eps = .Machine$double.eps) {
+  p[is.na(p) | p == -Inf] <- eps
+  p[p == Inf] <- 1 - eps
+  p[p < eps] <- eps
+  p[p > 1 - eps] <- 1 - eps
+  p
+}
+
+stable_softplus <- function(eta) {
+  out <- eta
+  pos <- eta > 0
+  out[pos] <- eta[pos] + log1p(exp(-eta[pos]))
+  out[!pos] <- log1p(exp(eta[!pos]))
+  out
+}
+
+stable_cloglog_rate <- function(eta, eps = .Machine$double.eps) {
+  exp(pmin(pmax(eta, log(eps)), log(-log(eps))))
+}
+
 #' @title Propensity Score Model Functions
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
@@ -77,36 +97,48 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   cloglog <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       log(-log1p(-mu))
     } # link
 
     inv_link <- function(eta) {
-      -expm1(-exp(eta))
+      clamp_prob(-expm1(-stable_cloglog_rate(eta)))
     } # inverse link
 
     dlink <- function(mu) {
+      mu <- clamp_prob(mu)
       1 / ((mu - 1) * log1p(-mu))
     } # first derivative of link
 
     dinv_link <- function(eta) {
-      exp(eta - exp(eta))
+      exp_eta <- stable_cloglog_rate(eta)
+      out <- exp_eta * exp(-exp_eta)
+      out[!is.finite(out)] <- 0
+      out
     } # first derivative of inverse link
 
     inv_link_rev <- function(eta) {
-      ee <- exp(eta)
-      eee <- exp(ee)
-      -ee * eee / (eee - 1)^2
+      exp_eta <- stable_cloglog_rate(eta)
+      ps <- inv_link(eta)
+      out <- -exp_eta * exp(-exp_eta) / ps^2
+      out[!is.finite(out)] <- 0
+      out
     } # first derivative of 1/inv_link
 
     dinv_link_rev <- function(eta) {
-      ee <- exp(eta)
-      eee <- exp(ee)
-      num <- -eee * ee * (-eee + ee + ee * eee + 1)
-      den <- (eee - 1)^3
-      num / den
+      exp_eta <- stable_cloglog_rate(eta)
+      exp_neg_exp_eta <- exp(-exp_eta)
+      ps <- inv_link(eta)
+      out <- exp_eta * exp_neg_exp_eta * (exp_eta - 1) / ps^2 +
+        2 * exp_eta^2 * exp_neg_exp_eta^2 / ps^3
+      out[!is.finite(out)] <- 0
+      out
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
-      exp(eta - exp(eta)) * (1 - exp(eta))
+      exp_eta <- stable_cloglog_rate(eta)
+      out <- exp_eta * exp(-exp_eta) * (1 - exp_eta)
+      out[!is.finite(out)] <- 0
+      out
     }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
@@ -119,8 +151,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
 
         # original formula for numerical stability
-        log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
-        log_like2 <- sum(weights_rand * log(1 - invLink2))
+        log_like1 <- sum(weights * (log(invLink1) - log1p(-invLink1)))
+        log_like2 <- sum(weights_rand * log1p(-invLink2))
 
         log_like1 + log_like2
       }
@@ -134,7 +166,10 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        t(crossprod(X_nons, weights * exp(eta1) / invLink1) - crossprod(X_rand, weights_rand * exp(eta2)))
+        exp_eta1 <- stable_cloglog_rate(eta1)
+        exp_eta2 <- stable_cloglog_rate(eta2)
+
+        t(crossprod(X_nons, weights * exp_eta1 / invLink1) - crossprod(X_rand, weights_rand * exp_eta2))
 
       }
     }
@@ -148,8 +183,11 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         # weights_sum <- sum(weights, weights_rand)
 
         # Compute the weight vectors first for clarity
-        w_nons <- weights * exp(eta1) / invLink1 * (1 - exp(eta1) / invLink1 + exp(eta1))
-        w_rand <- weights_rand * exp(eta2)
+        exp_eta1 <- stable_cloglog_rate(eta1)
+        exp_eta2 <- stable_cloglog_rate(eta2)
+
+        w_nons <- weights * exp_eta1 / invLink1 * (1 - exp_eta1 / invLink1 + exp_eta1)
+        w_rand <- weights_rand * exp_eta2
         mat1 <- crossprod(as.matrix(X_nons), diag(w_nons) %*% as.matrix(X_nons))
         mat2 <- crossprod(as.matrix(X_rand), diag(w_rand) %*% as.matrix(X_rand))
 
@@ -347,33 +385,38 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   logit <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       qlogis(mu)
     } # link
     inv_link <- function(eta) {
-      plogis(eta)
+      clamp_prob(plogis(eta))
     } # inverse link
     dlink <- function(mu) {
+      mu <- clamp_prob(mu)
       1 / (mu * (1 - mu))
     } # first derivative of link
     dinv_link <- function(eta) {
-      p <- plogis(eta)
+      p <- inv_link(eta)
       p * (1 - p)
     } # first derivative of inverse link
     inv_link_rev <- function(eta) {
-      -exp(-eta)
+      p <- inv_link(eta)
+      -(1 - p) / p
     } # first derivative of 1/inv_link
     dinv_link_rev <- function(eta) {
-      exp(-eta)
+      p <- inv_link(eta)
+      (1 - p) / p
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
-      exp(eta) * (1 - exp(eta)) / (1 + exp(eta))^3
+      p <- inv_link(eta)
+      p * (1 - p) * (1 - 2 * p)
     }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
         eta1 <- drop(X_nons %*% theta) # linear predictor
         eta2 <- drop(X_rand %*% theta)
         log_like1 <- sum(weights * eta1)
-        log_like2 <- -sum(weights_rand * log1p(exp(eta2)))
+        log_like2 <- -sum(weights_rand * stable_softplus(eta2))
         log_like1 + log_like2
       }
     }
@@ -548,7 +591,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
-      make_link_inv_rev_der = dinv_link_rev2,
+      make_link_inv_rev_der2 = dinv_link_rev2,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,
@@ -560,20 +603,22 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   probit <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       qnorm(mu)
     } # link
     inv_link <- function(eta) {
-      pnorm(eta)
+      clamp_prob(pnorm(eta))
     } # inverse link
     dinv_link <- function(eta) {
       dnorm(eta)
     } # first derivative of inverse link
-    dlink <- function(mu) 1 / dnorm(qnorm(mu)) # first derivative of link
+    dlink <- function(mu) 1 / dnorm(qnorm(clamp_prob(mu))) # first derivative of link
     inv_link_rev <- function(eta) {
-      -dnorm(eta) / pnorm(eta)^2
+      -dnorm(eta) / inv_link(eta)^2
     } # first derivative of 1/inv_link
     dinv_link_rev <- function(eta) {
-      -dnorm(eta) * (eta + dnorm(eta)) / pnorm(eta)^3
+      ps <- inv_link(eta)
+      -dnorm(eta) * (eta + dnorm(eta)) / ps^3
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
       -eta * dnorm(eta)
@@ -586,8 +631,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
-        log_like2 <- sum(weights_rand * log(1 - invLink2))
+        log_like1 <- sum(weights * (log(invLink1) - log1p(-invLink1)))
+        log_like2 <- sum(weights_rand * log1p(-invLink2))
         log_like1 + log_like2
       }
     }

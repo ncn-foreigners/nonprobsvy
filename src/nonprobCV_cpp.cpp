@@ -1,5 +1,7 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+#include <cmath>
+#include <limits>
 //#include <Eigen/Dense>
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -7,6 +9,33 @@ using namespace Rcpp;
 using namespace arma;
 using namespace std;
 //using namespace Eigen;
+
+inline arma::vec clamp_probability(const arma::vec& ps) {
+  arma::vec out = ps;
+  const double eps = std::numeric_limits<double>::epsilon();
+  const double upper = 1.0 - eps;
+
+  for (arma::uword i = 0; i < out.n_elem; ++i) {
+    if (std::isnan(out(i)) ||
+        out(i) == -std::numeric_limits<double>::infinity() ||
+        out(i) < eps) {
+      out(i) = eps;
+    } else if (out(i) == std::numeric_limits<double>::infinity()) {
+      out(i) = upper;
+    } else if (out(i) > upper) {
+      out(i) = upper;
+    }
+  }
+
+  return out;
+}
+
+inline double stable_cloglog_rate(double eta) {
+  const double eps = std::numeric_limits<double>::epsilon();
+  const double lower = std::log(eps);
+  const double upper = std::log(-std::log(eps));
+  return std::exp(std::min(std::max(eta, lower), upper));
+}
 
 inline double loss_theta(const vec& par,
                          const vec& R,
@@ -24,7 +53,7 @@ inline double loss_theta(const vec& par,
   Function inv_link = method["make_link_inv"];
 
   vec eta_pi = X * par;
-  vec ps = as<vec>(inv_link(eta_pi));
+  vec ps = clamp_probability(as<vec>(inv_link(eta_pi)));
   vec R_rand = 1 - R;
 
   // Preallocate temporary matrix
@@ -81,7 +110,7 @@ inline arma::vec u_theta(const arma::vec& par,
   Function inv_link = method["make_link_inv"];
 
   vec eta_pi = X * par;
-  vec ps = as<vec>(inv_link(eta_pi));
+  vec ps = clamp_probability(as<vec>(inv_link(eta_pi)));
   vec R_rand = 1 - R;
   double N_nons = sum(1/ps);
 
@@ -124,7 +153,7 @@ arma::mat u_theta_der(const arma::vec& par,
 
   //int p = X0.n_cols;
   arma::vec eta_pi = X * par;
-  arma::vec ps = as<arma::vec>(inv_link(eta_pi));
+  arma::vec ps = clamp_probability(as<arma::vec>(inv_link(eta_pi)));
   arma::vec R_rand = 1 - R;
   arma::vec psd;
 
@@ -152,7 +181,7 @@ arma::mat u_theta_der(const arma::vec& par,
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R(i) * weights(i) * (1-ps(i))/pow(ps(i), 2) * exp(eta_pi(i)) * X_row.t();
+        temp = R(i) * weights(i) * (1-ps(i))/pow(ps(i), 2) * stable_cloglog_rate(eta_pi(i)) * X_row.t();
         mxDer += temp * X_row;
       }
     } else if (method_selection == "probit") {
@@ -166,13 +195,13 @@ arma::mat u_theta_der(const arma::vec& par,
     if (method_selection == "logit") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * ps(i)/(exp(eta_pi(i)) + 1) * X_row.t();
+        temp = R_rand(i) * weights(i) * ps(i) * (1 - ps(i)) * X_row.t();
         mxDer += temp * X_row;
       }
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
         X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * (1-ps(i)) * exp(eta_pi(i)) * X_row.t();
+        temp = R_rand(i) * weights(i) * (1-ps(i)) * stable_cloglog_rate(eta_pi(i)) * X_row.t();
         mxDer += temp * X_row;
       }
     } else if (method_selection == "probit") {

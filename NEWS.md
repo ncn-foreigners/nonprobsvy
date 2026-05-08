@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ stabilized extreme-propensity IPW computations by clamping fitted probabilities, using tail-stable log-likelihood formulas, and guarding Rcpp variable-selection weights (closes [#102](https://github.com/ncn-foreigners/nonprobsvy/issues/102))
 + clarified supported data structures, estimator-by-outcome scope, README examples, and `verbose` argument documentation (closes [#95](https://github.com/ncn-foreigners/nonprobsvy/issues/95), [#97](https://github.com/ncn-foreigners/nonprobsvy/issues/97), [#98](https://github.com/ncn-foreigners/nonprobsvy/issues/98))
 + tightened validation for `pop_means`, `case_weights`, and logical inference-control flags so unsupported inputs fail early with clearer messages (closes [#96](https://github.com/ncn-foreigners/nonprobsvy/issues/96))
 + fixed multicore IPW bootstrap for population-totals-only runs and kept bootstrap replicate output shapes consistent (closes [#94](https://github.com/ncn-foreigners/nonprobsvy/issues/94))
