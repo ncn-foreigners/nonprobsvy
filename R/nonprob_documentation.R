@@ -42,7 +42,7 @@
 #' @param control_inference a `list` (default `control_inf()` result) indicating parameters to be used for inference based on probability and non-probability samples. To change the parameters one should use the `control_inf()` function
 #' @param start_selection an optional `vector` with starting values for the parameters of the selection equation
 #' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation
-#' @param verbose a numerical value (default `TRUE`) whether detailed information on the fitting should be presented
+#' @param verbose a logical value (default `FALSE`) whether detailed information on the fitting should be presented
 #' @param se Logical value (default `TRUE`) indicating whether to calculate and return standard error of estimated mean
 #' @param ... Additional, optional arguments (not yet supported)
 #'
@@ -80,6 +80,16 @@
 #' }
 #' Instead of a sample of units we can consider a vector of population sums in the form of \eqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
 #' \eqn{\frac{\tau_x}{N}}, where \eqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \eqn{S_B}.
+#' The implemented estimators assume that outcome values are observed for the non-probability sample \eqn{S_A}; outcome values observed in the probability sample \eqn{S_B} are not used.
+#' Linked overlap handling for units appearing in both samples is not currently implemented; `control_sel()` arguments `dependence` and `key` are placeholders for future development.
+#'
+#' Supported outcome types depend on the estimator family:
+#' \itemize{
+#'   \item IPW: numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted.
+#'   \item Mass imputation with `method_outcome = "glm"`: continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.
+#'   \item Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"`: numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported.
+#'   \item Doubly robust: GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.
+#' }
 #' In general we make the following assumptions:
 #' 1.  The selection indicator of belonging to non-probability sample \eqn{R_{i}} and the response variable \eqn{y_i} are independent given the set of covariates \eqn{\boldsymbol{x}_i}.
 #' 2.  All units have a non-zero propensity score, i.e., \eqn{\pi_{i}^{A} > 0} for all i.
