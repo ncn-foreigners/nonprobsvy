@@ -21,7 +21,7 @@
 #' @param svydesign an optional `svydesign2` class object containing a probability sample and design weights.
 #' If finite population correction should affect survey-side variance estimates, include the fpc in this object.
 #' @param pop_totals an optional `named vector` with population totals of the covariates
-#' @param pop_means an optional `named vector` with population means of the covariates
+#' @param pop_means an optional `named vector` with population means of the covariates; `pop_size` must be supplied when `pop_means` is used
 #' @param pop_size an optional `double` value with population size. If omitted when a probability sample is supplied,
 #' the survey-weight denominator defaults to `sum(weights(svydesign))`. Supplying `pop_size` fixes the
 #' population-size denominator used by known-\eqn{N} estimators such as IPW-MLE; it does not add or modify finite
@@ -34,7 +34,7 @@
 #' @param family_outcome a `character` (default `gaussian`)  describing the error distribution and the link function to be used in the model. Currently supports: `gaussian` with the identity link, `poisson` and `binomial`.
 #' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process
 #' @param strata an optional `vector` specifying strata (not yet supported, for further development)
-#' @param case_weights an optional `vector` of prior weights to be used in the fitting process.
+#' @param case_weights an optional positive, finite `numeric vector` of prior weights to be used in the fitting process.
 #' It is assumed that this vector contains frequency or analytic weights (i.e. rows of the `data` argument are repeated according to the values of the `case_weights` argument), not probability/design weights.
 #' @param na_action a function which indicates what should happen when the data contain `NAs` (default `na.omit` and it is the only method currently supported)
 #' @param control_selection a `list` (default `control_sel()` result) indicating parameters to be used when fitting the selection model for propensity scores. To change the parameters one should use the `control_sel()` function

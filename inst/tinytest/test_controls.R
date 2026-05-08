@@ -21,6 +21,21 @@ expect_equal(
        alpha = 0.05, cores = 1, keep_boot = TRUE, nn_exact_se = FALSE)
 )
 
+expect_error(
+  control_inf(vars_selection = c(TRUE, FALSE)),
+  "'vars_selection' must be a logical scalar"
+)
+
+expect_error(
+  control_inf(vars_combine = 1),
+  "'vars_combine' must be a logical scalar"
+)
+
+expect_error(
+  control_inf(bias_correction = NA),
+  "'bias_correction' must be a logical scalar"
+)
+
 expect_equal(
   control_out(),
   list(epsilon = 1e-8, maxit = 100, trace = FALSE, k = 5, penalty = "SCAD",
@@ -34,5 +49,4 @@ expect_equal(
 
 
 # test that control methods actually work ------------------------------------------
-
 

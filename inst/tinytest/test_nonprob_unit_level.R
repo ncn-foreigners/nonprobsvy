@@ -145,6 +145,45 @@ expect_error(
   "The `case_weights` argument must be a numeric vector"
 )
 
+bad_weights <- rep(1, nrow(admin))
+bad_weights[1] <- NA_real_
+expect_error(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    case_weights = bad_weights
+  ),
+  "The `case_weights` argument cannot contain missing values"
+)
+
+bad_weights <- rep(1, nrow(admin))
+bad_weights[1] <- Inf
+expect_error(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    case_weights = bad_weights
+  ),
+  "The `case_weights` argument must contain only finite values"
+)
+
+bad_weights <- rep(1, nrow(admin))
+bad_weights[1] <- 0
+expect_error(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    svydesign = jvs_svy,
+    data = admin,
+    case_weights = bad_weights
+  ),
+  "The `case_weights` argument must contain only positive values"
+)
+
 
 expect_error(
   nonprob(
@@ -155,7 +194,6 @@ expect_error(
   ),
   "The `data` argument cannot be an empty data frame."
 )
-
 
 
 

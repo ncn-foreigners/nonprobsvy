@@ -24,11 +24,11 @@ control_inf(
 \item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{"subbootstrap"}.}
 
-\item{vars_selection}{default \code{FALSE}; if \code{TRUE}, then the variables selection model is used.}
+\item{vars_selection}{logical scalar (default \code{FALSE}); if \code{TRUE}, then the variables selection model is used.}
 
-\item{vars_combine}{whether variables should be combined after variable selection for doubly robust estimators (default \code{FALSE})}
+\item{vars_combine}{logical scalar indicating whether variables should be combined after variable selection for doubly robust estimators (default \code{FALSE})}
 
-\item{bias_correction}{default \code{FALSE}; if \code{TRUE}, then the bias minimization estimation used during model fitting.}
+\item{bias_correction}{logical scalar (default \code{FALSE}); if \code{TRUE}, then the bias minimization estimation used during model fitting.}
 
 \item{num_boot}{the number of iteration for bootstrap algorithms.}
 

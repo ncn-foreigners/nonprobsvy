@@ -6,9 +6,9 @@
 #' @param var_method the variance method (default `"analytic"`).
 #' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `"subbootstrap"`.
-#' @param vars_selection default `FALSE`; if `TRUE`, then the variables selection model is used.
-#' @param vars_combine whether variables should be combined after variable selection for doubly robust estimators (default `FALSE`)
-#' @param bias_correction default `FALSE`; if `TRUE`, then the bias minimization estimation used during model fitting.
+#' @param vars_selection logical scalar (default `FALSE`); if `TRUE`, then the variables selection model is used.
+#' @param vars_combine logical scalar indicating whether variables should be combined after variable selection for doubly robust estimators (default `FALSE`)
+#' @param bias_correction logical scalar (default `FALSE`); if `TRUE`, then the bias minimization estimation used during model fitting.
 #' @param num_boot the number of iteration for bootstrap algorithms.
 #' @param alpha significance level (default 0.05).
 #' @param cores the number of cores in parallel computing (default 1).
@@ -47,23 +47,38 @@ control_inf <- function(var_method = c("analytic", "bootstrap"),
   var_method <- match.arg(var_method)
   rep_type <- match.arg(rep_type)
 
-  if (!is.logical(keep_boot) || length(keep_boot) != 1) {
+  is_logical_scalar <- function(x) is.logical(x) && length(x) == 1 && !is.na(x)
+  is_numeric_scalar <- function(x) is.numeric(x) && length(x) == 1 && !is.na(x) && is.finite(x)
+
+  if (!is_logical_scalar(vars_selection)) {
+    stop("'vars_selection' must be a logical scalar")
+  }
+
+  if (!is_logical_scalar(vars_combine)) {
+    stop("'vars_combine' must be a logical scalar")
+  }
+
+  if (!is_logical_scalar(bias_correction)) {
+    stop("'bias_correction' must be a logical scalar")
+  }
+
+  if (!is_logical_scalar(keep_boot)) {
     stop("'keep_boot' must be a logical scalar")
   }
 
-  if (!is.logical(nn_exact_se) || length(nn_exact_se) != 1) {
+  if (!is_logical_scalar(nn_exact_se)) {
     stop("'nn_exact_se' must be a logical scalar")
   }
 
-  if (!is.numeric(num_boot) || num_boot < 1 || num_boot %% 1 != 0) {
+  if (!is_numeric_scalar(num_boot) || num_boot < 1 || num_boot %% 1 != 0) {
     stop("'num_boot' must be a positive integer")
   }
 
-  if (!is.numeric(alpha) || alpha <= 0 || alpha >= 1) {
+  if (!is_numeric_scalar(alpha) || alpha <= 0 || alpha >= 1) {
     stop("'alpha' must be between 0 and 1")
   }
 
-  if (!is.numeric(cores) || cores < 1 || cores %% 1 != 0) {
+  if (!is_numeric_scalar(cores) || cores < 1 || cores %% 1 != 0) {
     stop("'cores' must be a positive integer")
   }
 

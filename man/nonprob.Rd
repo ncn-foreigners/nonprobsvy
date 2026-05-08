@@ -44,7 +44,7 @@ If finite population correction should affect survey-side variance estimates, in
 
 \item{pop_totals}{an optional \verb{named vector} with population totals of the covariates}
 
-\item{pop_means}{an optional \verb{named vector} with population means of the covariates}
+\item{pop_means}{an optional \verb{named vector} with population means of the covariates; \code{pop_size} must be supplied when \code{pop_means} is used}
 
 \item{pop_size}{an optional \code{double} value with population size. If omitted when a probability sample is supplied,
 the survey-weight denominator defaults to \code{sum(weights(svydesign))}. Supplying \code{pop_size} fixes the
@@ -64,7 +64,7 @@ the point estimator is Hajek-type, with the estimated IPW-weight total as its de
 
 \item{strata}{an optional \code{vector} specifying strata (not yet supported, for further development)}
 
-\item{case_weights}{an optional \code{vector} of prior weights to be used in the fitting process.
+\item{case_weights}{an optional positive, finite \code{numeric vector} of prior weights to be used in the fitting process.
 It is assumed that this vector contains frequency or analytic weights (i.e. rows of the \code{data} argument are repeated according to the values of the \code{case_weights} argument), not probability/design weights.}
 
 \item{na_action}{a function which indicates what should happen when the data contain \code{NAs} (default \code{na.omit} and it is the only method currently supported)}

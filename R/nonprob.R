@@ -73,12 +73,17 @@ nonprob <- function(data,
     stop("The `pop_means` argument must be a vector.")
   }
 
-  if (!is.null(pop_size) && (!is.numeric(pop_size) || pop_size <= 0)) {
+  if (!is.null(pop_size) &&
+      (!is.numeric(pop_size) || length(pop_size) != 1 ||
+       is.na(pop_size) || !is.finite(pop_size) || pop_size <= 0)) {
     stop("The `pop_size` argument must be a positive numeric scalar.")
   }
 
   if (!is.null(pop_totals) && !is.null(pop_means)) {
     stop("Specify one of the `pop_totals` or `pop_means` arguments, not both.")
+  }
+  if (!is.null(pop_means) && is.null(pop_size)) {
+    stop("The `pop_size` argument must be supplied when `pop_means` is supplied.")
   }
   if (!is.null(pop_size) && pop_size < nrow(data)) {
     stop("The `pop_size` argument cannot be smaller than sample size.")
@@ -90,6 +95,15 @@ nonprob <- function(data,
   }
   if (!is.null(case_weights) && length(case_weights) != nrow(data)) {
     stop("Length of the `case_weights` argument must match the number of rows in data.")
+  }
+  if (!is.null(case_weights) && anyNA(case_weights)) {
+    stop("The `case_weights` argument cannot contain missing values.")
+  }
+  if (!is.null(case_weights) && !all(is.finite(case_weights))) {
+    stop("The `case_weights` argument must contain only finite values.")
+  }
+  if (!is.null(case_weights) && any(case_weights <= 0)) {
+    stop("The `case_weights` argument must contain only positive values.")
   }
 
   ## selection and outcome should be specified
