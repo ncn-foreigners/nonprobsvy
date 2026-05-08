@@ -18,7 +18,8 @@ method_nn(
   control_outcome = control_out(),
   control_inference = control_inf(),
   verbose = FALSE,
-  se = TRUE
+  se = TRUE,
+  nn_matches = NULL
 )
 }
 \arguments{
@@ -51,6 +52,10 @@ to their inverses.}
 \item{verbose}{parameter passed from the main \code{nonprob} function}
 
 \item{se}{whether standard errors should be calculated}
+
+\item{nn_matches}{optional precomputed nearest-neighbour search results for
+internal reuse across outcomes. If supplied, it should be a list with
+\code{rand} and \code{nons} entries from \code{\link[RANN:nn2]{RANN::nn2()}}.}
 }
 \value{
 an \code{nonprob_method} class which is a \code{list} with the following entries
@@ -75,7 +80,9 @@ Mass imputation using nearest neighbours approach as described in Yang et al. (2
 The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
 Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
 Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
-are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample.
+are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
+when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
 }
 \details{
 Analytical variance
@@ -92,7 +99,9 @@ This may be estimated using
 
 where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
 we currently estimate using \eqn{n_A/N} (constant) and \eqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
-estimated using based on the average of \eqn{(y_i - y_i^*)^2}.
+estimated using based on the average of \eqn{(y_i - y_i^*)^2}. The \eqn{y_i^*}
+values used in this proxy are obtained by leave-one-out matching in \eqn{S_A},
+so a unit is not used as its own donor.
 
 Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 (without assuming that it is consistent) but with good finite population properties.

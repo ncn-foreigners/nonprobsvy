@@ -71,7 +71,9 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
-either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample.
+either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample:
+when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
 Matching ties are randomized by the nearest-neighbour step before donor values are aggregated.
 
 This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
@@ -83,8 +85,8 @@ matrix returned by \link[RANN:nn2]{RANN::nn2} function (\code{pmm_weights} from 
 approach to estimate variance from the non-probability sample  (\code{nn_exact_se} from the \code{\link[=control_inf]{control_inf()}} function).
 If non-constant pseudo-weights are supplied, bootstrap samples are drawn with probabilities
 proportional to inverse weights and the resampled weights are used in each refitted outcome model.}
-\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on the
-variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
+\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on a
+full-grid variance minimization procedure over \code{1:n_A} (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
 }
 }
 \details{

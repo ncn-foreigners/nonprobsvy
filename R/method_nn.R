@@ -1,7 +1,7 @@
 #' @title Mass Imputation Using Nearest Neighbours Matching Method
 #'
 #' @importFrom stats update
-#' @importFrom survey svymean
+#' @importFrom survey svytotal
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
 #'
@@ -10,7 +10,9 @@
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
 #' Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
 #' Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
-#' are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample.
+#' are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
+#' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
 #'
 #'
 #' @details Analytical variance
@@ -27,7 +29,9 @@
 #'
 #' where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
 #' we currently estimate using \eqn{n_A/N} (constant) and \eqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
-#' estimated using based on the average of \eqn{(y_i - y_i^*)^2}.
+#' estimated using based on the average of \eqn{(y_i - y_i^*)^2}. The \eqn{y_i^*}
+#' values used in this proxy are obtained by leave-one-out matching in \eqn{S_A},
+#' so a unit is not used as its own donor.
 #'
 #' Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 #' (without assuming that it is consistent) but with good finite population properties.
@@ -73,6 +77,9 @@
 #' @param control_inference controls passed by the `control_inf` function
 #' @param verbose parameter passed from the main `nonprob` function
 #' @param se whether standard errors should be calculated
+#' @param nn_matches optional precomputed nearest-neighbour search results for
+#'   internal reuse across outcomes. If supplied, it should be a list with
+#'   `rand` and `nons` entries from [RANN::nn2()].
 #'
 #' @returns an `nonprob_method` class which is a `list` with the following entries
 #'
@@ -126,7 +133,8 @@ method_nn <- function(y_nons,
                       control_outcome=control_out(),
                       control_inference=control_inf(),
                       verbose=FALSE,
-                      se=TRUE) {
+                      se=TRUE,
+                      nn_matches=NULL) {
 
   if (missing(y_nons) | missing(X_nons)) {
     stop("`y_nons` and `X_nons`, `X_rand` are required.")
@@ -149,7 +157,7 @@ method_nn <- function(y_nons,
       if (!any(keep)) next
       if (!any(duplicated(dists[keep]))) next
 
-      ord <- order(dists[keep], runif(sum(keep)))
+      ord <- order(dists[keep], stats::runif(sum(keep)))
       idx_mat[i, keep] <- idx[keep][ord]
       dist_mat[i, keep] <- dists[keep][ord]
     }
@@ -157,45 +165,44 @@ method_nn <- function(y_nons,
     list(idx = idx_mat, dists = dist_mat)
   }
 
-  exact_1d_matches <- function(data, query, k, exclude_self = FALSE, response = NULL) {
-    data <- as.numeric(data[, 1])
-    query <- as.numeric(query[, 1])
-    n_data <- length(data)
+  exact_matches <- function(data, query, k, exclude_self = FALSE, response = NULL) {
+    data <- as.matrix(data)
+    query <- as.matrix(query)
+    n_data <- NROW(data)
     k <- min(k, n_data - as.integer(exclude_self))
     if (k <= 0) {
       return(list(
-        idx = matrix(NA_integer_, nrow = length(query), ncol = 1),
-        dists = matrix(NA_real_, nrow = length(query), ncol = 1)
+        idx = matrix(NA_integer_, nrow = NROW(query), ncol = 1),
+        dists = matrix(NA_real_, nrow = NROW(query), ncol = 1)
       ))
     }
 
-    idx_mat <- matrix(NA_integer_, nrow = length(query), ncol = k)
-    dist_mat <- matrix(NA_real_, nrow = length(query), ncol = k)
-    unique_vals <- unique(data)
-    groups <- split(seq_along(data), match(data, unique_vals))
+    idx_mat <- matrix(NA_integer_, nrow = NROW(query), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = NROW(query), ncol = k)
+    tol <- sqrt(.Machine$double.eps)
 
-    for (i in seq_along(query)) {
-      d_unique <- abs(unique_vals - query[i])
-      dist_levels <- sort(unique(d_unique))
+    for (i in seq_len(NROW(query))) {
+      dists_all <- sqrt(rowSums(sweep(data, 2, query[i, ], FUN = "-")^2))
+      if (exclude_self && i <= length(dists_all)) dists_all[i] <- Inf
+      remaining <- which(is.finite(dists_all))
       selected <- integer()
       selected_dists <- numeric()
 
-      for (d in dist_levels) {
-        level_groups <- which(abs(d_unique - d) <= sqrt(.Machine$double.eps))
-        candidates <- unlist(groups[level_groups], use.names = FALSE)
-        if (exclude_self) candidates <- candidates[candidates != i]
-        if (!length(candidates)) next
-
-        if (length(candidates) > 1 &&
-            (is.null(response) || length(unique(response[candidates])) > 1)) {
-          candidates <- sample(candidates, length(candidates))
-        }
+      while (length(selected) < k && length(remaining)) {
+        d_min <- min(dists_all[remaining])
+        candidates <- remaining[abs(dists_all[remaining] - d_min) <= tol * max(1, d_min)]
         need <- k - length(selected)
-        take <- head(candidates, need)
+        if (length(candidates) > need &&
+            (is.null(response) || length(unique(response[candidates])) > 1)) {
+          take <- sample(candidates, need)
+        } else {
+          take <- utils::head(candidates, need)
+        }
         selected <- c(selected, take)
-        selected_dists <- c(selected_dists, rep(d, length(take)))
+        selected_dists <- c(selected_dists, dists_all[take])
 
         if (length(selected) >= k) break
+        remaining <- setdiff(remaining, candidates)
       }
 
       if (length(selected)) {
@@ -207,14 +214,9 @@ method_nn <- function(y_nons,
     list(idx = idx_mat, dists = dist_mat)
   }
 
-  use_exact_1d_matches <- function(data, query) {
-    data <- as.numeric(data[, 1])
+  use_exact_matches <- function(data, query) {
     n_query <- NROW(query)
-    n_unique <- length(unique(data))
-    exact_work <- as.numeric(n_unique) * as.numeric(n_query)
-
-    as.numeric(NROW(data)) * as.numeric(n_query) <= 2e6 ||
-      (n_unique < NROW(data) && exact_work <= 2e6)
+    as.numeric(NROW(data)) * as.numeric(n_query) <= 2e6
   }
 
   predict_from_matches <- function(nn_fit,
@@ -224,10 +226,10 @@ method_nn <- function(y_nons,
                                    data = NULL,
                                    query = NULL,
                                    k = NULL) {
-    if (!is.null(data) && !is.null(query) && NCOL(data) == 1 && !is.null(k) &&
-        use_exact_1d_matches(data, query)) {
-      matches <- exact_1d_matches(data = data, query = query, k = k,
-                                  exclude_self = exclude_self, response = response)
+    if (!is.null(data) && !is.null(query) && !is.null(k) &&
+        use_exact_matches(data, query)) {
+      matches <- exact_matches(data = data, query = query, k = k,
+                               exclude_self = exclude_self, response = response)
       idx_mat <- matches$idx
       dist_mat <- matches$dists
       exclude_self <- FALSE
@@ -273,21 +275,29 @@ method_nn <- function(y_nons,
     message("Matching units between samples...")
   }
 
-  model_fitted_nons <- RANN::nn2(
-    data = X_nons,
-    query = X_nons,
-    k = min(control_outcome$k + 1L, NROW(X_nons)),
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
+  model_fitted_nons <- if (!is.null(nn_matches$nons)) {
+    nn_matches$nons
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_nons,
+      k = min(control_outcome$k + 1L, NROW(X_nons)),
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
-  model_fitted <- RANN::nn2(
-    data = X_nons,
-    query = X_rand,
-    k = control_outcome$k,
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
+  model_fitted <- if (!is.null(nn_matches$rand)) {
+    nn_matches$rand
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_rand,
+      k = control_outcome$k,
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
                         "none" = predict_from_matches(model_fitted, y_nons,
@@ -299,13 +309,13 @@ method_nn <- function(y_nons,
   )
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
-  svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
-  y_mi_hat <- as.numeric(svydesign_mean)
+  svydesign_total <- survey::svytotal( ~ y_hat_MI, svydesign_updated)
+  y_mi_hat <- as.numeric(svydesign_total) / pop_size
   y_nons_pred <- NULL
 
   if (se) {
 
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
+    var_prob <- as.vector(attr(svydesign_total, "var")) / pop_size^2
     var_nonprob <- 0
     var_total <- var_prob
 
@@ -347,7 +357,7 @@ method_nn <- function(y_nons,
                                                                       data = X_nons_b, query = X_rand,
                                                                       k = control_outcome$k))
 
-        dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
+        dd[jj] <- sum(weights(svydesign) * y_rand_pred_mini_boot) / pop_size
       }
       var_nonprob <- var(dd)
       var_total <- var_prob + var_nonprob

@@ -61,16 +61,17 @@ is matching by minimizing distance between \eqn{\hat{y}_{i}} for
 Indicate how to weight \code{k} nearest neighbours in \eqn{S_{B}} to
 create imputed value for units in \eqn{S_{A}}. The default value
 \code{"none"} indicates that mean of \code{k} nearest \eqn{y}'s from
-\eqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+\eqn{S_{B}} should be used whereas \code{"dist"} results in
 weighted mean of these \code{k} values where weights are inversely
 proportional to distance between matched values.}
 
 \item{pmm_k_choice}{(Only for the PMM Estimator) Character value indicating how \code{k} hyper-parameter
 should be chosen, by default \code{"none"} meaning \code{k} provided in
 \code{control_outcome} argument will be used. For now the only other
-option \code{"min_var"} means that \code{k}  will be chosen by minimizing
-estimated variance of estimator for mean. Parameter \code{k} provided in
-this control list will be chosen as starting point.}
+option \code{"min_var"} means that \code{k} will be chosen by a full
+search over \code{1:n_A}, where \eqn{n_A} is the non-probability sample size,
+minimizing the estimated variance of the mean estimator. The \code{k}
+value supplied in this control list is replaced by the selected value.}
 
 \item{pmm_reg_engine}{(Only for the PMM Estimator) whether to use parametric (\code{"glm"})
 or non-parametric (\code{"loess"}) regression model for the outcome. The default is \code{"glm"}.}

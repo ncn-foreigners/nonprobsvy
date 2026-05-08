@@ -2,7 +2,9 @@
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
-#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_B} sample.
+#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_B} sample:
+#' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
 #' Matching ties are randomized by the nearest-neighbour step before donor values are aggregated.
 #'
 #' This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
@@ -14,8 +16,8 @@
 #'  approach to estimate variance from the non-probability sample  (`nn_exact_se` from the [control_inf()] function).
 #'  If non-constant pseudo-weights are supplied, bootstrap samples are drawn with probabilities
 #'  proportional to inverse weights and the resampled weights are used in each refitted outcome model.}
-#'  \item{pmm_k_choice}{the main `nonprob` function allows for dynamic selection of `k` neighbours based on the
-#'  variance minimization procedure (`pmm_k_choice` from the [control_out()] function)}
+#'  \item{pmm_k_choice}{the main `nonprob` function allows for dynamic selection of `k` neighbours based on a
+#'  full-grid variance minimization procedure over \code{1:n_A} (`pmm_k_choice` from the [control_out()] function)}
 #' }
 #'
 #' @details
@@ -121,6 +123,7 @@ method_pmm <- function(y_nons,
                        se=TRUE) {
 
   if (is.null(weights)) weights <- rep(1, NROW(X_nons))
+  if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
   boot_prob <- if (length(unique(weights)) == 1) NULL else 1 / weights
 
   ## passing arguments to the specified method of estimation E(Y|X)
@@ -184,8 +187,8 @@ method_pmm <- function(y_nons,
 
 
   if (se) {
-    svydesign_mean <- svymean(~y_hat_MI, pmm_results$svydesign)
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
+    svydesign_total <- survey::svytotal(~y_hat_MI, pmm_results$svydesign)
+    var_prob <- as.vector(attr(svydesign_total, "var")) / pop_size^2
     var_nonprob <- 0
 
     if (control_inference$nn_exact_se) {

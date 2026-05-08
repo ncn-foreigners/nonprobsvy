@@ -1,19 +1,26 @@
 source("_code_for_all_.R")
 
+min_var_nonprob <- data.frame(
+  x = c(-1.8177740, -0.3640923, 0.1124220, 1.5320696, 1.5696762, 1.7618691),
+  y = c(0.1292877, 1.7150650, 0.4609162, -1.2650612, -3.6868529, -3.4456620)
+)
+min_var_prob <- data.frame(
+  x = c(-1.90154526, -0.08881612, 0.76282111, 1.18186967),
+  w = c(3.275379, 1.649224, 1.954543, 1.694877)
+)
+min_var_svy <- svydesign(ids = ~1, weights = ~w, data = min_var_prob)
+
 fit_pmm_min_var <- nonprob(
-  outcome = single_shift ~ region + private + nace + size,
-  svydesign = jvs_svy,
+  outcome = y ~ x,
+  svydesign = min_var_svy,
   method_outcome = "pmm",
-  data = admin,
+  data = min_var_nonprob,
   control_outcome = control_out(pmm_k_choice = "min_var", pmm_reg_engine = "glm")
 )
 
-expect_true(
-  fit_pmm_min_var$control$control_outcome$k >= 1
-)
-
-expect_true(
-  fit_pmm_min_var$control$control_outcome$k <= nrow(admin)
+expect_equal(
+  fit_pmm_min_var$control$control_outcome$k,
+  5L
 )
 
 expect_true(
@@ -39,6 +46,13 @@ fit_pmm_weighted_boot <- method_pmm(
   control_outcome = control_out(k = 1, pmm_reg_engine = "glm"),
   control_inference = control_inf(nn_exact_se = TRUE),
   se = TRUE
+)
+
+expect_equal(
+  fit_pmm_weighted_boot$y_mi_hat,
+  sum(weights(fit_pmm_weighted_boot$svydesign) *
+        fit_pmm_weighted_boot$svydesign$variables$y_hat_MI) / 10,
+  tolerance = 1e-12
 )
 
 set.seed(27)

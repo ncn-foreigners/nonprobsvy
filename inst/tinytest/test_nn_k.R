@@ -29,6 +29,18 @@ expect_equal(
   c(1, 9)
 )
 
+expect_equal(
+  fit_nn_k1$y_mi_hat,
+  (2 * 1 + 3 * 9) / 10,
+  tolerance = 1e-12
+)
+
+expect_equal(
+  fit_nn_k1$var_prob,
+  as.vector(attr(survey::svytotal(~y_hat_MI, fit_nn_k1$svydesign), "var")) / 10^2,
+  tolerance = 1e-12
+)
+
 fit_nn_k1_dist <- method_nn(
   y_nons = c(1, 4, 9),
   X_nons = matrix(c(0, 2, 5), ncol = 1),
@@ -54,7 +66,7 @@ fit_nonprob_nn_k1 <- nonprob(
 
 expect_equal(
   fit_nonprob_nn_k1$output,
-  data.frame(mean = 0.646597258018859, SE = 0.0279237332302402,
+  data.frame(mean = 0.646597262386736, SE = 0.037762604895233,
              row.names = "single_shift"),
   tolerance = 1e-6
 )
@@ -82,7 +94,7 @@ for (jj in 1:50) {
   X_nons_b <- matrix(c(0, 5, 10)[boot_samp], ncol = 1)
   boot_matches <- RANN::nn2(data = X_nons_b, query = matrix(c(9, 8), ncol = 1), k = 1)
   y_pred_boot <- y_nons_b[boot_matches$nn.idx[, 1]]
-  dd_manual[jj] <- stats::weighted.mean(y_pred_boot, c(2, 3))
+  dd_manual[jj] <- sum(c(2, 3) * y_pred_boot) / 10
 }
 
 expect_equal(
@@ -114,7 +126,7 @@ for (jj in 1:50) {
   X_nons_b <- matrix(c(0, 5, 10)[boot_samp], ncol = 1)
   boot_matches <- RANN::nn2(data = X_nons_b, query = matrix(c(9, 8), ncol = 1), k = 1)
   y_pred_boot <- y_nons_b[boot_matches$nn.idx[, 1]]
-  dd_manual_weighted[jj] <- stats::weighted.mean(y_pred_boot, c(2, 3))
+  dd_manual_weighted[jj] <- sum(c(2, 3) * y_pred_boot) / 10
 }
 
 expect_equal(
@@ -136,3 +148,37 @@ tie_predictions <- replicate(40, method_nn(
 )$y_rand_pred)
 
 expect_equal(sort(unique(as.numeric(tie_predictions))), c(1, 3))
+
+local({
+  assign(".nonprobsvy_test_nn2_calls", 0L, envir = .GlobalEnv)
+  trace(
+    "nn2",
+    where = asNamespace("RANN"),
+    tracer = quote(assign(
+      ".nonprobsvy_test_nn2_calls",
+      get(".nonprobsvy_test_nn2_calls", envir = .GlobalEnv) + 1L,
+      envir = .GlobalEnv
+    )),
+    print = FALSE
+  )
+  on.exit({
+    untrace("nn2", where = asNamespace("RANN"))
+    rm(".nonprobsvy_test_nn2_calls", envir = .GlobalEnv)
+  }, add = TRUE)
+
+  multi_outcome_nn <- nonprob(
+    outcome = y1 + y2 ~ x,
+    data = data.frame(x = c(0, 2, 5), y1 = c(1, 4, 9), y2 = c(3, 6, 12)),
+    svydesign = toy_svy,
+    method_outcome = "nn",
+    control_outcome = control_out(k = 1),
+    se = FALSE
+  )
+
+  expect_equal(get(".nonprobsvy_test_nn2_calls", envir = .GlobalEnv), 2L)
+  expect_equal(
+    unname(multi_outcome_nn$output$mean),
+    c(5.8, 8.4),
+    tolerance = 1e-12
+  )
+})
