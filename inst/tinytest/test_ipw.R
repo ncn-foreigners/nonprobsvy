@@ -166,14 +166,24 @@ expect_equal(
             row.names = "single_shift", class = "data.frame")
 )
 
-## this returns erroneous SE
-expect_equal(
-  nonprob(
+## regression test for issue #90: cloglog analytic IPW SE should remain stable
+ipw_cloglog <- nonprob(
     selection = ~region + private + nace + size,
     target = ~single_shift,
     svydesign = jvs_svy,
     data = admin,
-    method_selection = "cloglog")$output,
-  structure(list(mean = 0.722150707253752, SE = 5.31130667324335),
-            row.names = "single_shift", class = "data.frame")
+    method_selection = "cloglog")
+
+expect_equal(
+  ipw_cloglog$output,
+  structure(list(mean = 0.722150707253752, SE = 0.042993653604522),
+            row.names = "single_shift", class = "data.frame"),
+  tolerance = 1e-8
+)
+
+expect_equal(
+  ipw_cloglog$SE,
+  structure(list(prob = 0.0382844151764114, nonprob = 0.0195641970156145),
+            row.names = "single_shift", class = "data.frame"),
+  tolerance = 1e-8
 )

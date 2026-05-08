@@ -235,7 +235,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       } else {
         # adjust probabilities based on method
         if (est_method == "mle") {
-          svydesign$prob <- svydesign$prob * log1p(-eps) # more stable than log(1-eps)
+          # Probability-sample score factor for cloglog MLE is exp(eta).
+          score_factor <- -log1p(-eps)
+          svydesign$prob <- svydesign$prob / score_factor
         } else if (est_method == "gee" && gee_h_fun == 2) {
           svydesign$prob <- svydesign$prob * eps
         }
