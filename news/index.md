@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+- fixed multicore IPW bootstrap for population-totals-only runs and kept
+  bootstrap replicate output shapes consistent (closes
+  [\#94](https://github.com/ncn-foreigners/nonprobsvy/issues/94))
 - aligned IPW point-estimator denominators with Horvitz-Thompson vs
   Hajek estimator behavior, added estimator-family metadata and print
   output, and documented when each estimator is used (closes
