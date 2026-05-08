@@ -37,6 +37,63 @@ inline double stable_cloglog_rate(double eta) {
   return std::exp(std::min(std::max(eta, lower), upper));
 }
 
+inline double stable_logit(double eta) {
+  if (eta >= 0) {
+    const double exp_neg_eta = std::exp(-eta);
+    return 1.0 / (1.0 + exp_neg_eta);
+  }
+
+  const double exp_eta = std::exp(eta);
+  return exp_eta / (1.0 + exp_eta);
+}
+
+inline arma::vec inv_link_cpp(const arma::vec& eta,
+                              const std::string& method_selection) {
+  arma::vec ps(eta.n_elem);
+
+  if (method_selection == "logit") {
+    for (arma::uword i = 0; i < eta.n_elem; ++i) {
+      ps(i) = stable_logit(eta(i));
+    }
+  } else if (method_selection == "probit") {
+    for (arma::uword i = 0; i < eta.n_elem; ++i) {
+      ps(i) = R::pnorm5(eta(i), 0.0, 1.0, 1, 0);
+    }
+  } else if (method_selection == "cloglog") {
+    for (arma::uword i = 0; i < eta.n_elem; ++i) {
+      ps(i) = -std::expm1(-stable_cloglog_rate(eta(i)));
+    }
+  } else {
+    Rcpp::stop("Unknown method selection");
+  }
+
+  return clamp_probability(ps);
+}
+
+inline arma::vec inv_link_der_cpp(const arma::vec& eta,
+                                  const std::string& method_selection) {
+  arma::vec psd(eta.n_elem);
+
+  if (method_selection == "logit") {
+    arma::vec ps = inv_link_cpp(eta, method_selection);
+    psd = ps % (1.0 - ps);
+  } else if (method_selection == "probit") {
+    for (arma::uword i = 0; i < eta.n_elem; ++i) {
+      psd(i) = R::dnorm4(eta(i), 0.0, 1.0, 0);
+    }
+  } else if (method_selection == "cloglog") {
+    for (arma::uword i = 0; i < eta.n_elem; ++i) {
+      const double exp_eta = stable_cloglog_rate(eta(i));
+      psd(i) = exp_eta * std::exp(-exp_eta);
+      if (!std::isfinite(psd(i))) psd(i) = 0.0;
+    }
+  } else {
+    Rcpp::stop("Unknown method selection");
+  }
+
+  return psd;
+}
+
 inline double loss_theta(const vec& par,
                          const vec& R,
                          const mat& X,
@@ -46,14 +103,8 @@ inline double loss_theta(const vec& par,
                          const uvec& idx,
                          Nullable<arma::vec> pop_totals) { // TODO add weights
 
-  Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
-  List method = method_ps(method_selection);
-
-  Function inv_link = method["make_link_inv"];
-
   vec eta_pi = X * par;
-  vec ps = clamp_probability(as<vec>(inv_link(eta_pi)));
+  vec ps = inv_link_cpp(eta_pi, method_selection);
   vec R_rand = 1 - R;
 
   // Preallocate temporary matrix
@@ -103,14 +154,8 @@ inline arma::vec u_theta(const arma::vec& par,
                          Nullable<double> pop_size = R_NilValue,
                          Nullable<int> N = R_NilValue) { // TODO add weights
 
-  Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
-  List method = method_ps(method_selection);
-
-  Function inv_link = method["make_link_inv"];
-
   vec eta_pi = X * par;
-  vec ps = clamp_probability(as<vec>(inv_link(eta_pi)));
+  vec ps = inv_link_cpp(eta_pi, method_selection);
   vec R_rand = 1 - R;
   double N_nons = sum(1/ps);
 
@@ -144,22 +189,14 @@ arma::mat u_theta_der(const arma::vec& par,
                       Nullable<arma::vec> pop_totals,
                       Nullable<int> N = R_NilValue) { // TODO add weights
 
-  Environment nonprobsvy_env = Environment::namespace_env("nonprobsvy");
-  Rcpp::Function method_ps = nonprobsvy_env["method_ps"];
-  List method = method_ps(method_selection);
-
-  Function inv_link = method["make_link_inv"];
-  Function inv_link_der = method["make_link_inv_der"];
-
   //int p = X0.n_cols;
   arma::vec eta_pi = X * par;
-  arma::vec ps = clamp_probability(as<arma::vec>(inv_link(eta_pi)));
+  arma::vec ps = inv_link_cpp(eta_pi, method_selection);
   arma::vec R_rand = 1 - R;
   arma::vec psd;
 
   if (method_selection == "probit") {
-    inv_link_der = method["make_link_inv_der"];
-    psd = as<arma::vec>(inv_link_der(eta_pi));
+    psd = inv_link_der_cpp(eta_pi, method_selection);
   }
 
   int n = X.n_rows;
@@ -167,49 +204,27 @@ arma::mat u_theta_der(const arma::vec& par,
   arma::mat mxDer(p, p, arma::fill::zeros);
   double N_nons = sum(1/ps);
 
-  arma::rowvec X_row;
-  arma::mat temp;
+  arma::vec coeff(n, arma::fill::zeros);
 
   if (gee_h_fun == 1 || !pop_totals.isNull()) {
     if (method_selection == "logit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * (1-ps(i))/ps(i) * X_row.t();
-        mxDer += temp * X_row;
-      }
-      //mxDer = X.t() * X;
+      coeff = R % weights % (1.0 - ps) / ps;
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * (1-ps(i))/pow(ps(i), 2) * stable_cloglog_rate(eta_pi(i)) * X_row.t();
-        mxDer += temp * X_row;
+        coeff(i) = R(i) * weights(i) * (1.0 - ps(i)) / std::pow(ps(i), 2) * stable_cloglog_rate(eta_pi(i));
       }
     } else if (method_selection == "probit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R(i) * weights(i) * psd(i)/pow(ps(i), 2) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      coeff = R % weights % psd / arma::square(ps);
     }
   } else if (gee_h_fun == 2) {
     if (method_selection == "logit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * ps(i) * (1 - ps(i)) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      coeff = R_rand % weights % ps % (1.0 - ps);
     } else if (method_selection == "cloglog") {
       for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * (1-ps(i)) * stable_cloglog_rate(eta_pi(i)) * X_row.t();
-        mxDer += temp * X_row;
+        coeff(i) = R_rand(i) * weights(i) * (1.0 - ps(i)) * stable_cloglog_rate(eta_pi(i));
       }
     } else if (method_selection == "probit") {
-      for(int i = 0; i < n; i++) {
-        X_row = X.row(i);
-        temp = R_rand(i) * weights(i) * psd(i) * X_row.t();
-        mxDer += temp * X_row;
-      }
+      coeff = R_rand % weights % psd;
     }
     else {
       Rcpp::stop("Unknown method selection");
@@ -217,6 +232,8 @@ arma::mat u_theta_der(const arma::vec& par,
   } else {
     Rcpp::stop("Unknown h selection");
   }
+
+  mxDer = X.t() * (X.each_col() % coeff);
 
   return mxDer / N_nons;
 }
@@ -297,7 +314,15 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
     LAMBDA = arma::abs(q_lambda_output) / (eps + arma::abs(par0)); // TODO  q_lambda_output instead of arma::abs(q_lambda_output)
     //LAMBDA = arma::abs(q_lambda_output);
     // LAMBDA = q_lambda_output;
-    par = par0 + inv(arma::reshape(u_theta0_derv, p, p) + arma::diagmat(LAMBDA)) * (u_theta0v - arma::diagmat(LAMBDA) * par0);
+
+    arma::mat system_matrix = u_theta0_derv + arma::diagmat(LAMBDA);
+    arma::vec rhs = u_theta0v - LAMBDA % par0;
+    arma::vec step(p, arma::fill::zeros);
+    bool solved = arma::solve(step, system_matrix, rhs);
+    if (!solved) {
+      step = arma::pinv(system_matrix) * rhs;
+    }
+    par = par0 + step;
 
     if (arma::sum(arma::abs(par - par0)) < eps) break;
     if (arma::sum(arma::abs(par - par0)) > 1000) break;
@@ -357,7 +382,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
     arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds-1, nfolds));
 
-    arma::field<arma::vec> loss_theta_fld(nfolds, nlambda);
+    arma::mat loss_theta_fld(nfolds, nlambda, arma::fill::zeros);
     //#pragma omp parallel for
     for(int j = 0; j < nfolds; j++) {
       if (verbose) {
@@ -400,10 +425,11 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                                   pop_totals);
         // cout << theta_est << "\n";
 
-        const arma::mat& X_testloss = X_test.cols(arma::find(theta_est != 0));
+        const arma::uvec selected = arma::find(theta_est != 0);
+        const arma::mat& X_testloss = X_test.cols(selected);
         const arma::vec& R_testloss = X_test.col(ncols - 1);
         const arma::vec& weights_testloss = X_test.col(ncols - 2);
-        const arma::vec& par = theta_est(arma::find(theta_est != 0));
+        const arma::vec& par = theta_est(selected);
 
         double loss = loss_theta(par,
                                  R_testloss,
@@ -411,21 +437,15 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
                                  weights_testloss,
                                  method_selection,
                                  gee_h_fun,
-                                 arma::find(theta_est != 0),
+                                 selected,
                                  pop_totals);
         loss_theta_fld(j, i) = loss;
       }
       //loss_theta_av(i) = mean(loss_theta_vec);
     }
 
-    arma::vec loss_theta_vec(nfolds);
-    // Vector to store means, one for each field
     for (int i = 0; i < nlambda; i++) {
-      // arma::vec loss_theta_vec(nfolds);
-      for (int j = 0; j < nfolds; j++) {
-        loss_theta_vec(j) = loss_theta_fld(j, i)(0);
-      }
-      loss_theta_av(i) = mean(loss_theta_vec);
+      loss_theta_av(i) = mean(loss_theta_fld.col(i));
     }
     lambda = lambdas1(loss_theta_av.index_min());
   }
