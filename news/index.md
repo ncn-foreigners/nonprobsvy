@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+- made `make_outcomes()` return names explicit so callers no longer rely
+  on partial `$` matching (closes
+  [\#100](https://github.com/ncn-foreigners/nonprobsvy/issues/100))
 - stabilized extreme-propensity IPW computations by clamping fitted
   probabilities, using tail-stable log-likelihood formulas, and guarding
   Rcpp variable-selection weights (closes
