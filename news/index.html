@@ -33,7 +33,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="nonprobsvy-development-version">nonprobsvy (development version)<a class="anchor" aria-label="anchor" href="#nonprobsvy-development-version"></a></h2>
-<ul><li>allowed outcome variable-selection models to use a user-specified <code>control_out(lambda = ...)</code> value instead of always running cross-validation (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/66" class="external-link">#66</a>)</li>
+<ul><li>shortened CRAN-facing examples, added spelling wordlist entries, and made <code>R CMD check</code> run a fast tinytest subset by default while keeping the full suite available on GitHub via <code>NONPROBSVY_FULL_TESTS=true</code>
+</li>
+<li>allowed outcome variable-selection models to use a user-specified <code>control_out(lambda = ...)</code> value instead of always running cross-validation (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/66" class="external-link">#66</a>)</li>
 <li>returned bootstrap IPW weights in <code>boot_ipw_weights</code> when bootstrap variance estimation is used and bootstrap results are kept (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/76" class="external-link">#76</a>)</li>
 <li>improved the Rcpp variable-selection cross-validation code and added benchmark evidence for the speedup (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/103" class="external-link">#103</a>)</li>
 <li>added DR regression tests for one-outcome versus multi-outcome analytic uncertainty-component consistency and multi-outcome bootstrap output shapes (addresses part of <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/101" class="external-link">#101</a>)</li>

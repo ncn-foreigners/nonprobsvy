@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+- shortened CRAN-facing examples, added spelling wordlist entries, and
+  made `R CMD check` run a fast tinytest subset by default while keeping
+  the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`
 - allowed outcome variable-selection models to use a user-specified
   `control_out(lambda = ...)` value instead of always running
   cross-validation (closes

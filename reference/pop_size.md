@@ -29,33 +29,37 @@ a scalar returning the value of the population size.
 
 ``` r
 
-data(admin)
-data(jvs)
+sample_a <- data.frame(y = c(1, 0, 1, 0, 1), x = c(0, 1, 2, 3, 4))
+sample_b <- data.frame(x = c(0.5, 1.5, 2.5, 3.5), w = c(4, 4, 4, 4))
+sample_b_svy <- svydesign(ids = ~1, weights = ~w, data = sample_b)
 
-jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight,
-strata = ~ size + nace + region, data = jvs)
-
-ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
-target = ~ single_shift,
-svydesign = jvs_svy,
-data = admin, method_selection = "logit"
+ipw_est1 <- nonprob(
+  selection = ~x,
+  target = ~y,
+  svydesign = sample_b_svy,
+  data = sample_a,
+  method_selection = "logit",
+  se = FALSE
 )
 
 ipw_est2 <- nonprob(
-selection = ~ region + private + nace + size,
-target = ~ single_shift,
-svydesign = jvs_svy,
-data = admin, method_selection = "logit",
-control_selection = control_sel(est_method = "gee", gee_h_fun = 1))
+  selection = ~x,
+  target = ~y,
+  svydesign = sample_b_svy,
+  data = sample_a,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1),
+  se = FALSE
+)
 
 ## estimated population size based on the non-calibrated IPW (MLE)
 pop_size(ipw_est1)
 #> pop_size 
-#> 52898.13 
+#>       16 
 
 ## estimated population size based on the calibrated IPW (GEE)
 pop_size(ipw_est2)
 #> pop_size 
-#>    51870 
+#>       16 
 
 ```
