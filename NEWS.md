@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ added IPW regression tests for one-outcome versus multi-outcome analytic variance, HT versus Hajek denominator metadata, and probit/cloglog variable-selection smoke coverage (addresses part of [#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))
 + made `make_outcomes()` return names explicit so callers no longer rely on partial `$` matching (closes [#100](https://github.com/ncn-foreigners/nonprobsvy/issues/100))
 + stabilized extreme-propensity IPW computations by clamping fitted probabilities, using tail-stable log-likelihood formulas, and guarding Rcpp variable-selection weights (closes [#102](https://github.com/ncn-foreigners/nonprobsvy/issues/102))
 + clarified supported data structures, estimator-by-outcome scope, README examples, and `verbose` argument documentation (closes [#95](https://github.com/ncn-foreigners/nonprobsvy/issues/95), [#97](https://github.com/ncn-foreigners/nonprobsvy/issues/97), [#98](https://github.com/ncn-foreigners/nonprobsvy/issues/98))

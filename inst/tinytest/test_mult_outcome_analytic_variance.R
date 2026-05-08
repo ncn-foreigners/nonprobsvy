@@ -1,5 +1,64 @@
 source("_code_for_all_.R")
 
+# standard IPW analytic variance should agree with one-outcome fits ----------
+
+ipw_y1 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y1,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  pop_size = sum(weights(kim2019_sample_prob)),
+  method_selection = "logit"
+)
+
+ipw_y2 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y2,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  pop_size = sum(weights(kim2019_sample_prob)),
+  method_selection = "logit"
+)
+
+ipw_joint <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y1 + y2,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  pop_size = sum(weights(kim2019_sample_prob)),
+  method_selection = "logit"
+)
+
+expect_equal(
+  ipw_joint$output["y1", , drop = FALSE],
+  ipw_y1$output
+)
+
+expect_equal(
+  ipw_joint$output["y2", , drop = FALSE],
+  ipw_y2$output
+)
+
+expect_equal(
+  ipw_joint$confidence_interval["y1", , drop = FALSE],
+  ipw_y1$confidence_interval
+)
+
+expect_equal(
+  ipw_joint$confidence_interval["y2", , drop = FALSE],
+  ipw_y2$confidence_interval
+)
+
+expect_equal(
+  ipw_joint$SE["y1", , drop = FALSE],
+  ipw_y1$SE
+)
+
+expect_equal(
+  ipw_joint$SE["y2", , drop = FALSE],
+  ipw_y2$SE
+)
+
 # standard DR analytic variance should agree with one-outcome fits ----------
 
 dr_glm_y1 <- nonprob(

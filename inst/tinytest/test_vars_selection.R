@@ -97,6 +97,29 @@ expect_equal(
   tolerance = 0.001
 )
 
+for (method_selection in c("probit", "cloglog")) {
+  expect_silent(suppressWarnings(
+    ipw_varsel_smoke <- nonprob(
+      selection = ~nace,
+      target = ~single_shift,
+      svydesign = jvs_svy,
+      data = admin,
+      method_selection = method_selection,
+      control_inference = control_inf(vars_selection = TRUE),
+      control_selection = control_sel(
+        lambda = 0.05,
+        maxit = 50,
+        penalty = "lasso"
+      ),
+      se = FALSE
+    )
+  ))
+
+  expect_true(is.finite(ipw_varsel_smoke$output$mean))
+  expect_equal(ipw_varsel_smoke$estimator, "ipw")
+  expect_true("(Intercept)" %in% names(coef(ipw_varsel_smoke)$coef_sel[, 1]))
+}
+
 # # probit
 # expect_silent(suppressWarnings(
 #   ipw_probit_cal <- nonprob(

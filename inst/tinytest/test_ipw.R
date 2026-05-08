@@ -170,6 +170,32 @@ ipw_gee_warning <- suppressWarnings(nonprob(
 expect_equal(ipw_gee_warning$ipw_estimator, "ht")
 expect_equal(ipw_gee_warning$ipw_denominator_source, "survey weights")
 
+ipw_mle_hajek <- nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  se = FALSE
+)
+
+expect_equal(ipw_mle_hajek$ipw_estimator, "hajek")
+expect_equal(ipw_mle_hajek$ipw_denominator_source, "estimated IPW weights")
+expect_equal(ipw_mle_hajek$ipw_denominator, sum(ipw_mle_hajek$ipw_weights))
+
+ipw_totals_ht <- nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  pop_totals = pop_totals,
+  data = admin,
+  method_selection = "logit",
+  se = FALSE
+)
+
+expect_equal(ipw_totals_ht$ipw_estimator, "ht")
+expect_equal(ipw_totals_ht$ipw_denominator_source, "population totals")
+expect_equal(ipw_totals_ht$ipw_denominator, as.numeric(pop_totals[1]))
+
 expect_equal(
   nonprob(
     selection = ~region + private + nace + size,
