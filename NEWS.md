@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ added DR regression tests for one-outcome versus multi-outcome analytic uncertainty-component consistency and multi-outcome bootstrap output shapes (addresses part of [#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))
 + added MI regression tests for one-outcome versus multi-outcome output, confidence-interval, and uncertainty-component consistency across GLM, NN, PMM, and NPAR backends (addresses part of [#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))
 + added IPW regression tests for one-outcome versus multi-outcome analytic variance, HT versus Hajek denominator metadata, and probit/cloglog variable-selection smoke coverage (addresses part of [#101](https://github.com/ncn-foreigners/nonprobsvy/issues/101))
 + made `make_outcomes()` return names explicit so callers no longer rely on partial `$` matching (closes [#100](https://github.com/ncn-foreigners/nonprobsvy/issues/100))

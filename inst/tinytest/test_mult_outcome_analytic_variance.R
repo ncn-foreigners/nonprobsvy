@@ -111,6 +111,24 @@ expect_equal(
   dr_glm_y2$confidence_interval
 )
 
+expect_equal(
+  dr_glm_joint$SE["y1", , drop = FALSE],
+  dr_glm_y1$SE
+)
+
+expect_equal(
+  dr_glm_joint$SE["y2", , drop = FALSE],
+  dr_glm_y2$SE
+)
+
+expect_equal(
+  unname(sqrt(rowSums(dr_glm_joint$SE^2))),
+  unname(dr_glm_joint$output$SE),
+  tolerance = 1e-12
+)
+
+expect_true(all(is.finite(as.matrix(dr_glm_joint$SE))))
+
 # combined DR analytic variance should agree with one-outcome fits ----------
 
 admin_multi <- transform(
@@ -191,3 +209,23 @@ expect_equal(
   dr_comb_y2$confidence_interval,
   tolerance = 1e-8
 )
+
+expect_equal(
+  dr_comb_joint$SE["y1", , drop = FALSE],
+  dr_comb_y1$SE,
+  tolerance = 1e-8
+)
+
+expect_equal(
+  dr_comb_joint$SE["y2", , drop = FALSE],
+  dr_comb_y2$SE,
+  tolerance = 1e-8
+)
+
+expect_equal(
+  unname(sqrt(rowSums(dr_comb_joint$SE^2))),
+  unname(dr_comb_joint$output$SE),
+  tolerance = 1e-8
+)
+
+expect_true(all(is.finite(as.matrix(dr_comb_joint$SE))))

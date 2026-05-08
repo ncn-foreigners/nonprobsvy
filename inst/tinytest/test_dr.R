@@ -93,6 +93,37 @@ expect_silent(
 
 expect_stochastic_output(model_dr_basic_boot_comp$output, 0.704237744834517)
 
+set.seed(2024)
+expect_silent(
+  model_dr_multi_boot <- nonprob(
+    selection = ~nace,
+    outcome = dr_y1 + dr_y2 ~ nace,
+    svydesign = jvs_svy,
+    data = transform(
+      admin,
+      dr_y1 = as.numeric(single_shift),
+      dr_y2 = as.numeric(single_shift) + 0.25 * as.numeric(private)
+    ),
+    control_inference = control_inf(var_method = "bootstrap", num_boot = 3),
+    method_selection = "logit",
+    family_outcome = "gaussian"
+  )
+)
+
+expect_equal(rownames(model_dr_multi_boot$output), c("dr_y1", "dr_y2"))
+expect_equal(rownames(model_dr_multi_boot$confidence_interval), c("dr_y1", "dr_y2"))
+expect_equal(rownames(model_dr_multi_boot$SE), c("dr_y1", "dr_y2"))
+expect_equal(dim(model_dr_multi_boot$boot_sample), c(3L, 2L))
+expect_true(all(is.finite(model_dr_multi_boot$output$mean)))
+expect_true(all(model_dr_multi_boot$output$SE > 0))
+expect_true(all(is.finite(as.matrix(model_dr_multi_boot$confidence_interval))))
+expect_true(all(is.na(as.matrix(model_dr_multi_boot$SE))))
+expect_equal(
+  unname(model_dr_multi_boot$output$SE),
+  unname(apply(model_dr_multi_boot$boot_sample, 2, stats::sd)),
+  tolerance = 1e-12
+)
+
 
 set.seed(2024)
 expect_silent(
