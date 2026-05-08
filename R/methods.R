@@ -53,8 +53,8 @@ pop_size.nonprob <- function(object) {
 #' @title Returns Population Size (Estimated or Fixed)
 #' @description Returns population size that is assumed to be
 #'\itemize{
-#'  \item{\code{fixed} -- if it is based on the `pop_size` argument,}
-#'  \item{\code{estimated} -- if it is based on the probability survey specified in the `svydesign` or based on the estimated propensity scores for the non-probability sample.}
+#'  \item{\code{fixed} -- if it is based on the `pop_size` argument or population totals,}
+#'  \item{\code{estimated} -- if it is based on the probability survey specified in the `svydesign` or, for Hajek-type IPW-MLE, on the estimated IPW total for the non-probability sample.}
 #'}
 #' @param object object returned by the `nonprob` function.
 #' @return a scalar returning the value of the population size.

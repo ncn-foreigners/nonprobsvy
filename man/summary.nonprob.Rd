@@ -29,6 +29,9 @@ An object of \code{nonprob_summary} class containing:
 \item {\code{prob_size} size of the probability sample}
 \item {\code{pop_size} population size}
 \item {\code{pop_size_fixed} whether the population size is treated as fixed}
+\item {\code{ipw_estimator} IPW point-estimator family (\code{"ht"} or \code{"hajek"})}
+\item {\code{ipw_denominator} denominator used for the IPW point estimator}
+\item {\code{ipw_denominator_source} source of the IPW point-estimator denominator}
 \item {\code{no_prob} whether probability sample was provided}
 \item {\code{outcome} model details}
 \item {\code{selection} selection details}

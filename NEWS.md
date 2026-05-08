@@ -2,16 +2,17 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
-+ fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits by aligning outcome-specific variance and confidence-interval indexing (closes #87, #88)
-+ fixed the NN mass-imputation `k = 1` path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes #92)
-+ fixed `nn_exact_se = TRUE` so the mini-bootstrap uses bootstrap-specific nearest-neighbor matches instead of reusing the original donor matches (closes #91)
-+ fixed PMM `pmm_k_choice = "min_var"` so the best `k` found so far is returned instead of the first non-improving `k` (closes #93)
-+ fixed `nonprob_mi()` model-frame construction to pass `case_weights` instead of an undefined internal `weights` symbol; this is a plumbing fix and does not otherwise change current case-weight semantics (closes #99)
-+ reused nearest-neighbor search results across outcomes for multi-outcome NN mass-imputation fits (closes #104)
-+ randomized equal-distance nearest-neighbor tie handling before donor aggregation, including hidden cutoff ties beyond the neighbours initially returned by `RANN::nn2()` (closes #105)
-+ changed PMM `pmm_k_choice = "min_var"` to perform a full search over the candidate `k` grid rather than stopping at the first non-improving value (closes #106)
-+ aligned NN and PMM point estimates and probability-side analytic variances with known-`N` Horvitz-Thompson means when `pop_size` is supplied (closes #107)
-+ updated NN/PMM function documentation for known-`N` means, leave-one-out NN variance proxy, weighted mini-bootstrap, random tie handling, and full-grid PMM `k` selection (closes #108)
++ aligned IPW point-estimator denominators with Horvitz-Thompson vs Hajek estimator behavior, added estimator-family metadata and print output, and documented when each estimator is used (closes [#89](https://github.com/ncn-foreigners/nonprobsvy/issues/89))
++ fixed incorrect analytic uncertainty for multi-outcome IPW and DR fits by aligning outcome-specific variance and confidence-interval indexing (closes [#87](https://github.com/ncn-foreigners/nonprobsvy/issues/87), [#88](https://github.com/ncn-foreigners/nonprobsvy/issues/88))
++ fixed the NN mass-imputation `k = 1` path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes [#92](https://github.com/ncn-foreigners/nonprobsvy/issues/92))
++ fixed `nn_exact_se = TRUE` so the mini-bootstrap uses bootstrap-specific nearest-neighbor matches instead of reusing the original donor matches (closes [#91](https://github.com/ncn-foreigners/nonprobsvy/issues/91))
++ fixed PMM `pmm_k_choice = "min_var"` so the best `k` found so far is returned instead of the first non-improving `k` (closes [#93](https://github.com/ncn-foreigners/nonprobsvy/issues/93))
++ fixed `nonprob_mi()` model-frame construction to pass `case_weights` instead of an undefined internal `weights` symbol; this is a plumbing fix and does not otherwise change current case-weight semantics (closes [#99](https://github.com/ncn-foreigners/nonprobsvy/issues/99))
++ reused nearest-neighbor search results across outcomes for multi-outcome NN mass-imputation fits (closes [#104](https://github.com/ncn-foreigners/nonprobsvy/issues/104))
++ randomized equal-distance nearest-neighbor tie handling before donor aggregation, including hidden cutoff ties beyond the neighbours initially returned by `RANN::nn2()` (closes [#105](https://github.com/ncn-foreigners/nonprobsvy/issues/105))
++ changed PMM `pmm_k_choice = "min_var"` to perform a full search over the candidate `k` grid rather than stopping at the first non-improving value (closes [#106](https://github.com/ncn-foreigners/nonprobsvy/issues/106))
++ aligned NN and PMM point estimates and probability-side analytic variances with known-`N` Horvitz-Thompson means when `pop_size` is supplied (closes [#107](https://github.com/ncn-foreigners/nonprobsvy/issues/107))
++ updated NN/PMM function documentation for known-`N` means, leave-one-out NN variance proxy, weighted mini-bootstrap, random tie handling, and full-grid PMM `k` selection (closes [#108](https://github.com/ncn-foreigners/nonprobsvy/issues/108))
 + added regression tests for multi-outcome analytic variance, NN `k` handling, bootstrap-based NN exact SE, and PMM `k` choice
 
 # nonprobsvy 0.2.3
@@ -41,7 +42,7 @@ nonprobsvy News and Updates
 + removed `sampling` package from suggested package 
 + added simple `plot` method
 + improvements in the linear algebra
-+ corrected the `check_balance` error (closes #75)
++ corrected the `check_balance` error (closes [#75](https://github.com/ncn-foreigners/nonprobsvy/issues/75))
 + code cleaning
 
 # nonprobsvy 0.2.0

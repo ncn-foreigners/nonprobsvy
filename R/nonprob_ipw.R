@@ -290,6 +290,41 @@ nonprob_ipw <- function(selection,
     #######################################
   }
 
+  ipw_weight_total <- sum(case_weights * weights_nons)
+  design_weight_total <- if (!is.null(weights_rand)) sum(weights_rand) else NA_real_
+  ipw_denominator <- if (is.null(pop_size)) ipw_weight_total else pop_size
+  ipw_estimator <- "ht"
+  ipw_denominator_source <- if (!is.null(pop_totals)) {
+    "population totals"
+  } else if (isTRUE(pop_size_fixed)) {
+    "pop_size"
+  } else if (!is.na(design_weight_total)) {
+    "survey weights"
+  } else {
+    "estimated IPW weights"
+  }
+  variance_pop_size <- ipw_denominator
+
+  if (est_method == "mle" && !isTRUE(pop_size_fixed) && is.null(pop_totals)) {
+    ipw_estimator <- "hajek"
+    ipw_denominator <- ipw_weight_total
+    ipw_denominator_source <- "estimated IPW weights"
+    variance_pop_size <- NULL
+  } else if (est_method == "gee" && is.null(pop_totals) && !is.na(design_weight_total)) {
+    if (isTRUE(pop_size_fixed) &&
+        !isTRUE(all.equal(as.numeric(pop_size), as.numeric(design_weight_total)))) {
+      warning(
+        "For IPW-GEE with `svydesign`, `pop_size` differs from sum(weights(svydesign)); ",
+        "using the survey-weight denominator.",
+        call. = FALSE
+      )
+    }
+    ipw_denominator <- design_weight_total
+    ipw_denominator_source <- "survey weights"
+    variance_pop_size <- ipw_denominator
+    pop_size_fixed <- FALSE
+  }
+
   mu_hats <- numeric(length = outcomes$l)
   for (o in 1:outcomes$l) {
     if (is.null(pop_totals)) {
@@ -312,7 +347,7 @@ nonprob_ipw <- function(selection,
       y = y_nons,
       weights = case_weights,
       weights_nons = weights_nons,
-      N = ifelse(is.null(pop_size), N, pop_size)
+      N = ipw_denominator
     )
   }
 
@@ -336,12 +371,12 @@ nonprob_ipw <- function(selection,
           mu_hat = mu_hats[k],
           hess = hess,
           ps_nons_der = ps_nons_der,
-          N = N,
+          N = ipw_denominator,
           est_ps_rand = est_ps_rand,
           ps_rand = ps_rand,
           est_ps_rand_der = est_ps_rand_der,
           n_rand = n_rand,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           method_selection = method_selection,
           est_method = est_method,
@@ -380,7 +415,7 @@ nonprob_ipw <- function(selection,
           est_method = est_method,
           gee_h_fun = gee_h_fun,
           maxit = maxit,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           control_selection = control_selection,
           control_inference = control_inference,
@@ -407,7 +442,7 @@ nonprob_ipw <- function(selection,
           est_method = est_method,
           gee_h_fun = gee_h_fun,
           maxit = maxit,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           control_selection = control_selection,
           control_inference = control_inference,
@@ -456,7 +491,7 @@ nonprob_ipw <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  if (is.null(pop_size)) pop_size <- N # estimated pop_size
+  pop_size <- ipw_denominator
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome[[2]])
 
@@ -482,6 +517,9 @@ nonprob_ipw <- function(selection,
     ipw_weights = as.vector(weights_nons),
     case_weights = case_weights,
     pop_totals = pop_totals,
+    ipw_estimator = ipw_estimator,
+    ipw_denominator = ipw_denominator,
+    ipw_denominator_source = ipw_denominator_source,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
@@ -522,6 +560,9 @@ nonprob_ipw <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       pop_size_fixed = pop_size_fixed,
+      ipw_estimator = ipw_estimator,
+      ipw_denominator = ipw_denominator,
+      ipw_denominator_source = ipw_denominator_source,
       pop_totals = pop_totals,
       pop_means = pop_means,
       outcome = NULL,

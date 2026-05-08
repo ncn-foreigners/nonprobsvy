@@ -23,8 +23,12 @@
 #' @param pop_totals an optional `named vector` with population totals of the covariates
 #' @param pop_means an optional `named vector` with population means of the covariates
 #' @param pop_size an optional `double` value with population size. If omitted when a probability sample is supplied,
-#' `pop_size` is estimated as `sum(weights(svydesign))`. Supplying `pop_size` fixes the population-size denominator
-#' used by known-\eqn{N} estimators; it does not add or modify finite population correction in `svydesign`.
+#' the survey-weight denominator defaults to `sum(weights(svydesign))`. Supplying `pop_size` fixes the
+#' population-size denominator used by known-\eqn{N} estimators such as IPW-MLE; it does not add or modify finite
+#' population correction in `svydesign`. For IPW-MLE without a fixed `pop_size`, `pop_totals`, or `pop_means`,
+#' the point estimator is Hajek-type, with the estimated IPW-weight total as its denominator. For IPW-GEE with
+#' `svydesign`, the point estimator uses the survey-weight denominator `sum(weights(svydesign))`; if a supplied
+#' `pop_size` differs from that denominator, a warning is issued.
 #' @param method_selection a `character` (default `logit`) indicating the method for the propensity score link function.
 #' @param method_outcome a `character` (default `glm`) indicating the method for the outcome model.
 #' @param family_outcome a `character` (default `gaussian`)  describing the error distribution and the link function to be used in the model. Currently supports: `gaussian` with the identity link, `poisson` and `binomial`.
@@ -86,8 +90,16 @@
 #' 1. Inverse probability weighting -- the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 #'  This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 #'  is available and therefore we can estimate the propensity score of the selection mechanism.
-#'  The estimator has the following form:
-#'  \deqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
+#'  With inverse probability weights \eqn{\hat{d}_i^A = 1 / \hat{\pi}_i^A}, the package supports two
+#'  IPW point-estimator families. The Horvitz-Thompson-type estimator uses an external denominator \eqn{N_0},
+#'  \deqn{\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_A} w_i \hat{d}_i^A y_i,}
+#'  where \eqn{w_i} are optional `case_weights`. The Hajek-type estimator uses the estimated IPW total as the denominator,
+#'  \deqn{\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_A} w_i \hat{d}_i^A y_i}{\sum_{i \in S_A} w_i \hat{d}_i^A}.}
+#'  For IPW-MLE, omitting a fixed population size (`pop_size`, `pop_totals`, or `pop_means` with `pop_size`) gives
+#'  the Hajek-type estimator. Supplying a fixed population size or population totals gives the
+#'  Horvitz-Thompson-type estimator. For IPW-GEE with a reference probability sample, the denominator is
+#'  `sum(weights(svydesign))`; `gee_h_fun` changes the selection-model estimating equation, not the point-estimator
+#'  family. For IPW-GEE with population totals or means, the denominator comes from those totals.
 #'  For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 #'  log-likelihood function, which is given by the following formula
 #'  \deqn{
@@ -198,6 +210,9 @@
 #'  \item{\code{prob_size} -- a scalar `numeric vector` denoting the size of probability sample}
 #'  \item{\code{pop_size} -- a scalar `numeric vector` estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
 #'  \item{\code{pop_size_fixed} -- a `logical` value whether the population size was fixed (known) or estimated (unknown)}
+#'  \item{\code{ipw_estimator} -- a `character` value with the IPW point-estimator family (`"ht"` or `"hajek"`, if applicable)}
+#'  \item{\code{ipw_denominator} -- a scalar `numeric vector` with the denominator used for the IPW point estimator (if applicable)}
+#'  \item{\code{ipw_denominator_source} -- a `character` value describing the source of the IPW point-estimator denominator (if applicable)}
 #'  \item{\code{pop_totals} -- a `numeric vector` with the total values of the auxiliary variables derived from a probability sample or based on the call}
 #'  \item{\code{pop_means} -- a `numeric vector` with the mean values of the auxiliary variables derived from a probability sample or based on the call}
 #'  \item{\code{outcome} -- a `list` containing information about the fitting of the mass imputation model. Structure of the object is based on the `method_outcome` and `family_outcome` arguments which point to specific methods as defined by functions `method_*` (if specified in the call)}

@@ -93,14 +93,14 @@ where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources while $Y$ and $\boldsymbol{d}$ (or
 $\boldsymbol{w}$) is present only in probability sample.
 
-| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
-|----|---:|:--:|:--:|:--:|
-| $S_A$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
-|  | … | $\checkmark$ | $\checkmark$ | ? |
-|  | $n_A$ | $\checkmark$ | $\checkmark$ | ? |
-| $S_B$ (probability) | $n_A+1$ | $\checkmark$ | ? | $\checkmark$ |
-|  | … | $\checkmark$ | ? | $\checkmark$ |
-|  | $n_A+n_B$ | $\checkmark$ | ? | $\checkmark$ |
+| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
+| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
 
 ## Basic functionalities
 
@@ -128,28 +128,18 @@ possible scenarios:
 ### When unit-level data is available for non-probability survey only
 
 <table class='table'>
-
 <tr>
-
 <th>
-
 Estimator
 </th>
-
 <th>
-
 Example code
 </th>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation
 </td>
-
 <td>
 
 ``` r
@@ -167,16 +157,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting
 </td>
-
 <td>
 
 ``` r
@@ -194,16 +179,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint
 </td>
-
 <td>
 
 ``` r
@@ -222,16 +202,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator
 </td>
-
 <td>
 
 ``` r
@@ -250,36 +225,24 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 </table>
 
 ### When unit-level data are available for both surveys
 
 <table class='table'>
-
 <tr>
-
 <th>
-
 Estimator
 </th>
-
 <th>
-
 Example code
 </th>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation
 </td>
-
 <td>
 
 ``` r
@@ -293,16 +256,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on nearest neighbour imputation
 </td>
-
 <td>
 
 ``` r
@@ -317,16 +275,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on predictive mean matching
 </td>
-
 <td>
 
 ``` r
@@ -340,17 +293,12 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation with variable selection
 (LASSO)
 </td>
-
 <td>
 
 ``` r
@@ -366,16 +314,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting
 </td>
-
 <td>
 
 ``` r
@@ -389,16 +332,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint
 </td>
-
 <td>
 
 ``` r
@@ -413,17 +351,12 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint with variable
 selection (SCAD)
 </td>
-
 <td>
 
 ``` r
@@ -439,16 +372,11 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator
 </td>
-
 <td>
 
 ``` r
@@ -463,17 +391,12 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator with variable selection (SCAD) and bias
 minimization
 </td>
-
 <td>
 
 ``` r
@@ -492,9 +415,7 @@ nonprob(
 ```
 
 </td>
-
 <tr>
-
 </table>
 
 ## Examples
@@ -617,6 +538,11 @@ result_mi
 
 Inverse probability weighting estimator
 
+For IPW, MLE without a fixed `pop_size`, `pop_totals`, or `pop_means`
+uses the Hajek-type estimator. Supplying a fixed population size uses
+the Horvitz-Thompson-type estimator, while IPW-GEE with a reference
+survey uses `sum(weights(svydesign))` as the denominator.
+
 ``` r
 result_ipw <- nonprob(
   selection = ~ x2,
@@ -632,6 +558,7 @@ result_ipw
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1041763.6177)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -640,8 +567,8 @@ result_ipw
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))
-#>    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))
+#>    - variable y1: 2.9017 (se=0.0823, ci=(2.7403, 3.0631))
+#>    - variable y2: 1.5287 (se=0.0823, ci=(1.3673, 1.6900))
 ```
 
 ## Funding

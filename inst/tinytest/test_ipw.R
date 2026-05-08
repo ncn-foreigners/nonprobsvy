@@ -144,6 +144,32 @@ expect_equal(
     method_selection = "logit")$output$mean
 )
 
+expect_warning(
+  nonprob(
+    selection = ~region + private + nace + size,
+    target = ~single_shift,
+    pop_size = pop_totals[1] + 1,
+    svydesign = jvs_svy,
+    data = admin,
+    method_selection = "logit",
+    control_selection = control_sel(est_method = "gee"),
+    se = FALSE),
+  "survey-weight denominator"
+)
+
+ipw_gee_warning <- suppressWarnings(nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  pop_size = pop_totals[1] + 1,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee"),
+  se = FALSE))
+
+expect_equal(ipw_gee_warning$ipw_estimator, "ht")
+expect_equal(ipw_gee_warning$ipw_denominator_source, "survey weights")
+
 expect_equal(
   nonprob(
     selection = ~region + private + nace + size,
@@ -151,7 +177,7 @@ expect_equal(
     svydesign = jvs_svy,
     data = admin,
     method_selection = "logit")$output,
-  structure(list(mean = 0.72236278190985, SE = 0.042077108910903),
+  structure(list(mean = 0.708322897640164, SE = 0.00943690366325884),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -162,7 +188,7 @@ expect_equal(
     svydesign = jvs_svy,
     data = admin,
     method_selection = "probit")$output,
-  structure(list(mean = 0.723953845426239, SE = 0.0669519861228996),
+  structure(list(mean = 0.708804223550342, SE = 0.0120798863559962),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -176,14 +202,17 @@ ipw_cloglog <- nonprob(
 
 expect_equal(
   ipw_cloglog$output,
-  structure(list(mean = 0.722150707253752, SE = 0.042993653604522),
+  structure(list(mean = 0.708486797147196, SE = 0.0103215743778221),
             row.names = "single_shift", class = "data.frame"),
   tolerance = 1e-8
 )
 
 expect_equal(
   ipw_cloglog$SE,
-  structure(list(prob = 0.0382844151764114, nonprob = 0.0195641970156145),
+  structure(list(prob = 0.00825111488581828, nonprob = 0.00620112899220311),
             row.names = "single_shift", class = "data.frame"),
   tolerance = 1e-8
 )
+
+expect_equal(ipw_cloglog$ipw_estimator, "hajek")
+expect_equal(ipw_cloglog$ipw_denominator_source, "estimated IPW weights")

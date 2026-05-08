@@ -25,6 +25,9 @@
 #' \item {\code{prob_size} size of the probability sample}
 #' \item {\code{pop_size} population size}
 #' \item {\code{pop_size_fixed} whether the population size is treated as fixed}
+#' \item {\code{ipw_estimator} IPW point-estimator family (`"ht"` or `"hajek"`)}
+#' \item {\code{ipw_denominator} denominator used for the IPW point estimator}
+#' \item {\code{ipw_denominator_source} source of the IPW point-estimator denominator}
 #' \item {\code{no_prob} whether probability sample was provided}
 #' \item {\code{outcome} model details}
 #' \item {\code{selection} selection details}
@@ -85,6 +88,9 @@ summary.nonprob <- function(object, ...) {
          prob_size = object$prob_size,
          pop_size = object$pop_size,
          pop_size_fixed = object$pop_size_fixed,
+         ipw_estimator = object$ipw_estimator,
+         ipw_denominator = object$ipw_denominator,
+         ipw_denominator_source = object$ipw_denominator_source,
          no_prob = is.null(object$svydesign),
          outcome = object$outcome,
          selection = object$selection,
@@ -101,7 +107,6 @@ summary.nonprob <- function(object, ...) {
   )
   res
 }
-
 
 
 

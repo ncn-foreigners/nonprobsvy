@@ -47,8 +47,12 @@ If finite population correction should affect survey-side variance estimates, in
 \item{pop_means}{an optional \verb{named vector} with population means of the covariates}
 
 \item{pop_size}{an optional \code{double} value with population size. If omitted when a probability sample is supplied,
-\code{pop_size} is estimated as \code{sum(weights(svydesign))}. Supplying \code{pop_size} fixes the population-size denominator
-used by known-\eqn{N} estimators; it does not add or modify finite population correction in \code{svydesign}.}
+the survey-weight denominator defaults to \code{sum(weights(svydesign))}. Supplying \code{pop_size} fixes the
+population-size denominator used by known-\eqn{N} estimators such as IPW-MLE; it does not add or modify finite
+population correction in \code{svydesign}. For IPW-MLE without a fixed \code{pop_size}, \code{pop_totals}, or \code{pop_means},
+the point estimator is Hajek-type, with the estimated IPW-weight total as its denominator. For IPW-GEE with
+\code{svydesign}, the point estimator uses the survey-weight denominator \code{sum(weights(svydesign))}; if a supplied
+\code{pop_size} differs from that denominator, a warning is issued.}
 
 \item{method_selection}{a \code{character} (default \code{logit}) indicating the method for the propensity score link function.}
 
@@ -100,6 +104,9 @@ Returns an object of the \code{nonprob} class (it is actually a \code{list}) whi
 \item{\code{prob_size} -- a scalar \verb{numeric vector} denoting the size of probability sample}
 \item{\code{pop_size} -- a scalar \verb{numeric vector} estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
 \item{\code{pop_size_fixed} -- a \code{logical} value whether the population size was fixed (known) or estimated (unknown)}
+\item{\code{ipw_estimator} -- a \code{character} value with the IPW point-estimator family (\code{"ht"} or \code{"hajek"}, if applicable)}
+\item{\code{ipw_denominator} -- a scalar \verb{numeric vector} with the denominator used for the IPW point estimator (if applicable)}
+\item{\code{ipw_denominator_source} -- a \code{character} value describing the source of the IPW point-estimator denominator (if applicable)}
 \item{\code{pop_totals} -- a \verb{numeric vector} with the total values of the auxiliary variables derived from a probability sample or based on the call}
 \item{\code{pop_means} -- a \verb{numeric vector} with the mean values of the auxiliary variables derived from a probability sample or based on the call}
 \item{\code{outcome} -- a \code{list} containing information about the fitting of the mass imputation model. Structure of the object is based on the \code{method_outcome} and \code{family_outcome} arguments which point to specific methods as defined by functions \verb{method_*} (if specified in the call)}
@@ -175,8 +182,16 @@ There are three possible approaches to the problem of estimating population mean
 \item Inverse probability weighting -- the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 is available and therefore we can estimate the propensity score of the selection mechanism.
-The estimator has the following form:
-\deqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
+With inverse probability weights \eqn{\hat{d}_i^A = 1 / \hat{\pi}_i^A}, the package supports two
+IPW point-estimator families. The Horvitz-Thompson-type estimator uses an external denominator \eqn{N_0},
+\deqn{\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_A} w_i \hat{d}_i^A y_i,}
+where \eqn{w_i} are optional \code{case_weights}. The Hajek-type estimator uses the estimated IPW total as the denominator,
+\deqn{\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_A} w_i \hat{d}_i^A y_i}{\sum_{i \in S_A} w_i \hat{d}_i^A}.}
+For IPW-MLE, omitting a fixed population size (\code{pop_size}, \code{pop_totals}, or \code{pop_means} with \code{pop_size}) gives
+the Hajek-type estimator. Supplying a fixed population size or population totals gives the
+Horvitz-Thompson-type estimator. For IPW-GEE with a reference probability sample, the denominator is
+\code{sum(weights(svydesign))}; \code{gee_h_fun} changes the selection-model estimating equation, not the point-estimator
+family. For IPW-GEE with population totals or means, the denominator comes from those totals.
 For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 log-likelihood function, which is given by the following formula
 \deqn{
