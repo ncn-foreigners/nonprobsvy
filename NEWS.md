@@ -6,7 +6,7 @@ nonprobsvy News and Updates
 + fixed the NN mass-imputation `k = 1` path by avoiding dimension drop errors and using leave-one-out matching for the non-probability variance proxy (closes #92)
 + fixed `nn_exact_se = TRUE` so the mini-bootstrap uses bootstrap-specific nearest-neighbor matches instead of reusing the original donor matches (closes #91)
 + fixed PMM `pmm_k_choice = "min_var"` so the best `k` found so far is returned instead of the first non-improving `k` (closes #93)
-+ fixed `nonprob_mi()` model-frame construction to pass `case_weights` instead of an undefined `weights` symbol (closes #99)
++ fixed `nonprob_mi()` model-frame construction to pass `case_weights` instead of an undefined internal `weights` symbol; this is a plumbing fix and does not otherwise change current case-weight semantics (closes #99)
 + reused nearest-neighbor search results across outcomes for multi-outcome NN mass-imputation fits (closes #104)
 + randomized equal-distance nearest-neighbor tie handling before donor aggregation, including exact small-grid tie handling at the distance cutoff (closes #105)
 + changed PMM `pmm_k_choice = "min_var"` to perform a full search over the candidate `k` grid rather than stopping at the first non-improving value (closes #106)

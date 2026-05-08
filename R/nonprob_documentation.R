@@ -18,10 +18,13 @@
 #' @param selection a `formula` (default `NULL`) for the selection (propensity) score model
 #' @param outcome a `formula` (default `NULL`) for the outcome (target) model
 #' @param target a `formula` (default `NULL`) with target variable(s). We allow multiple target variables (e.g. `~y1 + y2 + y3`)
-#' @param svydesign an optional `svydesign2` class object containing a probability sample and design weights
+#' @param svydesign an optional `svydesign2` class object containing a probability sample and design weights.
+#' If finite population correction should affect survey-side variance estimates, include the fpc in this object.
 #' @param pop_totals an optional `named vector` with population totals of the covariates
 #' @param pop_means an optional `named vector` with population means of the covariates
-#' @param pop_size an optional `double` value with population size
+#' @param pop_size an optional `double` value with population size. If omitted when a probability sample is supplied,
+#' `pop_size` is estimated as `sum(weights(svydesign))`. Supplying `pop_size` fixes the population-size denominator
+#' used by known-\eqn{N} estimators; it does not add or modify finite population correction in `svydesign`.
 #' @param method_selection a `character` (default `logit`) indicating the method for the propensity score link function.
 #' @param method_outcome a `character` (default `glm`) indicating the method for the outcome model.
 #' @param family_outcome a `character` (default `gaussian`)  describing the error distribution and the link function to be used in the model. Currently supports: `gaussian` with the identity link, `poisson` and `binomial`.

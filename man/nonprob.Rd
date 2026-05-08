@@ -39,13 +39,16 @@ nonprob(
 
 \item{target}{a \code{formula} (default \code{NULL}) with target variable(s). We allow multiple target variables (e.g. \code{~y1 + y2 + y3})}
 
-\item{svydesign}{an optional \code{svydesign2} class object containing a probability sample and design weights}
+\item{svydesign}{an optional \code{svydesign2} class object containing a probability sample and design weights.
+If finite population correction should affect survey-side variance estimates, include the fpc in this object.}
 
 \item{pop_totals}{an optional \verb{named vector} with population totals of the covariates}
 
 \item{pop_means}{an optional \verb{named vector} with population means of the covariates}
 
-\item{pop_size}{an optional \code{double} value with population size}
+\item{pop_size}{an optional \code{double} value with population size. If omitted when a probability sample is supplied,
+\code{pop_size} is estimated as \code{sum(weights(svydesign))}. Supplying \code{pop_size} fixes the population-size denominator
+used by known-\eqn{N} estimators; it does not add or modify finite population correction in \code{svydesign}.}
 
 \item{method_selection}{a \code{character} (default \code{logit}) indicating the method for the propensity score link function.}
 

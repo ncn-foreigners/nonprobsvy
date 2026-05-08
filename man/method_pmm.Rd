@@ -42,7 +42,10 @@ to their inverses and are resampled for each bootstrap refit.}
 
 \item{pop_totals}{a place holder (not used in \code{method_pmm})}
 
-\item{pop_size}{population size from the \code{nonprob} function}
+\item{pop_size}{population size from the \code{nonprob} function. If \code{NULL}, the
+method uses \code{sum(weights(svydesign))}. If supplied, it is used as the
+known-\eqn{N} denominator for the mean and variance scaling, but it does not
+modify the finite population correction of \code{svydesign}.}
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
 
@@ -74,6 +77,9 @@ Model for the outcome for the mass imputation estimator. The implementation is c
 either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample:
 when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
 otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+The \code{pop_size} argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
+by the \code{{survey}} variance routines.
 Matching ties are randomized by the nearest-neighbour step before donor values are aggregated.
 
 This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:

@@ -43,7 +43,10 @@ to their inverses.}
 
 \item{pop_totals}{a placeholder (not used in \code{method_nn})}
 
-\item{pop_size}{population size from the \code{nonprob} function}
+\item{pop_size}{population size from the \code{nonprob} function. If \code{NULL}, the
+method uses \code{sum(weights(svydesign))}. If supplied, it is used as the
+known-\eqn{N} denominator for the mean and variance scaling, but it does not
+modify the finite population correction of \code{svydesign}.}
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
 
@@ -83,6 +86,9 @@ Matching ties are randomized before donor values are aggregated, so tied nearest
 are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
 when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
 otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+The \code{pop_size} argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
+by the \code{{survey}} variance routines.
 }
 \details{
 Analytical variance

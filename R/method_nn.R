@@ -13,6 +13,9 @@
 #' are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
 #' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
 #' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+#' The `pop_size` argument is not converted into a finite population correction;
+#' if an fpc is needed, it should be supplied in `svydesign`, where it is handled
+#' by the `{survey}` variance routines.
 #'
 #'
 #' @details Analytical variance
@@ -72,7 +75,10 @@
 #' @param start_outcome a placeholder (not used in `method_nn`)
 #' @param vars_selection whether variable selection should be conducted
 #' @param pop_totals a placeholder (not used in `method_nn`)
-#' @param pop_size population size from the `nonprob` function
+#' @param pop_size population size from the `nonprob` function. If `NULL`, the
+#'   method uses `sum(weights(svydesign))`. If supplied, it is used as the
+#'   known-\eqn{N} denominator for the mean and variance scaling, but it does not
+#'   modify the finite population correction of `svydesign`.
 #' @param control_outcome controls passed by the `control_out` function
 #' @param control_inference controls passed by the `control_inf` function
 #' @param verbose parameter passed from the main `nonprob` function
@@ -309,6 +315,7 @@ method_nn <- function(y_nons,
   )
 
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
+  # svytotal() honors any fpc already stored in svydesign; pop_size is only the mean denominator.
   svydesign_total <- survey::svytotal( ~ y_hat_MI, svydesign_updated)
   y_mi_hat <- as.numeric(svydesign_total) / pop_size
   y_nons_pred <- NULL
