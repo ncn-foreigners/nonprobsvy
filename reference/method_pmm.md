@@ -6,7 +6,12 @@ implementation is currently based on
 function and thus it uses Euclidean distance for matching units from
 \\S_A\\ (non-probability) to \\S_B\\ (probability) based on predicted
 values from model \\\boldsymbol{x}\_i\\ based either on `method_glm` or
-`method_npar`. Estimation of the mean is done using \\S_B\\ sample.
+`method_npar`. Estimation of the mean is done using \\S_B\\ sample: when
+`pop_size` is supplied this is the known-\\N\\ Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \\\hat{N} =
+\sum\_{i\in S_B} d_i\\. The `pop_size` argument is not converted into a
+finite population correction; if an fpc is needed, it should be supplied
+in `svydesign`, where it is handled by the `{survey}` variance routines.
 Matching ties are randomized by the nearest-neighbour step before donor
 values are aggregated.
 
@@ -35,8 +40,8 @@ Chlebicki et al. (2025), namely:
 - pmm_k_choice:
 
   the main `nonprob` function allows for dynamic selection of `k`
-  neighbours based on the variance minimization procedure
-  (`pmm_k_choice` from the
+  neighbours based on a full-grid variance minimization procedure over
+  `1:n_A` (`pmm_k_choice` from the
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
   function)
 
@@ -104,7 +109,10 @@ method_pmm(
 
 - pop_size:
 
-  population size from the `nonprob` function
+  population size from the `nonprob` function. If `NULL`, the method
+  uses `sum(weights(svydesign))`. If supplied, it is used as the
+  known-\\N\\ denominator for the mean and variance scaling, but it does
+  not modify the finite population correction of `svydesign`.
 
 - control_outcome:
 
@@ -245,5 +253,5 @@ res_pmm <- method_pmm(y_nons = admin$single_shift,
                       svydesign = jvs_svy)
 
 res_pmm
-#> Mass imputation model (PMM approach). Estimated mean: 0.6969 (se: 0.0146)
+#> Mass imputation model (PMM approach). Estimated mean: 0.6969 (se: 0.0360)
 ```

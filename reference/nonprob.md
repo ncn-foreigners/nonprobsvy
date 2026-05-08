@@ -78,7 +78,8 @@ nonprob(
 - svydesign:
 
   an optional `svydesign2` class object containing a probability sample
-  and design weights
+  and design weights. If finite population correction should affect
+  survey-side variance estimates, include the fpc in this object.
 
 - pop_totals:
 
@@ -90,7 +91,11 @@ nonprob(
 
 - pop_size:
 
-  an optional `double` value with population size
+  an optional `double` value with population size. If omitted when a
+  probability sample is supplied, `pop_size` is estimated as
+  `sum(weights(svydesign))`. Supplying `pop_size` fixes the
+  population-size denominator used by known-\\N\\ estimators; it does
+  not add or modify finite population correction in `svydesign`.
 
 - method_selection:
 

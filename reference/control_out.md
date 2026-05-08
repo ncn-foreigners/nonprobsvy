@@ -105,7 +105,7 @@ control_out(
   (Only for the PMM Estimator) Indicate how to weight `k` nearest
   neighbours in \\S\_{B}\\ to create imputed value for units in
   \\S\_{A}\\. The default value `"none"` indicates that mean of `k`
-  nearest \\y\\'s from \\S\_{B}\\ should be used whereas `"prop_dist"`
+  nearest \\y\\'s from \\S\_{B}\\ should be used whereas `"dist"`
   results in weighted mean of these `k` values where weights are
   inversely proportional to distance between matched values.
 
@@ -114,9 +114,10 @@ control_out(
   (Only for the PMM Estimator) Character value indicating how `k`
   hyper-parameter should be chosen, by default `"none"` meaning `k`
   provided in `control_outcome` argument will be used. For now the only
-  other option `"min_var"` means that `k` will be chosen by minimizing
-  estimated variance of estimator for mean. Parameter `k` provided in
-  this control list will be chosen as starting point.
+  other option `"min_var"` means that `k` will be chosen by a full
+  search over `1:n_A`, where \\n_A\\ is the non-probability sample size,
+  minimizing the estimated variance of the mean estimator. The `k` value
+  supplied in this control list is replaced by the selected value.
 
 - pmm_reg_engine:
 

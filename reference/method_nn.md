@@ -7,7 +7,12 @@ function and thus it uses Euclidean distance for matching units from
 \\S_A\\ (non-probability) to \\S_B\\ (probability). Matching ties are
 randomized before donor values are aggregated, so tied nearest
 neighbours are not selected only by input row order. Estimation of the
-mean is done using \\S_B\\ sample.
+mean is done using \\S_B\\ sample: when `pop_size` is supplied this is
+the known-\\N\\ Horvitz-Thompson mean, otherwise it reduces to the usual
+ratio mean with \\\hat{N} = \sum\_{i\in S_B} d_i\\. The `pop_size`
+argument is not converted into a finite population correction; if an fpc
+is needed, it should be supplied in `svydesign`, where it is handled by
+the `{survey}` variance routines.
 
 ## Usage
 
@@ -26,7 +31,8 @@ method_nn(
   control_outcome = control_out(),
   control_inference = control_inf(),
   verbose = FALSE,
-  se = TRUE
+  se = TRUE,
+  nn_matches = NULL
 )
 ```
 
@@ -72,7 +78,10 @@ method_nn(
 
 - pop_size:
 
-  population size from the `nonprob` function
+  population size from the `nonprob` function. If `NULL`, the method
+  uses `sum(weights(svydesign))`. If supplied, it is used as the
+  known-\\N\\ denominator for the mean and variance scaling, but it does
+  not modify the finite population correction of `svydesign`.
 
 - control_outcome:
 
@@ -89,6 +98,13 @@ method_nn(
 - se:
 
   whether standard errors should be calculated
+
+- nn_matches:
+
+  optional precomputed nearest-neighbour search results for internal
+  reuse across outcomes. If supplied, it should be a list with `rand`
+  and `nons` entries from
+  [`RANN::nn2()`](https://jefferislab.github.io/RANN/reference/nn2.html).
 
 ## Value
 
@@ -163,7 +179,9 @@ This may be estimated using
 where \\\hat{\pi}\_B(\boldsymbol{x}\_i)\\ is an estimator of propensity
 scores which we currently estimate using \\n_A/N\\ (constant) and
 \\\hat{\sigma}^2(\boldsymbol{x}\_i)\\ is estimated using based on the
-average of \\(y_i - y_i^\*)^2\\.
+average of \\(y_i - y_i^\*)^2\\. The \\y_i^\*\\ values used in this
+proxy are obtained by leave-one-out matching in \\S_A\\, so a unit is
+not used as its own donor.
 
 Chlebicki et al. (2025, Algorithm 2) proposed non-parametric
 mini-bootstrap estimator (without assuming that it is consistent) but
@@ -228,5 +246,5 @@ res_nn <- method_nn(y_nons = admin$single_shift,
                     svydesign = jvs_svy)
 
 res_nn
-#> Mass imputation model (NN approach). Estimated mean: 0.6800 (se: 0.0157)
+#> Mass imputation model (NN approach). Estimated mean: 0.6800 (se: 0.0348)
 ```

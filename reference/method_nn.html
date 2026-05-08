@@ -3,11 +3,21 @@
 The implementation is currently based on RANN::nn2 function and thus it uses
 Euclidean distance for matching units from \(S_A\) (non-probability) to \(S_B\) (probability).
 Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
-are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample."><meta property="og:description" content="Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
+are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample:
+when pop_size is supplied this is the known-\(N\) Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \(\hat{N} = \sum_{i\in S_B} d_i\).
+The pop_size argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in svydesign, where it is handled
+by the {survey} variance routines."><meta property="og:description" content="Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 The implementation is currently based on RANN::nn2 function and thus it uses
 Euclidean distance for matching units from \(S_A\) (non-probability) to \(S_B\) (probability).
 Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
-are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample."><meta property="og:image" content="https://ncn-foreigners.github.io/nonprobsvy/logo.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head><body>
+are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample:
+when pop_size is supplied this is the known-\(N\) Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \(\hat{N} = \sum_{i\in S_B} d_i\).
+The pop_size argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in svydesign, where it is handled
+by the {survey} variance routines."><meta property="og:image" content="https://ncn-foreigners.github.io/nonprobsvy/logo.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -45,7 +55,12 @@ are not selected only by input row order. Estimation of the mean is done using \
 The implementation is currently based on <a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2</a> function and thus it uses
 Euclidean distance for matching units from \(S_A\) (non-probability) to \(S_B\) (probability).
 Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
-are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample.</p>
+are not selected only by input row order. Estimation of the mean is done using \(S_B\) sample:
+when <code>pop_size</code> is supplied this is the known-\(N\) Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \(\hat{N} = \sum_{i\in S_B} d_i\).
+The <code>pop_size</code> argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in <code>svydesign</code>, where it is handled
+by the <code>{survey}</code> variance routines.</p>
     </div>
 
     <div class="section level2">
@@ -64,7 +79,8 @@ are not selected only by input row order. Estimation of the mean is done using \
 <span>  control_outcome <span class="op">=</span> <span class="fu"><a href="control_out.html">control_out</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  control_inference <span class="op">=</span> <span class="fu"><a href="control_inf.html">control_inf</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  se <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  se <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  nn_matches <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,7 +127,10 @@ to their inverses.</p></dd>
 
 
 <dt id="arg-pop-size">pop_size<a class="anchor" aria-label="anchor" href="#arg-pop-size"></a></dt>
-<dd><p>population size from the <code>nonprob</code> function</p></dd>
+<dd><p>population size from the <code>nonprob</code> function. If <code>NULL</code>, the
+method uses <code>sum(weights(svydesign))</code>. If supplied, it is used as the
+known-\(N\) denominator for the mean and variance scaling, but it does not
+modify the finite population correction of <code>svydesign</code>.</p></dd>
 
 
 <dt id="arg-control-outcome">control_outcome<a class="anchor" aria-label="anchor" href="#arg-control-outcome"></a></dt>
@@ -128,6 +147,12 @@ to their inverses.</p></dd>
 
 <dt id="arg-se">se<a class="anchor" aria-label="anchor" href="#arg-se"></a></dt>
 <dd><p>whether standard errors should be calculated</p></dd>
+
+
+<dt id="arg-nn-matches">nn_matches<a class="anchor" aria-label="anchor" href="#arg-nn-matches"></a></dt>
+<dd><p>optional precomputed nearest-neighbour search results for
+internal reuse across outcomes. If supplied, it should be a list with
+<code>rand</code> and <code>nons</code> entries from <code><a href="https://jefferislab.github.io/RANN/reference/nn2.html" class="external-link">RANN::nn2()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -182,7 +207,9 @@ to their inverses.</p></dd>
 $$</p>
 <p>where \(\hat{\pi}_B(\boldsymbol{x}_i)\) is an estimator of propensity scores which
 we currently estimate using \(n_A/N\) (constant) and \(\hat{\sigma}^2(\boldsymbol{x}_i)\) is
-estimated using based on the average of \((y_i - y_i^*)^2\).</p>
+estimated using based on the average of \((y_i - y_i^*)^2\). The \(y_i^*\)
+values used in this proxy are obtained by leave-one-out matching in \(S_A\),
+so a unit is not used as its own donor.</p>
 <p>Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 (without assuming that it is consistent) but with good finite population properties.
 This bootstrap can be applied using <code>control_inference(nn_exact_se=TRUE)</code> and
@@ -225,7 +252,7 @@ and probability samples with predictive mean matching. arXiv preprint arXiv:2403
 <span class="r-in"><span>                    svydesign <span class="op">=</span> <span class="va">jvs_svy</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">res_nn</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Mass imputation model (NN approach). Estimated mean: 0.6800 (se: 0.0157)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mass imputation model (NN approach). Estimated mean: 0.6800 (se: 0.0348)</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

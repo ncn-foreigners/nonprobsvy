@@ -107,7 +107,8 @@ In the case of <code>outcome</code> and <code>target</code> multiple \(y\) varia
 
 
 <dt id="arg-svydesign">svydesign<a class="anchor" aria-label="anchor" href="#arg-svydesign"></a></dt>
-<dd><p>an optional <code>svydesign2</code> class object containing a probability sample and design weights</p></dd>
+<dd><p>an optional <code>svydesign2</code> class object containing a probability sample and design weights.
+If finite population correction should affect survey-side variance estimates, include the fpc in this object.</p></dd>
 
 
 <dt id="arg-pop-totals">pop_totals<a class="anchor" aria-label="anchor" href="#arg-pop-totals"></a></dt>
@@ -119,7 +120,9 @@ In the case of <code>outcome</code> and <code>target</code> multiple \(y\) varia
 
 
 <dt id="arg-pop-size">pop_size<a class="anchor" aria-label="anchor" href="#arg-pop-size"></a></dt>
-<dd><p>an optional <code>double</code> value with population size</p></dd>
+<dd><p>an optional <code>double</code> value with population size. If omitted when a probability sample is supplied,
+<code>pop_size</code> is estimated as <code>sum(weights(svydesign))</code>. Supplying <code>pop_size</code> fixes the population-size denominator
+used by known-\(N\) estimators; it does not add or modify finite population correction in <code>svydesign</code>.</p></dd>
 
 
 <dt id="arg-method-selection">method_selection<a class="anchor" aria-label="anchor" href="#arg-method-selection"></a></dt>
