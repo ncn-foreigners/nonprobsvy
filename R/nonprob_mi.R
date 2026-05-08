@@ -90,14 +90,14 @@ nonprob_mi <- function(outcome,
             nons = RANN::nn2(
               data = X_nons,
               query = X_nons,
-              k = min(control_outcome$k + 1L, NROW(X_nons)),
+              k = min(control_outcome$k + 2L, NROW(X_nons)),
               treetype = control_outcome$treetype,
               searchtype = control_outcome$searchtype
             ),
             rand = RANN::nn2(
               data = X_nons,
               query = X_rand,
-              k = control_outcome$k,
+              k = min(control_outcome$k + 1L, NROW(X_nons)),
               treetype = control_outcome$treetype,
               searchtype = control_outcome$searchtype
             )

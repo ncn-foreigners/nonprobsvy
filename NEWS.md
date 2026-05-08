@@ -8,7 +8,7 @@ nonprobsvy News and Updates
 + fixed PMM `pmm_k_choice = "min_var"` so the best `k` found so far is returned instead of the first non-improving `k` (closes #93)
 + fixed `nonprob_mi()` model-frame construction to pass `case_weights` instead of an undefined internal `weights` symbol; this is a plumbing fix and does not otherwise change current case-weight semantics (closes #99)
 + reused nearest-neighbor search results across outcomes for multi-outcome NN mass-imputation fits (closes #104)
-+ randomized equal-distance nearest-neighbor tie handling before donor aggregation, including exact small-grid tie handling at the distance cutoff (closes #105)
++ randomized equal-distance nearest-neighbor tie handling before donor aggregation, including hidden cutoff ties beyond the neighbours initially returned by `RANN::nn2()` (closes #105)
 + changed PMM `pmm_k_choice = "min_var"` to perform a full search over the candidate `k` grid rather than stopping at the first non-improving value (closes #106)
 + aligned NN and PMM point estimates and probability-side analytic variances with known-`N` Horvitz-Thompson means when `pop_size` is supplied (closes #107)
 + updated NN/PMM function documentation for known-`N` means, leave-one-out NN variance proxy, weighted mini-bootstrap, random tie handling, and full-grid PMM `k` selection (closes #108)

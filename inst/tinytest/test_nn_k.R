@@ -56,6 +56,7 @@ expect_equal(
   c(1, 9)
 )
 
+set.seed(105)
 fit_nonprob_nn_k1 <- nonprob(
   outcome = single_shift ~ region + private + nace + size,
   svydesign = jvs_svy,
@@ -66,7 +67,7 @@ fit_nonprob_nn_k1 <- nonprob(
 
 expect_equal(
   fit_nonprob_nn_k1$output,
-  data.frame(mean = 0.646597262386736, SE = 0.037762604895233,
+  data.frame(mean = 0.727723155889884, SE = 0.044094468416372,
              row.names = "single_shift"),
   tolerance = 1e-6
 )
@@ -148,6 +149,42 @@ tie_predictions <- replicate(40, method_nn(
 )$y_rand_pred)
 
 expect_equal(sort(unique(as.numeric(tie_predictions))), c(1, 3))
+
+large_tie_nons <- 2001L
+large_tie_rand <- 1001L
+large_tie_svy <- svydesign(
+  ids = ~1,
+  weights = ~w,
+  data = data.frame(w = rep(1, large_tie_rand))
+)
+
+set.seed(105)
+large_tie_predictions <- replicate(8, method_nn(
+  y_nons = seq_len(large_tie_nons),
+  X_nons = matrix(0, nrow = large_tie_nons, ncol = 1),
+  X_rand = matrix(0, nrow = large_tie_rand, ncol = 1),
+  svydesign = large_tie_svy,
+  pop_size = large_tie_rand,
+  control_outcome = control_out(k = 1),
+  se = FALSE
+)$y_rand_pred[1])
+
+expect_true(length(unique(as.numeric(large_tie_predictions))) > 1L)
+expect_true(all(large_tie_predictions %in% seq_len(large_tie_nons)))
+
+set.seed(106)
+large_cutoff_tie_predictions <- replicate(4, method_nn(
+  y_nons = seq_len(large_tie_nons),
+  X_nons = matrix(rep(c(0, 1), length.out = large_tie_nons), ncol = 1),
+  X_rand = matrix(0.5, nrow = large_tie_rand, ncol = 1),
+  svydesign = large_tie_svy,
+  pop_size = large_tie_rand,
+  control_outcome = control_out(k = 1),
+  se = FALSE
+)$y_rand_pred[1])
+
+expect_true(length(unique(as.numeric(large_cutoff_tie_predictions))) > 1L)
+expect_true(all(large_cutoff_tie_predictions %in% seq_len(large_tie_nons)))
 
 local({
   assign(".nonprobsvy_test_nn2_calls", 0L, envir = .GlobalEnv)

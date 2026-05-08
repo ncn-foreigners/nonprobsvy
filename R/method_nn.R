@@ -155,6 +155,24 @@ method_nn <- function(y_nons,
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
   boot_prob <- if (length(unique(weights)) == 1) NULL else 1 / weights
 
+  same_distance <- function(x, y) {
+    abs(x - y) <= sqrt(.Machine$double.eps) * pmax(1, abs(x), abs(y))
+  }
+
+  sample_tie_candidates <- function(candidates, need, response = NULL) {
+    if (length(candidates) > need &&
+        (is.null(response) || length(unique(response[candidates])) > 1)) {
+      sample(candidates, need)
+    } else {
+      utils::head(candidates, need)
+    }
+  }
+
+  row_keys <- function(x) {
+    x <- as.matrix(x)
+    do.call(paste, c(as.data.frame(x, optional = TRUE), sep = "\r"))
+  }
+
   randomize_returned_ties <- function(idx_mat, dist_mat) {
     for (i in seq_len(NROW(idx_mat))) {
       idx <- idx_mat[i, ]
@@ -196,14 +214,9 @@ method_nn <- function(y_nons,
 
       while (length(selected) < k && length(remaining)) {
         d_min <- min(dists_all[remaining])
-        candidates <- remaining[abs(dists_all[remaining] - d_min) <= tol * max(1, d_min)]
+        candidates <- remaining[same_distance(dists_all[remaining], d_min)]
         need <- k - length(selected)
-        if (length(candidates) > need &&
-            (is.null(response) || length(unique(response[candidates])) > 1)) {
-          take <- sample(candidates, need)
-        } else {
-          take <- utils::head(candidates, need)
-        }
+        take <- sample_tie_candidates(candidates, need, response)
         selected <- c(selected, take)
         selected_dists <- c(selected_dists, dists_all[take])
 
@@ -225,6 +238,103 @@ method_nn <- function(y_nons,
     as.numeric(NROW(data)) * as.numeric(n_query) <= 2e6
   }
 
+  exact_matches_for_rows <- function(data, query, rows, k, exclude_self = FALSE,
+                                     response = NULL) {
+    data <- as.matrix(data)
+    query <- as.matrix(query)
+    idx_mat <- matrix(NA_integer_, nrow = length(rows), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = length(rows), ncol = k)
+
+    for (rr in seq_along(rows)) {
+      i <- rows[rr]
+      dists_all <- sqrt(rowSums(sweep(data, 2, query[i, ], FUN = "-")^2))
+      if (exclude_self && i <= length(dists_all)) dists_all[i] <- Inf
+      row_match <- exact_matches_from_distances(dists_all, k, response = response)
+      idx_mat[rr, seq_along(row_match$idx)] <- row_match$idx
+      dist_mat[rr, seq_along(row_match$dists)] <- row_match$dists
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  exact_matches_from_distances <- function(dists_all, k, response = NULL) {
+    remaining <- which(is.finite(dists_all))
+    selected <- integer()
+    selected_dists <- numeric()
+
+    while (length(selected) < k && length(remaining)) {
+      d_min <- min(dists_all[remaining])
+      candidates <- remaining[same_distance(dists_all[remaining], d_min)]
+      need <- k - length(selected)
+      take <- sample_tie_candidates(candidates, need, response)
+
+      selected <- c(selected, take)
+      selected_dists <- c(selected_dists, dists_all[take])
+
+      if (length(selected) >= k) break
+      remaining <- setdiff(remaining, candidates)
+    }
+
+    list(idx = selected, dists = selected_dists)
+  }
+
+  select_from_nn_matches <- function(nn_fit, data, query, k, exclude_self = FALSE,
+                                     response = NULL) {
+    idx_full <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
+    dist_full <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
+    idx_mat <- matrix(NA_integer_, nrow = NROW(idx_full), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = NROW(idx_full), ncol = k)
+    hidden_tie_rows <- integer()
+    data_groups <- NULL
+    query_keys <- NULL
+
+    for (i in seq_len(NROW(idx_full))) {
+      idx <- idx_full[i, ]
+      dists <- dist_full[i, ]
+      keep <- !is.na(idx)
+      if (exclude_self) keep <- keep & idx != i
+      idx <- idx[keep]
+      dists <- dists[keep]
+
+      if (length(idx) > k && same_distance(dists[k + 1L], dists[k])) {
+        if (same_distance(dists[k], 0)) {
+          if (is.null(data_groups)) {
+            data_groups <- split(seq_len(NROW(data)), row_keys(data))
+            query_keys <- row_keys(query)
+          }
+
+          candidates <- data_groups[[query_keys[i]]]
+          if (exclude_self) candidates <- setdiff(candidates, i)
+          if (length(candidates) >= k) {
+            take <- sample_tie_candidates(candidates, k, response)
+            idx_mat[i, ] <- take
+            dist_mat[i, ] <- 0
+            next
+          }
+        }
+
+        hidden_tie_rows <- c(hidden_tie_rows, i)
+        next
+      }
+
+      n_take <- min(k, length(idx))
+      if (n_take > 0) {
+        idx_mat[i, seq_len(n_take)] <- idx[seq_len(n_take)]
+        dist_mat[i, seq_len(n_take)] <- dists[seq_len(n_take)]
+      }
+    }
+
+    if (length(hidden_tie_rows)) {
+      exact_rows <- exact_matches_for_rows(data, query, hidden_tie_rows, k,
+                                           exclude_self, response = response)
+      idx_mat[hidden_tie_rows, ] <- exact_rows$idx
+      dist_mat[hidden_tie_rows, ] <- exact_rows$dists
+    }
+
+    randomized <- randomize_returned_ties(idx_mat, dist_mat)
+    list(idx = randomized$idx, dists = randomized$dists)
+  }
+
   predict_from_matches <- function(nn_fit,
                                    response,
                                    weighting = "none",
@@ -240,11 +350,12 @@ method_nn <- function(y_nons,
       dist_mat <- matches$dists
       exclude_self <- FALSE
     } else {
-      idx_mat <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
-      dist_mat <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
-      randomized <- randomize_returned_ties(idx_mat, dist_mat)
-      idx_mat <- randomized$idx
-      dist_mat <- randomized$dists
+      matches <- select_from_nn_matches(nn_fit, data = data, query = query,
+                                        k = k, exclude_self = exclude_self,
+                                        response = response)
+      idx_mat <- matches$idx
+      dist_mat <- matches$dists
+      exclude_self <- FALSE
     }
 
     vapply(seq_len(NROW(idx_mat)), FUN.VALUE = numeric(1), FUN = function(i) {
@@ -287,7 +398,7 @@ method_nn <- function(y_nons,
     RANN::nn2(
       data = X_nons,
       query = X_nons,
-      k = min(control_outcome$k + 1L, NROW(X_nons)),
+      k = min(control_outcome$k + 2L, NROW(X_nons)),
       treetype = control_outcome$treetype,
       searchtype = control_outcome$searchtype
     )
@@ -299,7 +410,7 @@ method_nn <- function(y_nons,
     RANN::nn2(
       data = X_nons,
       query = X_rand,
-      k = control_outcome$k,
+      k = min(control_outcome$k + 1L, NROW(X_nons)),
       treetype = control_outcome$treetype,
       searchtype = control_outcome$searchtype
     )
@@ -351,7 +462,7 @@ method_nn <- function(y_nons,
         boot_matches <- RANN::nn2(
           data = X_nons_b,
           query = X_rand,
-          k = control_outcome$k,
+          k = min(control_outcome$k + 1L, NROW(X_nons_b)),
           treetype = control_outcome$treetype,
           searchtype = control_outcome$searchtype
         )
@@ -390,10 +501,17 @@ method_nn <- function(y_nons,
                                         k = control_outcome$k)
   }
 
+  trim_nn_fit <- function(nn_fit, k) {
+    keep <- seq_len(min(k, NCOL(nn_fit$nn.idx)))
+    nn_fit$nn.idx <- nn_fit$nn.idx[, keep, drop = FALSE]
+    nn_fit$nn.dists <- nn_fit$nn.dists[, keep, drop = FALSE]
+    nn_fit
+  }
+
   return(
     structure(
       list(
-        model_fitted = model_fitted,
+        model_fitted = trim_nn_fit(model_fitted, control_outcome$k),
         y_nons_pred = y_nons_pred,
         y_rand_pred = y_rand_pred,
         coefficients = NULL,
