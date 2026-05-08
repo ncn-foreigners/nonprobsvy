@@ -18,7 +18,8 @@ method_nn(
   control_outcome = control_out(),
   control_inference = control_inf(),
   verbose = FALSE,
-  se = TRUE
+  se = TRUE,
+  nn_matches = NULL
 )
 }
 \arguments{
@@ -49,6 +50,10 @@ method_nn(
 \item{verbose}{parameter passed from the main \code{nonprob} function}
 
 \item{se}{whether standard errors should be calculated}
+
+\item{nn_matches}{optional precomputed nearest-neighbour search results for
+internal reuse across outcomes. If supplied, it should be a list with
+\code{rand} and \code{nons} entries from \link[RANN:nn2]{RANN::nn2()}.}
 }
 \value{
 an \code{nonprob_method} class which is a \code{list} with the following entries

@@ -68,6 +68,9 @@
 #' @param control_inference controls passed by the `control_inf` function
 #' @param verbose parameter passed from the main `nonprob` function
 #' @param se whether standard errors should be calculated
+#' @param nn_matches optional precomputed nearest-neighbour search results for
+#'   internal reuse across outcomes. If supplied, it should be a list with
+#'   `rand` and `nons` entries from [RANN::nn2()].
 #'
 #' @returns an `nonprob_method` class which is a `list` with the following entries
 #'
@@ -121,7 +124,8 @@ method_nn <- function(y_nons,
                       control_outcome=control_out(),
                       control_inference=control_inf(),
                       verbose=FALSE,
-                      se=TRUE) {
+                      se=TRUE,
+                      nn_matches=NULL) {
 
   if (missing(y_nons) | missing(X_nons)) {
     stop("`y_nons` and `X_nons`, `X_rand` are required.")
@@ -137,21 +141,29 @@ method_nn <- function(y_nons,
     message("Matching units between samples...")
   }
 
-  model_fitted_nons <- RANN::nn2(
-    data = X_nons,
-    query = X_nons,
-    k = control_outcome$k,
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
+  model_fitted_nons <- if (!is.null(nn_matches) && !is.null(nn_matches$nons)) {
+    nn_matches$nons
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_nons,
+      k = control_outcome$k,
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
-  model_fitted <- RANN::nn2(
-    data = X_nons,
-    query = X_rand,
-    k = control_outcome$k,
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
+  model_fitted <- if (!is.null(nn_matches) && !is.null(nn_matches$rand)) {
+    nn_matches$rand
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_rand,
+      k = control_outcome$k,
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
   k_range <- 1:control_outcome$k
 
