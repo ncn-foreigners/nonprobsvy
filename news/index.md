@@ -12,8 +12,10 @@
 - returned bootstrap IPW weights in `boot_ipw_weights` when bootstrap
   variance estimation is used and bootstrap results are kept (closes
   [\#76](https://github.com/ncn-foreigners/nonprobsvy/issues/76))
-- improved the Rcpp variable-selection cross-validation code and added
-  benchmark evidence for the speedup (closes
+- improved the Rcpp variable-selection cross-validation code, fixed SCAD
+  penalty tapering, switched fold sampling to R’s RNG for
+  [`set.seed()`](https://rdrr.io/r/base/Random.html) reproducibility,
+  and added benchmark evidence for the speedup (closes
   [\#103](https://github.com/ncn-foreigners/nonprobsvy/issues/103))
 - added DR regression tests for one-outcome versus multi-outcome
   analytic uncertainty-component consistency and multi-outcome bootstrap
