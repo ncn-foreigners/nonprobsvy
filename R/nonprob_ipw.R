@@ -1,4 +1,3 @@
-#' @useDynLib nonprobsvy
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix

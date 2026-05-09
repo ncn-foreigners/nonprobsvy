@@ -256,13 +256,13 @@ arma::vec q_lambda_cpp(const arma::vec& par,
   switch (penalty) {
   case PenaltyType::SCAD: {
     double abs_par_i;
-    for (arma::vec::iterator it = penaltyd.begin() + 1; it != penaltyd.end(); ++it) {
-      abs_par_i = std::abs(*it);
+    for (std::size_t i = 0; i < par.size(); i++) {
+      abs_par_i = std::abs(par[i]);
       if (abs_par_i <= lambda) {
-        *it = lambda;
+        penaltyd[i] = lambda;
       } else {
         double tmp = ((a * lambda) - abs_par_i) / (a - 1);
-        *it = tmp * (tmp > 0);
+        penaltyd[i] = std::max(tmp, 0.0);
       }
     }
     break;
@@ -288,6 +288,21 @@ arma::vec q_lambda_cpp(const arma::vec& par,
   }
 
   return penaltyd;
+}
+
+// [[Rcpp::export]]
+arma::vec q_lambda_test_cpp(const arma::vec& par,
+                            double lambda,
+                            const std::string& penalty,
+                            double a) {
+  return q_lambda_cpp(par, lambda, parse_penalty_type(penalty), a);
+}
+
+arma::uvec r_sample_zero_based(int population_size, int sample_size, bool replace) {
+  Rcpp::IntegerVector sampled = Rcpp::sample(population_size, sample_size, replace);
+  arma::uvec out = Rcpp::as<arma::uvec>(sampled);
+  out -= 1;
+  return out;
 }
 
 // HybridNonLinearSolver (?)
@@ -393,11 +408,11 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     SEXP lambdas = setup_lambda_cpp(X, R, weights_X, method_selection, lambda_min, nlambda, pop_totals);
     arma::vec lambdas1(Rcpp::as<arma::vec>(lambdas));
 
-    arma::uvec folds_nons = arma::randi<arma::uvec>(loc_nons.n_elem, arma::distr_param(0, nfolds - 1));
-    arma::uvec folds_rand = arma::randi<arma::uvec>(loc_rand.n_elem, arma::distr_param(0, nfolds - 1));
+    arma::uvec folds_nons = r_sample_zero_based(nfolds, static_cast<int>(loc_nons.n_elem), true);
+    arma::uvec folds_rand = r_sample_zero_based(nfolds, static_cast<int>(loc_rand.n_elem), true);
 
-    arma::uvec sample_nons = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds - 1, nfolds));
-    arma::uvec sample_rand = arma::shuffle(arma::linspace<arma::uvec>(0, nfolds - 1, nfolds));
+    arma::uvec sample_nons = r_sample_zero_based(nfolds, nfolds, false);
+    arma::uvec sample_rand = r_sample_zero_based(nfolds, nfolds, false);
 
     arma::mat loss_theta_fld(nfolds, nlambda, arma::fill::zeros);
     //#pragma omp parallel for

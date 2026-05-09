@@ -1,4 +1,3 @@
-#' @useDynLib nonprobsvy
 #' @import Rcpp
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame

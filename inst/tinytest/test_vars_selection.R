@@ -16,13 +16,13 @@ expect_silent(ipw_logit <- nonprob(
   control_selection = control_sel(nfolds = 2, nlambda = 5, penalty = "SCAD")
 ))
 
-expect_equal(ipw_logit$output$mean, 0.66695569885237, tolerance = 0.001)
+expect_equal(ipw_logit$output$mean, 0.667745127491327, tolerance = 0.001)
 
 expect_equal(
   coef(ipw_logit)$coef_sel[,1],
-  c(`(Intercept)` = -1.3115892989764, naceD.E = 0.961915550496649,
-    naceF = -0.603377050732427, naceG = -0.498229926003555, naceH = -0.684371136226331,
-    naceP = 1.27255233616817),
+  c(`(Intercept)` = -1.28526068896553, naceF = -0.629705660477215,
+    naceG = -0.524558576077641, naceH = -0.71069978392529,
+    naceP = 1.24622365453205),
   tolerance = 0.001
 )
 #
@@ -87,13 +87,13 @@ expect_silent(suppressWarnings(ipw_logit_cal <- nonprob(
                                   est_method = "gee", penalty = "SCAD")
 )))
 
-expect_equal(ipw_logit_cal$output$mean, 0.6669557, tolerance = 0.001)
+expect_equal(ipw_logit_cal$output$mean, 0.667745127491287, tolerance = 0.001)
 
 expect_equal(
   coef(ipw_logit_cal)$coef_sel[, 1],
-  c(`(Intercept)` = -1.31158929897838, naceD.E = 0.961915550449876,
-    naceF = -0.603377050714868, naceG = -0.498229926007702, naceH = -0.684371136220024,
-    naceP = 1.27255233608576),
+  c(`(Intercept)` = -1.28526068896608, naceF = -0.629705660494188,
+    naceG = -0.524558576060509, naceH = -0.710699783918584,
+    naceP = 1.24622365453422),
   tolerance = 0.001
 )
 
