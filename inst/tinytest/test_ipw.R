@@ -203,7 +203,7 @@ expect_equal(
     svydesign = jvs_svy,
     data = admin,
     method_selection = "logit")$output,
-  structure(list(mean = 0.708322897640164, SE = 0.00943690366325884),
+  structure(list(mean = 0.708322897640164, SE = 0.00984765550279513),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -214,7 +214,7 @@ expect_equal(
     svydesign = jvs_svy,
     data = admin,
     method_selection = "probit")$output,
-  structure(list(mean = 0.708804223550342, SE = 0.0120798863559962),
+  structure(list(mean = 0.708804223550342, SE = 0.0103134442462989),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -228,14 +228,14 @@ ipw_cloglog <- nonprob(
 
 expect_equal(
   ipw_cloglog$output,
-  structure(list(mean = 0.708486797147196, SE = 0.0103215743778221),
+  structure(list(mean = 0.708486797147196, SE = 0.0095719012912863),
             row.names = "single_shift", class = "data.frame"),
   tolerance = 1e-8
 )
 
 expect_equal(
   ipw_cloglog$SE,
-  structure(list(prob = 0.00825111488581828, nonprob = 0.00620112899220311),
+  structure(list(prob = 0.00825111488581828, nonprob = 0.00485184474928417),
             row.names = "single_shift", class = "data.frame"),
   tolerance = 1e-8
 )

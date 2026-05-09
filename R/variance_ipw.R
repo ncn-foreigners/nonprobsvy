@@ -73,7 +73,9 @@ internal_varIPW <- function(svydesign,
     eta = eta,
     pop_size = pop_size,
     weights = weights,
-    verbose = verbose
+    verbose = verbose,
+    est_method = if (!is.null(pop_totals)) "gee" else est_method,
+    gee_h_fun = gee_h_fun
   )
 
   # sparse matrix

@@ -12,6 +12,7 @@ if (requireNamespace("tinytest", quietly = TRUE)) {
       "test_check_balance",
       "test_controls",
       "test_ipw_stability",
+      "test_ipw_mle_variance_formulas",
       "test_make_outcomes",
       "test_methods",
       "test_mi",
