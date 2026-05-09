@@ -657,9 +657,9 @@ ipw_res
 #>    - variable y50: 11.9242
 #>    - variable y80: 11.9797
 #>  - selected estimators:
-#>    - variable y30: 9.5067 (se=0.2247, ci=(9.0663, 9.9471))
-#>    - variable y50: 9.6443 (se=0.2062, ci=(9.2401, 10.0485))
-#>    - variable y80: 9.7184 (se=0.1986, ci=(9.3292, 10.1076))
+#>    - variable y30: 9.5067 (se=0.4079, ci=(8.7072, 10.3063))
+#>    - variable y50: 9.6443 (se=0.2479, ci=(9.1584, 10.1302))
+#>    - variable y80: 9.7184 (se=0.1820, ci=(9.3617, 10.0751))
 ## doubly robust estimator
 dr_res <- nonprob(
   outcome = y30 + y50 + y80 ~ x1 + x2 + x3 + x4,

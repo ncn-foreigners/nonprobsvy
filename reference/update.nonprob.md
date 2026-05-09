@@ -72,5 +72,5 @@ update(ipw_est1, se = TRUE)
 #>  - variance estimator: analytic
 #>  - population size fixed: false
 #>  - naive (uncorrected) estimator: 0.6605
-#>  - selected estimator: 0.7083 (se=0.0094, ci=(0.6898, 0.7268))
+#>  - selected estimator: 0.7083 (se=0.0098, ci=(0.6890, 0.7276))
 ```

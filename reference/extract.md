@@ -40,8 +40,8 @@ data = admin, method_selection = "logit"
 )
 extract(ipw_est1)
 #>         target      mean          SE lower_bound upper_bound
-#> 1 single_shift 0.7083229 0.009436904   0.6898269   0.7268189
+#> 1 single_shift 0.7083229 0.009847656   0.6890218   0.7276239
 extract(ipw_est1, "se")
 #>         target          SE
-#> 1 single_shift 0.009436904
+#> 1 single_shift 0.009847656
 ```

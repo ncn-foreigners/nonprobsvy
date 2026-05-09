@@ -5,6 +5,10 @@
 - shortened CRAN-facing examples, added spelling wordlist entries, and
   made `R CMD check` run a fast tinytest subset by default while keeping
   the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`
+- aligned MLE IPW analytic variance components for logit, probit, and
+  cloglog propensity models with the shared `pi_dot` formula and
+  nonprobability-sample IPW plug-in scale, including the known-`N`
+  probit adjustment
 - allowed outcome variable-selection models to use a user-specified
   `control_out(lambda = ...)` value instead of always running
   cross-validation (closes
