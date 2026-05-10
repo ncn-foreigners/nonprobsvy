@@ -162,8 +162,8 @@ Smooth function (`gee_h_fun`) for the generalized estimating equations
 (GEE) method taking the following values
 
 - if `1` then \\\boldsymbol{h}\left(\boldsymbol{x},
-  \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x},
-  \boldsymbol{\theta})}{\boldsymbol{x}}\\,
+  \boldsymbol{\theta}\right) = \frac{\boldsymbol{x}}{\pi(\boldsymbol{x},
+  \boldsymbol{\theta})}\\,
 
 - if `2` then \\ \boldsymbol{h}\left(\boldsymbol{x},
   \boldsymbol{\theta}\right) = \boldsymbol{x}\\

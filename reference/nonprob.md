@@ -412,9 +412,10 @@ population mean using non-probability samples:
     \in S_B} d_i^B \pi\left(\mathbf{x}\_i, \boldsymbol{\theta}\right)
     \mathbf{h}\left(\mathbf{x}\_i, \boldsymbol{\theta}\right).\$\$
     Notice that for \\ \mathbf{h}\left(\mathbf{x}\_i,
-    \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x},
-    \boldsymbol{\theta})}{\boldsymbol{x}}\\ We do not need a probability
-    sample and can use a vector of population totals/means.
+    \boldsymbol{\theta}\right) =
+    \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}\\ We
+    do not need a probability sample and can use a vector of population
+    totals/means.
 
 2.  Mass imputation – This method is based on a framework where imputed
     values of outcome variables are created for the entire probability

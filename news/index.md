@@ -5,6 +5,9 @@
 - shortened CRAN-facing examples, added spelling wordlist entries, and
   made `R CMD check` run a fast tinytest subset by default while keeping
   the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`
+- corrected IPW-GEE analytic variance components for `h(x)=x/pi`, the
+  GEE `b`-vector sign, and probit/cloglog probability-sample scaling for
+  `h(x)=x`, and added plain-R/Rcpp GEE formula checks
 - aligned MLE IPW analytic variance components for logit, probit, and
   cloglog propensity models with the shared `pi_dot` formula and
   nonprobability-sample IPW plug-in scale, including the known-`N`
