@@ -106,7 +106,7 @@ expect_equal(
 
 expect_equal(
   ipw_gee$output$SE,
-  c(0.0632650377814916, 0.0498758624332513),
+  c(0.0621757059224564, 0.0495505243454758),
   tolerance = 1e-6
 )
 
@@ -156,7 +156,7 @@ expect_equal(
 
 expect_equal(
   ipw_gee_h$output$SE,
-  c(0.0712074020763667, 0.0524674811523142),
+  c(0.0701529045109258, 0.0521503026169746),
   tolerance = 1e-6
 )
 

@@ -3,6 +3,7 @@ nonprobsvy News and Updates
 # nonprobsvy (development version)
 
 + shortened CRAN-facing examples, added spelling wordlist entries, and made `R CMD check` run a fast tinytest subset by default while keeping the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`
++ corrected IPW-GEE analytic variance components for `h(x)=x/pi`, the GEE `b`-vector sign, and probit/cloglog probability-sample scaling for `h(x)=x`, and added plain-R/Rcpp GEE formula checks
 + aligned MLE IPW analytic variance components for logit, probit, and cloglog propensity models with the shared `pi_dot` formula and nonprobability-sample IPW plug-in scale, including the known-`N` probit adjustment
 + allowed outcome variable-selection models to use a user-specified `control_out(lambda = ...)` value instead of always running cross-validation (closes [#66](https://github.com/ncn-foreigners/nonprobsvy/issues/66))
 + returned bootstrap IPW weights in `boot_ipw_weights` when bootstrap variance estimation is used and bootstrap results are kept (closes [#76](https://github.com/ncn-foreigners/nonprobsvy/issues/76))

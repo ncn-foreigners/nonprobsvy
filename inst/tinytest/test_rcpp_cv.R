@@ -74,8 +74,61 @@ expect_rcpp_cv_reproducible <- function(method_selection) {
   expect_true(identical(cv_first$cv_error, cv_second$cv_error))
 }
 
+expect_rcpp_matches_r_gee <- function(method_selection, gee_h_fun) {
+  set.seed(42)
+  n_rand <- 200
+  X_rand <- cbind(1, x1 = rnorm(n_rand), x2 = rnorm(n_rand))
+  theta <- c(-0.2, 0.3, -0.25)
+  ps <- plogis(drop(X_rand %*% theta))
+  X_nons <- X_rand[as.logical(rbinom(n_rand, 1, ps)), , drop = FALSE]
+  X_nons <- X_nons[seq_len(min(160, nrow(X_nons))), , drop = FALSE]
+
+  X <- rbind(X_rand, X_nons)
+  R <- c(rep(0, nrow(X_rand)), rep(1, nrow(X_nons)))
+  weights_rand <- runif(n_rand, 0.8, 1.4)
+  weights <- rep(1, nrow(X_nons))
+  weights_all <- c(weights_rand, weights)
+
+  r_fit <- suppressWarnings(nonprobsvy:::theta_h_estimation(
+    R = R,
+    X = X,
+    weights_rand = weights_rand,
+    weights = weights,
+    gee_h_fun = gee_h_fun,
+    method_selection = method_selection,
+    maxit = 500,
+    nleqslv_method = "Broyden",
+    nleqslv_global = "dbldog",
+    nleqslv_xscalm = "fixed",
+    start = rep(0, ncol(X))
+  ))
+
+  cpp_fit <- nonprobsvy:::cv_nonprobsvy_rcpp(
+    X = unname(X),
+    R = R,
+    weights_X = weights_all,
+    method_selection = method_selection,
+    gee_h_fun = gee_h_fun,
+    maxit = 500,
+    eps = 1e-8,
+    lambda_min = 0.01,
+    nlambda = 2,
+    nfolds = 2,
+    penalty = "SCAD",
+    a = 3.7,
+    pop_totals = NULL,
+    verbose = FALSE,
+    lambda = 0
+  )
+
+  expect_equal(as.vector(cpp_fit$theta_est), as.vector(r_fit$theta_h), tolerance = 1e-5)
+}
+
 for (method_selection in c("logit", "probit", "cloglog")) {
   expect_rcpp_cv_reproducible(method_selection)
+  for (gee_h_fun in c(1, 2)) {
+    expect_rcpp_matches_r_gee(method_selection, gee_h_fun)
+  }
 
   set.seed(704)
   cv_result <- nonprobsvy:::cv_nonprobsvy_rcpp(

@@ -59,6 +59,37 @@ mle_ipw_b_vec <- function(y, mu, ps, psd, X, hess, pop_size, weights, verbose) {
   list(b = b)
 }
 
+gee_ipw_variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method,
+                                         gee_h_fun, weights, pop_totals = NULL) {
+  X <- as.matrix(X)
+  y <- as.vector(y)
+  ps <- as.vector(ps)
+  weights <- as.vector(weights)
+  N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
+  y_adj <- if (is.null(pop_size)) weights * (y - mu) else weights * y
+
+  h_inv_ps <- (est_method == "gee" && gee_h_fun == 1) || !is.null(pop_totals)
+  h_x <- est_method == "gee" && gee_h_fun == 2 && is.null(pop_totals)
+  if (!h_inv_ps && !h_x) {
+    stop("Unsupported GEE h-function for IPW variance.")
+  }
+
+  w11 <- (1 - ps) / ps^2
+  if (h_inv_ps) {
+    w1 <- w11
+    w2 <- w11
+  } else {
+    w1 <- (1 - ps) / ps
+    w2 <- 1 - ps
+  }
+
+  v11 <- sum(w11 * y_adj^2) / N^2
+  v1_ <- (w1 * y_adj) %*% X / N^2
+  v_2 <- crossprod(X, X * w2) / N^2
+
+  Matrix::Matrix(rbind(cbind(v11, v1_), cbind(t(v1_), v_2)), sparse = TRUE)
+}
+
 legacy_ipw_b_vec <- function(y_adj, w, X, hess, verbose) {
   hess_inv_neg <- tryCatch(
     chol2inv(chol(-hess)),
@@ -69,7 +100,7 @@ legacy_ipw_b_vec <- function(y_adj, w, X, hess, verbose) {
   )
 
   X <- as.matrix(X)
-  b <- -(w * y_adj) %*% X %*% hess_inv_neg
+  b <- (w * y_adj) %*% X %*% hess_inv_neg
 
   list(b = b)
 }
@@ -270,51 +301,17 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         ))
       }
 
-      # ensure matrix format and get dimensions
-      X <- as.matrix(X)
-      n <- nrow(X)
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-
-      # get y values based on pop_size
-      y_adj <- if (is.null(pop_size)) {
-        weights * (y - mu)
-      } else {
-        weights * y
-      }
-      y_sq <- y_adj^2
-
-      # base weights calculation
-      w1 <- (1 - ps) / ps^2
-
-      if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        # GEE gee_h_fun=1 or pop_totals case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- (w1 * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 2) {
-        # GEE gee_h_fun=2 case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- ((1 - ps) / ps * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      }
-
-      # construct final matrix
-      v_1 <- t(v1_)
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
 
@@ -333,7 +330,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
           score_factor <- -log1p(-eps)
           svydesign$prob <- svydesign$prob / score_factor
         } else if (est_method == "gee" && gee_h_fun == 2) {
-          svydesign$prob <- svydesign$prob * eps
+          svydesign$prob <- svydesign$prob / eps
         }
 
         # ensure X is matrix and properly scaled
@@ -515,48 +512,17 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         ))
       }
 
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-      n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-
-      # get y values based on N and mu
-      if (is.null(pop_size)) {
-        y_adj <- weights * (y - mu)
-        y_sq <- y_adj^2
-      } else {
-        y_adj <- weights * y
-        y_sq <- y_adj^2
-      }
-
-      # get weights based on method
-      w1 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        (1 - ps) / ps^2
-      } else {
-        (1 - ps) / ps
-      }
-
-      # calc v11 and v1_
-      v11 <- sum(w1 * y_sq) / N^2
-      v1_ <- (w1 * y_adj) %*% X / N^2 # use standard matrix mult instead of crossprod
-      v_1 <- t(v1_)
-
-      # calc v_2
-      w2 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        (1 - ps) / ps
-      } else {
-        (1 - ps)
-      }
-
-      # calc v_2 with explicit loop instead of lapply
-      v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-      for (i in 1:n) {
-        v_2 <- v_2 + w2[i] * tcrossprod(X[i, ], X[i, ])
-      }
-      v_2 <- v_2 / N^2
-
-      # construct final matrix
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
     variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
@@ -773,51 +739,17 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         ))
       }
 
-      # ensure matrix format and get dimensions
-      X <- as.matrix(X)
-      n <- nrow(X)
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-
-      # get y values based on pop_size
-      y_adj <- if (is.null(pop_size)) {
-        weights * (y - mu)
-      } else {
-        weights * y
-      }
-      y_sq <- y_adj^2
-
-      # base weights calculation
-      w1 <- (1 - ps) / ps^2
-
-      if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        # GEE gee_h_fun=1 or pop_totals case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- (w1 * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 2) {
-        # GEE gee_h_fun=2 case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- ((1 - ps) / ps * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      }
-
-      # construct final matrix
-      v_1 <- t(v1_)
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
     variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
@@ -833,7 +765,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         if (est_method == "mle") {
           svydesign$prob <- svydesign$prob * ((1 - eps) / psd)
         } else if (est_method == "gee" && gee_h_fun == 2) {
-          svydesign$prob <- svydesign$prob * eps
+          svydesign$prob <- svydesign$prob / eps
         }
 
         # ensure X is matrix and properly scaled
@@ -860,7 +792,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose,
                           est_method = "mle", gee_h_fun = NULL) {
       if (est_method != "mle") {
-        y_adj <- if (is.null(pop_size)) y - mu else y - mu + 1
+        y_adj <- if (is.null(pop_size)) y - mu else y
         return(legacy_ipw_b_vec(
           y_adj = y_adj,
           w = psd / ps^2 * weights,

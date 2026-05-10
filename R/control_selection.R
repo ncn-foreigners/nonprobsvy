@@ -8,7 +8,7 @@
 #'
 #' \itemize{
 #'   \item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
-#'   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+#'   \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}},}
 #'   \item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 #'   }
 #'
