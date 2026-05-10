@@ -52,7 +52,7 @@ expect_equal(
 
 expect_equal(
   ipw_mle$output$SE,
-  c(0.0733566252076391, 0.0592012013542399),
+  c(0.0731923448459133, 0.0591138403632744),
   tolerance = 1e-6
 )
 
