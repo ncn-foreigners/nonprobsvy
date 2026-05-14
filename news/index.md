@@ -2,6 +2,15 @@
 
 ## nonprobsvy (development version)
 
+- implemented the Kim & Haziza (2014) low-dimensional joint estimator
+  for `control_inf(bias_correction = TRUE)` without variable selection,
+  replacing the previous `object 'bias_corr_ys_rand_pred' not found`
+  crash; the DR analytic and bootstrap variance paths now route through
+  the same joint-estimation helper used by the Yang-Kim-Song (2020)
+  high-dimensional path, and `bias_correction = TRUE` without
+  `svydesign` is rejected up front (closes
+  [\#114](https://github.com/ncn-foreigners/nonprobsvy/issues/114)) –
+  thanks to Tommy Nyberg for reporting.
 - shortened CRAN-facing examples, added spelling wordlist entries, and
   made `R CMD check` run a fast tinytest subset by default while keeping
   the full suite available on GitHub via `NONPROBSVY_FULL_TESTS=true`

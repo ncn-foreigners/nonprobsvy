@@ -78,7 +78,14 @@ Default is <code>"subbootstrap"</code>.</p></dd>
 
 
 <dt id="arg-bias-correction">bias_correction<a class="anchor" aria-label="anchor" href="#arg-bias-correction"></a></dt>
-<dd><p>logical scalar (default <code>FALSE</code>); if <code>TRUE</code>, then the bias minimization estimation used during model fitting.</p></dd>
+<dd><p>logical scalar (default <code>FALSE</code>); if <code>TRUE</code>, the
+doubly-robust mean is estimated by jointly solving the Yang-Kim-Song (2020)
+eq. (9) system in <code>(theta, beta)</code>. When <code>vars_selection = FALSE</code> this gives
+the low-dimensional Kim &amp; Haziza (2014) joint estimator; when
+<code>vars_selection = TRUE</code> and <code>vars_combine = TRUE</code> it gives the
+high-dimensional two-step Yang-Kim-Song estimator. A <code>svydesign</code> argument
+is required (joint estimation needs individual-level probability sample
+data).</p></dd>
 
 
 <dt id="arg-num-boot">num_boot<a class="anchor" aria-label="anchor" href="#arg-num-boot"></a></dt>

@@ -33,7 +33,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="nonprobsvy-development-version">nonprobsvy (development version)<a class="anchor" aria-label="anchor" href="#nonprobsvy-development-version"></a></h2>
-<ul><li>shortened CRAN-facing examples, added spelling wordlist entries, and made <code>R CMD check</code> run a fast tinytest subset by default while keeping the full suite available on GitHub via <code>NONPROBSVY_FULL_TESTS=true</code>
+<ul><li>implemented the Kim &amp; Haziza (2014) low-dimensional joint estimator for <code>control_inf(bias_correction = TRUE)</code> without variable selection, replacing the previous <code>object 'bias_corr_ys_rand_pred' not found</code> crash; the DR analytic and bootstrap variance paths now route through the same joint-estimation helper used by the Yang-Kim-Song (2020) high-dimensional path, and <code>bias_correction = TRUE</code> without <code>svydesign</code> is rejected up front (closes <a href="https://github.com/ncn-foreigners/nonprobsvy/issues/114" class="external-link">#114</a>) – thanks to Tommy Nyberg for reporting.</li>
+<li>shortened CRAN-facing examples, added spelling wordlist entries, and made <code>R CMD check</code> run a fast tinytest subset by default while keeping the full suite available on GitHub via <code>NONPROBSVY_FULL_TESTS=true</code>
 </li>
 <li>corrected IPW-GEE analytic variance components for <code>h(x)=x/pi</code>, the GEE <code>b</code>-vector sign, and probit/cloglog probability-sample scaling for <code>h(x)=x</code>, and added plain-R/Rcpp GEE formula checks</li>
 <li>aligned MLE IPW analytic variance components for logit, probit, and cloglog propensity models with the shared <code>pi_dot</code> formula and nonprobability-sample IPW plug-in scale, including the known-<code>N</code> probit adjustment</li>
