@@ -8,7 +8,14 @@
 #'  Default is `"subbootstrap"`.
 #' @param vars_selection logical scalar (default `FALSE`); if `TRUE`, then the variables selection model is used.
 #' @param vars_combine logical scalar indicating whether variables should be combined after variable selection for doubly robust estimators (default `FALSE`)
-#' @param bias_correction logical scalar (default `FALSE`); if `TRUE`, then the bias minimization estimation used during model fitting.
+#' @param bias_correction logical scalar (default `FALSE`); if `TRUE`, the
+#'   doubly-robust mean is estimated by jointly solving the Yang-Kim-Song (2020)
+#'   eq. (9) system in `(theta, beta)`. When `vars_selection = FALSE` this gives
+#'   the low-dimensional Kim & Haziza (2014) joint estimator; when
+#'   `vars_selection = TRUE` and `vars_combine = TRUE` it gives the
+#'   high-dimensional two-step Yang-Kim-Song estimator. A `svydesign` argument
+#'   is required (joint estimation needs individual-level probability sample
+#'   data).
 #' @param num_boot the number of iteration for bootstrap algorithms.
 #' @param alpha significance level (default 0.05).
 #' @param cores the number of cores in parallel computing (default 1).

@@ -158,6 +158,11 @@ nonprob <- function(data,
          are combined after they are selected (change `vars_combine` to `TRUE`).")
       }
 
+      if (isTRUE(control_inference$bias_correction) & is.null(svydesign)) {
+        stop("Bias correction (joint estimation) requires individual-level probability sample data;
+         supply a `svydesign` argument instead of `pop_totals` / `pop_means`.")
+      }
+
     }
   } else if (inherits(outcome, "formula")) {
     # Case: MI method

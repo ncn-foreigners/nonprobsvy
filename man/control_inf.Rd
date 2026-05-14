@@ -28,7 +28,14 @@ Default is \code{"subbootstrap"}.}
 
 \item{vars_combine}{logical scalar indicating whether variables should be combined after variable selection for doubly robust estimators (default \code{FALSE})}
 
-\item{bias_correction}{logical scalar (default \code{FALSE}); if \code{TRUE}, then the bias minimization estimation used during model fitting.}
+\item{bias_correction}{logical scalar (default \code{FALSE}); if \code{TRUE}, the
+doubly-robust mean is estimated by jointly solving the Yang-Kim-Song (2020)
+eq. (9) system in \verb{(theta, beta)}. When \code{vars_selection = FALSE} this gives
+the low-dimensional Kim & Haziza (2014) joint estimator; when
+\code{vars_selection = TRUE} and \code{vars_combine = TRUE} it gives the
+high-dimensional two-step Yang-Kim-Song estimator. A \code{svydesign} argument
+is required (joint estimation needs individual-level probability sample
+data).}
 
 \item{num_boot}{the number of iteration for bootstrap algorithms.}
 

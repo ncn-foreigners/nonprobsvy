@@ -91,10 +91,10 @@ for selection model.
 Smooth function (\code{gee_h_fun}) for the generalized estimating equations (GEE) method taking the following values
 
 \itemize{
-  \item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
+\item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
   \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}},}
-  \item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
-  }
+\item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
+}
 }
 \seealso{
 \code{\link[=nonprob]{nonprob()}} -- for fitting procedure with non-probability samples.

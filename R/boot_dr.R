@@ -111,7 +111,24 @@ boot_dr <- function(selection,
                                        pop_size_fixed=pop_size_fixed)
 
             ## combination of variables after bootstrap
-            if (!vars_combine) {
+            if (bias_corr) {
+
+              if (verbose) message("\nBias correction...")
+
+              boot_obj[b, ] <- boot_dr_bias_corr_iter(
+                outcome = outcome,
+                selection = selection,
+                data = data[strap_nons, ],
+                svydesign_b = svydesign_b,
+                results_ipw_b = results_ipw_b,
+                control_selection = control_selection,
+                method = method,
+                method_selection = method_selection,
+                family_outcome = family_outcome,
+                pop_size = sum(results_ipw_b$ipw_weights)
+              )
+
+            } else if (!vars_combine) {
               boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b$output$mean,
                                         y_resid = do.call("cbind", results_mi_b$ys_resid),
                                         weights = case_weights[strap_nons],
@@ -144,91 +161,48 @@ boot_dr <- function(selection,
               svydesign_b_ <- svydesign_b
               svydesign_b_$variables <- cbind(svydesign_b_$variables, X_rand)
 
-              if (bias_corr) {
-
-                if (verbose) message("\nBias correction...")
-
-                ## consider different start
-                par0 <- numeric(NCOL(X_all)*2)
-                names(par0) <- rep(colnames(X_all), times = 2)
-
-                bias_corr_result_b <- nleqslv::nleqslv(
-                  x = par0,
-                  fn = u_theta_beta_dr,
-                  method = control_selection$nleqslv_method,
-                  global = control_selection$nleqslv_global,
-                  xscalm = control_selection$nleqslv_xscalm,
-                  jacobian = TRUE,
-                  control = list(
-                    scalex = rep(1, length(par0)),
-                    maxit = control_selection$maxit
-                  ),
-                  R = results_ipw_b$R,
-                  X = X_all,
-                  y = c(rep(0, sum(results_ipw_b$R==0)), y_nons[, 1]),
-                  weights = c(weights(svydesign_b_), results_ipw_b$case_weights),#c(weights(svydesign_), weights),
-                  method_selection = method_selection,
-                  family_outcome = family_outcome
-                )
-
-                theta_hat <- bias_corr_result_b$x[1:NCOL(X_all)]
-                beta_hat <- bias_corr_result_b$x[(NCOL(X_all) + 1):(2 * NCOL(X_all))]
-
-                bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
-                bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw_b$R == 1]
-                bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 0, ] %*% beta_hat))
-                bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 1, ] %*% beta_hat))
-                bias_corr_mu_resid <- bias_corr_mu_nons_pred - y_nons
-
-                boot_obj[b, ] <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_b_)),
-                                          y_resid = as.matrix(bias_corr_mu_resid),
-                                          weights = results_ipw_b$case_weights,
-                                          weights_nons = bias_corr_ipw_weights,
-                                          N_nons = sum(bias_corr_ipw_weights))
-              } else {
-                results_ipw_b_combined <- nonprob_ipw(data = as.data.frame(X_nons),
-                                                      target = outcome,
-                                                      selection =  reformulate(dr_coefs_sel[[1]]),
-                                                      svydesign = svydesign_b_,
-                                                      pop_totals = NULL,
-                                                      pop_means = NULL,
-                                                      pop_size = NULL,
-                                                      method_selection = method_selection,
-                                                      strata = strata,
-                                                      case_weights = case_weights[strap_nons],
-                                                      na_action = na_action,
-                                                      control_selection = control_selection,
-                                                      control_inference = control_inference,
-                                                      start_selection = start_selection,
-                                                      verbose = FALSE,
-                                                      se = FALSE,
-                                                      pop_size_fixed = pop_size_fixed)
-                ## estimate the mi
-                results_mi_b_combined <- nonprob_mi(outcome = as.formula(paste0(target_vars, reformulate(dr_coefs_sel[[1]]))),
-                                                    data = as.data.frame(X_nons),
+              results_ipw_b_combined <- nonprob_ipw(data = as.data.frame(X_nons),
+                                                    target = outcome,
+                                                    selection =  reformulate(dr_coefs_sel[[1]]),
                                                     svydesign = svydesign_b_,
                                                     pop_totals = NULL,
                                                     pop_means = NULL,
                                                     pop_size = NULL,
-                                                    method_outcome = method_outcome,
-                                                    family_outcome = family_outcome,
+                                                    method_selection = method_selection,
                                                     strata = strata,
                                                     case_weights = case_weights[strap_nons],
                                                     na_action = na_action,
-                                                    control_outcome = control_outcome,
+                                                    control_selection = control_selection,
                                                     control_inference = control_inference,
-                                                    start_outcome = start_outcome,
+                                                    start_selection = start_selection,
                                                     verbose = FALSE,
                                                     se = FALSE,
-                                                    pop_size_fixed=pop_size_fixed)
+                                                    pop_size_fixed = pop_size_fixed)
+              ## estimate the mi
+              results_mi_b_combined <- nonprob_mi(outcome = as.formula(paste0(target_vars, reformulate(dr_coefs_sel[[1]]))),
+                                                  data = as.data.frame(X_nons),
+                                                  svydesign = svydesign_b_,
+                                                  pop_totals = NULL,
+                                                  pop_means = NULL,
+                                                  pop_size = NULL,
+                                                  method_outcome = method_outcome,
+                                                  family_outcome = family_outcome,
+                                                  strata = strata,
+                                                  case_weights = case_weights[strap_nons],
+                                                  na_action = na_action,
+                                                  control_outcome = control_outcome,
+                                                  control_inference = control_inference,
+                                                  start_outcome = start_outcome,
+                                                  verbose = FALSE,
+                                                  se = FALSE,
+                                                  pop_size_fixed=pop_size_fixed)
 
-                boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b_combined$output$mean,
-                                          y_resid = do.call("cbind", results_mi_b_combined$ys_resid),
-                                          weights = case_weights[strap_nons],
-                                          weights_nons = results_ipw_b_combined$ipw_weights,
-                                          N_nons = sum(results_ipw_b_combined$ipw_weights))
+              boot_obj[b, ] <- mu_hatDR(y_hat = results_mi_b_combined$output$mean,
+                                        y_resid = do.call("cbind", results_mi_b_combined$ys_resid),
+                                        weights = case_weights[strap_nons],
+                                        weights_nons = results_ipw_b_combined$ipw_weights,
+                                        N_nons = sum(results_ipw_b_combined$ipw_weights))
 
-              }
             }
           },
           error = function(e) {
@@ -446,7 +420,24 @@ boot_dr <- function(selection,
                                          pop_size_fixed=pop_size_fixed)
 
               ## combination of variables after bootstrap
-              if (!vars_combine) {
+              if (bias_corr) {
+
+                if (verbose) message("\nBias correction...")
+
+                boot_obj_b <- boot_dr_bias_corr_iter(
+                  outcome = outcome,
+                  selection = selection,
+                  data = data[strap_nons, ],
+                  svydesign_b = svydesign_b,
+                  results_ipw_b = results_ipw_b,
+                  control_selection = control_selection,
+                  method = method,
+                  method_selection = method_selection,
+                  family_outcome = family_outcome,
+                  pop_size = sum(results_ipw_b$ipw_weights)
+                )
+
+              } else if (!vars_combine) {
                 boot_obj_b <- mu_hatDR(y_hat = results_mi_b$output$mean,
                                           y_resid = do.call("cbind", results_mi_b$ys_resid),
                                           weights = case_weights[strap_nons],
@@ -479,91 +470,48 @@ boot_dr <- function(selection,
                 svydesign_b_ <- svydesign_b
                 svydesign_b_$variables <- cbind(svydesign_b_$variables, X_rand)
 
-                if (bias_corr) {
-
-                  if (verbose) message("\nBias correction...")
-
-                  ## consider different start
-                  par0 <- numeric(NCOL(X_all)*2)
-                  names(par0) <- rep(colnames(X_all), times = 2)
-
-                  bias_corr_result_b <- nleqslv::nleqslv(
-                    x = par0,
-                    fn = u_theta_beta_dr,
-                    method = control_selection$nleqslv_method,
-                    global = control_selection$nleqslv_global,
-                    xscalm = control_selection$nleqslv_xscalm,
-                    jacobian = TRUE,
-                    control = list(
-                      scalex = rep(1, length(par0)),
-                      maxit = control_selection$maxit
-                    ),
-                    R = results_ipw_b$R,
-                    X = X_all,
-                    y = c(rep(0, sum(results_ipw_b$R==0)), y_nons[, 1]),
-                    weights = c(weights(svydesign_b_), results_ipw_b$case_weights),#c(weights(svydesign_), weights),
-                    method_selection = method_selection,
-                    family_outcome = family_outcome
-                  )
-
-                  theta_hat <- bias_corr_result_b$x[1:NCOL(X_all)]
-                  beta_hat <- bias_corr_result_b$x[(NCOL(X_all) + 1):(2 * NCOL(X_all))]
-
-                  bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
-                  bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw_b$R == 1]
-                  bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 0, ] %*% beta_hat))
-                  bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw_b$R == 1, ] %*% beta_hat))
-                  bias_corr_mu_resid <- bias_corr_mu_nons_pred - y_nons
-
-                  boot_obj_b <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_b_)),
-                                            y_resid = as.matrix(bias_corr_mu_resid),
-                                            weights = results_ipw_b$case_weights,
-                                            weights_nons = bias_corr_ipw_weights,
-                                            N_nons = sum(bias_corr_ipw_weights))
-                } else {
-                  results_ipw_b_combined <- nonprob_ipw(data = as.data.frame(X_nons),
-                                                        target = outcome,
-                                                        selection =  reformulate(dr_coefs_sel[[1]]),
-                                                        svydesign = svydesign_b_,
-                                                        pop_totals = NULL,
-                                                        pop_means = NULL,
-                                                        pop_size = NULL,
-                                                        method_selection = method_selection,
-                                                        strata = strata,
-                                                        case_weights = case_weights[strap_nons],
-                                                        na_action = na_action,
-                                                        control_selection = control_selection,
-                                                        control_inference = control_inference,
-                                                        start_selection = start_selection,
-                                                        verbose = FALSE,
-                                                        se = FALSE,
-                                                        pop_size_fixed = pop_size_fixed)
-                  ## estimate the mi
-                  results_mi_b_combined <- nonprob_mi(outcome = as.formula(paste0(target_vars, reformulate(dr_coefs_sel[[1]]))),
-                                                      data = as.data.frame(X_nons),
+                results_ipw_b_combined <- nonprob_ipw(data = as.data.frame(X_nons),
+                                                      target = outcome,
+                                                      selection =  reformulate(dr_coefs_sel[[1]]),
                                                       svydesign = svydesign_b_,
                                                       pop_totals = NULL,
                                                       pop_means = NULL,
                                                       pop_size = NULL,
-                                                      method_outcome = method_outcome,
-                                                      family_outcome = family_outcome,
+                                                      method_selection = method_selection,
                                                       strata = strata,
                                                       case_weights = case_weights[strap_nons],
                                                       na_action = na_action,
-                                                      control_outcome = control_outcome,
+                                                      control_selection = control_selection,
                                                       control_inference = control_inference,
-                                                      start_outcome = start_outcome,
+                                                      start_selection = start_selection,
                                                       verbose = FALSE,
                                                       se = FALSE,
-                                                      pop_size_fixed=pop_size_fixed)
+                                                      pop_size_fixed = pop_size_fixed)
+                ## estimate the mi
+                results_mi_b_combined <- nonprob_mi(outcome = as.formula(paste0(target_vars, reformulate(dr_coefs_sel[[1]]))),
+                                                    data = as.data.frame(X_nons),
+                                                    svydesign = svydesign_b_,
+                                                    pop_totals = NULL,
+                                                    pop_means = NULL,
+                                                    pop_size = NULL,
+                                                    method_outcome = method_outcome,
+                                                    family_outcome = family_outcome,
+                                                    strata = strata,
+                                                    case_weights = case_weights[strap_nons],
+                                                    na_action = na_action,
+                                                    control_outcome = control_outcome,
+                                                    control_inference = control_inference,
+                                                    start_outcome = start_outcome,
+                                                    verbose = FALSE,
+                                                    se = FALSE,
+                                                    pop_size_fixed=pop_size_fixed)
 
-                  boot_obj_b <- mu_hatDR(y_hat = results_mi_b_combined$output$mean,
-                                            y_resid = do.call("cbind", results_mi_b_combined$ys_resid),
-                                            weights = case_weights[strap_nons],
-                                            weights_nons = results_ipw_b_combined$ipw_weights,
-                                            N_nons = sum(results_ipw_b_combined$ipw_weights))
+                boot_obj_b <- mu_hatDR(y_hat = results_mi_b_combined$output$mean,
+                                          y_resid = do.call("cbind", results_mi_b_combined$ys_resid),
+                                          weights = case_weights[strap_nons],
+                                          weights_nons = results_ipw_b_combined$ipw_weights,
+                                          N_nons = sum(results_ipw_b_combined$ipw_weights))
 
-                }
               }
             },
             error = function(e) {
@@ -715,4 +663,48 @@ boot_dr <- function(selection,
   }
 
   return(boot_obj)
+}
+
+
+# Internal helper running one bootstrap iteration of the Kim-Haziza joint
+# estimator across all outcomes. Returns a length-`outcomes$l` numeric vector
+# of mu_hat replicates suitable for assigning to a row of boot_obj.
+boot_dr_bias_corr_iter <- function(outcome,
+                                   selection,
+                                   data,
+                                   svydesign_b,
+                                   results_ipw_b,
+                                   control_selection,
+                                   method,
+                                   method_selection,
+                                   family_outcome,
+                                   pop_size) {
+
+  selection_vars <- all.vars(formula.tools::rhs(outcome))
+  outcome_vars <- all.vars(formula.tools::rhs(selection))
+  target_vars <- all.vars(formula.tools::lhs(outcome))
+  combined_vars <- reformulate(union(selection_vars, outcome_vars))
+
+  y_nons <- subset(data, select = target_vars)
+  X_nons <- model.matrix(combined_vars, data)
+  X_rand <- model.matrix(combined_vars, svydesign_b$variables)
+  X_all <- rbind(X_rand, X_nons)
+  R_bc <- c(rep(0, NROW(X_rand)), rep(1, NROW(X_nons)))
+
+  vapply(target_vars, function(o) {
+    bc <- run_bias_correction_one_outcome(
+      o = o,
+      X_all = X_all,
+      y_nons = y_nons,
+      R = R_bc,
+      case_weights_ipw = results_ipw_b$case_weights,
+      weights_rand = weights(svydesign_b),
+      control_selection = control_selection,
+      method = method,
+      method_selection = method_selection,
+      family_outcome = family_outcome,
+      pop_size = pop_size
+    )
+    as.numeric(bc$mu_hat)
+  }, numeric(1), USE.NAMES = FALSE)
 }
