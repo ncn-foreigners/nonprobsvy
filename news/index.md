@@ -2,6 +2,19 @@
 
 ## nonprobsvy (development version)
 
+- fixed an indefinite hang in the MI bootstrap variance path for
+  `method_outcome %in% c("nn", "pmm")`: `boot_mi()` previously
+  hand-mutated a subset of the `svyrep.design` slots, which left
+  `$selfrep` at the original length and made
+  [`survey::svytotal()`](https://rdrr.io/pkg/survey/man/surveysummary.html)
+  inside
+  [`method_nn()`](https://ncn-foreigners.github.io/nonprobsvy/reference/method_nn.md)/[`method_pmm()`](https://ncn-foreigners.github.io/nonprobsvy/reference/method_pmm.md)
+  fail deterministically with
+  `"(subscript) logical subscript too long"`; a silent `tryCatch` around
+  the per-replicate loop swallowed the error without advancing the
+  counter, so the call ran forever – the subset now goes through
+  `[.svyrep.design` and a bounded retry surfaces any deterministic
+  failure as a proper error
 - implemented the Kim & Haziza (2014) low-dimensional joint estimator
   for `control_inf(bias_correction = TRUE)` without variable selection,
   replacing the previous `object 'bias_corr_ys_rand_pred' not found`
