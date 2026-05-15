@@ -43,6 +43,65 @@ boot_mi <- function(model_obj,
     rep_weights <- svydesign_rep$repweights$weights
   }
 
+  # One bootstrap iteration; returns a scalar y_mi_hat or stops on error.
+  # Centralising the body lets single-core and multicore paths share logic
+  # and ensures the same fix is applied to both.
+  one_iter <- function(b) {
+    if (!is.null(svydesign)) {
+      strap_rand_svy <- which(rep_weights[, b] != 0)
+      weights_rand_strap_svy <- rep_weights[, b] * weights(svydesign)
+      pop_size_strap <- sum(weights_rand_strap_svy)
+
+      # Subset the replicate design through `[.svyrep.design` so that all
+      # internal slots (variables, repweights, pweights, selfrep, degf) stay
+      # consistent. Mutating slots by hand left `selfrep` at its original
+      # length and caused `survey::svytotal()` to fail deterministically
+      # with "(subscript) logical subscript too long" - which the previous
+      # silent tryCatch around the bootstrap loop swallowed, causing the
+      # loop counter never to advance and the call to hang for ever.
+      svydesign_rep_b <- svydesign_rep[strap_rand_svy, ]
+
+      strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons),
+                               prob = 1 / case_weights)
+      model_obj_b <- outcome_method(
+        y_nons = y_nons[strap_nons],
+        X_nons = X_nons[strap_nons, , drop = FALSE],
+        X_rand = X_rand[strap_rand_svy, , drop = FALSE],
+        svydesign = svydesign_rep_b,
+        weights = case_weights[strap_nons],
+        family_outcome = family_outcome,
+        start_outcome = model_obj$coefficients,
+        vars_selection = model_obj$vars_selection,
+        pop_totals = pop_totals,
+        pop_size = pop_size_strap,
+        control_outcome = control_outcome,
+        control_inference = control_inference,
+        verbose = FALSE,
+        se = FALSE
+      )
+    } else {
+      strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons),
+                               prob = 1 / case_weights)
+      model_obj_b <- outcome_method(
+        y_nons = y_nons[strap_nons],
+        X_nons = X_nons[strap_nons, , drop = FALSE],
+        X_rand = X_rand,
+        svydesign = svydesign,
+        weights = case_weights[strap_nons],
+        family_outcome = family_outcome,
+        start_outcome = model_obj$coefficients,
+        vars_selection = model_obj$vars_selection,
+        pop_totals = pop_totals,
+        pop_size = pop_size,
+        control_outcome = control_outcome,
+        control_inference = control_inference,
+        verbose = FALSE,
+        se = FALSE
+      )
+    }
+    model_obj_b$y_mi_hat
+  }
+
   # Single core processing
   if (control_inference$cores == 1) {
 
@@ -51,96 +110,37 @@ boot_mi <- function(model_obj,
       pb_boot <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
     }
 
-    b <- 1
-
-    if (!is.null(svydesign)) {
-      # Bootstrap for probability and non-probability samples
-      while (b <= num_boot) {
-        tryCatch(
-          {
-            # Probability part
-            strap_rand_svy <- which(rep_weights[, b] != 0)
-            weights_rand_strap_svy <- rep_weights[, b] * weights(svydesign)
-            pop_size_strap <- sum(weights_rand_strap_svy)
-
-            # Workaround for as.svrepdesign
-            svydesign_rep_b <- svydesign_rep
-            svydesign_rep_b$variables <- svydesign_rep$variables[strap_rand_svy, ]
-            svydesign_rep_b$repweights <- svydesign_rep$repweights[strap_rand_svy, ]
-            svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
-
-            # Non-probability part
-            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
-
-            model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
-                                          X_nons = X_nons[strap_nons, , drop = FALSE],
-                                          X_rand = X_rand[strap_rand_svy, , drop = FALSE],
-                                          svydesign = svydesign_rep_b,
-                                          weights = case_weights[strap_nons],
-                                          family_outcome = family_outcome,
-                                          start_outcome = model_obj$coefficients,
-                                          vars_selection = model_obj$vars_selection,
-                                          pop_totals = pop_totals,
-                                          pop_size = pop_size_strap,
-                                          control_outcome = control_outcome,
-                                          control_inference = control_inference,
-                                          verbose = FALSE,
-                                          se = FALSE)
-
-            boot_obj[b] <- model_obj_b$y_mi_hat
-
-            if (verbose) {
-              utils::setTxtProgressBar(pb_boot, b)
-            }
-            b <- b + 1
-          },
-          error = function(e) {
-            if (verbose) {
-              info <- paste("An error occurred in ", b, " iteration: ", e$message, sep = "")
-              message(info)
-            }
-          }
-        )
+    # Allow at most one retry per replicate so a deterministic failure
+    # surfaces as a proper error instead of looping forever. The previous
+    # implementation used `while (b <= num_boot)` with a silent tryCatch,
+    # which made deterministic failures invisible and could hang the
+    # caller indefinitely.
+    max_retries <- 1L
+    for (b in seq_len(num_boot)) {
+      attempt <- 0L
+      repeat {
+        res <- tryCatch(one_iter(b),
+                        error = function(e) e)
+        if (!inherits(res, "error")) {
+          boot_obj[b] <- res
+          break
+        }
+        attempt <- attempt + 1L
+        if (verbose) {
+          message(sprintf(
+            "An error occurred in iteration %d (attempt %d/%d): %s",
+            b, attempt, max_retries + 1L, conditionMessage(res)))
+        }
+        if (attempt > max_retries) {
+          stop(sprintf(
+            "Bootstrap iteration %d failed after %d attempts: %s",
+            b, max_retries + 1L, conditionMessage(res)),
+            call. = FALSE)
+        }
       }
-    } else {
-      # Bootstrap for non-probability samples only
-      while (b <= num_boot) {
-        tryCatch(
-          {
-            # Non-probability part
-            strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
-
-            model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
-                                          X_nons = X_nons[strap_nons, , drop = FALSE],
-                                          X_rand = X_rand,
-                                          svydesign = svydesign,
-                                          weights = case_weights[strap_nons],
-                                          family_outcome = family_outcome,
-                                          start_outcome = model_obj$coefficients,
-                                          vars_selection = model_obj$vars_selection,
-                                          pop_totals = pop_totals,
-                                          pop_size = pop_size,
-                                          control_outcome = control_outcome,
-                                          control_inference = control_inference,
-                                          verbose = FALSE,
-                                          se = FALSE)
-
-            boot_obj[b] <- model_obj_b$y_mi_hat
-
-            if (verbose) {
-              utils::setTxtProgressBar(pb_boot, b)
-            }
-            b <- b + 1
-          },
-          error = function(e) {
-            if (verbose) {
-              info <- paste("An error occurred in ", b, " iteration: ", e$message, sep = "")
-              message(info)
-            }
-          }
-        )
-      }
+      if (verbose) utils::setTxtProgressBar(pb_boot, b)
     }
+    if (verbose) close(pb_boot)
   } else {
     # Multicore processing
     if (verbose) message("Multicore bootstrap in progress...")
@@ -150,67 +150,12 @@ boot_mi <- function(model_obj,
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl = cl, varlist = NULL, envir = getNamespace("nonprobsvy"))
 
-    if (!is.null(svydesign)) {
-      # Parallel bootstrap for probability and non-probability samples
-      boot_obj <- doRNG::`%dorng%`(
-        obj = foreach::foreach(b = 1:num_boot, .combine = c),
-        ex = {
-          strap_rand_svy <- which(rep_weights[, b] != 0)
-          weights_rand_strap_svy <- rep_weights[, b] * weights(svydesign)
-          pop_size_strap <- sum(weights_rand_strap_svy)
-
-          # Workaround for as.svrepdesign
-          svydesign_rep_b <- svydesign_rep
-          svydesign_rep_b$variables <- svydesign_rep$variables[strap_rand_svy, ]
-          svydesign_rep_b$repweights <- svydesign_rep$repweights[strap_rand_svy, ]
-          svydesign_rep_b$pweights <- svydesign_rep$pweights[strap_rand_svy]
-
-          # Non-probability part
-          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
-
-          model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
-                                        X_nons = X_nons[strap_nons, , drop = FALSE],
-                                        X_rand = X_rand[strap_rand_svy, , drop = FALSE],
-                                        svydesign = svydesign_rep_b,
-                                        weights = case_weights[strap_nons],
-                                        family_outcome = family_outcome,
-                                        start_outcome = model_obj$coefficients,
-                                        vars_selection = model_obj$vars_selection,
-                                        pop_totals = pop_totals,
-                                        pop_size = pop_size_strap,
-                                        control_outcome = control_outcome,
-                                        control_inference = control_inference,
-                                        verbose = FALSE,
-                                        se = FALSE)
-          model_obj_b$y_mi_hat
-        }
-      )
-    } else {
-      # Parallel bootstrap for non-probability samples only
-      boot_obj <- doRNG::`%dorng%`(
-        obj = foreach::foreach(b = 1:num_boot, .combine = c),
-        ex = {
-          strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)
-
-          model_obj_b <- outcome_method(y_nons = y_nons[strap_nons],
-                                        X_nons = X_nons[strap_nons, , drop = FALSE],
-                                        X_rand = X_rand,
-                                        svydesign = svydesign,
-                                        weights = case_weights[strap_nons],
-                                        family_outcome = family_outcome,
-                                        start_outcome = model_obj$coefficients,
-                                        vars_selection = model_obj$vars_selection,
-                                        pop_totals = pop_totals,
-                                        pop_size = pop_size,
-                                        control_outcome = control_outcome,
-                                        control_inference = control_inference,
-                                        verbose = FALSE,
-                                        se = FALSE)
-
-          model_obj_b$y_mi_hat
-        }
-      )
-    }
+    boot_obj <- doRNG::`%dorng%`(
+      obj = foreach::foreach(b = 1:num_boot, .combine = c),
+      ex = {
+        one_iter(b)
+      }
+    )
   }
 
 
