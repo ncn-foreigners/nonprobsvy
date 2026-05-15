@@ -29,6 +29,7 @@ Depends:
   R (>= 4.0.0),
   survey
 Imports: 
+    doRNG,
     maxLik,
     stats,
     Matrix,

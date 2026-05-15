@@ -150,7 +150,7 @@ boot_mi <- function(model_obj,
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl = cl, varlist = NULL, envir = getNamespace("nonprobsvy"))
 
-    boot_obj <- foreach::`%dopar%`(
+    boot_obj <- doRNG::`%dorng%`(
       obj = foreach::foreach(b = 1:num_boot, .combine = c),
       ex = {
         one_iter(b)

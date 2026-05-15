@@ -9,6 +9,7 @@ if (requireNamespace("tinytest", quietly = TRUE)) {
       "Set NONPROBSVY_FULL_TESTS=true to run the full suite."
     )
     fast_tests <- c(
+      "test_boot_reproducibility",
       "test_check_balance",
       "test_controls",
       "test_ipw_stability",
