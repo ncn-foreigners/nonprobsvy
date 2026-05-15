@@ -2,6 +2,12 @@
 
 ## nonprobsvy (development version)
 
+- fixed parallel bootstrap (cores \> 1) so
+  [`set.seed()`](https://rdrr.io/r/base/Random.html) makes results
+  reproducible by switching the MI, IPW, and DR multicore loops from
+  `foreach::%dopar%` to `doRNG::%dorng%`; this also seeds NN/PMM
+  tie-breaking inside workers (closes
+  [\#115](https://github.com/ncn-foreigners/nonprobsvy/issues/115))
 - fixed an indefinite hang in the MI bootstrap variance path for
   `method_outcome %in% c("nn", "pmm")`: `boot_mi()` previously
   hand-mutated a subset of the `svyrep.design` slots, which left
