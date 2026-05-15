@@ -152,7 +152,7 @@ boot_mi <- function(model_obj,
 
     if (!is.null(svydesign)) {
       # Parallel bootstrap for probability and non-probability samples
-      boot_obj <- foreach::`%dopar%`(
+      boot_obj <- doRNG::`%dorng%`(
         obj = foreach::foreach(b = 1:num_boot, .combine = c),
         ex = {
           strap_rand_svy <- which(rep_weights[, b] != 0)
@@ -187,7 +187,7 @@ boot_mi <- function(model_obj,
       )
     } else {
       # Parallel bootstrap for non-probability samples only
-      boot_obj <- foreach::`%dopar%`(
+      boot_obj <- doRNG::`%dorng%`(
         obj = foreach::foreach(b = 1:num_boot, .combine = c),
         ex = {
           strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons), prob = 1 / case_weights)

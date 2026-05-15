@@ -364,7 +364,7 @@ boot_dr <- function(selection,
 
     if (!is.null(svydesign)) {
       # Parallel bootstrap for probability and non-probability samples
-      boot_obj <- foreach::`%dopar%`(
+      boot_obj <- doRNG::`%dorng%`(
         obj = foreach::foreach(b = 1:num_boot, .combine = rbind),
         ex = {
 
@@ -528,7 +528,7 @@ boot_dr <- function(selection,
       )
     } else {
       # Parallel bootstrap for non-probability samples only
-      boot_obj <- foreach::`%dopar%`(
+      boot_obj <- doRNG::`%dorng%`(
         obj = foreach::foreach(b = 1:num_boot, .combine = rbind),
         ex = {
 

@@ -193,7 +193,7 @@ boot_ipw <- function(X_rand,
 }
 
 # Multicore
-#' @importFrom foreach %dopar%
+#' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
@@ -259,7 +259,7 @@ boot_ipw_multicore <- function(X_rand,
       replicates = num_boot
     )$repweights$weights
 
-    boot_reps <- foreach::`%dopar%`(
+    boot_reps <- doRNG::`%dorng%`(
       obj = foreach::foreach(k = k),
       ex = {
         strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
@@ -320,7 +320,7 @@ boot_ipw_multicore <- function(X_rand,
       }
     )
   } else {
-    boot_reps <- foreach::`%dopar%`(
+    boot_reps <- doRNG::`%dorng%`(
       obj = foreach::foreach(k = k),
       ex = {
         strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
