@@ -2,6 +2,15 @@
 
 ## nonprobsvy (development version)
 
+- fixed the doubly robust analytic standard error under
+  `control_inf(bias_correction = TRUE)`: the non-probability variance
+  component (Yang-Kim-Song 2020, eq. 25) used the frequency
+  `case_weights` instead of the inverse-probability weights `1/pi`,
+  which made the standard error anticonservative (95%
+  confidence-interval coverage ~0.87 instead of 0.95 in simulation); it
+  now uses the bias-corrected inverse-probability weights and is
+  computed per outcome so an outcome’s SE no longer depends on the other
+  outcomes fitted alongside it
 - fixed the probit propensity-score analytic variance under
   `control_sel(est_method = "gee")`: a scalar
   [`ifelse()`](https://rdrr.io/r/base/ifelse.html) truncated the
