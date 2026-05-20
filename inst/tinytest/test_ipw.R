@@ -218,6 +218,32 @@ expect_equal(
             row.names = "single_shift", class = "data.frame")
 )
 
+## regression test for the probit + GEE analytic variance bug:
+## a scalar `ifelse()` in est_method_ipw.R used to truncate the propensity-score
+## derivative vectors (ps_nons_der / est_ps_rand_der) to length 1, corrupting the
+## probability-sample variance component (var_cov2) and inflating the SE
+## (~0.096 instead of the correct ~0.036). Guard both the derivative lengths and
+## the resulting SE.
+ipw_probit_gee <- nonprob(
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "probit",
+  control_selection = control_sel(est_method = "gee"))
+
+# derivatives must stay full-length (n_nonprob / n_prob), not truncated to 1
+expect_equal(length(ipw_probit_gee$selection$selection_model$ps_nons_der), nrow(admin))
+expect_equal(length(ipw_probit_gee$selection$selection_model$est_ps_rand_der), nrow(jvs))
+
+# probit + GEE SE should match the (never-buggy) logit + GEE SE on these data
+expect_equal(
+  ipw_probit_gee$output,
+  structure(list(mean = 0.704160408297455, SE = 0.036409969848563),
+            row.names = "single_shift", class = "data.frame"),
+  tolerance = 1e-8
+)
+
 ## regression test for issue #90: cloglog analytic IPW SE should remain stable
 ipw_cloglog <- nonprob(
     selection = ~region + private + nace + size,

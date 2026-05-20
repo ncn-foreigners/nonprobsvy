@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed the probit propensity-score analytic variance under `control_sel(est_method = "gee")`: a scalar `ifelse()` truncated the propensity-score derivative vectors (`ps_nons_der`, `est_ps_rand_der`) to length 1, which corrupted the probability-sample variance component and inflated the standard error; replaced it with a scalar `if`/`else` and added a probit-GEE analytic-SE regression test
 + warm-started the single-core IPW `pop_totals` GEE bootstrap to match the multicore path (closes [#120](https://github.com/ncn-foreigners/nonprobsvy/issues/120))
 + warm-started the DR `bias_correction` bootstrap solver from the original-data fit, speeding it up with identical estimates (closes [#119](https://github.com/ncn-foreigners/nonprobsvy/issues/119))
 + added `control_out(pmm_k_max = ...)` to cap the `pmm_k_choice = "min_var"` search grid and documented its cost (closes [#116](https://github.com/ncn-foreigners/nonprobsvy/issues/116))
