@@ -33,7 +33,7 @@ control_out(
 
 - epsilon:
 
-  Tolerance for fitting algorithms. Default is `1e-6`.
+  Tolerance for fitting algorithms. Default is `1e-8`.
 
 - maxit:
 

@@ -148,7 +148,7 @@ an `nonprob_method` class which is a `list` with the following entries
 
   variance for the non-probability sample component
 
-- var_tot:
+- var_total:
 
   total variance, if possible it should be `var_prob+var_nonprob` if
   not, just a scalar

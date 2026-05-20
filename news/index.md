@@ -2,6 +2,19 @@
 
 ## nonprobsvy (development version)
 
+- documentation polishing: corrected the documented `epsilon` defaults
+  in
+  [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
+  (`1e-8`) and
+  [`control_sel()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_sel.md)
+  (`1e-4`) to match the code, fixed a `var_tot` -\> `var_total`
+  return-value name in the
+  [`method_nn()`](https://ncn-foreigners.github.io/nonprobsvy/reference/method_nn.md)
+  documentation, removed a stray character in the
+  [`method_npar()`](https://ncn-foreigners.github.io/nonprobsvy/reference/method_npar.md)
+  `family_outcome` parameter doc, and dropped a redundant
+  [`sum()`](https://rdrr.io/r/base/sum.html) in the printed IPW-weights
+  total
 - validated that a supplied `pop_totals` is a named vector whose first
   element is `(Intercept)`, erroring early with a clear message instead
   of silently producing an `NA` population size and `NaN` standard

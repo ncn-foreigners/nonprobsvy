@@ -49,7 +49,7 @@ method_npar(
 
 - family_outcome:
 
-  family for the glm model)
+  family for the glm model
 
 - start_outcome:
 

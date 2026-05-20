@@ -63,7 +63,7 @@ control_sel(
 
 - epsilon:
 
-  Tolerance for fitting algorithms by default `1e-6`.
+  Tolerance for fitting algorithms by default `1e-4`.
 
 - maxit:
 
