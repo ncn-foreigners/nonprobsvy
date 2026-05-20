@@ -148,8 +148,8 @@ boot_dr <- function(selection,
               })
 
               ## combining variables for selection
-              selection_vars <- all.vars(formula.tools::rhs(outcome))
-              outcome_vars <- all.vars(formula.tools::rhs(selection))
+              outcome_vars <- all.vars(formula.tools::rhs(outcome))
+              selection_vars <- all.vars(formula.tools::rhs(selection))
               target_vars <- all.vars(formula.tools::lhs(outcome))
               combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -284,8 +284,8 @@ boot_dr <- function(selection,
               })
 
               ## combining variables for selection
-              selection_vars <- all.vars(formula.tools::rhs(outcome))
-              outcome_vars <- all.vars(formula.tools::rhs(selection))
+              outcome_vars <- all.vars(formula.tools::rhs(outcome))
+              selection_vars <- all.vars(formula.tools::rhs(selection))
               target_vars <- all.vars(formula.tools::lhs(outcome))
               combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -458,8 +458,8 @@ boot_dr <- function(selection,
                 })
 
                 ## combining variables for selection
-                selection_vars <- all.vars(formula.tools::rhs(outcome))
-                outcome_vars <- all.vars(formula.tools::rhs(selection))
+                outcome_vars <- all.vars(formula.tools::rhs(outcome))
+                selection_vars <- all.vars(formula.tools::rhs(selection))
                 target_vars <- all.vars(formula.tools::lhs(outcome))
                 combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -596,8 +596,8 @@ boot_dr <- function(selection,
                 })
 
                 ## combining variables for selection
-                selection_vars <- all.vars(formula.tools::rhs(outcome))
-                outcome_vars <- all.vars(formula.tools::rhs(selection))
+                outcome_vars <- all.vars(formula.tools::rhs(outcome))
+                selection_vars <- all.vars(formula.tools::rhs(selection))
                 target_vars <- all.vars(formula.tools::lhs(outcome))
                 combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -684,8 +684,8 @@ boot_dr_bias_corr_iter <- function(outcome,
                                    pop_size,
                                    par_init_by_outcome = NULL) {
 
-  selection_vars <- all.vars(formula.tools::rhs(outcome))
-  outcome_vars <- all.vars(formula.tools::rhs(selection))
+  outcome_vars <- all.vars(formula.tools::rhs(outcome))
+  selection_vars <- all.vars(formula.tools::rhs(selection))
   target_vars <- all.vars(formula.tools::lhs(outcome))
   combined_vars <- reformulate(union(selection_vars, outcome_vars))
 

@@ -133,8 +133,8 @@ nonprob_dr <- function(selection,
 
 
     ## combining variables for selection
-    selection_vars <- all.vars(formula.tools::rhs(outcome))
-    outcome_vars <- all.vars(formula.tools::rhs(selection))
+    outcome_vars <- all.vars(formula.tools::rhs(outcome))
+    selection_vars <- all.vars(formula.tools::rhs(selection))
     target_vars <- all.vars(formula.tools::lhs(outcome))
     combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -430,8 +430,8 @@ nonprob_dr <- function(selection,
       ## Kim & Haziza (2014) joint estimator: union of outcome and selection
       ## covariates, fitted jointly via the same Yang-Kim-Song eq. (9) system
       ## already used by the if-branch.
-      selection_vars <- all.vars(formula.tools::rhs(outcome))
-      outcome_vars <- all.vars(formula.tools::rhs(selection))
+      outcome_vars <- all.vars(formula.tools::rhs(outcome))
+      selection_vars <- all.vars(formula.tools::rhs(selection))
       target_vars <- all.vars(formula.tools::lhs(outcome))
       combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
