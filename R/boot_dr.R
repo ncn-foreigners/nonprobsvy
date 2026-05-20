@@ -20,7 +20,8 @@ boot_dr <- function(selection,
                     start_outcome,
                     start_selection,
                     verbose,
-                    pop_size_fixed) {
+                    pop_size_fixed,
+                    bias_corr_start = NULL) {
 
   # Initialize objects to store results
   num_boot <- control_inference$num_boot
@@ -125,7 +126,8 @@ boot_dr <- function(selection,
                 method = method,
                 method_selection = method_selection,
                 family_outcome = family_outcome,
-                pop_size = sum(results_ipw_b$ipw_weights)
+                pop_size = sum(results_ipw_b$ipw_weights),
+                par_init_by_outcome = bias_corr_start
               )
 
             } else if (!vars_combine) {
@@ -434,7 +436,8 @@ boot_dr <- function(selection,
                   method = method,
                   method_selection = method_selection,
                   family_outcome = family_outcome,
-                  pop_size = sum(results_ipw_b$ipw_weights)
+                  pop_size = sum(results_ipw_b$ipw_weights),
+                  par_init_by_outcome = bias_corr_start
                 )
 
               } else if (!vars_combine) {
@@ -678,7 +681,8 @@ boot_dr_bias_corr_iter <- function(outcome,
                                    method,
                                    method_selection,
                                    family_outcome,
-                                   pop_size) {
+                                   pop_size,
+                                   par_init_by_outcome = NULL) {
 
   selection_vars <- all.vars(formula.tools::rhs(outcome))
   outcome_vars <- all.vars(formula.tools::rhs(selection))
@@ -703,7 +707,8 @@ boot_dr_bias_corr_iter <- function(outcome,
       method = method,
       method_selection = method_selection,
       family_outcome = family_outcome,
-      pop_size = pop_size
+      pop_size = pop_size,
+      par_init = par_init_by_outcome[[o]]
     )
     as.numeric(bc$mu_hat)
   }, numeric(1), USE.NAMES = FALSE)

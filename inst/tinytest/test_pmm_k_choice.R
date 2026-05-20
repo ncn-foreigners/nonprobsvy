@@ -27,6 +27,22 @@ expect_true(
   is.finite(fit_pmm_min_var$output$SE) && fit_pmm_min_var$output$SE > 0
 )
 
+## #116: pmm_k_max validation
+expect_error(control_out(pmm_k_max = 0), pattern = "pmm_k_max")
+expect_error(control_out(pmm_k_max = 2.5), pattern = "pmm_k_max")
+expect_null(control_out()$pmm_k_max)
+
+## #116: pmm_k_max caps the min_var search grid (default is the full 1:n_A grid)
+fit_pmm_min_var_capped <- nonprob(
+  outcome = y ~ x,
+  svydesign = min_var_svy,
+  method_outcome = "pmm",
+  data = min_var_nonprob,
+  control_outcome = control_out(pmm_k_choice = "min_var", pmm_reg_engine = "glm",
+                                pmm_k_max = 3)
+)
+expect_true(fit_pmm_min_var_capped$control$control_outcome$k <= 3L)
+
 toy_pmm_rand <- data.frame(x = c(1.4, 8.3), w = c(2, 3))
 toy_pmm_svy <- svydesign(ids = ~1, weights = ~w, data = toy_pmm_rand)
 toy_pmm_y <- c(0, 4, 10, 17, 27, 41)

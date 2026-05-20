@@ -42,7 +42,8 @@ expect_silent(suppressWarnings(nonprob(
   control_inference = control_inf(var_method = "bootstrap", num_boot = 2)
 )))
 
-expect_silent(suppressWarnings(nonprob(
+## #120: single-core GEE + pop_totals bootstrap warm-starts and yields finite SE
+expect_silent(suppressWarnings(ipw_gee_totals_boot_seq <- nonprob(
   selection = ~region + private + nace + size,
   target = ~single_shift,
   pop_totals = pop_totals,
@@ -51,6 +52,9 @@ expect_silent(suppressWarnings(nonprob(
   control_selection = control_sel(est_method = "gee"),
   control_inference = control_inf(var_method = "bootstrap", num_boot = 2)
 )))
+
+expect_true(all(is.finite(ipw_gee_totals_boot_seq$output$SE)))
+expect_true(all(ipw_gee_totals_boot_seq$output$SE > 0))
 
 
 # multi-core bootstrap -----------------------------------------------------

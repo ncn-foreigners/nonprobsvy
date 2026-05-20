@@ -141,6 +141,7 @@ boot_ipw <- function(X_rand,
             method_selection = method_selection,
             maxit = maxit,
             pop_totals = pop_totals,
+            start = start_selection,
             nleqslv_method = control_selection$nleqslv_method,
             nleqslv_global = control_selection$nleqslv_global,
             nleqslv_xscalm = control_selection$nleqslv_xscalm

@@ -24,6 +24,19 @@ expect_equal(
             row.names = "single_shift", class = "data.frame")
 )
 
+## #71: non-gaussian pop_totals analytic variance must not collapse to 0
+mi_pois_totals <- nonprob(
+  outcome = single_shift ~ region + private + nace + size,
+  pop_totals = pop_totals,
+  method_outcome = "glm",
+  family_outcome = "poisson",
+  data = admin)
+expect_true(is.finite(mi_pois_totals$output$SE) && mi_pois_totals$output$SE > 0)
+expect_true(
+  mi_pois_totals$confidence_interval$lower_bound <
+    mi_pois_totals$confidence_interval$upper_bound
+)
+
 
 # unit-level data ---------------------------------------------------------
 

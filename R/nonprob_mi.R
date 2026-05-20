@@ -111,7 +111,19 @@ nonprob_mi <- function(outcome,
       best_var <- Inf
       best_k <- 1L
       best_model_obj <- NULL
-      for (kk in seq_len(NROW(X_nons))) {
+      k_max <- if (is.null(control_outcome$pmm_k_max)) {
+        NROW(X_nons)
+      } else {
+        min(NROW(X_nons), as.integer(control_outcome$pmm_k_max))
+      }
+      k_grid <- seq_len(k_max)
+      if (length(k_grid) > 100L) {
+        message(sprintf(
+          paste0("`pmm_k_choice = \"min_var\"` is evaluating k = 1..%d (one full PMM refit per k); ",
+                 "this can be slow. Cap it with `control_out(pmm_k_max = ...)` or supply `control_out(k = ...)` directly."),
+          length(k_grid)))
+      }
+      for (kk in k_grid) {
         control_outcome$k <- kk
         candidate_model <- outcome_method(y_nons = y_nons,
                                           X_nons = X_nons,
