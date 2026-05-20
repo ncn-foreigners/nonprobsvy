@@ -2,6 +2,13 @@
 
 ## nonprobsvy (development version)
 
+- fixed the cross-validation loss for IPW variable selection in the
+  population-totals-only path: the known population totals were
+  normalised by `sum(weights)` (which equals the non-probability sample
+  size when no probability sample is present) instead of `sum(1/pi_hat)`
+  (the HT estimate of `N`), mis-scaling the calibration target by ~`N/n`
+  and mis-directing the penalty (`lambda`) selection; the totals term
+  now uses the same `N_nons` normalisation as the estimating equation
 - stabilised the nonparametric (`npar`) mass-imputation analytic
   variance: the loess inclusion-propensity proxy can return improper
   fitted values (`<= 0` or near zero), which made the `1/pi_hat^2`
