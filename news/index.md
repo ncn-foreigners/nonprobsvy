@@ -2,6 +2,13 @@
 
 ## nonprobsvy (development version)
 
+- added input validation at the boundary: a factor or character
+  outcome/target now errors early (instead of silently returning `NA`);
+  supplying an outcome variable that also exists in the probability
+  `svydesign` warns that it is ignored (only the non-probability outcome
+  is used); and the not-yet-implemented overlap controls
+  `control_sel(dependence = TRUE)` / `key = ...` now error with a clear
+  message instead of being silently accepted
 - fixed a crash in IPW/DR variable selection on the
   population-totals-only path (no `svydesign`): once cross-validation
   dropped a covariate, the response was re-extracted by routing the
