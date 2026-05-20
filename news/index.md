@@ -2,6 +2,13 @@
 
 ## nonprobsvy (development version)
 
+- fixed the probit propensity-score analytic variance under
+  `control_sel(est_method = "gee")`: a scalar
+  [`ifelse()`](https://rdrr.io/r/base/ifelse.html) truncated the
+  propensity-score derivative vectors (`ps_nons_der`, `est_ps_rand_der`)
+  to length 1, which corrupted the probability-sample variance component
+  and inflated the standard error; replaced it with a scalar `if`/`else`
+  and added a probit-GEE analytic-SE regression test
 - warm-started the single-core IPW `pop_totals` GEE bootstrap to match
   the multicore path (closes
   [\#120](https://github.com/ncn-foreigners/nonprobsvy/issues/120))
