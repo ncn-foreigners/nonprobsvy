@@ -76,3 +76,22 @@ expect_equal(
                  upper_bound = 0.726465291453178), row.names = 1L, class = "data.frame")
 )
 
+# regression test (M7): confint() must honor the requested `level` regardless of
+# the fit's control_inf(alpha). A fit with alpha = 0.1 stores a 90% interval;
+# confint(level = 0.95) must return the wider 95% interval, not the stored 90% one.
+ipw_est_a10 <- nonprob(selection = ~ region + private + nace + size,
+                       target = ~ single_shift,
+                       svydesign = jvs_svy,
+                       data = admin,
+                       method_selection = "logit",
+                       control_inference = control_inf(alpha = 0.1))
+ci95_a10 <- confint(ipw_est_a10, level = 0.95)
+expect_equal(
+  ci95_a10$upper_bound - ci95_a10$lower_bound,
+  2 * stats::qnorm(0.975) * ipw_est_a10$output$SE
+)
+expect_true(
+  (ci95_a10$upper_bound - ci95_a10$lower_bound) >
+    (ipw_est_a10$confidence_interval$upper_bound - ipw_est_a10$confidence_interval$lower_bound)
+)
+

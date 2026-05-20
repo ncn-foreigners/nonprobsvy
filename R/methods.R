@@ -254,28 +254,26 @@ confint.nonprob <- function(object,
 
   if (missing(parm)) parm <- rownames(object$output)
 
-  if (level == 0.95) {
-    CIs <- object$confidence_interval
+  ## Always recompute the interval for the requested `level`. The stored
+  ## `object$confidence_interval` is built with the fit's `control_inf(alpha)`,
+  ## so returning it for level = 0.95 would mislabel a CI fitted with a
+  ## non-default alpha (e.g. a 90% interval reported as 95%).
+  if (is.null(object$boot_sample)) {
+    CIs <- object$output
+    z <- stats::qnorm(1 - (1 - level) / 2)
+    # confidence interval based on the normal approximation
+    CIs$lower_bound <- CIs$mean - z * CIs$SE
+    CIs$upper_bound <- CIs$mean + z * CIs$SE
     CIs$target <- rownames(CIs)
     rownames(CIs) <- NULL
   } else {
-    if (is.null(object$boot_sample)) {
-      CIs <- object$output
-      z <- stats::qnorm(1 - (1-level) / 2)
-      # confidence interval based on the normal approximation
-      CIs$lower_bound <- CIs$mean - z * CIs$SE
-      CIs$upper_bound <- CIs$mean + z * CIs$SE
-      CIs$target <- rownames(CIs)
-      rownames(CIs) <- NULL
-    } else {
-      CIs <- object$output
-      alpha <- 1-level
-      SE_q <- apply(object$boot_sample, 2, stats::quantile, probs = c(alpha/2, 1-alpha/2))
-      CIs$lower_bound <- SE_q[1,]
-      CIs$upper_bound <- SE_q[2,]
-      CIs$target <- rownames(CIs)
-      rownames(CIs) <- NULL
-    }
+    CIs <- object$output
+    alpha <- 1 - level
+    SE_q <- apply(object$boot_sample, 2, stats::quantile, probs = c(alpha / 2, 1 - alpha / 2))
+    CIs$lower_bound <- SE_q[1, ]
+    CIs$upper_bound <- SE_q[2, ]
+    CIs$target <- rownames(CIs)
+    rownames(CIs) <- NULL
   }
   return(CIs[CIs$target %in% parm, c("target", "lower_bound", "upper_bound")])
 }

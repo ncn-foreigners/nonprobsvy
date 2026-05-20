@@ -328,13 +328,8 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
   arma::vec LAMBDA(p, arma::fill::zeros);
   arma::vec par(p, arma::fill::zeros);
 
-  int it = 0;
+  bool converged = false;
   for (int jj = 1; jj <= maxit; jj++) {
-    it++;
-    if (warn && it == maxit) {
-      Rcpp::warning("Convergence not obtained in %d iterations of fitting algorithm for variables selection", maxit);
-      break;
-    }
 
     EstimatingSystem system = estimating_system(
       par0,
@@ -361,10 +356,13 @@ arma::vec fit_nonprobsvy_rcpp(const arma::mat& X,
     }
     par = par0 + step;
 
-    if (arma::sum(arma::abs(par - par0)) < eps) break;
+    if (arma::sum(arma::abs(par - par0)) < eps) { converged = true; break; }
     if (arma::sum(arma::abs(par - par0)) > 1000) break;
 
     par0 = par;
+  }
+  if (warn && !converged) {
+    Rcpp::warning("Convergence not obtained in %d iterations of fitting algorithm for variable selection", maxit);
   }
   par(arma::find(arma::abs(par) < 0.001)).zeros();
 
@@ -494,7 +492,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     penalty_type,
     a,
     pop_totals_vec,
-    has_pop_totals
+    has_pop_totals,
+    verbose
   );
 
   arma::uvec theta_selected = arma::find(theta != 0);

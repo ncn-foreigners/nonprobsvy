@@ -169,6 +169,10 @@ nonprob <- function(data,
     estimator <- "mi"
   }
 
+  if (!is.null(pop_totals) && (is.null(names(pop_totals)) || names(pop_totals)[1] != "(Intercept)")) {
+    stop("`pop_totals` must be a named numeric vector whose first element is named `(Intercept)` (the population size N), followed by the covariate population totals.")
+  }
+
   pop_size_fixed <- !is.null(pop_size) | (!is.null(pop_totals) && names(pop_totals)[1] == "(Intercept)")  ## for variance estimation
 
   ## processing data for all methods

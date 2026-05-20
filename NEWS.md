@@ -2,6 +2,10 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ validated that a supplied `pop_totals` is a named vector whose first element is `(Intercept)`, erroring early with a clear message instead of silently producing an `NA` population size and `NaN` standard errors
++ fixed `confint()` to honor the requested `level` regardless of the fit's `control_inf(alpha)`; previously `confint(level = 0.95)` returned the stored interval built with the fit's `alpha`, so a model fitted with e.g. `alpha = 0.1` had its 90% interval mislabelled as 95%
++ enabled the Rcpp variable-selection non-convergence warning (previously dead code) and fixed an off-by-one so the solver runs the full `maxit` iterations; the warning now fires under `verbose = TRUE`
++ corrected the displayed mass-imputation GLM `V_1` variance formula in the documentation (squared residual and squared bracket); the implementation was already correct
 + fixed the doubly robust analytic standard error under `control_inf(bias_correction = TRUE)`: the non-probability variance component (Yang-Kim-Song 2020, eq. 25) used the frequency `case_weights` instead of the inverse-probability weights `1/pi`, which made the standard error anticonservative (95% confidence-interval coverage ~0.87 instead of 0.95 in simulation); it now uses the bias-corrected inverse-probability weights and is computed per outcome so an outcome's SE no longer depends on the other outcomes fitted alongside it
 + fixed the probit propensity-score analytic variance under `control_sel(est_method = "gee")`: a scalar `ifelse()` truncated the propensity-score derivative vectors (`ps_nons_der`, `est_ps_rand_der`) to length 1, which corrupted the probability-sample variance component and inflated the standard error; replaced it with a scalar `if`/`else` and added a probit-GEE analytic-SE regression test
 + warm-started the single-core IPW `pop_totals` GEE bootstrap to match the multicore path (closes [#120](https://github.com/ncn-foreigners/nonprobsvy/issues/120))

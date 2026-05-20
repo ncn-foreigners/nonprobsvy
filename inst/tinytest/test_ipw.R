@@ -268,3 +268,11 @@ expect_equal(
 
 expect_equal(ipw_cloglog$ipw_estimator, "hajek")
 expect_equal(ipw_cloglog$ipw_denominator_source, "estimated IPW weights")
+
+# regression test (M1): pop_totals without a named `(Intercept)` first element
+# must error rather than silently producing NA pop_size / NaN SEs.
+expect_error(
+  nonprob(selection = ~region + private + nace + size, target = ~single_shift,
+          pop_totals = unname(pop_totals), data = admin, method_selection = "logit"),
+  "Intercept"
+)
