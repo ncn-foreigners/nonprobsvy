@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed the doubly robust analytic standard error under `control_inf(bias_correction = TRUE)`: the non-probability variance component (Yang-Kim-Song 2020, eq. 25) used the frequency `case_weights` instead of the inverse-probability weights `1/pi`, which made the standard error anticonservative (95% confidence-interval coverage ~0.87 instead of 0.95 in simulation); it now uses the bias-corrected inverse-probability weights and is computed per outcome so an outcome's SE no longer depends on the other outcomes fitted alongside it
 + fixed the probit propensity-score analytic variance under `control_sel(est_method = "gee")`: a scalar `ifelse()` truncated the propensity-score derivative vectors (`ps_nons_der`, `est_ps_rand_der`) to length 1, which corrupted the probability-sample variance component and inflated the standard error; replaced it with a scalar `if`/`else` and added a probit-GEE analytic-SE regression test
 + warm-started the single-core IPW `pop_totals` GEE bootstrap to match the multicore path (closes [#120](https://github.com/ncn-foreigners/nonprobsvy/issues/120))
 + warm-started the DR `bias_correction` bootstrap solver from the original-data fit, speeding it up with identical estimates (closes [#119](https://github.com/ncn-foreigners/nonprobsvy/issues/119))

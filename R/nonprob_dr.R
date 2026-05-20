@@ -152,6 +152,7 @@ nonprob_dr <- function(selection,
     bias_corr_results_ipw <- bias_corr_results_mi <- results_mi_combined <- results_ipw_combined <- list()
 
     bias_corr_ys_rand_pred  <- bias_corr_ys_nons_pred <- bias_corr_ys_resid <- list()
+    bias_corr_ipw_weights_list <- list()  # per-outcome 1/pi_hat for the eq.(25) DR variance
 
     mu_hat <- numeric()
 
@@ -182,6 +183,7 @@ nonprob_dr <- function(selection,
         bias_corr_ys_rand_pred[[o]] <- bc$bias_corr_mu_rand_pred
         bias_corr_ys_nons_pred[[o]] <- bc$bias_corr_mu_nons_pred
         bias_corr_ys_resid[[o]] <- bc$bias_corr_mu_resid
+        bias_corr_ipw_weights_list[[o]] <- bc$bias_corr_ipw_weights
         bias_corr_ps <- bc$bias_corr_ps
         bias_corr_ipw_weights <- bc$bias_corr_ipw_weights
 
@@ -246,7 +248,7 @@ nonprob_dr <- function(selection,
                                 "binomial" = bias_corr_ys_rand_pred[[o]]*(1-bias_corr_ys_rand_pred[[o]]),
                                 "poisson"  = bias_corr_ys_rand_pred[[o]])
 
-            var_nonprob <- 1/pop_size^2*(sum((results_ipw$case_weights^2 - 2*results_ipw$case_weights)*(bias_corr_ys_resid[[o]]^2)) +
+            var_nonprob <- 1/pop_size^2*(sum((bias_corr_ipw_weights_list[[o]]^2 - 2*bias_corr_ipw_weights_list[[o]])*(bias_corr_ys_resid[[o]]^2)) +
                                            sum(sigma_hat*weights(svydesign_)))
 
             if (is.null(pop_totals)) {
@@ -441,6 +443,7 @@ nonprob_dr <- function(selection,
 
       bias_corr_results_mi <- bias_corr_results_ipw <- list()
       bias_corr_ys_rand_pred <- bias_corr_ys_nons_pred <- bias_corr_ys_resid <- list()
+      bias_corr_ipw_weights_list <- list()  # per-outcome 1/pi_hat for the eq.(25) DR variance
       mu_hat <- numeric()
 
       for (o in outcomes$f) {
@@ -464,6 +467,7 @@ nonprob_dr <- function(selection,
         bias_corr_ys_rand_pred[[o]] <- bc$bias_corr_mu_rand_pred
         bias_corr_ys_nons_pred[[o]] <- bc$bias_corr_mu_nons_pred
         bias_corr_ys_resid[[o]] <- bc$bias_corr_mu_resid
+        bias_corr_ipw_weights_list[[o]] <- bc$bias_corr_ipw_weights
         bias_corr_ps <- bc$bias_corr_ps
         bias_corr_ipw_weights <- bc$bias_corr_ipw_weights
       }
@@ -490,7 +494,7 @@ nonprob_dr <- function(selection,
                                 "binomial" = bias_corr_ys_rand_pred[[yname]] * (1 - bias_corr_ys_rand_pred[[yname]]),
                                 "poisson" = bias_corr_ys_rand_pred[[yname]])
 
-            var_nonprob <- 1 / pop_size^2 * (sum((results_ipw$case_weights^2 - 2 * results_ipw$case_weights) * (bias_corr_ys_resid[[yname]]^2)) +
+            var_nonprob <- 1 / pop_size^2 * (sum((bias_corr_ipw_weights_list[[yname]]^2 - 2 * bias_corr_ipw_weights_list[[yname]]) * (bias_corr_ys_resid[[yname]]^2)) +
                                                sum(sigma_hat * weights(svydesign)))
 
             if (is.null(pop_totals)) {

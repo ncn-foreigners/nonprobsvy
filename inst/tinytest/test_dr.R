@@ -188,7 +188,7 @@ expect_silent(
 
 expect_equal(
   model_dr_varsel_bias$output,
-  structure(list(mean = 0.705129098423997, SE = 0.010354361334916),
+  structure(list(mean = 0.705129098423997, SE = 0.0110649075962795),
             row.names = "single_shift", class = "data.frame")
 )
 
@@ -214,6 +214,16 @@ expect_inherits(model_dr_kh, "nonprob")
 expect_true(is.finite(model_dr_kh$output$mean))
 expect_true(is.finite(model_dr_kh$output$SE) && model_dr_kh$output$SE > 0)
 expect_true(abs(model_dr_kh$output$mean - model_dr_basic$output$mean) > 0)
+
+# regression test for the joint-DR variance fix: the non-probability variance
+# (Yang-Kim-Song 2020, eq. 25) must use the inverse-probability weights 1/pi_hat,
+# not the frequency case_weights. Pins the corrected SE on real data.
+expect_equal(
+  model_dr_kh$output,
+  structure(list(mean = 0.703920481275201, SE = 0.0110494073987484),
+            row.names = "single_shift", class = "data.frame"),
+  tolerance = 1e-8
+)
 
 # bias_correction = TRUE with and without vars_combine should give the same
 # joint estimate (the helper is shared between the two code paths).
@@ -252,6 +262,27 @@ expect_silent(
 expect_equal(rownames(model_dr_kh_multi$output), c("dr_y1", "dr_y2"))
 expect_true(all(is.finite(model_dr_kh_multi$output$mean)))
 expect_true(all(model_dr_kh_multi$output$SE > 0))
+
+# Regression test for the per-outcome joint-DR variance fix: an outcome's analytic
+# SE must not depend on which OTHER outcomes are fit alongside it. Before the fix,
+# multi-outcome bias_correction variances reused the last outcome's 1/pi_hat, so
+# dr_y1's SE in the 2-outcome fit differed from its standalone SE.
+set.seed(2024)
+model_dr_kh_single_y1 <- nonprob(
+  selection = ~region + nace + size,
+  outcome = dr_y1 ~ region + nace + size,
+  svydesign = jvs_svy,
+  data = transform(
+    admin,
+    dr_y1 = as.numeric(single_shift),
+    dr_y2 = as.numeric(single_shift) + 0.25 * as.numeric(private)
+  ),
+  pop_size = sum(weights(jvs_svy)),
+  family_outcome = "gaussian",
+  method_selection = "logit",
+  control_inference = control_inf(bias_correction = TRUE)
+)
+expect_equal(model_dr_kh_multi$output$SE[1], model_dr_kh_single_y1$output$SE, tolerance = 1e-10)
 
 # Bootstrap variance under bias_correction = TRUE
 set.seed(2024)
