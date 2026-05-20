@@ -148,9 +148,10 @@ The variance of the mean is estimated based on the following approach
 \(a\) non-probability part (\\S_A\\ with size \\n_A\\; denoted as
 `var_nonprob` in the result)
 
-\$\$ \hat{V}\_1 = \frac{1}{n_A^2}\sum\_{i=1}^{n_A} \hat{e}\_i
+\$\$ \hat{V}\_1 = \frac{1}{n_A^2}\sum\_{i=1}^{n_A} \hat{e}\_i^2
 \left\lbrace \boldsymbol{h}(\boldsymbol{x}\_i;
-\hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace, \$\$
+\hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace^2,
+\$\$
 
 where \\\hat{e}\_i = y_i - m(\boldsymbol{x}\_i;
 \hat{\boldsymbol{\beta}})\\ and

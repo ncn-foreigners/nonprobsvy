@@ -2,6 +2,21 @@
 
 ## nonprobsvy (development version)
 
+- validated that a supplied `pop_totals` is a named vector whose first
+  element is `(Intercept)`, erroring early with a clear message instead
+  of silently producing an `NA` population size and `NaN` standard
+  errors
+- fixed [`confint()`](https://rdrr.io/r/stats/confint.html) to honor the
+  requested `level` regardless of the fit’s `control_inf(alpha)`;
+  previously `confint(level = 0.95)` returned the stored interval built
+  with the fit’s `alpha`, so a model fitted with e.g. `alpha = 0.1` had
+  its 90% interval mislabelled as 95%
+- enabled the Rcpp variable-selection non-convergence warning
+  (previously dead code) and fixed an off-by-one so the solver runs the
+  full `maxit` iterations; the warning now fires under `verbose = TRUE`
+- corrected the displayed mass-imputation GLM `V_1` variance formula in
+  the documentation (squared residual and squared bracket); the
+  implementation was already correct
 - fixed the doubly robust analytic standard error under
   `control_inf(bias_correction = TRUE)`: the non-probability variance
   component (Yang-Kim-Song 2020, eq. 25) used the frequency
