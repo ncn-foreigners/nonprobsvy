@@ -2,6 +2,18 @@
 
 ## nonprobsvy (development version)
 
+- fixed a crash in IPW/DR variable selection on the
+  population-totals-only path (no `svydesign`): once cross-validation
+  dropped a covariate, the response was re-extracted by routing the
+  still-full outcome formula through the population-totals model frame,
+  whose name check then failed with
+  `"Selection and population totals have different names."`; the
+  response is now read directly from the data, independent of the
+  reduced totals. A warning is also emitted flagging this path as
+  experimental, because the penalty (`lambda`) selection is unreliable
+  here and can collapse to an over-sparse (even intercept-only) model
+  that biases the estimate – supplying a unit-level `svydesign` or a
+  fixed `control_sel(lambda = ...)` is recommended instead
 - fixed the cross-validation loss for IPW variable selection in the
   population-totals-only path: the known population totals were
   normalised by `sum(weights)` (which equals the non-probability sample
