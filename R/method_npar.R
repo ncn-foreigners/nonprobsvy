@@ -168,7 +168,19 @@ method_npar <- function(y_nons,
         family = family_outcome,
         control = control_outcome$npar_loess)
 
-      var_nonprob <- 1/pop_size^2*sum( g_hat$fitted[R==1]^{-2}*residuals^2)
+      ## loess fitted values are an unbounded estimate of the inclusion
+      ## propensity and can fall <= 0 (or > 1) in sparse/boundary regions, which
+      ## makes the 1/pi_hat^2 weight below spurious or non-finite. Floor the
+      ## propensity at 1/sqrt(N): this caps any single unit's inverse-propensity
+      ## weight 1/pi_hat^2 at N, so its variance contribution cannot exceed
+      ## ~e^2/N, ruling out Inf (pi_hat = 0) and single-unit domination from a
+      ## near-zero/negative fitted, while leaving well-behaved fits untouched.
+      ## (clamp_prob's default eps is machine epsilon, which would instead turn a
+      ## negative fitted into ~Inf.) For a bounded-by-construction estimator see
+      ## the kernel inverse-propensity of Chen, Yang & Kim (2022, eq. 10).
+      g_hat_fitted <- clamp_prob(g_hat$fitted, eps = 1 / sqrt(pop_size))
+
+      var_nonprob <- 1/pop_size^2*sum( g_hat_fitted[R==1]^{-2}*residuals^2)
 
       var_total <- var_prob + var_nonprob
 

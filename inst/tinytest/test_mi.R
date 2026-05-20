@@ -122,3 +122,23 @@ expect_mi_joint_matches_single(
   control_outcome = control_out(k = 1, pmm_reg_engine = "glm")
 )
 expect_mi_joint_matches_single("npar")
+
+# Regression test (M4): the `npar` analytic variance must stay finite and sane
+# even when the loess inclusion-propensity proxy returns improper (<= 0 or
+# near-zero) fitted values. With this seed one non-probability unit gets a loess
+# fitted of about -0.027 (below the 1/sqrt(N) floor), so the clamp in
+# method_npar.R activates; without it the 1/pi_hat^2 weight would be spurious or
+# unbounded.
+set.seed(4)
+m4_N <- 1000L
+m4_x <- rnorm(m4_N)
+m4_R <- rbinom(m4_N, 1, plogis(-1 + 1.5 * m4_x))
+m4_y <- 1 + 2 * m4_x + rnorm(m4_N)
+m4_nonprob <- data.frame(x = m4_x, y = m4_y)[m4_R == 1, ]
+m4_idxB <- sample.int(m4_N, 200)
+m4_svy <- svydesign(ids = ~1, weights = ~w,
+                    data = data.frame(x = m4_x[m4_idxB], w = m4_N / 200))
+m4_npar <- nonprob(outcome = y ~ x, data = m4_nonprob, svydesign = m4_svy,
+                   pop_size = m4_N, method_outcome = "npar")
+expect_true(is.finite(m4_npar$output$SE) && m4_npar$output$SE > 0 && m4_npar$output$SE < 0.3)
+expect_equal(m4_npar$output$SE, 0.147924, tolerance = 1e-4)
