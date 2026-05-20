@@ -73,7 +73,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 \item{vars_selection}{whether variable selection was performed (not implemented, for further development)}
 \item{var_prob}{variance for the probability sample component (if available)}
 \item{var_nonprob}{variance for the non-probability sample component}
-\item{var_tot}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
+\item{var_total}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
 \item{model}{model type (character \code{"nn"})}
 \item{family}{placeholder for the \verb{NN approach} information}
 }

@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ documentation polishing: corrected the documented `epsilon` defaults in `control_out()` (`1e-8`) and `control_sel()` (`1e-4`) to match the code, fixed a `var_tot` -> `var_total` return-value name in the `method_nn()` documentation, removed a stray character in the `method_npar()` `family_outcome` parameter doc, and dropped a redundant `sum()` in the printed IPW-weights total
 + validated that a supplied `pop_totals` is a named vector whose first element is `(Intercept)`, erroring early with a clear message instead of silently producing an `NA` population size and `NaN` standard errors
 + fixed `confint()` to honor the requested `level` regardless of the fit's `control_inf(alpha)`; previously `confint(level = 0.95)` returned the stored interval built with the fit's `alpha`, so a model fitted with e.g. `alpha = 0.1` had its 90% interval mislabelled as 95%
 + enabled the Rcpp variable-selection non-convergence warning (previously dead code) and fixed an off-by-one so the solver runs the full `maxit` iterations; the warning now fires under `verbose = TRUE`

@@ -4,7 +4,7 @@
 #' @description \code{control_out} constructs a list with all necessary control parameters
 #' for outcome model.
 #'
-#' @param epsilon Tolerance for fitting algorithms. Default is \code{1e-6}.
+#' @param epsilon Tolerance for fitting algorithms. Default is \code{1e-8}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`.
 #' @param k The k parameter in the [RANN::nn2()] function. Default is 5.

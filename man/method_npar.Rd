@@ -32,7 +32,7 @@ method_npar(
 
 \item{weights}{case / frequency weights from non-probability sample (default NULL)}
 
-\item{family_outcome}{family for the glm model)}
+\item{family_outcome}{family for the glm model}
 
 \item{start_outcome}{a place holder (not used in \code{method_npar})}
 

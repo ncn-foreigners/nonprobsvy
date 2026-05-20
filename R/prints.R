@@ -136,7 +136,7 @@ print.nonprob_summary <- function(x,
 
   if (!is.null(x$ipw_weights)) {
     cat("----------------------------------------------------------------\n")
-      cat(" - sum of IPW weights:", sum(x$ipw_weights_total), "\n")
+      cat(" - sum of IPW weights:", x$ipw_weights_total, "\n")
       cat(" - distribution of IPW weights (nonprob sample):\n")
       cat(sprintf(
         "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",

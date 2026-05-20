@@ -27,7 +27,7 @@ control_out(
 )
 }
 \arguments{
-\item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-6}.}
+\item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-8}.}
 
 \item{maxit}{Maximum number of iterations.}
 
