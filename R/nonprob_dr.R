@@ -336,6 +336,13 @@ nonprob_dr <- function(selection,
       if (control_inference$var_method == "bootstrap") {
 
           ## variable selection should and combination should be done within `boot_dr` function
+          ## warm-start the per-replicate KH joint solver from the original-data fit (closes #119)
+          bias_corr_start <- if (bias_corr) {
+            stats::setNames(
+              lapply(outcomes$f, function(o) c(bias_corr_results_ipw[[o]]$x, bias_corr_results_mi[[o]]$x)),
+              outcomes$f
+            )
+          } else NULL
           boot_obj <- boot_dr(selection = selection,
                               outcome = outcome,
                               target = reformulate(outcomes[[1]]),
@@ -356,7 +363,8 @@ nonprob_dr <- function(selection,
                               start_outcome = start_outcome,
                               start_selection = start_selection,
                               verbose = verbose,
-                              pop_size_fixed = pop_size_fixed)
+                              pop_size_fixed = pop_size_fixed,
+                              bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -569,6 +577,13 @@ nonprob_dr <- function(selection,
 
       if (control_inference$var_method == "bootstrap") {
 
+        ## warm-start the per-replicate KH joint solver from the original-data fit (closes #119)
+        bias_corr_start <- if (bias_corr) {
+          stats::setNames(
+            lapply(outcomes$f, function(o) c(bias_corr_results_ipw[[o]]$x, bias_corr_results_mi[[o]]$x)),
+            outcomes$f
+          )
+        } else NULL
         boot_obj <- boot_dr(selection = selection,
                             outcome = outcome,
                             target = reformulate(outcomes[[1]]),
@@ -589,7 +604,8 @@ nonprob_dr <- function(selection,
                             start_outcome = start_outcome,
                             start_selection = start_selection,
                             verbose = verbose,
-                            pop_size_fixed = pop_size_fixed)
+                            pop_size_fixed = pop_size_fixed,
+                            bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -686,9 +702,16 @@ run_bias_correction_one_outcome <- function(o,
                                             method,
                                             method_selection,
                                             family_outcome,
-                                            pop_size) {
+                                            pop_size,
+                                            par_init = NULL) {
 
-  par0 <- numeric(NCOL(X_all) * 2)
+  ## warm-start the joint (theta, beta) solve from `par_init` (e.g. the
+  ## original-data fit) when supplied and conformable; otherwise cold-start.
+  par0 <- if (is.null(par_init) || length(par_init) != NCOL(X_all) * 2) {
+    numeric(NCOL(X_all) * 2)
+  } else {
+    as.numeric(par_init)
+  }
   names(par0) <- rep(colnames(X_all), times = 2)
 
   bias_corr_result <- nleqslv::nleqslv(
