@@ -27,6 +27,16 @@
   weight spurious or non-finite; the propensity is now floored at
   `1/sqrt(N)` (so each unit’s inverse-propensity weight is capped at
   `N`) before inverting
+- corrected the documented general `c`-vector formula in the GLM
+  mass-imputation analytic variance
+  ([`method_glm()`](https://ncn-foreigners.github.io/nonprobsvy/reference/method_glm.md)):
+  the equation had been transcribed from Kim et al. (2021, eq. 9) in
+  that paper’s labelling, where sample `B` is the non-probability sample
+  and `A` the probability sample – the opposite of this package’s
+  convention (`A` = non-probability). The sample roles in the general
+  formula are now swapped to match the package convention, the linear
+  special case, and the (already correct) implementation; this is a
+  documentation-only fix with no change to computed variances
 - documentation polishing: corrected the documented `epsilon` defaults
   in
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)

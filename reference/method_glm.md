@@ -155,11 +155,11 @@ The variance of the mean is estimated based on the following approach
 
 where \\\hat{e}\_i = y_i - m(\boldsymbol{x}\_i;
 \hat{\boldsymbol{\beta}})\\ and
-\$\$\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum\_{i \in B}
+\$\$\widehat{\boldsymbol{c}}=\left\lbrace n_A^{-1} \sum\_{i \in A}
 \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right) \boldsymbol{h}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum\_{i
-\in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
+\in B} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right).\$\$
 
 Under the linear regression model
