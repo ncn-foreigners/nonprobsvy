@@ -2,6 +2,18 @@
 
 ## nonprobsvy (development version)
 
+- warm-started the single-core IPW `pop_totals` GEE bootstrap to match
+  the multicore path (closes
+  [\#120](https://github.com/ncn-foreigners/nonprobsvy/issues/120))
+- warm-started the DR `bias_correction` bootstrap solver from the
+  original-data fit, speeding it up with identical estimates (closes
+  [\#119](https://github.com/ncn-foreigners/nonprobsvy/issues/119))
+- added `control_out(pmm_k_max = ...)` to cap the
+  `pmm_k_choice = "min_var"` search grid and documented its cost (closes
+  [\#116](https://github.com/ncn-foreigners/nonprobsvy/issues/116))
+- added a regression test for finite analytic SE with `pop_totals` and a
+  non-gaussian `family_outcome` (closes
+  [\#71](https://github.com/ncn-foreigners/nonprobsvy/issues/71))
 - fixed parallel bootstrap (cores \> 1) so
   [`set.seed()`](https://rdrr.io/r/base/Random.html) makes results
   reproducible by switching the MI, IPW, and DR multicore loops from
