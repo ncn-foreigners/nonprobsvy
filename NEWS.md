@@ -2,6 +2,7 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed the cross-validation loss for IPW variable selection in the population-totals-only path: the known population totals were normalised by `sum(weights)` (which equals the non-probability sample size when no probability sample is present) instead of `sum(1/pi_hat)` (the HT estimate of `N`), mis-scaling the calibration target by ~`N/n` and mis-directing the penalty (`lambda`) selection; the totals term now uses the same `N_nons` normalisation as the estimating equation
 + stabilised the nonparametric (`npar`) mass-imputation analytic variance: the loess inclusion-propensity proxy can return improper fitted values (`<= 0` or near zero), which made the `1/pi_hat^2` weight spurious or non-finite; the propensity is now floored at `1/sqrt(N)` (so each unit's inverse-propensity weight is capped at `N`) before inverting
 + documentation polishing: corrected the documented `epsilon` defaults in `control_out()` (`1e-8`) and `control_sel()` (`1e-4`) to match the code, fixed a `var_tot` -> `var_total` return-value name in the `method_nn()` documentation, removed a stray character in the `method_npar()` `family_outcome` parameter doc, and dropped a redundant `sum()` in the printed IPW-weights total
 + validated that a supplied `pop_totals` is a named vector whose first element is `(Intercept)`, erroring early with a clear message instead of silently producing an `NA` population size and `NaN` standard errors

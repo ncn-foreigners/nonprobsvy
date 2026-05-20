@@ -142,6 +142,28 @@ expect_equal(
   mi_varsel_lambda$control$control_outcome$lambda
 )
 
+# Regression test (L3): the totals-only path variable-selection CV loss must
+# normalise the known population totals by N_nons (the HT estimate of N), to
+# match the estimating equation. Previously it divided by N_rand (= n_nons here,
+# ~5.5x too small), mis-scaling the calibration target and mis-directing lambda
+# selection. This exercises the has_pop_totals branch of loss_theta in
+# src/nonprobCV_cpp.cpp, which had no test coverage.
+set.seed(2024)
+l3_pop_totals <- c("(Intercept)" = sum(jvs$weight),
+                   colSums(model.matrix(~nace, jvs)[, -1, drop = FALSE] * jvs$weight))
+ipw_totals_varsel <- suppressWarnings(nonprob(
+  selection = ~nace,
+  target = ~single_shift,
+  pop_totals = l3_pop_totals,
+  data = admin,
+  method_selection = "logit",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5, penalty = "SCAD"),
+  se = FALSE
+))
+expect_true(is.finite(ipw_totals_varsel$output$mean))
+expect_equal(ipw_totals_varsel$output$mean, 0.6808905, tolerance = 1e-4)
+
 # # probit
 # expect_silent(suppressWarnings(
 #   ipw_probit_cal <- nonprob(

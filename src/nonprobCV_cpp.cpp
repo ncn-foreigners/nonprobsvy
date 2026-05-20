@@ -162,7 +162,12 @@ inline double loss_theta(const arma::vec& par,
     const arma::uword col = selected(k);
     double col_balance = arma::dot(X.col(col), row_factor);
     if (has_pop_totals) {
-      col_balance -= pop_totals(col) / N_rand;
+      // Normalise the known population total by N_nons (= sum(1/pi_hat), the
+      // HT estimate of N), matching the empirical term above and the
+      // estimating_system score. Using N_rand (= sum(weights) = n_nons in the
+      // totals-only path, with no probability sample) mis-scaled this term by
+      // ~N/n_nons and mis-directed the cross-validation lambda selection.
+      col_balance -= pop_totals(col) / N_nons;
     }
     loss += col_balance * col_balance;
   }
