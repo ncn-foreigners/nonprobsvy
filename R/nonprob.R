@@ -173,6 +173,13 @@ nonprob <- function(data,
     stop("`pop_totals` must be a named numeric vector whose first element is named `(Intercept)` (the population size N), followed by the covariate population totals.")
   }
 
+  if (isTRUE(control_inference$vars_selection) && !is.null(pop_totals) && is.null(svydesign) && estimator %in% c("ipw", "dr")) {
+    warning("Variable selection for the selection model with population totals only (no `svydesign`) is experimental. ",
+            "The cross-validation used to pick the penalty (`lambda`) is unreliable in this setting and may select an ",
+            "over-sparse model (dropping informative covariates), which biases the point estimate. ",
+            "Prefer supplying a unit-level probability sample via `svydesign`, or fix the penalty with `control_sel(lambda = ...)`.")
+  }
+
   pop_size_fixed <- !is.null(pop_size) | (!is.null(pop_totals) && names(pop_totals)[1] == "(Intercept)")  ## for variance estimation
 
   ## processing data for all methods

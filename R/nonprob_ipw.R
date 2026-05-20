@@ -326,21 +326,13 @@ nonprob_ipw <- function(selection,
 
   mu_hats <- numeric(length = outcomes$l)
   for (o in 1:outcomes$l) {
-    if (is.null(pop_totals)) {
-      y_nons <- make_model_frame(
-        formula = outcomes$outcome[[o]],
-        data = data,
-        svydesign = svydesign,
-        weights = case_weights
-      )$y_nons
-    } else {
-      y_nons <- make_model_frame(
-        formula = outcomes$outcome[[o]],
-        data = data,
-        pop_totals = pop_totals,
-        weights = case_weights
-      )$y_nons
-    }
+    ## Extract the target (response) directly. Routing this through
+    ## make_model_frame's svydesign/pop_totals branch is unnecessary -- the
+    ## response lives in `data` regardless -- and after variable selection has
+    ## reduced `pop_totals` to the selected covariates, model_frame_pop()'s name
+    ## check against the (still full) outcome formula would error with
+    ## "Selection and population totals have different names".
+    y_nons <- stats::model.response(stats::model.frame(outcomes$outcome[[o]], data))
     ys[[o]] <- as.numeric(y_nons)
     mu_hats[o] <- mu_hatIPW(
       y = y_nons,
