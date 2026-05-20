@@ -2,6 +2,12 @@
 
 ## nonprobsvy (development version)
 
+- stabilised the nonparametric (`npar`) mass-imputation analytic
+  variance: the loess inclusion-propensity proxy can return improper
+  fitted values (`<= 0` or near zero), which made the `1/pi_hat^2`
+  weight spurious or non-finite; the propensity is now floored at
+  `1/sqrt(N)` (so each unit’s inverse-propensity weight is capped at
+  `N`) before inverting
 - documentation polishing: corrected the documented `epsilon` defaults
   in
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
