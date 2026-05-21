@@ -383,7 +383,7 @@ nonprob_dr <- function(selection,
                               bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
-        SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
+        SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = FALSE)
         SE <- sqrt(var_total)
         output <- list(data.frame(mean = mu_hat, SE = SE))
         alpha <- control_inference$alpha
@@ -640,7 +640,7 @@ nonprob_dr <- function(selection,
                             bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
-        SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
+        SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = FALSE)
         SE <- sqrt(var_total)
         output <- list(data.frame(mean = mu_hat, SE = SE))
         alpha <- control_inference$alpha

@@ -10,7 +10,7 @@ playground
 ^LICENSE\.md$
 ^\.github$
 ^codecov\.yml$
-^.*bib$
+^references\.bib$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

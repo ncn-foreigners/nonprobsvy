@@ -67,7 +67,7 @@ Details on the use of the package can be found:
 
 -   see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2025). 
     *nonprobsvy--An R package for modern methods for non-probability surveys*. 
-    arXiv preprint [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) -- forthcomming to the Journal of Statistical Software
+    arXiv preprint [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) -- forthcoming to the Journal of Statistical Software
 -   in the draft (and not proofread) version of the book [Modern
     inference methods for non-probability samples with
     R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),

@@ -7,7 +7,7 @@ bibentry(
   author = c(person("Łukasz", "Chrostowski"),
              person("Maciej", "Beręsewicz"),
              person("Piotr", "Chlebicki")),
-  note = "R package version 0.2.2",
+  note = "R package version 0.3.0",
   year = "2025",
   url = "https://github.com/ncn-foreigners/nonprobsvy"
 )

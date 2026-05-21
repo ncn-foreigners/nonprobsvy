@@ -487,14 +487,14 @@ nonprob_ipw <- function(selection,
   names(ys) <- all.vars(outcome[[2]])
 
 
-  boot_sample <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+  boot_sample <- if (se == TRUE & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     boot_obj$stat
   } else {
     NULL
   }
   if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
 
-  boot_ipw_weights <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+  boot_ipw_weights <- if (se == TRUE & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
     boot_obj$ipw_weights
   } else {
     NULL
