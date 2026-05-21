@@ -80,7 +80,7 @@ make_outcomes <- function(formula) {
   }
   list(
     f = dependent_vars,
-    outcomes = outcome_formulas,
+    outcome = outcome_formulas,
     l = l
   )
 }

@@ -12,6 +12,7 @@ control_out(
   penalty = c("SCAD", "lasso", "MCP"),
   a_SCAD = 3.7,
   a_MCP = 3,
+  lambda = -1,
   lambda_min = 0.001,
   nlambda = 100,
   nfolds = 10,
@@ -20,12 +21,13 @@ control_out(
   pmm_match_type = 1,
   pmm_weights = c("none", "dist"),
   pmm_k_choice = c("none", "min_var"),
+  pmm_k_max = NULL,
   pmm_reg_engine = c("glm", "loess"),
   npar_loess = stats::loess.control(surface = "direct", trace.hat = "approximate")
 )
 }
 \arguments{
-\item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-6}.}
+\item{epsilon}{Tolerance for fitting algorithms. Default is \code{1e-8}.}
 
 \item{maxit}{Maximum number of iterations.}
 
@@ -38,6 +40,9 @@ control_out(
 \item{a_SCAD}{The tuning parameter of the SCAD penalty for outcome model. Default is 3.7.}
 
 \item{a_MCP}{The tuning parameter of the MCP penalty for outcome model. Default is 3.}
+
+\item{lambda}{A user-specified \eqn{\lambda} value during variable selection model fitting.
+The default value \code{-1} uses cross-validation.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
@@ -61,16 +66,27 @@ is matching by minimizing distance between \eqn{\hat{y}_{i}} for
 Indicate how to weight \code{k} nearest neighbours in \eqn{S_{B}} to
 create imputed value for units in \eqn{S_{A}}. The default value
 \code{"none"} indicates that mean of \code{k} nearest \eqn{y}'s from
-\eqn{S_{B}} should be used whereas \code{"prop_dist"} results in
+\eqn{S_{B}} should be used whereas \code{"dist"} results in
 weighted mean of these \code{k} values where weights are inversely
 proportional to distance between matched values.}
 
 \item{pmm_k_choice}{(Only for the PMM Estimator) Character value indicating how \code{k} hyper-parameter
 should be chosen, by default \code{"none"} meaning \code{k} provided in
 \code{control_outcome} argument will be used. For now the only other
-option \code{"min_var"} means that \code{k}  will be chosen by minimizing
-estimated variance of estimator for mean. Parameter \code{k} provided in
-this control list will be chosen as starting point.}
+option \code{"min_var"} means that \code{k} will be chosen by a full
+search over \code{1:n_A} (or \code{1:pmm_k_max}, see below), where \eqn{n_A}
+is the non-probability sample size, minimizing the estimated variance of the
+mean estimator. The \code{k} value supplied in this control list is replaced
+by the selected value. Note that this search refits the full PMM stack for
+every candidate \code{k}, so its cost scales as
+\eqn{O(n_A \times l)} (with \eqn{l} the number of outcome variables) and can
+be substantial for large non-probability samples; cap it with \code{pmm_k_max}
+or supply \code{k} directly when \eqn{n_A} is large.}
+
+\item{pmm_k_max}{(Only for the PMM Estimator) Positive integer upper bound for
+the \code{pmm_k_choice = "min_var"} search grid. The default \code{NULL}
+searches the full \code{1:n_A} grid. Setting e.g. \code{pmm_k_max = 30} caps
+the search at \code{1:min(n_A, 30)} to bound its cost.}
 
 \item{pmm_reg_engine}{(Only for the PMM Estimator) whether to use parametric (\code{"glm"})
 or non-parametric (\code{"loess"}) regression model for the outcome. The default is \code{"glm"}.}

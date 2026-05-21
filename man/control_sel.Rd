@@ -40,7 +40,7 @@ control_sel(
 
 \item{optim_method}{(for the \code{est_method="mle"} only) maximisation method that will be passed to \code{\link[stats:optim]{stats::optim()}} function. Default is \code{BFGS}.}
 
-\item{epsilon}{Tolerance for fitting algorithms by default \code{1e-6}.}
+\item{epsilon}{Tolerance for fitting algorithms by default \code{1e-4}.}
 
 \item{maxit}{Maximum number of iterations.}
 
@@ -92,7 +92,7 @@ Smooth function (\code{gee_h_fun}) for the generalized estimating equations (GEE
 
 \itemize{
 \item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
-  \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+  \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}},}
 \item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 }
 }

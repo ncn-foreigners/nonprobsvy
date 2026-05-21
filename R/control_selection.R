@@ -8,7 +8,7 @@
 #'
 #' \itemize{
 #'   \item{if \code{1} then \eqn{\boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) =
-#'   \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}},}
+#'   \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}},}
 #'   \item{if \code{2} then \eqn{ \boldsymbol{h}\left(\boldsymbol{x}, \boldsymbol{\theta}\right) = \boldsymbol{x}}}
 #'   }
 #'
@@ -17,7 +17,7 @@
 #' @param optimizer  (for the `est_method="mle"` only) optimization function for maximum likelihood estimation.
 #' @param optim_method (for the `est_method="mle"` only) maximisation method that will be passed to [stats::optim()] function. Default is `BFGS`.
 #' @param maxlik_method (for the `est_method="mle"` only) maximisation method that will be passed to [maxLik::maxLik()] function. Default is `NR`.
-#' @param epsilon Tolerance for fitting algorithms by default \code{1e-6}.
+#' @param epsilon Tolerance for fitting algorithms by default \code{1e-4}.
 #' @param maxit Maximum number of iterations.
 #' @param trace logical value. If `TRUE` trace steps of the fitting algorithms. Default is `FALSE`
 #' @param penalty The penalization function used during variables selection.

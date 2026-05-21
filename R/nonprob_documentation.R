@@ -18,16 +18,23 @@
 #' @param selection a `formula` (default `NULL`) for the selection (propensity) score model
 #' @param outcome a `formula` (default `NULL`) for the outcome (target) model
 #' @param target a `formula` (default `NULL`) with target variable(s). We allow multiple target variables (e.g. `~y1 + y2 + y3`)
-#' @param svydesign an optional `svydesign2` class object containing a probability sample and design weights
+#' @param svydesign an optional `svydesign2` class object containing a probability sample and design weights.
+#' If finite population correction should affect survey-side variance estimates, include the fpc in this object.
 #' @param pop_totals an optional `named vector` with population totals of the covariates
-#' @param pop_means an optional `named vector` with population means of the covariates
-#' @param pop_size an optional `double` value with population size
+#' @param pop_means an optional `named vector` with population means of the covariates; `pop_size` must be supplied when `pop_means` is used
+#' @param pop_size an optional `double` value with population size. If omitted when a probability sample is supplied,
+#' the survey-weight denominator defaults to `sum(weights(svydesign))`. Supplying `pop_size` fixes the
+#' population-size denominator used by known-\eqn{N} estimators such as IPW-MLE; it does not add or modify finite
+#' population correction in `svydesign`. For IPW-MLE without a fixed `pop_size`, `pop_totals`, or `pop_means`,
+#' the point estimator is Hajek-type, with the estimated IPW-weight total as its denominator. For IPW-GEE with
+#' `svydesign`, the point estimator uses the survey-weight denominator `sum(weights(svydesign))`; if a supplied
+#' `pop_size` differs from that denominator, a warning is issued.
 #' @param method_selection a `character` (default `logit`) indicating the method for the propensity score link function.
 #' @param method_outcome a `character` (default `glm`) indicating the method for the outcome model.
 #' @param family_outcome a `character` (default `gaussian`)  describing the error distribution and the link function to be used in the model. Currently supports: `gaussian` with the identity link, `poisson` and `binomial`.
 #' @param subset an optional `vector` specifying a subset of observations to be used in the fitting process
 #' @param strata an optional `vector` specifying strata (not yet supported, for further development)
-#' @param case_weights an optional `vector` of prior weights to be used in the fitting process.
+#' @param case_weights an optional positive, finite `numeric vector` of prior weights to be used in the fitting process.
 #' It is assumed that this vector contains frequency or analytic weights (i.e. rows of the `data` argument are repeated according to the values of the `case_weights` argument), not probability/design weights.
 #' @param na_action a function which indicates what should happen when the data contain `NAs` (default `na.omit` and it is the only method currently supported)
 #' @param control_selection a `list` (default `control_sel()` result) indicating parameters to be used when fitting the selection model for propensity scores. To change the parameters one should use the `control_sel()` function
@@ -35,7 +42,7 @@
 #' @param control_inference a `list` (default `control_inf()` result) indicating parameters to be used for inference based on probability and non-probability samples. To change the parameters one should use the `control_inf()` function
 #' @param start_selection an optional `vector` with starting values for the parameters of the selection equation
 #' @param start_outcome an optional `vector` with starting values for the parameters of the outcome equation
-#' @param verbose a numerical value (default `TRUE`) whether detailed information on the fitting should be presented
+#' @param verbose a logical value (default `FALSE`) whether detailed information on the fitting should be presented
 #' @param se Logical value (default `TRUE`) indicating whether to calculate and return standard error of estimated mean
 #' @param ... Additional, optional arguments (not yet supported)
 #'
@@ -73,6 +80,16 @@
 #' }
 #' Instead of a sample of units we can consider a vector of population sums in the form of \eqn{\tau_x = (\sum_{i \in \mathcal{U}}\boldsymbol{x}_{i1}, \sum_{i \in \mathcal{U}}\boldsymbol{x}_{i2}, ..., \sum_{i \in \mathcal{U}}\boldsymbol{x}_{ip})} or means
 #' \eqn{\frac{\tau_x}{N}}, where \eqn{\mathcal{U}} refers to a finite population. Note that we do not assume access to the response variable for \eqn{S_B}.
+#' The implemented estimators assume that outcome values are observed for the non-probability sample \eqn{S_A}; outcome values observed in the probability sample \eqn{S_B} are not used.
+#' Linked overlap handling for units appearing in both samples is not currently implemented; `control_sel()` arguments `dependence` and `key` are placeholders for future development.
+#'
+#' Supported outcome types depend on the estimator family:
+#' \itemize{
+#'   \item IPW: numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted.
+#'   \item Mass imputation with `method_outcome = "glm"`: continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.
+#'   \item Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"`: numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported.
+#'   \item Doubly robust: GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.
+#' }
 #' In general we make the following assumptions:
 #' 1.  The selection indicator of belonging to non-probability sample \eqn{R_{i}} and the response variable \eqn{y_i} are independent given the set of covariates \eqn{\boldsymbol{x}_i}.
 #' 2.  All units have a non-zero propensity score, i.e., \eqn{\pi_{i}^{A} > 0} for all i.
@@ -83,8 +100,16 @@
 #' 1. Inverse probability weighting -- the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 #'  This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 #'  is available and therefore we can estimate the propensity score of the selection mechanism.
-#'  The estimator has the following form:
-#'  \deqn{\hat{\mu}_{IPW} = \frac{1}{N^{A}}\sum_{i \in S_{A}} \frac{y_{i}}{\hat{\pi}_{i}^{A}}.}
+#'  With inverse probability weights \eqn{\hat{d}_i^A = 1 / \hat{\pi}_i^A}, the package supports two
+#'  IPW point-estimator families. The Horvitz-Thompson-type estimator uses an external denominator \eqn{N_0},
+#'  \deqn{\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_A} w_i \hat{d}_i^A y_i,}
+#'  where \eqn{w_i} are optional `case_weights`. The Hajek-type estimator uses the estimated IPW total as the denominator,
+#'  \deqn{\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_A} w_i \hat{d}_i^A y_i}{\sum_{i \in S_A} w_i \hat{d}_i^A}.}
+#'  For IPW-MLE, omitting a fixed population size (`pop_size`, `pop_totals`, or `pop_means` with `pop_size`) gives
+#'  the Hajek-type estimator. Supplying a fixed population size or population totals gives the
+#'  Horvitz-Thompson-type estimator. For IPW-GEE with a reference probability sample, the denominator is
+#'  `sum(weights(svydesign))`; `gee_h_fun` changes the selection-model estimating equation, not the point-estimator
+#'  family. For IPW-GEE with population totals or means, the denominator comes from those totals.
 #'  For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 #'  log-likelihood function, which is given by the following formula
 #'  \deqn{
@@ -95,7 +120,7 @@
 #'  with calibration constraints defined by equations.
 #'  \deqn{
 #'  \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_A} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_B} d_i^B \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
-#'  Notice that for \eqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\pi(\boldsymbol{x}, \boldsymbol{\theta})}{\boldsymbol{x}}} We do not need a probability sample and can use a vector of population totals/means.
+#'  Notice that for \eqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}} We do not need a probability sample and can use a vector of population totals/means.
 #'
 #' 2. Mass imputation -- This method is based on a framework where imputed values of outcome variables are created for the entire probability sample. In this case, we treat the large sample as a training data set that is used to build an imputation model.
 #'    Using the imputed values for the probability sample and the (known) design weights,
@@ -137,6 +162,13 @@
 #'   As it is not straightforward to calculate the variances of these estimators, asymptotic equivalents of the variances derived using the Taylor approximation have been proposed in the literature.
 #'   Details can be found [here](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/).
 #'   In addition, the bootstrap approach can be used for variance estimation.
+#'
+#'   The doubly robust analytic (Taylor-linearisation) variance is derived under the
+#'   logistic propensity model (Chen, Li & Wu 2020, Theorem 2). For the `probit` and
+#'   `cloglog` selection links the probability-sample (design) variance component is a
+#'   conservative approximation: it tends to over-estimate the standard error and can be
+#'   numerically unstable when fitted propensities approach 1. For doubly robust inference
+#'   with those links, `control_inf(var_method = "bootstrap")` is recommended.
 #'
 #'   The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
 #'   In the presence of high-dimensional data, variable selection is important, because it can reduce the variability in the estimate that results from using irrelevant variables to build the model.
@@ -187,6 +219,7 @@
 #'  \item{\code{ps_scores} -- a `numeric vector` of estimated propensity scores for probability and non-probability sample}
 #'  \item{\code{case_weights} -- a `vector` of case weights for non-probability sample based on the call}
 #'  \item{\code{ipw_weights} -- a `vector` of inverse probability weights for non-probability sample (if applicable)}
+#'  \item{\code{boot_ipw_weights} -- a `matrix` of bootstrap inverse probability weights for the non-probability sample when bootstrap variance estimation is used and bootstrap results are kept (if applicable)}
 #'  \item{\code{control} -- a `list` of control functions based on the call}
 #'  \item{\code{output} -- a `data.frame` with the estimated means and standard errors for the variables specified in the `target` or `outcome` arguments}
 #'  \item{\code{SE} -- a `data.frame` with standard error of the estimator of the population mean, divided into errors from probability and non-probability samples (if applicable)}
@@ -195,6 +228,9 @@
 #'  \item{\code{prob_size} -- a scalar `numeric vector` denoting the size of probability sample}
 #'  \item{\code{pop_size} -- a scalar `numeric vector` estimated population size derived from estimated weights (non-probability sample) or known design weights (probability sample)}
 #'  \item{\code{pop_size_fixed} -- a `logical` value whether the population size was fixed (known) or estimated (unknown)}
+#'  \item{\code{ipw_estimator} -- a `character` value with the IPW point-estimator family (`"ht"` or `"hajek"`, if applicable)}
+#'  \item{\code{ipw_denominator} -- a scalar `numeric vector` with the denominator used for the IPW point estimator (if applicable)}
+#'  \item{\code{ipw_denominator_source} -- a `character` value describing the source of the IPW point-estimator denominator (if applicable)}
 #'  \item{\code{pop_totals} -- a `numeric vector` with the total values of the auxiliary variables derived from a probability sample or based on the call}
 #'  \item{\code{pop_means} -- a `numeric vector` with the mean values of the auxiliary variables derived from a probability sample or based on the call}
 #'  \item{\code{outcome} -- a `list` containing information about the fitting of the mass imputation model. Structure of the object is based on the `method_outcome` and `family_outcome` arguments which point to specific methods as defined by functions `method_*` (if specified in the call)}

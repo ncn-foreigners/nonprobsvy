@@ -1,4 +1,3 @@
-#' @useDynLib nonprobsvy
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
 #' @importFrom Matrix Matrix
@@ -290,29 +289,56 @@ nonprob_ipw <- function(selection,
     #######################################
   }
 
+  ipw_weight_total <- sum(case_weights * weights_nons)
+  design_weight_total <- if (!is.null(weights_rand)) sum(weights_rand) else NA_real_
+  ipw_denominator <- if (is.null(pop_size)) ipw_weight_total else pop_size
+  ipw_estimator <- "ht"
+  ipw_denominator_source <- if (!is.null(pop_totals)) {
+    "population totals"
+  } else if (isTRUE(pop_size_fixed)) {
+    "pop_size"
+  } else if (!is.na(design_weight_total)) {
+    "survey weights"
+  } else {
+    "estimated IPW weights"
+  }
+  variance_pop_size <- ipw_denominator
+
+  if (est_method == "mle" && !isTRUE(pop_size_fixed) && is.null(pop_totals)) {
+    ipw_estimator <- "hajek"
+    ipw_denominator <- ipw_weight_total
+    ipw_denominator_source <- "estimated IPW weights"
+    variance_pop_size <- NULL
+  } else if (est_method == "gee" && is.null(pop_totals) && !is.na(design_weight_total)) {
+    if (isTRUE(pop_size_fixed) &&
+        !isTRUE(all.equal(as.numeric(pop_size), as.numeric(design_weight_total)))) {
+      warning(
+        "For IPW-GEE with `svydesign`, `pop_size` differs from sum(weights(svydesign)); ",
+        "using the survey-weight denominator.",
+        call. = FALSE
+      )
+    }
+    ipw_denominator <- design_weight_total
+    ipw_denominator_source <- "survey weights"
+    variance_pop_size <- ipw_denominator
+    pop_size_fixed <- FALSE
+  }
+
   mu_hats <- numeric(length = outcomes$l)
   for (o in 1:outcomes$l) {
-    if (is.null(pop_totals)) {
-      y_nons <- make_model_frame(
-        formula = outcomes$outcome[[o]],
-        data = data,
-        svydesign = svydesign,
-        weights = case_weights
-      )$y_nons
-    } else {
-      y_nons <- make_model_frame(
-        formula = outcomes$outcome[[o]],
-        data = data,
-        pop_totals = pop_totals,
-        weights = case_weights
-      )$y_nons
-    }
+    ## Extract the target (response) directly. Routing this through
+    ## make_model_frame's svydesign/pop_totals branch is unnecessary -- the
+    ## response lives in `data` regardless -- and after variable selection has
+    ## reduced `pop_totals` to the selected covariates, model_frame_pop()'s name
+    ## check against the (still full) outcome formula would error with
+    ## "Selection and population totals have different names".
+    y_nons <- stats::model.response(stats::model.frame(outcomes$outcome[[o]], data))
     ys[[o]] <- as.numeric(y_nons)
     mu_hats[o] <- mu_hatIPW(
       y = y_nons,
       weights = case_weights,
       weights_nons = weights_nons,
-      N = ifelse(is.null(pop_size), N, pop_size)
+      N = ipw_denominator
     )
   }
 
@@ -330,18 +356,18 @@ nonprob_ipw <- function(selection,
           svydesign = svydesign,
           X_nons = X_nons,
           X_rand = X_rand,
-          y_nons = ys[[o]],
+          y_nons = ys[[k]],
           weights = case_weights,
           ps_nons = ps_nons,
-          mu_hat = mu_hats[o],
+          mu_hat = mu_hats[k],
           hess = hess,
           ps_nons_der = ps_nons_der,
-          N = N,
+          N = ipw_denominator,
           est_ps_rand = est_ps_rand,
           ps_rand = ps_rand,
           est_ps_rand_der = est_ps_rand_der,
           n_rand = n_rand,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           method_selection = method_selection,
           est_method = est_method,
@@ -355,9 +381,9 @@ nonprob_ipw <- function(selection,
         var_nonprob[k] <- var_obj$var_nonprob
         var_prob[k] <- var_obj$var_prob
         var[k] <- var_obj$var
-        se_nonprob[k] <- sqrt(var_nonprob[o])
-        se_prob[k] <- sqrt(var_prob[o])
-        SE_values[[k]] <- data.frame(prob = se_prob[o], nonprob = se_nonprob[o])
+        se_nonprob[k] <- sqrt(var_nonprob[k])
+        se_prob[k] <- sqrt(var_prob[k])
+        SE_values[[k]] <- data.frame(prob = se_prob[k], nonprob = se_nonprob[k])
       }
     } else if (var_method == "bootstrap") { # TODO add ys, mu_hats instead of y_nons,
       if (control_inference$cores > 1) {
@@ -380,7 +406,7 @@ nonprob_ipw <- function(selection,
           est_method = est_method,
           gee_h_fun = gee_h_fun,
           maxit = maxit,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           control_selection = control_selection,
           control_inference = control_inference,
@@ -407,7 +433,7 @@ nonprob_ipw <- function(selection,
           est_method = est_method,
           gee_h_fun = gee_h_fun,
           maxit = maxit,
-          pop_size = pop_size,
+          pop_size = variance_pop_size,
           pop_totals = pop_totals,
           control_selection = control_selection,
           control_inference = control_inference,
@@ -456,7 +482,7 @@ nonprob_ipw <- function(selection,
   confidence_interval <- do.call(rbind, confidence_interval)
   SE_values <- do.call(rbind, SE_values)
   rownames(output) <- rownames(confidence_interval) <- rownames(SE_values) <- outcomes$f
-  if (is.null(pop_size)) pop_size <- N # estimated pop_size
+  pop_size <- ipw_denominator
   names(pop_size) <- "pop_size"
   names(ys) <- all.vars(outcome[[2]])
 
@@ -467,6 +493,12 @@ nonprob_ipw <- function(selection,
     NULL
   }
   if (!is.null(boot_sample) & is.matrix(boot_sample)) colnames(boot_sample) <- names(ys)
+
+  boot_ipw_weights <- if (se == T & control_inference$var_method == "bootstrap" & control_inference$keep_boot) {
+    boot_obj$ipw_weights
+  } else {
+    NULL
+  }
 
 
   selection_list <- list(
@@ -482,6 +514,9 @@ nonprob_ipw <- function(selection,
     ipw_weights = as.vector(weights_nons),
     case_weights = case_weights,
     pop_totals = pop_totals,
+    ipw_estimator = ipw_estimator,
+    ipw_denominator = ipw_denominator,
+    ipw_denominator_source = ipw_denominator_source,
     formula = selection,
     df_residual = selection_model$df_residual,
     log_likelihood = selection_model$log_likelihood,
@@ -494,6 +529,7 @@ nonprob_ipw <- function(selection,
     prob_rand_est = est_ps_rand,
     prob_rand_est_der = est_ps_rand_der,
     gee_h_fun = gee_h_fun,
+    boot_ipw_weights = boot_ipw_weights,
     cve = if (control_inference$vars_selection == TRUE) {
       cve_selection
     } else {
@@ -510,6 +546,7 @@ nonprob_ipw <- function(selection,
       ps_scores = prop_scores,
       case_weights = case_weights,
       ipw_weights = as.vector(weights_nons),
+      boot_ipw_weights = boot_ipw_weights,
       control = list(
         control_selection = control_selection,
         control_outcome = NULL,
@@ -522,6 +559,9 @@ nonprob_ipw <- function(selection,
       prob_size = n_rand,
       pop_size = pop_size,
       pop_size_fixed = pop_size_fixed,
+      ipw_estimator = ipw_estimator,
+      ipw_denominator = ipw_denominator,
+      ipw_denominator_source = ipw_denominator_source,
       pop_totals = pop_totals,
       pop_means = pop_means,
       outcome = NULL,

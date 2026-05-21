@@ -73,12 +73,17 @@ nonprob <- function(data,
     stop("The `pop_means` argument must be a vector.")
   }
 
-  if (!is.null(pop_size) && (!is.numeric(pop_size) || pop_size <= 0)) {
+  if (!is.null(pop_size) &&
+      (!is.numeric(pop_size) || length(pop_size) != 1 ||
+       is.na(pop_size) || !is.finite(pop_size) || pop_size <= 0)) {
     stop("The `pop_size` argument must be a positive numeric scalar.")
   }
 
   if (!is.null(pop_totals) && !is.null(pop_means)) {
     stop("Specify one of the `pop_totals` or `pop_means` arguments, not both.")
+  }
+  if (!is.null(pop_means) && is.null(pop_size)) {
+    stop("The `pop_size` argument must be supplied when `pop_means` is supplied.")
   }
   if (!is.null(pop_size) && pop_size < nrow(data)) {
     stop("The `pop_size` argument cannot be smaller than sample size.")
@@ -90,6 +95,15 @@ nonprob <- function(data,
   }
   if (!is.null(case_weights) && length(case_weights) != nrow(data)) {
     stop("Length of the `case_weights` argument must match the number of rows in data.")
+  }
+  if (!is.null(case_weights) && anyNA(case_weights)) {
+    stop("The `case_weights` argument cannot contain missing values.")
+  }
+  if (!is.null(case_weights) && !all(is.finite(case_weights))) {
+    stop("The `case_weights` argument must contain only finite values.")
+  }
+  if (!is.null(case_weights) && any(case_weights <= 0)) {
+    stop("The `case_weights` argument must contain only positive values.")
   }
 
   ## selection and outcome should be specified
@@ -106,11 +120,9 @@ nonprob <- function(data,
     }
   }
 
-  ## this check is for future development
-  if (!is.null(control_selection$key)) {
-    if (!(control_selection$key %in% colnames(data)) || !(control_selection$key %in% colnames(svydesign$variables))) {
-      stop("Key variable for overlapping units must be defined with the same name in prob and nonprob sample.")
-    }
+  ## overlap handling between the two samples is not yet implemented
+  if (isTRUE(control_selection$dependence) || !is.null(control_selection$key)) {
+    stop("Handling of overlapping units between the samples (`control_sel(dependence = TRUE)` / `key = ...`) is not yet implemented.")
   }
 
 
@@ -144,10 +156,43 @@ nonprob <- function(data,
          are combined after they are selected (change `vars_combine` to `TRUE`).")
       }
 
+      if (isTRUE(control_inference$bias_correction) & is.null(svydesign)) {
+        stop("Bias correction (joint estimation) requires individual-level probability sample data;
+         supply a `svydesign` argument instead of `pop_totals` / `pop_means`.")
+      }
+
     }
   } else if (inherits(outcome, "formula")) {
     # Case: MI method
     estimator <- "mi"
+  }
+
+  ## outcome/target variable(s) must be numeric or logical: factor/character
+  ## outcomes silently misbehave (e.g. the estimate is returned as NA). Checked
+  ## after the estimator-specific formula validation so that more specific
+  ## messages (e.g. target/selection overlap) take precedence.
+  response_vars <- unique(c(
+    if (!is.null(target)) all.vars(target),
+    if (!is.null(outcome) && length(outcome) == 3L) all.vars(outcome[[2L]])
+  ))
+  for (.response in response_vars) {
+    if (.response %in% names(data) &&
+        (is.factor(data[[.response]]) || is.character(data[[.response]]))) {
+      stop(sprintf(
+        "The outcome/target variable `%s` is a %s; only numeric or logical outcomes are supported. Convert it before calling `nonprob()` (e.g. to 0/1 for `family_outcome = \"binomial\"`).",
+        .response, if (is.factor(data[[.response]])) "factor" else "character"))
+    }
+  }
+
+  if (!is.null(pop_totals) && (is.null(names(pop_totals)) || names(pop_totals)[1] != "(Intercept)")) {
+    stop("`pop_totals` must be a named numeric vector whose first element is named `(Intercept)` (the population size N), followed by the covariate population totals.")
+  }
+
+  if (isTRUE(control_inference$vars_selection) && !is.null(pop_totals) && is.null(svydesign) && estimator %in% c("ipw", "dr")) {
+    warning("Variable selection for the selection model with population totals only (no `svydesign`) is experimental. ",
+            "The cross-validation used to pick the penalty (`lambda`) is unreliable in this setting and may select an ",
+            "over-sparse model (dropping informative covariates), which biases the point estimate. ",
+            "Prefer supplying a unit-level probability sample via `svydesign`, or fix the penalty with `control_sel(lambda = ...)`.")
   }
 
   pop_size_fixed <- !is.null(pop_size) | (!is.null(pop_totals) && names(pop_totals)[1] == "(Intercept)")  ## for variance estimation
@@ -158,7 +203,7 @@ nonprob <- function(data,
     names(pop_totals) <- c("(Intercept)", names(pop_means))
   } else if (!is.null(pop_totals)) {
     pop_size <- unname(pop_totals["(Intercept)"])
-  } else {
+  } else if (is.null(pop_size)) {
     ## estimated population size (we may consider for future to use fpc of the svydesing2 object)
     pop_size <- sum(weights(svydesign))
   }

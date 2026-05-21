@@ -1,3 +1,130 @@
+clamp_prob <- function(p, eps = .Machine$double.eps) {
+  p[is.na(p) | p == -Inf] <- eps
+  p[p == Inf] <- 1 - eps
+  p[p < eps] <- eps
+  p[p > 1 - eps] <- 1 - eps
+  p
+}
+
+stable_softplus <- function(eta) {
+  out <- eta
+  pos <- eta > 0
+  out[pos] <- eta[pos] + log1p(exp(-eta[pos]))
+  out[!pos] <- log1p(exp(eta[!pos]))
+  out
+}
+
+stable_cloglog_rate <- function(eta, eps = .Machine$double.eps) {
+  exp(pmin(pmax(eta, log(eps)), log(-log(eps))))
+}
+
+# Guard for the non-logit doubly-robust analytic-variance terms. Under quasi-separation
+# the probit/cloglog selection fit can return fitted propensities at the extreme tails,
+# which make the variance terms blow up to a huge or non-finite value:
+#   * `ps -> 1` makes the probit factor `psd / (1 - ps)` (inverse Mills) and the cloglog
+#     factor `log(1 - ps)` (== -exp(eta)) explode (and overflow to non-finite at ps == 1);
+#   * `ps -> 0` makes the `b`-vector weights `psd / ps^2` (probit) and
+#     `(1 - ps) / ps^2 * exp(eta)` (cloglog) explode.
+# Chen, Li & Wu (2020) derive the doubly-robust variance only under the logistic model
+# (whose factor `ps` is bounded by 1 and whose `b`-weight `(1 - ps) / ps` is the mildest),
+# so only the non-logit terms need this guard -- the logit path is left untouched. The
+# propensity is floored away from {0, 1} by `eps` (default `1 / sqrt(N)`, matching the
+# `npar` variance fix, which caps a single unit's `1 / ps^2` leverage at `N`); this bounds
+# the terms at a finite scale. NB: this is a stabilisation only -- the non-logit analytic
+# SE remains conservative (see the `nonprob()` / `control_inf()` docs), so `var_method =
+# "bootstrap"` is recommended for probit/cloglog doubly robust inference.
+clamp_ps_for_var <- function(ps, N = NULL, eps = NULL) {
+  if (is.null(eps)) eps <- if (is.null(N)) .Machine$double.eps else 1 / sqrt(N)
+  clamp_prob(as.vector(ps), eps = eps)
+}
+
+mle_ipw_variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, weights) {
+  X <- as.matrix(X)
+  y <- as.vector(y)
+  ps <- as.vector(ps)
+  psd <- as.vector(psd)
+  weights <- as.vector(weights)
+  N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
+  y_adj <- if (is.null(pop_size)) weights * (y - mu) else weights * y
+
+  score_weight <- psd / ps^2
+  information_weight <- psd^2 / (ps^2 * (1 - ps))
+
+  v11 <- sum((1 - ps) / ps^2 * y_adj^2) / N^2
+  v1_ <- (score_weight * y_adj) %*% X / N^2
+  v_1 <- t(v1_)
+  v_2 <- crossprod(X, X * information_weight) / N^2
+
+  Matrix::Matrix(rbind(cbind(v11, v1_), cbind(v_1, v_2)), sparse = TRUE)
+}
+
+mle_ipw_b_vec <- function(y, mu, ps, psd, X, hess, pop_size, weights, verbose) {
+  hess_inv_neg <- tryCatch(
+    chol2inv(chol(-hess)),
+    error = function(e) {
+      if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
+      MASS::ginv(-hess)
+    }
+  )
+
+  X <- as.matrix(X)
+  y <- as.vector(y)
+  ps <- as.vector(ps)
+  psd <- as.vector(psd)
+  weights <- as.vector(weights)
+  y_adj <- if (is.null(pop_size)) y - mu else y
+  w <- psd / ps^2 * weights
+  b <- (w * y_adj) %*% X %*% hess_inv_neg
+
+  list(b = b)
+}
+
+gee_ipw_variance_covariance1 <- function(X, y, mu, ps, pop_size, est_method,
+                                         gee_h_fun, weights, pop_totals = NULL) {
+  X <- as.matrix(X)
+  y <- as.vector(y)
+  ps <- as.vector(ps)
+  weights <- as.vector(weights)
+  N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
+  y_adj <- if (is.null(pop_size)) weights * (y - mu) else weights * y
+
+  h_inv_ps <- (est_method == "gee" && gee_h_fun == 1) || !is.null(pop_totals)
+  h_x <- est_method == "gee" && gee_h_fun == 2 && is.null(pop_totals)
+  if (!h_inv_ps && !h_x) {
+    stop("Unsupported GEE h-function for IPW variance.")
+  }
+
+  w11 <- (1 - ps) / ps^2
+  if (h_inv_ps) {
+    w1 <- w11
+    w2 <- w11
+  } else {
+    w1 <- (1 - ps) / ps
+    w2 <- 1 - ps
+  }
+
+  v11 <- sum(w11 * y_adj^2) / N^2
+  v1_ <- (w1 * y_adj) %*% X / N^2
+  v_2 <- crossprod(X, X * w2) / N^2
+
+  Matrix::Matrix(rbind(cbind(v11, v1_), cbind(t(v1_), v_2)), sparse = TRUE)
+}
+
+legacy_ipw_b_vec <- function(y_adj, w, X, hess, verbose) {
+  hess_inv_neg <- tryCatch(
+    chol2inv(chol(-hess)),
+    error = function(e) {
+      if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
+      MASS::ginv(-hess)
+    }
+  )
+
+  X <- as.matrix(X)
+  b <- (w * y_adj) %*% X %*% hess_inv_neg
+
+  list(b = b)
+}
+
 #' @title Propensity Score Model Functions
 #' @author Łukasz Chrostowski, Maciej Beręsewicz
 #'
@@ -77,36 +204,48 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   cloglog <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       log(-log1p(-mu))
     } # link
 
     inv_link <- function(eta) {
-      -expm1(-exp(eta))
+      clamp_prob(-expm1(-stable_cloglog_rate(eta)))
     } # inverse link
 
     dlink <- function(mu) {
+      mu <- clamp_prob(mu)
       1 / ((mu - 1) * log1p(-mu))
     } # first derivative of link
 
     dinv_link <- function(eta) {
-      exp(eta - exp(eta))
+      exp_eta <- stable_cloglog_rate(eta)
+      out <- exp_eta * exp(-exp_eta)
+      out[!is.finite(out)] <- 0
+      out
     } # first derivative of inverse link
 
     inv_link_rev <- function(eta) {
-      ee <- exp(eta)
-      eee <- exp(ee)
-      -ee * eee / (eee - 1)^2
+      exp_eta <- stable_cloglog_rate(eta)
+      ps <- inv_link(eta)
+      out <- -exp_eta * exp(-exp_eta) / ps^2
+      out[!is.finite(out)] <- 0
+      out
     } # first derivative of 1/inv_link
 
     dinv_link_rev <- function(eta) {
-      ee <- exp(eta)
-      eee <- exp(ee)
-      num <- -eee * ee * (-eee + ee + ee * eee + 1)
-      den <- (eee - 1)^3
-      num / den
+      exp_eta <- stable_cloglog_rate(eta)
+      exp_neg_exp_eta <- exp(-exp_eta)
+      ps <- inv_link(eta)
+      out <- exp_eta * exp_neg_exp_eta * (exp_eta - 1) / ps^2 +
+        2 * exp_eta^2 * exp_neg_exp_eta^2 / ps^3
+      out[!is.finite(out)] <- 0
+      out
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
-      exp(eta - exp(eta)) * (1 - exp(eta))
+      exp_eta <- stable_cloglog_rate(eta)
+      out <- exp_eta * exp(-exp_eta) * (1 - exp_eta)
+      out[!is.finite(out)] <- 0
+      out
     }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
@@ -119,8 +258,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
 
         # original formula for numerical stability
-        log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
-        log_like2 <- sum(weights_rand * log(1 - invLink2))
+        log_like1 <- sum(weights * (log(invLink1) - log1p(-invLink1)))
+        log_like2 <- sum(weights_rand * log1p(-invLink2))
 
         log_like1 + log_like2
       }
@@ -134,7 +273,10 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        t(crossprod(X_nons, weights * exp(eta1) / invLink1) - crossprod(X_rand, weights_rand * exp(eta2)))
+        exp_eta1 <- stable_cloglog_rate(eta1)
+        exp_eta2 <- stable_cloglog_rate(eta2)
+
+        t(crossprod(X_nons, weights * exp_eta1 / invLink1) - crossprod(X_rand, weights_rand * exp_eta2))
 
       }
     }
@@ -148,8 +290,11 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         # weights_sum <- sum(weights, weights_rand)
 
         # Compute the weight vectors first for clarity
-        w_nons <- weights * exp(eta1) / invLink1 * (1 - exp(eta1) / invLink1 + exp(eta1))
-        w_rand <- weights_rand * exp(eta2)
+        exp_eta1 <- stable_cloglog_rate(eta1)
+        exp_eta2 <- stable_cloglog_rate(eta2)
+
+        w_nons <- weights * exp_eta1 / invLink1 * (1 - exp_eta1 / invLink1 + exp_eta1)
+        w_rand <- weights_rand * exp_eta2
         mat1 <- crossprod(as.matrix(X_nons), diag(w_nons) %*% as.matrix(X_nons))
         mat2 <- crossprod(as.matrix(X_rand), diag(w_rand) %*% as.matrix(X_rand))
 
@@ -163,64 +308,30 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
-      # ensure matrix format and get dimensions
-      X <- as.matrix(X)
-      n <- nrow(X)
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-
-      # get y values based on pop_size
-      y_adj <- if (is.null(pop_size)) {
-        weights * (y - mu)
-      } else {
-        weights * y
-      }
-      y_sq <- y_adj^2
-
-      # base weights calculation
-      w1 <- (1 - ps) / ps^2
-
       if (est_method == "mle" && is.null(pop_totals)) {
-        # MLE specific calculations
-        log_ps <- log1p(-ps) # more stable than log(1-ps)
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- -((w1 * log_ps * y_adj) %*% X) / N^2
-
-        # matrix calculations with standard ops
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (w1[i] * log_ps[i]^2) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        # GEE gee_h_fun=1 or pop_totals case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- (w1 * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 2) {
-        # GEE gee_h_fun=2 case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- ((1 - ps) / ps * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
+        psd <- (1 - ps) * (-log1p(-ps))
+        return(mle_ipw_variance_covariance1(
+          X = X,
+          y = y,
+          mu = mu,
+          ps = ps,
+          psd = psd,
+          pop_size = pop_size,
+          weights = weights
+        ))
       }
 
-      # construct final matrix
-      v_1 <- t(v1_)
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
 
@@ -235,9 +346,11 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       } else {
         # adjust probabilities based on method
         if (est_method == "mle") {
-          svydesign$prob <- svydesign$prob * log1p(-eps) # more stable than log(1-eps)
+          # Probability-sample score factor for cloglog MLE is exp(eta).
+          score_factor <- -log1p(-eps)
+          svydesign$prob <- svydesign$prob / score_factor
         } else if (est_method == "gee" && gee_h_fun == 2) {
-          svydesign$prob <- svydesign$prob * eps
+          svydesign$prob <- svydesign$prob / eps
         }
 
         # ensure X is matrix and properly scaled
@@ -261,28 +374,35 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       V2
     }
 
-    b_vec_ipw <- function(y, mu, ps, X, hess, pop_size, weights, verbose, psd = NULL, eta = NULL) {
-      # get hessian inverse
-      hess_inv_neg <- tryCatch(
-        chol2inv(chol(-hess)),
-        error = function(e) {
-          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
-          MASS::ginv(-hess)
-        }
+    b_vec_ipw <- function(y, mu, ps, X, hess, pop_size, weights, verbose, psd = NULL,
+                          eta = NULL, est_method = "mle", gee_h_fun = NULL) {
+      if (est_method != "mle") {
+        y_adj <- if (is.null(pop_size)) y - mu else y
+        return(legacy_ipw_b_vec(
+          y_adj = y_adj,
+          w = (1 - ps) / ps^2 * exp(eta) * weights,
+          X = X,
+          hess = hess,
+          verbose = verbose
+        ))
+      }
+
+      score_factor <- if (is.null(eta)) -log1p(-ps) else stable_cloglog_rate(eta)
+      psd <- (1 - ps) * score_factor
+      mle_ipw_b_vec(
+        y = y,
+        mu = mu,
+        ps = ps,
+        psd = psd,
+        X = X,
+        hess = hess,
+        pop_size = pop_size,
+        weights = weights,
+        verbose = verbose
       )
-
-      # prepare common terms
-      X <- as.matrix(X)
-      w <- (1 - ps) / ps^2 * exp(eta) * weights
-      y_adj <- if (is.null(pop_size)) y - mu else y
-
-      # compute b vector
-      b <- -(w * y_adj) %*% X %*% hess_inv_neg
-
-      list(b = b)
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hessian inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -294,7 +414,10 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
       # prepare common terms
       X <- as.matrix(X)
-      w <- ((1 - ps) / ps^2) * weights * exp(eta)
+      # guard the cloglog b-weight (1 - ps) / ps^2 * exp(eta) against extreme fitted
+      # propensities (ps -> 0) and an overflowing exp(eta) (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
+      w <- ((1 - ps) / ps^2) * weights * stable_cloglog_rate(eta)
       resid <- y - y_pred - h_n
 
       # compute b vector with standard matrix mult
@@ -302,6 +425,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+      # guard the unbounded cloglog factor log(1 - ps) (== -exp(eta)) against ps -> 1
+      ps <- clamp_ps_for_var(ps, N = N)
       as.vector(log(1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
@@ -309,6 +434,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       # prepare matrices
       X <- as.matrix(X)
       b <- as.matrix(b)
+      # guard the unbounded cloglog factor against ps -> 1 (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
 
       # compute log ratios more stably
       log_ratio <- as.vector(log1p(-ps) - log(ps))
@@ -345,33 +472,38 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   logit <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       qlogis(mu)
     } # link
     inv_link <- function(eta) {
-      plogis(eta)
+      clamp_prob(plogis(eta))
     } # inverse link
     dlink <- function(mu) {
+      mu <- clamp_prob(mu)
       1 / (mu * (1 - mu))
     } # first derivative of link
     dinv_link <- function(eta) {
-      p <- plogis(eta)
+      p <- inv_link(eta)
       p * (1 - p)
     } # first derivative of inverse link
     inv_link_rev <- function(eta) {
-      -exp(-eta)
+      p <- inv_link(eta)
+      -(1 - p) / p
     } # first derivative of 1/inv_link
     dinv_link_rev <- function(eta) {
-      exp(-eta)
+      p <- inv_link(eta)
+      (1 - p) / p
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
-      exp(eta) * (1 - exp(eta)) / (1 + exp(eta))^3
+      p <- inv_link(eta)
+      p * (1 - p) * (1 - 2 * p)
     }
     log_like <- function(X_nons, X_rand, weights, weights_rand, ...) {
       function(theta) {
         eta1 <- drop(X_nons %*% theta) # linear predictor
         eta2 <- drop(X_rand %*% theta)
         log_like1 <- sum(weights * eta1)
-        log_like2 <- -sum(weights_rand * log1p(exp(eta2)))
+        log_like2 <- -sum(weights_rand * stable_softplus(eta2))
         log_like1 + log_like2
       }
     }
@@ -394,48 +526,30 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-      n <- ifelse(is.null(dim(X)), length(X), nrow(X))
-
-      # get y values based on N and mu
-      if (is.null(pop_size)) {
-        y_adj <- weights * (y - mu)
-        y_sq <- y_adj^2
-      } else {
-        y_adj <- weights * y
-        y_sq <- y_adj^2
+      if (est_method == "mle" && is.null(pop_totals)) {
+        psd <- ps * (1 - ps)
+        return(mle_ipw_variance_covariance1(
+          X = X,
+          y = y,
+          mu = mu,
+          ps = ps,
+          psd = psd,
+          pop_size = pop_size,
+          weights = weights
+        ))
       }
 
-      # get weights based on method
-      w1 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        (1 - ps) / ps^2
-      } else {
-        (1 - ps) / ps
-      }
-
-      # calc v11 and v1_
-      v11 <- sum(w1 * y_sq) / N^2
-      v1_ <- (w1 * y_adj) %*% X / N^2 # use standard matrix mult instead of crossprod
-      v_1 <- t(v1_)
-
-      # calc v_2
-      w2 <- if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        (1 - ps) / ps
-      } else {
-        (1 - ps)
-      }
-
-      # calc v_2 with explicit loop instead of lapply
-      v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-      for (i in 1:n) {
-        v_2 <- v_2 + w2[i] * tcrossprod(X[i, ], X[i, ])
-      }
-      v_2 <- v_2 / N^2
-
-      # construct final matrix
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
     variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
@@ -473,28 +587,34 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       V2
     }
 
-    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose) {
-      # try matrix inversion - if fails, use ginv
-      hess_inv_neg <- tryCatch(
-        chol2inv(chol(-hess)),
-        error = function(e) {
-          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
-          MASS::ginv(-hess)
-        }
+    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose,
+                          est_method = "mle", gee_h_fun = NULL) {
+      if (est_method != "mle") {
+        y_adj <- if (is.null(pop_size)) y - mu else y
+        return(legacy_ipw_b_vec(
+          y_adj = y_adj,
+          w = (1 - ps) / ps * weights,
+          X = X,
+          hess = hess,
+          verbose = verbose
+        ))
+      }
+
+      psd <- ps * (1 - ps)
+      mle_ipw_b_vec(
+        y = y,
+        mu = mu,
+        ps = ps,
+        psd = psd,
+        X = X,
+        hess = hess,
+        pop_size = pop_size,
+        weights = weights,
+        verbose = verbose
       )
-
-      # prep the weights and adjusted y
-      w <- (1 - ps) / ps * weights
-      y_adj <- if (is.null(pop_size)) y - mu else y
-
-      # main calculation (explicit steps for debugging)
-      weighted_y <- w * y_adj # element-wise mult
-      b <- -(weighted_y %*% X) %*% hess_inv_neg # matrix mult step by step
-
-      list(b = b)
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hess inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -546,7 +666,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       make_link_inv_der = dinv_link,
       make_link_inv_rev = inv_link_rev,
       make_link_inv_rev_der = dinv_link_rev,
-      make_link_inv_rev_der = dinv_link_rev2,
+      make_link_inv_rev_der2 = dinv_link_rev2,
       variance_covariance1 = variance_covariance1,
       variance_covariance2 = variance_covariance2,
       b_vec_ipw = b_vec_ipw,
@@ -558,20 +678,22 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
   probit <- function(...) {
     link <- function(mu) {
+      mu <- clamp_prob(mu)
       qnorm(mu)
     } # link
     inv_link <- function(eta) {
-      pnorm(eta)
+      clamp_prob(pnorm(eta))
     } # inverse link
     dinv_link <- function(eta) {
       dnorm(eta)
     } # first derivative of inverse link
-    dlink <- function(mu) 1 / dnorm(qnorm(mu)) # first derivative of link
+    dlink <- function(mu) 1 / dnorm(qnorm(clamp_prob(mu))) # first derivative of link
     inv_link_rev <- function(eta) {
-      -dnorm(eta) / pnorm(eta)^2
+      -dnorm(eta) / inv_link(eta)^2
     } # first derivative of 1/inv_link
     dinv_link_rev <- function(eta) {
-      -dnorm(eta) * (eta + dnorm(eta)) / pnorm(eta)^3
+      ps <- inv_link(eta)
+      -dnorm(eta) * (eta + dnorm(eta)) / ps^3
     } # second derivative of 1/inv_link
     dinv_link_rev2 <- function(eta) {
       -eta * dnorm(eta)
@@ -584,8 +706,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         invLink2 <- inv_link(eta2)
         # weights_sum <- sum(weights, weights_rand)
 
-        log_like1 <- sum(weights * log(invLink1 / (1 - invLink1)))
-        log_like2 <- sum(weights_rand * log(1 - invLink2))
+        log_like1 <- sum(weights * (log(invLink1) - log1p(-invLink1)))
+        log_like2 <- sum(weights_rand * log1p(-invLink2))
         log_like1 + log_like2
       }
     }
@@ -632,63 +754,29 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, est_method, gee_h_fun, weights, pop_totals = NULL) {
-      # ensure matrix format and get dimensions
-      X <- as.matrix(X)
-      n <- nrow(X)
-      N <- if (is.null(pop_size)) sum(1 / ps) else pop_size
-
-      # get y values based on pop_size
-      y_adj <- if (is.null(pop_size)) {
-        weights * (y - mu)
-      } else {
-        weights * y
-      }
-      y_sq <- y_adj^2
-
-      # base weights calculation
-      w1 <- (1 - ps) / ps^2
-
       if (est_method == "mle" && is.null(pop_totals)) {
-        # MLE specific calculations
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- (psd * y_adj / ps^2) %*% X / N^2
-
-        # matrix calculations
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (psd[i] / (ps[i]^2 * (1 - ps[i]))) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 1 || !is.null(pop_totals)) {
-        # GEE gee_h_fun=1 or pop_totals case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- (w1 * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- ((1 - ps[i]) / ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
-      } else if (est_method == "gee" && gee_h_fun == 2) {
-        # GEE gee_h_fun=2 case
-        v11 <- sum(w1 * y_sq) / N^2
-        v1_ <- ((1 - ps) / ps * y_adj) %*% X / N^2
-
-        v_2 <- matrix(0, ncol = ncol(X), nrow = ncol(X))
-        for (i in 1:n) {
-          v_2i <- (1 - ps[i]) * (X[i, ] %*% t(X[i, ]))
-          v_2 <- v_2 + v_2i
-        }
-        v_2 <- v_2 / N^2
+        return(mle_ipw_variance_covariance1(
+          X = X,
+          y = y,
+          mu = mu,
+          ps = ps,
+          psd = psd,
+          pop_size = pop_size,
+          weights = weights
+        ))
       }
 
-      # construct final matrix
-      v_1 <- t(v1_)
-      v1_vec <- cbind(v11, v1_)
-      v2_mx <- cbind(v_1, v_2)
-      Matrix::Matrix(rbind(v1_vec, v2_mx), sparse = TRUE)
+      gee_ipw_variance_covariance1(
+        X = X,
+        y = y,
+        mu = mu,
+        ps = ps,
+        pop_size = pop_size,
+        est_method = est_method,
+        gee_h_fun = gee_h_fun,
+        weights = weights,
+        pop_totals = pop_totals
+      )
     }
 
     variance_covariance2 <- function(X, svydesign, eps, est_method, gee_h_fun, pop_totals, psd, postStrata = NULL) {
@@ -704,7 +792,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
         if (est_method == "mle") {
           svydesign$prob <- svydesign$prob * ((1 - eps) / psd)
         } else if (est_method == "gee" && gee_h_fun == 2) {
-          svydesign$prob <- svydesign$prob * eps
+          svydesign$prob <- svydesign$prob / eps
         }
 
         # ensure X is matrix and properly scaled
@@ -728,28 +816,33 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       V2
     }
 
-    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose) {
-      # get hessian inverse
-      hess_inv_neg <- tryCatch(
-        chol2inv(chol(-hess)),
-        error = function(e) {
-          if (verbose) message("chol2inv(chol()) failed, using ginv() instead.")
-          MASS::ginv(-hess)
-        }
+    b_vec_ipw <- function(y, mu, ps, psd, eta, X, hess, pop_size, weights, verbose,
+                          est_method = "mle", gee_h_fun = NULL) {
+      if (est_method != "mle") {
+        y_adj <- if (is.null(pop_size)) y - mu else y
+        return(legacy_ipw_b_vec(
+          y_adj = y_adj,
+          w = psd / ps^2 * weights,
+          X = X,
+          hess = hess,
+          verbose = verbose
+        ))
+      }
+
+      mle_ipw_b_vec(
+        y = y,
+        mu = mu,
+        ps = ps,
+        psd = psd,
+        X = X,
+        hess = hess,
+        pop_size = pop_size,
+        weights = weights,
+        verbose = verbose
       )
-
-      # prepare common terms
-      X <- as.matrix(X)
-      w <- psd / ps^2 * weights
-      y_adj <- if (is.null(pop_size)) y - mu else y - mu + 1
-
-      # compute b vector with standard matrix mult
-      b <- -(w * y_adj) %*% X %*% hess_inv_neg
-
-      list(b = b)
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hessian inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -761,6 +854,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
       # prepare matrices and weights
       X <- as.matrix(X)
+      # guard the probit b-weight psd / ps^2 against extreme fitted propensities
+      # (ps -> 0 under quasi-separation) -- see clamp_ps_for_var
+      ps <- clamp_ps_for_var(ps, N = N)
       w <- psd / ps^2 * weights
       resid <- y - y_pred - h_n
 
@@ -768,11 +864,18 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       -(w * resid) %*% X %*% hess_inv
     }
 
-    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) { # TODO
+    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+      # guard the unbounded probit inverse-Mills factor psd / (1 - ps) against ps -> 1
+      # (Chen, Li & Wu 2020 prove the DR variance only for the logistic link; the
+      # non-logit analytic SE is conservative -- see clamp_ps_for_var / the docs).
+      ps <- clamp_ps_for_var(ps, N = N)
       as.vector(psd / (1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
     var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
+      # guard the unbounded probit factor against ps -> 1 (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
+
       # weighted residuals
       resid_part <- weights * (y - y_pred - h_n) / ps
 

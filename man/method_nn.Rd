@@ -18,7 +18,8 @@ method_nn(
   control_outcome = control_out(),
   control_inference = control_inf(),
   verbose = FALSE,
-  se = TRUE
+  se = TRUE,
+  nn_matches = NULL
 )
 }
 \arguments{
@@ -30,7 +31,9 @@ method_nn(
 
 \item{svydesign}{a svydesign object}
 
-\item{weights}{case / frequency weights from non-probability sample}
+\item{weights}{case / frequency weights from non-probability sample. If \code{nn_exact_se=TRUE},
+non-constant weights also define mini-bootstrap sampling probabilities proportional
+to their inverses.}
 
 \item{family_outcome}{a placeholder (not used in \code{method_nn})}
 
@@ -40,7 +43,10 @@ method_nn(
 
 \item{pop_totals}{a placeholder (not used in \code{method_nn})}
 
-\item{pop_size}{population size from the \code{nonprob} function}
+\item{pop_size}{population size from the \code{nonprob} function. If \code{NULL}, the
+method uses \code{sum(weights(svydesign))}. If supplied, it is used as the
+known-\eqn{N} denominator for the mean and variance scaling, but it does not
+modify the finite population correction of \code{svydesign}.}
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
 
@@ -49,6 +55,10 @@ method_nn(
 \item{verbose}{parameter passed from the main \code{nonprob} function}
 
 \item{se}{whether standard errors should be calculated}
+
+\item{nn_matches}{optional precomputed nearest-neighbour search results for
+internal reuse across outcomes. If supplied, it should be a list with
+\code{rand} and \code{nons} entries from \code{\link[RANN:nn2]{RANN::nn2()}}.}
 }
 \value{
 an \code{nonprob_method} class which is a \code{list} with the following entries
@@ -63,7 +73,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 \item{vars_selection}{whether variable selection was performed (not implemented, for further development)}
 \item{var_prob}{variance for the probability sample component (if available)}
 \item{var_nonprob}{variance for the non-probability sample component}
-\item{var_tot}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
+\item{var_total}{total variance, if possible it should be \code{var_prob+var_nonprob} if not, just a scalar}
 \item{model}{model type (character \code{"nn"})}
 \item{family}{placeholder for the \verb{NN approach} information}
 }
@@ -72,7 +82,13 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses
 Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
-Estimation of the mean is done using \eqn{S_B} sample.
+Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
+are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
+when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+The \code{pop_size} argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
+by the \code{{survey}} variance routines.
 }
 \details{
 Analytical variance
@@ -89,14 +105,18 @@ This may be estimated using
 
 where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
 we currently estimate using \eqn{n_A/N} (constant) and \eqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
-estimated using based on the average of \eqn{(y_i - y_i^*)^2}.
+estimated using based on the average of \eqn{(y_i - y_i^*)^2}. The \eqn{y_i^*}
+values used in this proxy are obtained by leave-one-out matching in \eqn{S_A},
+so a unit is not used as its own donor.
 
 Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 (without assuming that it is consistent) but with good finite population properties.
 This bootstrap can be applied using \code{control_inference(nn_exact_se=TRUE)} and
 can be summarized as follows:
 \enumerate{
-\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+If non-constant pseudo-weights are supplied through \code{weights}, sampling probabilities
+are proportional to their inverses; equal weights use uniform resampling.
 \item Match units from \eqn{S_B} to \eqn{S_A'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
 \item Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
 \item Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).
@@ -118,14 +138,18 @@ of \eqn{k}-nearest neighbour, i.e. \eqn{{k}^{-1}\sum_{k}y_k}. Note that \eqn{\ha
 }
 \examples{
 
-data(admin)
-data(jvs)
-jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+sample_a <- data.frame(y = c(1, 0, 1, 0, 1), x = c(0, 1, 2, 3, 4))
+sample_b <- data.frame(x = c(0.5, 1.5, 2.5, 3.5), w = c(4, 4, 4, 4))
+sample_b_svy <- svydesign(ids = ~1, weights = ~w, data = sample_b)
 
-res_nn <- method_nn(y_nons = admin$single_shift,
-                    X_nons = model.matrix(~ region + private + nace + size, admin),
-                    X_rand = model.matrix(~ region + private + nace + size, jvs),
-                    svydesign = jvs_svy)
+res_nn <- method_nn(
+  y_nons = sample_a$y,
+  X_nons = model.matrix(~x, sample_a),
+  X_rand = model.matrix(~x, sample_b),
+  svydesign = sample_b_svy,
+  control_outcome = control_out(k = 1),
+  se = FALSE
+)
 
 res_nn
 

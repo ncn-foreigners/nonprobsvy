@@ -54,7 +54,7 @@ method_glm(
 an \code{nonprob_method} class which is a \code{list} with the following entries
 
 \describe{
-\item{model_fitted}{fitted model either an \code{glm.fit} or \code{cv.ncvreg} object}
+\item{model_fitted}{fitted model either a \code{glm.fit}, \code{cv.ncvreg}, or \code{ncvreg} object}
 \item{y_nons_pred}{predicted values for the non-probablity sample}
 \item{y_rand_pred}{predicted values for the probability sample or population totals}
 \item{coefficients}{coefficients for the model (if available)}
@@ -81,11 +81,11 @@ The variance of the mean is estimated based on the following approach
 (a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as \code{var_nonprob} in the result)
 
 \deqn{
-\hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace,
+\hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i^2 \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace^2,
 }
 
 where \eqn{\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})} and
-\deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_B^{-1} \sum_{i \in B} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in A} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).}
+\deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_A^{-1} \sum_{i \in A} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in B} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).}
 
 Under the linear regression model \eqn{\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i} and \eqn{\widehat{\boldsymbol{c}}=\left(n_A^{-1} \sum_{i \in A} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in B} w_i \boldsymbol{x}_i .}
 

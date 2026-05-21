@@ -1,4 +1,3 @@
-#' @useDynLib nonprobsvy
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
 #' @importFrom stats model.matrix
@@ -46,6 +45,7 @@ nonprob_mi <- function(outcome,
 
   ys_resid <- ys_rand_pred <- ys_nons_pred <- ys <- list()
   outcome_list <- list()
+  nn_match_cache <- NULL
 
   if (se) {
     confidence_interval <- list()
@@ -59,7 +59,7 @@ nonprob_mi <- function(outcome,
 
     outcome_model_data <- make_model_frame(formula = outcomes$outcome[[o]],
                                            data = data,
-                                           weights = weights,
+                                           weights = case_weights,
                                            svydesign = svydesign,
                                            pop_totals = pop_totals)
 
@@ -68,72 +68,134 @@ nonprob_mi <- function(outcome,
     nons_names <- outcome_model_data$nons_names
     y_nons <- outcome_model_data$y_nons
     pop_totals_ <- outcome_model_data$pop_totals ## match the same as in X_nons
+    nn_matches <- NULL
 
-    model_obj <- outcome_method(y_nons = y_nons,
-                                X_nons = X_nons,
-                                X_rand = X_rand,
-                                svydesign = svydesign,
-                                weights=case_weights,
-                                family_outcome=family_outcome,
-                                start_outcome=start_outcome,
-                                vars_selection=vars_selection,
-                                pop_totals=pop_totals_,
-                                pop_size=pop_size,
-                                control_outcome=control_outcome,
-                                control_inference=control_inference,
-                                verbose=verbose,
-                                se=se)
+    if (method_outcome == "nn" && !is.null(svydesign)) {
+      cache_matches <- !is.null(nn_match_cache) &&
+        identical(nn_match_cache$X_nons, X_nons) &&
+        identical(nn_match_cache$X_rand, X_rand) &&
+        identical(nn_match_cache$k, control_outcome$k) &&
+        identical(nn_match_cache$treetype, control_outcome$treetype) &&
+        identical(nn_match_cache$searchtype, control_outcome$searchtype)
+
+      if (!cache_matches) {
+        nn_match_cache <- list(
+          X_nons = X_nons,
+          X_rand = X_rand,
+          k = control_outcome$k,
+          treetype = control_outcome$treetype,
+          searchtype = control_outcome$searchtype,
+          matches = list(
+            nons = RANN::nn2(
+              data = X_nons,
+              query = X_nons,
+              k = min(control_outcome$k + 2L, NROW(X_nons)),
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            ),
+            rand = RANN::nn2(
+              data = X_nons,
+              query = X_rand,
+              k = min(control_outcome$k + 1L, NROW(X_nons)),
+              treetype = control_outcome$treetype,
+              searchtype = control_outcome$searchtype
+            )
+          )
+        )
+      }
+
+      nn_matches <- nn_match_cache$matches
+    }
 
     if (control_outcome$pmm_k_choice == "min_var" & method_outcome == "pmm") {
-      # This can be programmed a lot better possibly with custom method outcome that would
-      # store previous k-pmm model and omit the last estimation
-      ## TODO:: right now this only goes forward not backwards
-      var_prev <- Inf
-      cond <- TRUE
-      kk <- 0
-      while (cond) {
-        kk <- kk + 1
+      best_var <- Inf
+      best_k <- 1L
+      best_model_obj <- NULL
+      k_max <- if (is.null(control_outcome$pmm_k_max)) {
+        NROW(X_nons)
+      } else {
+        min(NROW(X_nons), as.integer(control_outcome$pmm_k_max))
+      }
+      k_grid <- seq_len(k_max)
+      if (length(k_grid) > 100L) {
+        message(sprintf(
+          paste0("`pmm_k_choice = \"min_var\"` is evaluating k = 1..%d (one full PMM refit per k); ",
+                 "this can be slow. Cap it with `control_out(pmm_k_max = ...)` or supply `control_out(k = ...)` directly."),
+          length(k_grid)))
+      }
+      for (kk in k_grid) {
         control_outcome$k <- kk
-        model_obj <- outcome_method(y_nons = y_nons,
-                                    X_nons = X_nons,
-                                    X_rand = X_rand,
-                                    svydesign = svydesign,
-                                    weights=case_weights,
-                                    family_outcome=family_outcome,
-                                    start_outcome=start_outcome,
-                                    vars_selection=vars_selection,
-                                    pop_totals=pop_totals_,
-                                    pop_size=pop_size,
-                                    control_outcome=control_outcome,
-                                    control_inference=control_inference,
-                                    verbose=verbose,
-                                    se=TRUE)
+        candidate_model <- outcome_method(y_nons = y_nons,
+                                          X_nons = X_nons,
+                                          X_rand = X_rand,
+                                          svydesign = svydesign,
+                                          weights=case_weights,
+                                          family_outcome=family_outcome,
+                                          start_outcome=start_outcome,
+                                          vars_selection=vars_selection,
+                                          pop_totals=pop_totals_,
+                                          pop_size=pop_size,
+                                          control_outcome=control_outcome,
+                                          control_inference=control_inference,
+                                          verbose=verbose,
+                                          se=TRUE)
 
         # variance
-        var_now <- model_obj$var_total
-        cond <- var_prev > var_now
-        var_prev <- var_now
+        var_now <- candidate_model$var_total
+
+        if (!is.na(var_now) && var_now < best_var) {
+          best_var <- var_now
+          best_k <- kk
+          best_model_obj <- candidate_model
+        }
+      }
+
+      if (is.null(best_model_obj)) {
+        stop("Unable to select `k`: all PMM candidate variances are missing.")
       }
 
       if (isTRUE(verbose)) {
-        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", kk))
+        message(paste("The `k` that minimises variance of the `pmm` MI estimator is:", best_k))
       }
 
-      control_outcome$k <- kk
-      model_obj <- outcome_method(y_nons = y_nons,
-                                  X_nons = X_nons,
-                                  X_rand = X_rand,
-                                  svydesign = svydesign,
-                                  weights=case_weights,
-                                  family_outcome=family_outcome,
-                                  start_outcome=start_outcome,
-                                  vars_selection=vars_selection,
-                                  pop_totals=pop_totals_,
-                                  pop_size=pop_size,
-                                  control_outcome=control_outcome,
-                                  control_inference=control_inference,
-                                  verbose=verbose,
-                                  se=se)
+      control_outcome$k <- best_k
+      model_obj <- if (isTRUE(se)) {
+        best_model_obj
+      } else {
+        outcome_method(y_nons = y_nons,
+                       X_nons = X_nons,
+                       X_rand = X_rand,
+                       svydesign = svydesign,
+                       weights=case_weights,
+                       family_outcome=family_outcome,
+                       start_outcome=start_outcome,
+                       vars_selection=vars_selection,
+                       pop_totals=pop_totals_,
+                       pop_size=pop_size,
+                       control_outcome=control_outcome,
+                       control_inference=control_inference,
+                       verbose=verbose,
+                       se=se)
+      }
+    } else {
+      model_args <- list(y_nons = y_nons,
+                         X_nons = X_nons,
+                         X_rand = X_rand,
+                         svydesign = svydesign,
+                         weights=case_weights,
+                         family_outcome=family_outcome,
+                         start_outcome=start_outcome,
+                         vars_selection=vars_selection,
+                         pop_totals=pop_totals_,
+                         pop_size=pop_size,
+                         control_outcome=control_outcome,
+                         control_inference=control_inference,
+                         verbose=verbose,
+                         se=se)
+      if (method_outcome == "nn" && !is.null(nn_matches)) {
+        model_args$nn_matches <- nn_matches
+      }
+      model_obj <- do.call(outcome_method, model_args)
     }
 
 
@@ -185,20 +247,24 @@ nonprob_mi <- function(outcome,
 
         if (isTRUE(control_inference$nn_exact_se) & method_outcome %in% c("pmm", "nn")) {
           ## mini-bootstrap as suggested in the MI-PMM paper
-          boot_obj_comp2 <- outcome_method(y_nons = y_nons,
-                                           X_nons = X_nons,
-                                           X_rand = X_rand,
-                                           svydesign = svydesign,
-                                           weights=case_weights,
-                                           family_outcome=family_outcome,
-                                           start_outcome=start_outcome,
-                                           vars_selection=vars_selection,
-                                           pop_totals=pop_totals_,
-                                           pop_size=pop_size,
-                                           control_outcome=control_outcome,
-                                           control_inference=control_inference,
-                                           verbose=verbose,
-                                           se=se)
+          comp2_args <- list(y_nons = y_nons,
+                             X_nons = X_nons,
+                             X_rand = X_rand,
+                             svydesign = svydesign,
+                             weights=case_weights,
+                             family_outcome=family_outcome,
+                             start_outcome=start_outcome,
+                             vars_selection=vars_selection,
+                             pop_totals=pop_totals_,
+                             pop_size=pop_size,
+                             control_outcome=control_outcome,
+                             control_inference=control_inference,
+                             verbose=verbose,
+                             se=se)
+          if (method_outcome == "nn" && !is.null(nn_matches)) {
+            comp2_args$nn_matches <- nn_matches
+          }
+          boot_obj_comp2 <- do.call(outcome_method, comp2_args)
 
           comp2 <- boot_obj_comp2$var_nonprob
         } else {

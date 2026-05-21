@@ -1,4 +1,3 @@
-#' @useDynLib nonprobsvy
 #' @import Rcpp
 #' @importFrom stats glm.fit
 #' @importFrom stats model.frame
@@ -134,8 +133,8 @@ nonprob_dr <- function(selection,
 
 
     ## combining variables for selection
-    selection_vars <- all.vars(formula.tools::rhs(outcome))
-    outcome_vars <- all.vars(formula.tools::rhs(selection))
+    outcome_vars <- all.vars(formula.tools::rhs(outcome))
+    selection_vars <- all.vars(formula.tools::rhs(selection))
     target_vars <- all.vars(formula.tools::lhs(outcome))
     combined_vars <- reformulate(union(selection_vars, outcome_vars))
 
@@ -153,6 +152,7 @@ nonprob_dr <- function(selection,
     bias_corr_results_ipw <- bias_corr_results_mi <- results_mi_combined <- results_ipw_combined <- list()
 
     bias_corr_ys_rand_pred  <- bias_corr_ys_nons_pred <- bias_corr_ys_resid <- list()
+    bias_corr_ipw_weights_list <- list()  # per-outcome 1/pi_hat for the eq.(25) DR variance
 
     mu_hat <- numeric()
 
@@ -163,64 +163,29 @@ nonprob_dr <- function(selection,
 
       if (bias_corr) {
 
-        ## consider different start
-        par0 <- numeric(NCOL(X_all)*2)
-        names(par0) <- rep(colnames(X_all), times = 2)
-
-        bias_corr_result <- nleqslv::nleqslv(
-          x = par0,
-          fn = u_theta_beta_dr,
-          method = control_selection$nleqslv_method,
-          global = control_selection$nleqslv_global,
-          xscalm = control_selection$nleqslv_xscalm,
-          jacobian = TRUE,
-          control = list(
-            scalex = rep(1, length(par0)),
-            maxit = control_selection$maxit
-          ),
+        bc <- run_bias_correction_one_outcome(
+          o = o,
+          X_all = X_all,
+          y_nons = y_nons,
           R = results_ipw$R,
-          X = X_all,
-          y = c(rep(0, sum(results_ipw$R==0)), y_nons[, o]),
-          weights = c(weights(svydesign_), results_ipw$case_weights),
+          case_weights_ipw = results_ipw$case_weights,
+          weights_rand = weights(svydesign_),
+          control_selection = control_selection,
+          method = method,
           method_selection = method_selection,
-          family_outcome = family_outcome
+          family_outcome = family_outcome,
+          pop_size = pop_size
         )
 
-        coefs_ipw_inds <- 1:NCOL(X_all)
-        coefs_mi_inds <- (NCOL(X_all) + 1):(2 * NCOL(X_all))
-
-        theta_hat <- bias_corr_result$x[coefs_ipw_inds]
-        beta_hat <- bias_corr_result$x[coefs_mi_inds]
-
-        bias_corr_ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
-        bias_corr_ipw_weights <- 1/bias_corr_ps[results_ipw$R == 1]
-        bias_corr_mu_rand_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw$R == 0, ] %*% beta_hat))
-        bias_corr_mu_nons_pred <- as.vector(get(family_outcome)()$linkinv(X_all[results_ipw$R == 1, ] %*% beta_hat))
-        bias_corr_mu_resid <- bias_corr_mu_nons_pred - y_nons[, o]
-
-        mu_hat[[o]] <- mu_hatDR(y_hat = weighted.mean(bias_corr_mu_rand_pred, weights(svydesign_)),
-                                y_resid = as.matrix(bias_corr_mu_resid),
-                                weights = results_ipw$case_weights,
-                                weights_nons = bias_corr_ipw_weights,
-                                N_nons = pop_size)
-
-
-        bias_corr_results_mi[[o]] <- bias_corr_result
-        bias_corr_results_ipw[[o]] <- bias_corr_result
-
-        bias_corr_results_mi[[o]]$x <- bias_corr_results_mi[[o]]$x[coefs_mi_inds]
-        bias_corr_results_mi[[o]]$fvec <- bias_corr_results_mi[[o]]$fvec[coefs_mi_inds]
-        bias_corr_results_mi[[o]]$scalex <- bias_corr_results_mi[[o]]$scalex[coefs_mi_inds]
-        bias_corr_results_mi[[o]]$jac <- bias_corr_results_mi[[o]]$jac[coefs_mi_inds, coefs_mi_inds]
-
-        bias_corr_results_ipw[[o]]$x <- bias_corr_results_ipw[[o]]$x[coefs_ipw_inds]
-        bias_corr_results_ipw[[o]]$fvec <- bias_corr_results_ipw[[o]]$fvec[coefs_ipw_inds]
-        bias_corr_results_ipw[[o]]$scalex <- bias_corr_results_ipw[[o]]$scalex[coefs_ipw_inds]
-        bias_corr_results_ipw[[o]]$jac <- bias_corr_results_ipw[[o]]$jac[coefs_ipw_inds, coefs_ipw_inds]
-
-        bias_corr_ys_rand_pred[[o]] <- bias_corr_mu_rand_pred
-        bias_corr_ys_nons_pred[[o]] <- bias_corr_mu_nons_pred
-        bias_corr_ys_resid[[o]] <- bias_corr_mu_resid
+        mu_hat[[o]] <- bc$mu_hat
+        bias_corr_results_mi[[o]] <- bc$result_mi
+        bias_corr_results_ipw[[o]] <- bc$result_ipw
+        bias_corr_ys_rand_pred[[o]] <- bc$bias_corr_mu_rand_pred
+        bias_corr_ys_nons_pred[[o]] <- bc$bias_corr_mu_nons_pred
+        bias_corr_ys_resid[[o]] <- bc$bias_corr_mu_resid
+        bias_corr_ipw_weights_list[[o]] <- bc$bias_corr_ipw_weights
+        bias_corr_ps <- bc$bias_corr_ps
+        bias_corr_ipw_weights <- bc$bias_corr_ipw_weights
 
       } else {
         ## this is not saved in the output list
@@ -272,6 +237,19 @@ nonprob_dr <- function(selection,
 
     if (se) {
 
+      # See the note below: the analytic DR variance is derived under the logistic model;
+      # for probit / cloglog it is conservative and may be unstable as fitted propensities -> 1.
+      if (control_inference$var_method == "analytic" && !is.null(method_selection) &&
+          method_selection != "logit" && is.null(pop_totals)) {
+        message(
+          "Note: the doubly robust analytic variance is derived under the logistic ",
+          "propensity model (Chen, Li & Wu 2020); for the '", method_selection,
+          "' link it is conservative (tends to over-estimate the standard error) and can ",
+          "be unstable when fitted propensities approach 1. Consider ",
+          "control_inf(var_method = 'bootstrap') for probit/cloglog doubly robust inference."
+        )
+      }
+
       for (o in outcomes$f) {
 
         if (control_inference$var_method == "analytic") {
@@ -283,7 +261,7 @@ nonprob_dr <- function(selection,
                                 "binomial" = bias_corr_ys_rand_pred[[o]]*(1-bias_corr_ys_rand_pred[[o]]),
                                 "poisson"  = bias_corr_ys_rand_pred[[o]])
 
-            var_nonprob <- 1/pop_size^2*(sum((results_ipw$case_weights^2 - 2*results_ipw$case_weights)*(bias_corr_ys_resid[[o]]^2)) +
+            var_nonprob <- 1/pop_size^2*(sum((bias_corr_ipw_weights_list[[o]]^2 - 2*bias_corr_ipw_weights_list[[o]])*(bias_corr_ys_resid[[o]]^2)) +
                                            sum(sigma_hat*weights(svydesign_)))
 
             if (is.null(pop_totals)) {
@@ -300,7 +278,8 @@ nonprob_dr <- function(selection,
           } else {
             ps_ <- results_ipw_combined[[o]]$ps_scores[results_ipw_combined[[o]]$R == 1]
             psd_ <- as.numeric(results_ipw_combined[[o]]$selection$selection_model$ps_nons_der)
-            y_ <- results_mi_combined[[o]]$y[[o]]
+            # Each combined MI fit is single-outcome, so its stored lists have length 1.
+            y_ <- results_mi_combined[[o]]$y[[1]]
             X_ <- results_ipw_combined[[o]]$X[results_ipw_combined[[o]]$R == 1, ]
             y_pred_ <- results_mi_combined[[o]]$ys_nons_pred[[1]]
             h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
@@ -315,14 +294,15 @@ nonprob_dr <- function(selection,
               h_n = h_n_,
               y_pred = y_pred_,
               weights = case_weights,
-              verbose = verbose
+              verbose = verbose,
+              N = pop_size
             )
 
             var_nonprob <- estimation_method$make_var_nonprob(
               ps = ps_,
               psd = psd_,
               y = y_,
-              y_pred = results_mi_combined[[o]]$ys_nons_pred[[o]],
+              y_pred = results_mi_combined[[o]]$ys_nons_pred[[1]],
               h_n = h_n_,
               X = X_,
               b = b_var,
@@ -363,8 +343,8 @@ nonprob_dr <- function(selection,
           SE_values[[o]] <- data.frame(prob = se_prob, nonprob = se_nonprob)
           z <- stats::qnorm(1 - control_inference$alpha / 2)
           # confidence interval based on the normal approximation
-          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat - z * sqrt(var_total),
-                                                 upper_bound = mu_hat + z * sqrt(var_total))
+          confidence_interval[[o]] <- data.frame(lower_bound = mu_hat[o] - z * sqrt(var_total),
+                                                 upper_bound = mu_hat[o] + z * sqrt(var_total))
           output[[o]] <- data.frame(mean = mu_hat[o], SE = sqrt(var_total))
         }
       }
@@ -372,6 +352,13 @@ nonprob_dr <- function(selection,
       if (control_inference$var_method == "bootstrap") {
 
           ## variable selection should and combination should be done within `boot_dr` function
+          ## warm-start the per-replicate KH joint solver from the original-data fit (closes #119)
+          bias_corr_start <- if (bias_corr) {
+            stats::setNames(
+              lapply(outcomes$f, function(o) c(bias_corr_results_ipw[[o]]$x, bias_corr_results_mi[[o]]$x)),
+              outcomes$f
+            )
+          } else NULL
           boot_obj <- boot_dr(selection = selection,
                               outcome = outcome,
                               target = reformulate(outcomes[[1]]),
@@ -392,7 +379,8 @@ nonprob_dr <- function(selection,
                               start_outcome = start_outcome,
                               start_selection = start_selection,
                               verbose = verbose,
-                              pop_size_fixed = pop_size_fixed)
+                              pop_size_fixed = pop_size_fixed,
+                              bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -451,74 +439,160 @@ nonprob_dr <- function(selection,
                                se = FALSE,
                                pop_size_fixed = pop_size_fixed)
 
-    ## doubly robust estimator
-    mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
-                       y_resid = do.call("cbind", results_mi$ys_resid),
-                       weights = case_weights,
-                       weights_nons = results_ipw$ipw_weights,
-                       N_nons = pop_size)
+    if (bias_corr) {
+
+      ## Kim & Haziza (2014) joint estimator: union of outcome and selection
+      ## covariates, fitted jointly via the same Yang-Kim-Song eq. (9) system
+      ## already used by the if-branch.
+      outcome_vars <- all.vars(formula.tools::rhs(outcome))
+      selection_vars <- all.vars(formula.tools::rhs(selection))
+      target_vars <- all.vars(formula.tools::lhs(outcome))
+      combined_vars <- reformulate(union(selection_vars, outcome_vars))
+
+      y_nons <- subset(data, select = target_vars)
+      X_nons <- model.matrix(combined_vars, data)
+      X_rand <- model.matrix(combined_vars, svydesign$variables)
+      X_all <- rbind(X_rand, X_nons)
+      R_bc <- c(rep(0, NROW(X_rand)), rep(1, NROW(X_nons)))
+
+      bias_corr_results_mi <- bias_corr_results_ipw <- list()
+      bias_corr_ys_rand_pred <- bias_corr_ys_nons_pred <- bias_corr_ys_resid <- list()
+      bias_corr_ipw_weights_list <- list()  # per-outcome 1/pi_hat for the eq.(25) DR variance
+      mu_hat <- numeric()
+
+      for (o in outcomes$f) {
+        bc <- run_bias_correction_one_outcome(
+          o = o,
+          X_all = X_all,
+          y_nons = y_nons,
+          R = R_bc,
+          case_weights_ipw = results_ipw$case_weights,
+          weights_rand = weights(svydesign),
+          control_selection = control_selection,
+          method = method,
+          method_selection = method_selection,
+          family_outcome = family_outcome,
+          pop_size = pop_size
+        )
+
+        mu_hat[[o]] <- bc$mu_hat
+        bias_corr_results_mi[[o]] <- bc$result_mi
+        bias_corr_results_ipw[[o]] <- bc$result_ipw
+        bias_corr_ys_rand_pred[[o]] <- bc$bias_corr_mu_rand_pred
+        bias_corr_ys_nons_pred[[o]] <- bc$bias_corr_mu_nons_pred
+        bias_corr_ys_resid[[o]] <- bc$bias_corr_mu_resid
+        bias_corr_ipw_weights_list[[o]] <- bc$bias_corr_ipw_weights
+        bias_corr_ps <- bc$bias_corr_ps
+        bias_corr_ipw_weights <- bc$bias_corr_ipw_weights
+      }
+
+    } else {
+
+      ## doubly robust estimator
+      mu_hat <- mu_hatDR(y_hat = results_mi$output$mean,
+                         y_resid = do.call("cbind", results_mi$ys_resid),
+                         weights = case_weights,
+                         weights_nons = results_ipw$ipw_weights,
+                         N_nons = pop_size)
+    }
 
     if (se) {
       if (control_inference$var_method == "analytic") {
+        # The plug-in DR analytic variance (Chen, Li & Wu 2020, Thm 2 / eq. 14) is derived
+        # under the LOGISTIC propensity model. For probit / cloglog the probability-sample
+        # (design) variance component is conservative -- it over-estimates the SE and can be
+        # numerically unstable when fitted propensities approach 1 -- so recommend bootstrap.
+        if (!is.null(method_selection) && method_selection != "logit" && is.null(pop_totals)) {
+          message(
+            "Note: the doubly robust analytic variance is derived under the logistic ",
+            "propensity model (Chen, Li & Wu 2020); for the '", method_selection,
+            "' link it is conservative (tends to over-estimate the standard error) and can ",
+            "be unstable when fitted propensities approach 1. Consider ",
+            "control_inf(var_method = 'bootstrap') for probit/cloglog doubly robust inference."
+          )
+        }
         for (o in 1:outcomes$l) {
 
-          ps_ <- results_ipw$ps_scores[results_ipw$R == 1]
-          psd_ <- as.numeric(results_ipw$selection$selection_model$ps_nons_der)
-          y_ <- results_mi$y[[o]]
-          X_ <- results_ipw$X[results_ipw$R == 1, ]
-          y_pred_ <- results_mi$ys_nons_pred[[1]]
-          h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
+          if (bias_corr) {
 
-          b_var <- method$b_vec_dr(
-            X = X_,
-            ps = ps_,
-            psd = psd_,
-            y = y_,
-            hess = results_ipw$selection$selection_model$hess,
-            eta = as.numeric(X_ %*% as.matrix(results_ipw$selection$coefficients)),
-            h_n = h_n_,
-            y_pred = y_pred_,
-            weights = case_weights,
-            verbose = verbose
-          )
+            yname <- outcomes$f[o]
+            sigma_hat <- switch(family_outcome,
+                                "gaussian" = mean((bias_corr_ys_resid[[yname]])^2),
+                                "binomial" = bias_corr_ys_rand_pred[[yname]] * (1 - bias_corr_ys_rand_pred[[yname]]),
+                                "poisson" = bias_corr_ys_rand_pred[[yname]])
 
-          var_nonprob <- estimation_method$make_var_nonprob(
-            ps = ps_,
-            psd = psd_,
-            y = y_,
-            y_pred = results_mi$ys_nons_pred[[o]],
-            h_n = h_n_,
-            X = X_,
-            b = b_var,
-            N = pop_size,
-            gee_h_fun = control_selection$gee_h_fun,
-            method_selection = method_selection,
-            weights = case_weights,
-            pop_totals = pop_totals
-          )
+            var_nonprob <- 1 / pop_size^2 * (sum((bias_corr_ipw_weights_list[[yname]]^2 - 2 * bias_corr_ipw_weights_list[[yname]]) * (bias_corr_ys_resid[[yname]]^2)) +
+                                               sum(sigma_hat * weights(svydesign)))
 
-
-
-          if (is.null(pop_totals)) {
-            t_comp <- estimation_method$make_t_comp(
-              X = results_ipw$X[results_ipw$R == 0, ],
-              ps = as.numeric(results_ipw$selection$selection_model$est_ps_rand),
-              psd = as.numeric(results_ipw$selection$selection_model$est_ps_rand_der),
-              b = b_var,
-              gee_h_fun = control_selection$gee_h_fun,
-              y_rand = results_mi$ys_rand_pred[[o]],
-              y_nons = results_mi$ys_nons_pred[[o]],
-              N = pop_size,
-              method_selection = method_selection,
-              weights = case_weights
-            )
-
-            svydesign_ <- stats::update(svydesign, t_comp = t_comp)
-            svydesign_mean <- survey::svymean(~t_comp, svydesign)
-            var_prob <- as.vector(attr(svydesign_mean, "var"))
+            if (is.null(pop_totals)) {
+              svydesign <- stats::update(svydesign, y_rand = bias_corr_ys_rand_pred[[yname]])
+              svydesign_mean <- survey::svymean(~y_rand, svydesign)
+              var_prob <- as.vector(attr(svydesign_mean, "var"))
+            } else {
+              var_prob <- 0
+            }
 
           } else {
-            var_prob <- 0
+
+            ps_ <- results_ipw$ps_scores[results_ipw$R == 1]
+            psd_ <- as.numeric(results_ipw$selection$selection_model$ps_nons_der)
+            y_ <- results_mi$y[[o]]
+            X_ <- results_ipw$X[results_ipw$R == 1, ]
+            y_pred_ <- results_mi$ys_nons_pred[[o]]
+            h_n_ <- 1 / pop_size * sum(y_ - y_pred_)
+
+            b_var <- method$b_vec_dr(
+              X = X_,
+              ps = ps_,
+              psd = psd_,
+              y = y_,
+              hess = results_ipw$selection$selection_model$hess,
+              eta = as.numeric(X_ %*% as.matrix(results_ipw$selection$coefficients)),
+              h_n = h_n_,
+              y_pred = y_pred_,
+              weights = case_weights,
+              verbose = verbose,
+              N = pop_size
+            )
+
+            var_nonprob <- estimation_method$make_var_nonprob(
+              ps = ps_,
+              psd = psd_,
+              y = y_,
+              y_pred = results_mi$ys_nons_pred[[o]],
+              h_n = h_n_,
+              X = X_,
+              b = b_var,
+              N = pop_size,
+              gee_h_fun = control_selection$gee_h_fun,
+              method_selection = method_selection,
+              weights = case_weights,
+              pop_totals = pop_totals
+            )
+
+
+
+            if (is.null(pop_totals)) {
+              t_comp <- estimation_method$make_t_comp(
+                X = results_ipw$X[results_ipw$R == 0, ],
+                ps = as.numeric(results_ipw$selection$selection_model$est_ps_rand),
+                psd = as.numeric(results_ipw$selection$selection_model$est_ps_rand_der),
+                b = b_var,
+                gee_h_fun = control_selection$gee_h_fun,
+                y_rand = results_mi$ys_rand_pred[[o]],
+                y_nons = results_mi$ys_nons_pred[[o]],
+                N = pop_size,
+                method_selection = method_selection,
+                weights = case_weights
+              )
+
+              svydesign_ <- stats::update(svydesign, t_comp = t_comp)
+              svydesign_mean <- survey::svymean(~t_comp, svydesign_)
+              var_prob <- as.vector(attr(svydesign_mean, "var"))
+
+            } else {
+              var_prob <- 0
+            }
           }
 
           var_total <- var_nonprob + var_prob
@@ -535,6 +609,13 @@ nonprob_dr <- function(selection,
 
       if (control_inference$var_method == "bootstrap") {
 
+        ## warm-start the per-replicate KH joint solver from the original-data fit (closes #119)
+        bias_corr_start <- if (bias_corr) {
+          stats::setNames(
+            lapply(outcomes$f, function(o) c(bias_corr_results_ipw[[o]]$x, bias_corr_results_mi[[o]]$x)),
+            outcomes$f
+          )
+        } else NULL
         boot_obj <- boot_dr(selection = selection,
                             outcome = outcome,
                             target = reformulate(outcomes[[1]]),
@@ -555,7 +636,8 @@ nonprob_dr <- function(selection,
                             start_outcome = start_outcome,
                             start_selection = start_selection,
                             verbose = verbose,
-                            pop_size_fixed = pop_size_fixed)
+                            pop_size_fixed = pop_size_fixed,
+                            bias_corr_start = bias_corr_start)
 
         var_total <- apply(boot_obj, 2, var)
         SE_values <- replicate(NROW(outcomes[[1]]), data.frame(nonprob = NA, prob = NA), simplify = F)
@@ -633,6 +715,100 @@ nonprob_dr <- function(selection,
 }
 
 
+# Internal helper that performs the Kim & Haziza (2014) / Yang, Kim & Song (2020)
+# joint estimation of (theta, beta) for a single outcome `o`, given the joint
+# design matrix `X_all` (rows ordered as prob-sample followed by non-prob-sample),
+# the matrix of outcomes `y_nons`, the inclusion indicator `R`, and case weights.
+#
+# Returns a list containing per-outcome mu_hat plus all artefacts needed by the
+# downstream variance and result-struct code (predicted means, residuals,
+# bias-corrected propensity scores and ipw weights, and stripped-down nleqslv
+# result objects for the IPW and MI blocks).
+run_bias_correction_one_outcome <- function(o,
+                                            X_all,
+                                            y_nons,
+                                            R,
+                                            case_weights_ipw,
+                                            weights_rand,
+                                            control_selection,
+                                            method,
+                                            method_selection,
+                                            family_outcome,
+                                            pop_size,
+                                            par_init = NULL) {
+
+  ## warm-start the joint (theta, beta) solve from `par_init` (e.g. the
+  ## original-data fit) when supplied and conformable; otherwise cold-start.
+  par0 <- if (is.null(par_init) || length(par_init) != NCOL(X_all) * 2) {
+    numeric(NCOL(X_all) * 2)
+  } else {
+    as.numeric(par_init)
+  }
+  names(par0) <- rep(colnames(X_all), times = 2)
+
+  bias_corr_result <- nleqslv::nleqslv(
+    x = par0,
+    fn = u_theta_beta_dr,
+    method = control_selection$nleqslv_method,
+    global = control_selection$nleqslv_global,
+    xscalm = control_selection$nleqslv_xscalm,
+    jacobian = TRUE,
+    control = list(
+      scalex = rep(1, length(par0)),
+      maxit = control_selection$maxit
+    ),
+    R = R,
+    X = X_all,
+    y = c(rep(0, sum(R == 0)), y_nons[, o]),
+    weights = c(weights_rand, case_weights_ipw),
+    method_selection = method_selection,
+    family_outcome = family_outcome
+  )
+
+  coefs_ipw_inds <- seq_len(NCOL(X_all))
+  coefs_mi_inds <- (NCOL(X_all) + 1):(2 * NCOL(X_all))
+
+  theta_hat <- bias_corr_result$x[coefs_ipw_inds]
+  beta_hat <- bias_corr_result$x[coefs_mi_inds]
+
+  ps <- method$make_link_inv(unname(drop(X_all %*% theta_hat)))
+  ipw_w <- 1 / ps[R == 1]
+  family_obj <- get(family_outcome)()
+  yhr <- as.vector(family_obj$linkinv(X_all[R == 0, , drop = FALSE] %*% beta_hat))
+  yhn <- as.vector(family_obj$linkinv(X_all[R == 1, , drop = FALSE] %*% beta_hat))
+  resid <- yhn - y_nons[, o]
+
+  mu_o <- mu_hatDR(y_hat = weighted.mean(yhr, weights_rand),
+                   y_resid = as.matrix(resid),
+                   weights = case_weights_ipw,
+                   weights_nons = ipw_w,
+                   N_nons = pop_size)
+
+  result_ipw <- bias_corr_result
+  result_ipw$x <- bias_corr_result$x[coefs_ipw_inds]
+  result_ipw$fvec <- bias_corr_result$fvec[coefs_ipw_inds]
+  result_ipw$scalex <- bias_corr_result$scalex[coefs_ipw_inds]
+  result_ipw$jac <- bias_corr_result$jac[coefs_ipw_inds, coefs_ipw_inds]
+
+  result_mi <- bias_corr_result
+  result_mi$x <- bias_corr_result$x[coefs_mi_inds]
+  result_mi$fvec <- bias_corr_result$fvec[coefs_mi_inds]
+  result_mi$scalex <- bias_corr_result$scalex[coefs_mi_inds]
+  result_mi$jac <- bias_corr_result$jac[coefs_mi_inds, coefs_mi_inds]
+
+  list(
+    mu_hat = mu_o,
+    result_ipw = result_ipw,
+    result_mi = result_mi,
+    bias_corr_ps = ps,
+    bias_corr_ipw_weights = ipw_w,
+    bias_corr_mu_rand_pred = yhr,
+    bias_corr_mu_nons_pred = yhn,
+    bias_corr_mu_resid = resid
+  )
+}
+
+
 # Internal function for fitting the parameters for joint estimation
 # par - starting parameters
 # R - inclusion information
@@ -681,4 +857,3 @@ u_theta_beta_dr <- function(par,
 
   utb
 }
-

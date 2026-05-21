@@ -1,5 +1,19 @@
 source("_code_for_all_.R")
 
+expect_joint_matches_single_outcomes <- function(joint_fit, single_fits) {
+  for (outcome_name in names(single_fits)) {
+    expect_equal(
+      joint_fit$output[outcome_name, , drop = FALSE],
+      single_fits[[outcome_name]]$output
+    )
+
+    expect_equal(
+      joint_fit$confidence_interval[outcome_name, , drop = FALSE],
+      single_fits[[outcome_name]]$confidence_interval
+    )
+  }
+}
+
 # unit-level data ---------------------------------------------------------
 
 ### ipw mle ---------------------------------------------------------------------
@@ -7,6 +21,20 @@ source("_code_for_all_.R")
 ipw_mle <- nonprob(
   selection = ~x1 + x2,
   target = ~y1 + y2,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit")
+
+ipw_mle_y1 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y1,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit")
+
+ipw_mle_y2 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y2,
   svydesign = kim2019_sample_prob,
   data = kim2019_sample_nonprob,
   method_selection = "logit")
@@ -19,12 +47,18 @@ expect_equal(
 
 expect_equal(
   ipw_mle$output$mean,
-  c(3.01644580705596, 1.63078036928783)
+  c(3.00991695777103, 1.62725067907328)
 )
 
 expect_equal(
   ipw_mle$output$SE,
-  c(0.0524674811724362, 0.0524674811724362)
+  c(0.0731923448459133, 0.0591138403632744),
+  tolerance = 1e-6
+)
+
+expect_joint_matches_single_outcomes(
+  ipw_mle,
+  list(y1 = ipw_mle_y1, y2 = ipw_mle_y2)
 )
 
 
@@ -41,6 +75,24 @@ suppressWarnings(
   control_selection = control_sel(est_method = "gee"))
 )
 
+ipw_gee_y1 <- suppressWarnings(nonprob(
+  selection = ~x1 + x2,
+  target = ~y1,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee")
+))
+
+ipw_gee_y2 <- suppressWarnings(nonprob(
+  selection = ~x1 + x2,
+  target = ~y2,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee")
+))
+
 expect_equal(
   ipw_gee$confidence_interval$lower_bound < kim2019_y_true &
   ipw_gee$confidence_interval$upper_bound > kim2019_y_true,
@@ -54,13 +106,37 @@ expect_equal(
 
 expect_equal(
   ipw_gee$output$SE,
-  c(0.0498758624332513, 0.0498758624332513)
+  c(0.0621757059224564, 0.0495505243454758),
+  tolerance = 1e-6
+)
+
+expect_joint_matches_single_outcomes(
+  ipw_gee,
+  list(y1 = ipw_gee_y1, y2 = ipw_gee_y2)
 )
 
 
 ipw_gee_h <- nonprob(
   selection = ~x1 + x2,
   target = ~y1 + y2,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 2,
+                                  nleqslv_method = "Newton"))
+
+ipw_gee_h_y1 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y1,
+  svydesign = kim2019_sample_prob,
+  data = kim2019_sample_nonprob,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 2,
+                                  nleqslv_method = "Newton"))
+
+ipw_gee_h_y2 <- nonprob(
+  selection = ~x1 + x2,
+  target = ~y2,
   svydesign = kim2019_sample_prob,
   data = kim2019_sample_nonprob,
   method_selection = "logit",
@@ -80,7 +156,13 @@ expect_equal(
 
 expect_equal(
   ipw_gee_h$output$SE,
-  c(0.0524674811523142, 0.0524674811523142)
+  c(0.0701529045109258, 0.0521503026169746),
+  tolerance = 1e-6
+)
+
+expect_joint_matches_single_outcomes(
+  ipw_gee_h,
+  list(y1 = ipw_gee_h_y1, y2 = ipw_gee_h_y2)
 )
 
 ### mi glm
@@ -201,5 +283,3 @@ expect_equal(
   mi_glm$confidence_interval$upper_bound > kim2019_y_true,
   c(TRUE, TRUE)
 )
-
-

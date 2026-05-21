@@ -55,7 +55,8 @@ Details on the use of the package can be found:
 - see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
   (2025). *nonprobsvy–An R package for modern methods for
   non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
+  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcomming to
+  the Journal of Statistical Software
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
   R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
@@ -69,7 +70,7 @@ You can install the recent version of `nonprobsvy` package from main
 branch [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
-remotes::install_github("ncn-foreigners/nonprobsvy")
+pak::pkg_install("ncn-foreigners/nonprobsvy")
 ```
 
 or install the stable version from
@@ -82,25 +83,34 @@ install.packages("nonprobsvy")
 or development version from the `dev` branch
 
 ``` r
-remotes::install_github("ncn-foreigners/nonprobsvy@dev")
+pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ```
 
 ## Basic idea
 
 Consider the following setting where two samples are available:
 non-probability (denoted as $S_A$) and probability (denoted as $S_B$)
-where set of auxiliary variables (denoted as $\boldsymbol{X}$) is
-available for both sources while $Y$ and $\boldsymbol{d}$ (or
-$\boldsymbol{w}$) is present only in probability sample.
+where a set of auxiliary variables (denoted as $\boldsymbol{X}$) is
+available for both sources, the target variable $Y$ is observed in the
+non-probability sample, and design or calibrated weights
+($\boldsymbol{d}$ or $\boldsymbol{w}$) are observed in the probability
+sample.
 
-| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
-|----|---:|:--:|:--:|:--:|
-| $S_A$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
-|  | … | $\checkmark$ | $\checkmark$ | ? |
-|  | $n_A$ | $\checkmark$ | $\checkmark$ | ? |
-| $S_B$ (probability) | $n_A+1$ | $\checkmark$ | ? | $\checkmark$ |
-|  | … | $\checkmark$ | ? | $\checkmark$ |
-|  | $n_A+n_B$ | $\checkmark$ | ? | $\checkmark$ |
+| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
+| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
+| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+
+The current implementation does not use target-variable values from the
+probability sample. Data structures where $Y$ is observed in both
+samples, or where overlapping units must be linked across samples, are
+not currently implemented. The `dependence` and `key` arguments in
+`control_sel()` are reserved for future overlap handling and currently
+raise a “not yet implemented” error if set.
 
 ## Basic functionalities
 
@@ -120,381 +130,325 @@ possible scenarios:
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample $S_A$ and
-  the probability sample $S_B$, i.e. $(y_k,\boldsymbol{x}_k,R_k)$ is
-  determined by the data. is determined by the data: $R_k=1$ if
-  $k \in S_A$ otherwise $R_k=0$, $y_k$ is observed only for sample $S_A$
-  and $\boldsymbol{x}_k$ is observed in both in both $S_A$ and $S_B$,
+  the probability sample $S_B$, i.e. $(\boldsymbol{x}_k,R_k)$ is
+  determined by the data: $R_k=1$ if $k \in S_A$ otherwise $R_k=0$,
+  $y_k$ is observed only for sample $S_A$ and $\boldsymbol{x}_k$ is
+  observed in both $S_A$ and $S_B$.
+
+Supported target-variable types depend on the estimator family:
+
+| Estimator family                                                   | Supported target variable `Y`                                                                                                           |
+|--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| IPW                                                                | Numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted. |
+| Mass imputation with `method_outcome = "glm"`                      | Continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.                             |
+| Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"` | Numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported.                                       |
+| Doubly robust                                                      | GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.                                               |
+
+The compact examples below use the built-in `admin` non-probability
+sample and `jvs` probability sample.
+
+``` r
+library(survey)
+library(nonprobsvy)
+data(admin)
+data(jvs)
+
+prob <- svydesign(
+  ids = ~1,
+  weights = ~weight,
+  strata = ~size + nace + region,
+  data = jvs
+)
+pop_totals <- colSums(model.matrix(~region + private + nace + size, jvs) * jvs$weight)
+```
 
 ### When unit-level data is available for non-probability survey only
 
 <table class='table'>
-
 <tr>
-
 <th>
-
 Estimator
 </th>
-
 <th>
-
 Example code
 </th>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  outcome = y ~ x1 + x2 + ... + xk,
-  data = nonprob,
-  pop_totals = c(`(Intercept)`= N,
-                 x1 = tau_x1,
-                 x2 = tau_x2,
-                 ...,
-                 xk = tau_xk),
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  pop_totals = pop_totals,
   method_outcome = "glm",
-  family_outcome = "gaussian"
+  family_outcome = "binomial",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  pop_totals = c(`(Intercept)` = N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  method_selection = "logit"
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  data = admin,
+  pop_totals = pop_totals,
+  method_selection = "logit",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  pop_totals = c(`(Intercept)`= N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  method_selection = "logit", 
-  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  data = admin,
+  pop_totals = pop_totals,
+  method_selection = "logit",
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + …, + xk, 
-  pop_totals = c(`(Intercept)` = N, 
-                 x1 = tau_x1, 
-                 x2 = tau_x2, 
-                 ..., 
-                 xk = tau_xk), 
-  svydesign = prob, 
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  pop_totals = pop_totals,
   method_outcome = "glm", 
-  family_outcome = "gaussian"
+  family_outcome = "binomial",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 </table>
 
 ### When unit-level data are available for both surveys
 
 <table class='table'>
-
 <tr>
-
 <th>
-
 Estimator
 </th>
-
 <th>
-
 Example code
 </th>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  svydesign = prob,
   method_outcome = "glm", 
-  family_outcome = "gaussian"
+  family_outcome = "binomial",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on nearest neighbour imputation
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  svydesign = prob,
   method_outcome = "nn", 
-  family_outcome = "gaussian", 
-  control_outcome = control_outcome(k = 2)
+  control_outcome = control_out(k = 2),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on predictive mean matching
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  svydesign = prob,
   method_outcome = "pmm", 
-  family_outcome = "gaussian"
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Mass imputation based on regression imputation with variable selection
 (LASSO)
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "pmm", 
-  family_outcome = "gaussian", 
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  svydesign = prob,
+  method_outcome = "glm",
+  family_outcome = "binomial",
   control_outcome = control_out(penalty = "lasso"), 
-  control_inference = control_inf(vars_selection = TRUE)
+  control_inference = control_inf(vars_selection = TRUE),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_selection = "logit"
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  data = admin,
+  svydesign = prob,
+  method_selection = "logit",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  data = admin,
+  svydesign = prob,
   method_selection = "logit", 
-  control_selection = control_sel(est_method = "gee", gee_h_fun = 1)
+  control_selection = control_sel(est_method = "gee", gee_h_fun = 1),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Inverse probability weighting with calibration constraint with variable
 selection (SCAD)
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection =  ~ x1 + x2 + ... + xk, 
-  target = ~ y, 
-  data = nonprob, 
-  svydesign = prob, 
-  method_outcome = "pmm", 
-  family_outcome = "gaussian", 
-  control_inference = control_inf(vars_selection = TRUE)
+  selection = ~region + private + nace + size,
+  target = ~single_shift,
+  data = admin,
+  svydesign = prob,
+  method_selection = "logit",
+  control_selection = control_sel(penalty = "SCAD"),
+  control_inference = control_inf(vars_selection = TRUE),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
-  svydesign = prob, 
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
+  svydesign = prob,
   method_outcome = "glm", 
-  family_outcome = "gaussian"
+  family_outcome = "binomial",
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 <tr>
-
 <td>
-
 Doubly robust estimator with variable selection (SCAD) and bias
 minimization
 </td>
-
 <td>
 
 ``` r
 nonprob(
-  selection = ~ x1 + x2 + ... + xk, 
-  outcome = y ~ x1 + x2 + ... + xk, 
-  data = nonprob, 
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  data = admin,
   svydesign = prob,
   method_outcome = "glm", 
-  family_outcome = "gaussian", 
+  family_outcome = "binomial",
   control_inference = control_inf(
     vars_selection = TRUE, 
+    vars_combine = TRUE,
     bias_correction = TRUE
-  )
+  ),
+  se = FALSE
 )
 ```
 
 </td>
-
 <tr>
-
 </table>
 
 ## Examples
@@ -583,7 +537,7 @@ result_dr
 #>    - variable y2: 1.8087
 #>  - selected estimators:
 #>    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))
-#>    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))
+#>    - variable y2: 1.5762 (se=0.0313, ci=(1.5150, 1.6375))
 ```
 
 Mass imputation estimator
@@ -617,6 +571,11 @@ result_mi
 
 Inverse probability weighting estimator
 
+For IPW, MLE without a fixed `pop_size`, `pop_totals`, or `pop_means`
+uses the Hajek-type estimator. Supplying a fixed population size uses
+the Horvitz-Thompson-type estimator, while IPW-GEE with a reference
+survey uses `sum(weights(svydesign))` as the denominator.
+
 ``` r
 result_ipw <- nonprob(
   selection = ~ x2,
@@ -632,6 +591,7 @@ result_ipw
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -640,8 +600,8 @@ result_ipw
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9981 (se=0.0137, ci=(2.9713, 3.0249))
-#>    - variable y2: 1.5906 (se=0.0137, ci=(1.5639, 1.6174))
+#>    - variable y1: 2.9248 (se=0.0500, ci=(2.8269, 3.0227))
+#>    - variable y2: 1.5517 (se=0.0499, ci=(1.4539, 1.6496))
 ```
 
 ## Funding

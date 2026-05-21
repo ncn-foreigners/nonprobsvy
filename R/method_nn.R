@@ -1,7 +1,7 @@
 #' @title Mass Imputation Using Nearest Neighbours Matching Method
 #'
 #' @importFrom stats update
-#' @importFrom survey svymean
+#' @importFrom survey svytotal
 #' @importFrom stats weighted.mean
 #' @importFrom RANN nn2
 #'
@@ -9,7 +9,13 @@
 #' @description Mass imputation using nearest neighbours approach as described in Yang et al. (2021).
 #' The implementation is currently based on [RANN::nn2] function and thus it uses
 #' Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability).
-#' Estimation of the mean is done using \eqn{S_B} sample.
+#' Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
+#' are not selected only by input row order. Estimation of the mean is done using \eqn{S_B} sample:
+#' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+#' The `pop_size` argument is not converted into a finite population correction;
+#' if an fpc is needed, it should be supplied in `svydesign`, where it is handled
+#' by the `{survey}` variance routines.
 #'
 #'
 #' @details Analytical variance
@@ -26,14 +32,18 @@
 #'
 #' where \eqn{\hat{\pi}_B(\boldsymbol{x}_i)} is an estimator of propensity scores which
 #' we currently estimate using \eqn{n_A/N} (constant) and \eqn{\hat{\sigma}^2(\boldsymbol{x}_i)} is
-#' estimated using based on the average of \eqn{(y_i - y_i^*)^2}.
+#' estimated using based on the average of \eqn{(y_i - y_i^*)^2}. The \eqn{y_i^*}
+#' values used in this proxy are obtained by leave-one-out matching in \eqn{S_A},
+#' so a unit is not used as its own donor.
 #'
 #' Chlebicki et al. (2025, Algorithm 2) proposed non-parametric mini-bootstrap estimator
 #' (without assuming that it is consistent) but with good finite population properties.
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
+#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+#'    If non-constant pseudo-weights are supplied through `weights`, sampling probabilities
+#'    are proportional to their inverses; equal weights use uniform resampling.
 #' 2. Match units from \eqn{S_B} to \eqn{S_A'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
 #' 3. Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_B} d_i y_i^*}.
 #' 4. Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).
@@ -58,16 +68,24 @@
 #' @param X_nons a `model.matrix` with auxiliary variables from non-probability sample
 #' @param X_rand a `model.matrix` with auxiliary variables from non-probability sample
 #' @param svydesign a svydesign object
-#' @param weights case / frequency weights from non-probability sample
+#' @param weights case / frequency weights from non-probability sample. If `nn_exact_se=TRUE`,
+#'   non-constant weights also define mini-bootstrap sampling probabilities proportional
+#'   to their inverses.
 #' @param family_outcome a placeholder (not used in `method_nn`)
 #' @param start_outcome a placeholder (not used in `method_nn`)
 #' @param vars_selection whether variable selection should be conducted
 #' @param pop_totals a placeholder (not used in `method_nn`)
-#' @param pop_size population size from the `nonprob` function
+#' @param pop_size population size from the `nonprob` function. If `NULL`, the
+#'   method uses `sum(weights(svydesign))`. If supplied, it is used as the
+#'   known-\eqn{N} denominator for the mean and variance scaling, but it does not
+#'   modify the finite population correction of `svydesign`.
 #' @param control_outcome controls passed by the `control_out` function
 #' @param control_inference controls passed by the `control_inf` function
 #' @param verbose parameter passed from the main `nonprob` function
 #' @param se whether standard errors should be calculated
+#' @param nn_matches optional precomputed nearest-neighbour search results for
+#'   internal reuse across outcomes. If supplied, it should be a list with
+#'   `rand` and `nons` entries from [RANN::nn2()].
 #'
 #' @returns an `nonprob_method` class which is a `list` with the following entries
 #'
@@ -81,7 +99,7 @@
 #'   \item{vars_selection}{whether variable selection was performed (not implemented, for further development)}
 #'   \item{var_prob}{variance for the probability sample component (if available)}
 #'   \item{var_nonprob}{variance for the non-probability sample component}
-#'   \item{var_tot}{total variance, if possible it should be `var_prob+var_nonprob` if not, just a scalar}
+#'   \item{var_total}{total variance, if possible it should be `var_prob+var_nonprob` if not, just a scalar}
 #'   \item{model}{model type (character `"nn"`)}
 #'   \item{family}{placeholder for the `NN approach` information}
 #' }
@@ -96,14 +114,18 @@
 #'
 #' @examples
 #'
-#' data(admin)
-#' data(jvs)
-#' jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+#' sample_a <- data.frame(y = c(1, 0, 1, 0, 1), x = c(0, 1, 2, 3, 4))
+#' sample_b <- data.frame(x = c(0.5, 1.5, 2.5, 3.5), w = c(4, 4, 4, 4))
+#' sample_b_svy <- svydesign(ids = ~1, weights = ~w, data = sample_b)
 #'
-#' res_nn <- method_nn(y_nons = admin$single_shift,
-#'                     X_nons = model.matrix(~ region + private + nace + size, admin),
-#'                     X_rand = model.matrix(~ region + private + nace + size, jvs),
-#'                     svydesign = jvs_svy)
+#' res_nn <- method_nn(
+#'   y_nons = sample_a$y,
+#'   X_nons = model.matrix(~x, sample_a),
+#'   X_rand = model.matrix(~x, sample_b),
+#'   svydesign = sample_b_svy,
+#'   control_outcome = control_out(k = 1),
+#'   se = FALSE
+#' )
 #'
 #' res_nn
 #'
@@ -121,7 +143,8 @@ method_nn <- function(y_nons,
                       control_outcome=control_out(),
                       control_inference=control_inf(),
                       verbose=FALSE,
-                      se=TRUE) {
+                      se=TRUE,
+                      nn_matches=NULL) {
 
   if (missing(y_nons) | missing(X_nons)) {
     stop("`y_nons` and `X_nons`, `X_rand` are required.")
@@ -130,64 +153,293 @@ method_nn <- function(y_nons,
   if (missing(svydesign) | is.null(svydesign)) {
     stop("The NN method is suited only for the unit-level data.")
   }
+  X_nons <- as.matrix(X_nons)
+  X_rand <- as.matrix(X_rand)
   if (is.null(weights)) weights <- rep(1, NROW(X_nons))
   if (is.null(pop_size)) pop_size <- sum(weights(svydesign))
+  boot_prob <- if (length(unique(weights)) == 1) NULL else 1 / weights
+
+  same_distance <- function(x, y) {
+    abs(x - y) <= sqrt(.Machine$double.eps) * pmax(1, abs(x), abs(y))
+  }
+
+  sample_tie_candidates <- function(candidates, need, response = NULL) {
+    if (length(candidates) > need &&
+        (is.null(response) || length(unique(response[candidates])) > 1)) {
+      sample(candidates, need)
+    } else {
+      utils::head(candidates, need)
+    }
+  }
+
+  row_keys <- function(x) {
+    x <- as.matrix(x)
+    do.call(paste, c(as.data.frame(x, optional = TRUE), sep = "\r"))
+  }
+
+  randomize_returned_ties <- function(idx_mat, dist_mat) {
+    for (i in seq_len(NROW(idx_mat))) {
+      idx <- idx_mat[i, ]
+      dists <- dist_mat[i, ]
+      keep <- !is.na(idx)
+      if (!any(keep)) next
+      if (!any(duplicated(dists[keep]))) next
+
+      ord <- order(dists[keep], stats::runif(sum(keep)))
+      idx_mat[i, keep] <- idx[keep][ord]
+      dist_mat[i, keep] <- dists[keep][ord]
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  exact_matches <- function(data, query, k, exclude_self = FALSE, response = NULL) {
+    data <- as.matrix(data)
+    query <- as.matrix(query)
+    n_data <- NROW(data)
+    k <- min(k, n_data - as.integer(exclude_self))
+    if (k <= 0) {
+      return(list(
+        idx = matrix(NA_integer_, nrow = NROW(query), ncol = 1),
+        dists = matrix(NA_real_, nrow = NROW(query), ncol = 1)
+      ))
+    }
+
+    idx_mat <- matrix(NA_integer_, nrow = NROW(query), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = NROW(query), ncol = k)
+    tol <- sqrt(.Machine$double.eps)
+
+    for (i in seq_len(NROW(query))) {
+      dists_all <- sqrt(rowSums(sweep(data, 2, query[i, ], FUN = "-")^2))
+      if (exclude_self && i <= length(dists_all)) dists_all[i] <- Inf
+      remaining <- which(is.finite(dists_all))
+      selected <- integer()
+      selected_dists <- numeric()
+
+      while (length(selected) < k && length(remaining)) {
+        d_min <- min(dists_all[remaining])
+        candidates <- remaining[same_distance(dists_all[remaining], d_min)]
+        need <- k - length(selected)
+        take <- sample_tie_candidates(candidates, need, response)
+        selected <- c(selected, take)
+        selected_dists <- c(selected_dists, dists_all[take])
+
+        if (length(selected) >= k) break
+        remaining <- setdiff(remaining, candidates)
+      }
+
+      if (length(selected)) {
+        idx_mat[i, seq_along(selected)] <- selected
+        dist_mat[i, seq_along(selected)] <- selected_dists
+      }
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  use_exact_matches <- function(data, query) {
+    n_query <- NROW(query)
+    as.numeric(NROW(data)) * as.numeric(n_query) <= 2e6
+  }
+
+  exact_matches_for_rows <- function(data, query, rows, k, exclude_self = FALSE,
+                                     response = NULL) {
+    data <- as.matrix(data)
+    query <- as.matrix(query)
+    idx_mat <- matrix(NA_integer_, nrow = length(rows), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = length(rows), ncol = k)
+
+    for (rr in seq_along(rows)) {
+      i <- rows[rr]
+      dists_all <- sqrt(rowSums(sweep(data, 2, query[i, ], FUN = "-")^2))
+      if (exclude_self && i <= length(dists_all)) dists_all[i] <- Inf
+      row_match <- exact_matches_from_distances(dists_all, k, response = response)
+      idx_mat[rr, seq_along(row_match$idx)] <- row_match$idx
+      dist_mat[rr, seq_along(row_match$dists)] <- row_match$dists
+    }
+
+    list(idx = idx_mat, dists = dist_mat)
+  }
+
+  exact_matches_from_distances <- function(dists_all, k, response = NULL) {
+    remaining <- which(is.finite(dists_all))
+    selected <- integer()
+    selected_dists <- numeric()
+
+    while (length(selected) < k && length(remaining)) {
+      d_min <- min(dists_all[remaining])
+      candidates <- remaining[same_distance(dists_all[remaining], d_min)]
+      need <- k - length(selected)
+      take <- sample_tie_candidates(candidates, need, response)
+
+      selected <- c(selected, take)
+      selected_dists <- c(selected_dists, dists_all[take])
+
+      if (length(selected) >= k) break
+      remaining <- setdiff(remaining, candidates)
+    }
+
+    list(idx = selected, dists = selected_dists)
+  }
+
+  select_from_nn_matches <- function(nn_fit, data, query, k, exclude_self = FALSE,
+                                     response = NULL) {
+    idx_full <- nn_fit$nn.idx[, seq_len(NCOL(nn_fit$nn.idx)), drop = FALSE]
+    dist_full <- nn_fit$nn.dists[, seq_len(NCOL(nn_fit$nn.dists)), drop = FALSE]
+    idx_mat <- matrix(NA_integer_, nrow = NROW(idx_full), ncol = k)
+    dist_mat <- matrix(NA_real_, nrow = NROW(idx_full), ncol = k)
+    hidden_tie_rows <- integer()
+    data_groups <- NULL
+    query_keys <- NULL
+
+    for (i in seq_len(NROW(idx_full))) {
+      idx <- idx_full[i, ]
+      dists <- dist_full[i, ]
+      keep <- !is.na(idx)
+      if (exclude_self) keep <- keep & idx != i
+      idx <- idx[keep]
+      dists <- dists[keep]
+
+      if (length(idx) > k && same_distance(dists[k + 1L], dists[k])) {
+        if (same_distance(dists[k], 0)) {
+          if (is.null(data_groups)) {
+            data_groups <- split(seq_len(NROW(data)), row_keys(data))
+            query_keys <- row_keys(query)
+          }
+
+          candidates <- data_groups[[query_keys[i]]]
+          if (exclude_self) candidates <- setdiff(candidates, i)
+          if (length(candidates) >= k) {
+            take <- sample_tie_candidates(candidates, k, response)
+            idx_mat[i, ] <- take
+            dist_mat[i, ] <- 0
+            next
+          }
+        }
+
+        hidden_tie_rows <- c(hidden_tie_rows, i)
+        next
+      }
+
+      n_take <- min(k, length(idx))
+      if (n_take > 0) {
+        idx_mat[i, seq_len(n_take)] <- idx[seq_len(n_take)]
+        dist_mat[i, seq_len(n_take)] <- dists[seq_len(n_take)]
+      }
+    }
+
+    if (length(hidden_tie_rows)) {
+      exact_rows <- exact_matches_for_rows(data, query, hidden_tie_rows, k,
+                                           exclude_self, response = response)
+      idx_mat[hidden_tie_rows, ] <- exact_rows$idx
+      dist_mat[hidden_tie_rows, ] <- exact_rows$dists
+    }
+
+    randomized <- randomize_returned_ties(idx_mat, dist_mat)
+    list(idx = randomized$idx, dists = randomized$dists)
+  }
+
+  predict_from_matches <- function(nn_fit,
+                                   response,
+                                   weighting = "none",
+                                   exclude_self = FALSE,
+                                   data = NULL,
+                                   query = NULL,
+                                   k = NULL) {
+    if (!is.null(data) && !is.null(query) && !is.null(k) &&
+        use_exact_matches(data, query)) {
+      matches <- exact_matches(data = data, query = query, k = k,
+                               exclude_self = exclude_self, response = response)
+      idx_mat <- matches$idx
+      dist_mat <- matches$dists
+      exclude_self <- FALSE
+    } else {
+      matches <- select_from_nn_matches(nn_fit, data = data, query = query,
+                                        k = k, exclude_self = exclude_self,
+                                        response = response)
+      idx_mat <- matches$idx
+      dist_mat <- matches$dists
+      exclude_self <- FALSE
+    }
+
+    vapply(seq_len(NROW(idx_mat)), FUN.VALUE = numeric(1), FUN = function(i) {
+      idx <- idx_mat[i, ]
+      dists <- dist_mat[i, ]
+      keep <- !is.na(idx)
+      idx <- idx[keep]
+      dists <- dists[keep]
+
+      if (exclude_self) {
+        keep <- idx != i
+        idx <- idx[keep]
+        dists <- dists[keep]
+      }
+
+      if (!length(idx)) {
+        return(response[i])
+      }
+
+      if (weighting == "dist" && length(idx) > 1) {
+        w_scaled <- max(dists) - dists
+        if (sum(w_scaled) == 0) {
+          return(mean(response[idx]))
+        }
+
+        return(stats::weighted.mean(response[idx], w = w_scaled / sum(w_scaled)))
+      }
+
+      mean(response[idx])
+    })
+  }
 
   if (verbose) {
     message("Matching units between samples...")
   }
 
-  model_fitted_nons <- RANN::nn2(
-    data = X_nons,
-    query = X_nons,
-    k = control_outcome$k,
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
+  model_fitted_nons <- if (!is.null(nn_matches) && !is.null(nn_matches$nons)) {
+    nn_matches$nons
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_nons,
+      k = min(control_outcome$k + 2L, NROW(X_nons)),
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
-  model_fitted <- RANN::nn2(
-    data = X_nons,
-    query = X_rand,
-    k = control_outcome$k,
-    treetype = control_outcome$treetype,
-    searchtype = control_outcome$searchtype
-  )
-
-  k_range <- 1:control_outcome$k
+  model_fitted <- if (!is.null(nn_matches) && !is.null(nn_matches$rand)) {
+    nn_matches$rand
+  } else {
+    RANN::nn2(
+      data = X_nons,
+      query = X_rand,
+      k = min(control_outcome$k + 1L, NROW(X_nons)),
+      treetype = control_outcome$treetype,
+      searchtype = control_outcome$searchtype
+    )
+  }
 
   y_rand_pred <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-         "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x])),
-         "dist" = {
-           # TODO:: these weights will need to be saved for variance estimation
-           if (control_outcome$k == 1) {
-             apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons[x]))
-           } else {
-             sapply(1:NROW(model_fitted$nn.idx),
-                    FUN = function(x) {
-                      w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                      w_scaled <- w_scaled/sum(w_scaled)
-                      stats::weighted.mean(y_nons[model_fitted$nn.idx[x, k_range]],
-                                    w = w_scaled)
-                    })
-           }
-
-         }
+                        "none" = predict_from_matches(model_fitted, y_nons,
+                                                       data = X_nons, query = X_rand,
+                                                       k = control_outcome$k),
+                        "dist" = predict_from_matches(model_fitted, y_nons, weighting = "dist",
+                                                       data = X_nons, query = X_rand,
+                                                       k = control_outcome$k)
   )
 
-  y_nons_pred <- apply(model_fitted_nons$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons[x]))
-
   svydesign_updated <- stats::update(svydesign, y_hat_MI = y_rand_pred)
-  svydesign_mean <- survey::svymean( ~ y_hat_MI, svydesign_updated)
-  y_mi_hat <- as.numeric(svydesign_mean)
+  # svytotal() honors any fpc already stored in svydesign; pop_size is only the mean denominator.
+  svydesign_total <- survey::svytotal( ~ y_hat_MI, svydesign_updated)
+  y_mi_hat <- as.numeric(svydesign_total) / pop_size
+  y_nons_pred <- NULL
 
   if (se) {
 
-    var_prob <- as.vector(attr(svydesign_mean, "var"))
-
-    sigma_hat <- mean((y_nons - y_nons_pred)^2)
-    est_ps <- NROW(X_nons) / pop_size
-    var_nonprob <- 1/ pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
-    var_total <- var_prob + var_nonprob
+    var_prob <- as.vector(attr(svydesign_total, "var")) / pop_size^2
+    var_nonprob <- 0
+    var_total <- var_prob
 
     if (control_inference$nn_exact_se) {
 
@@ -207,50 +459,63 @@ method_nn <- function(y_nons,
           utils::setTxtProgressBar(pb, jj)
         }
 
-        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE)
+        boot_samp <- sample(1:NROW(X_nons), size = NROW(X_nons), replace = TRUE, prob = boot_prob)
         y_nons_b <- y_nons[boot_samp]
         X_nons_b <- X_nons[boot_samp, , drop = FALSE]
 
-        YY <- RANN::nn2(
+        boot_matches <- RANN::nn2(
           data = X_nons_b,
           query = X_rand,
-          k = control_outcome$k,
+          k = min(control_outcome$k + 1L, NROW(X_nons_b)),
           treetype = control_outcome$treetype,
           searchtype = control_outcome$searchtype
         )
 
-        k_range <- 1:control_outcome$k ## left for future developments
-
         y_rand_pred_mini_boot <- switch(control_outcome$pmm_weights, ## this should be changed to nn_weights
-                                        "none" = apply(model_fitted$nn.idx[, k_range], 1, FUN = function(x) mean(y_nons_b[x])),
-                                        "dist" = {
-                                          # TODO:: these weights will need to be saved for variance estimation
-                                          if (control_outcome$k == 1) {
-                                            apply(model_fitted$nn.idx[, 1], 1, FUN = function(x) mean(y_nons_b[x]))
-                                          } else {
-                                            sapply(1:NROW(model_fitted$nn.idx),
-                                                   FUN = function(x) {
-                                                     w_scaled <- max(model_fitted$nn.dists[x, k_range]) - model_fitted$nn.dists[x, k_range]
-                                                     w_scaled <- w_scaled/sum(w_scaled)
-                                                     stats::weighted.mean(y_nons_b[model_fitted$nn.idx[x, k_range]],
-                                                                          w = w_scaled)
-                                                   })}
-                                          })
+                                        "none" = predict_from_matches(boot_matches, y_nons_b,
+                                                                      data = X_nons_b, query = X_rand,
+                                                                      k = control_outcome$k),
+                                        "dist" = predict_from_matches(boot_matches, y_nons_b, weighting = "dist",
+                                                                      data = X_nons_b, query = X_rand,
+                                                                      k = control_outcome$k))
 
-        dd[jj] <- stats::weighted.mean(y_rand_pred_mini_boot, weights(svydesign))
+        dd[jj] <- sum(weights(svydesign) * y_rand_pred_mini_boot) / pop_size
       }
       var_nonprob <- var(dd)
       var_total <- var_prob + var_nonprob
 
+    } else {
+      # Use leave-one-out matching for the non-probability variance proxy.
+      y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE,
+                                          data = X_nons, query = X_nons,
+                                          k = control_outcome$k)
+
+      sigma_hat <- mean((y_nons - y_nons_pred)^2)
+      est_ps <- NROW(X_nons) / pop_size
+      var_nonprob <- 1/ pop_size^2 * (1 - est_ps) / est_ps * sigma_hat
+      var_total <- var_prob + var_nonprob
     }
   } else {
     var_prob <- var_nonprob <- var_total <- NA
   }
 
+  if (is.null(y_nons_pred)) {
+    y_nons_pred <- predict_from_matches(model_fitted_nons, y_nons, exclude_self = TRUE,
+                                        data = X_nons, query = X_nons,
+                                        k = control_outcome$k)
+  }
+
+  trim_nn_fit <- function(nn_fit, k) {
+    keep <- seq_len(min(k, NCOL(nn_fit$nn.idx)))
+    nn_fit$nn.idx <- nn_fit$nn.idx[, keep, drop = FALSE]
+    nn_fit$nn.dists <- nn_fit$nn.dists[, keep, drop = FALSE]
+    nn_fit
+  }
+
   return(
     structure(
       list(
-        model_fitted = model_fitted,
+        model_fitted = trim_nn_fit(model_fitted, control_outcome$k),
         y_nons_pred = y_nons_pred,
         y_rand_pred = y_rand_pred,
         coefficients = NULL,

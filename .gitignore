@@ -1,6 +1,7 @@
 .Rproj.user/shared/notebooks/paths
 .Rproj.user
 .Rhistory
+.Rapp.history
 .RData
 .Ruserdata
 playground
@@ -8,8 +9,12 @@ playground
 .DS_Store
 src/*.o
 src/*.so
-src/Makevars
-srs/*.dll
+src/*.dll
 docs
 inst/doc
 **/.quarto/
+notes/
+..Rcheck/
+*.Rcheck/
+*.tar.gz
+README.html

@@ -28,7 +28,8 @@ expect_error(
   nonprob(data = admin,
           outcome = single_shift ~ region,
           target = ~ single_shift,
-          pop_means = pop_means)
+          pop_means = pop_means),
+  "The `pop_size` argument must be supplied when `pop_means` is supplied."
 )
 
 expect_error(

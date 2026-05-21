@@ -11,6 +11,17 @@ print.nonprob <- function(x, digits=4,...) {
                                                 "dr" = "doubly robust")))
 
   cat(sprintf(" - method: %s\n", x$estimator_method))
+  if (!is.null(x$ipw_estimator)) {
+    ipw_estimator <- switch(x$ipw_estimator,
+                            "ht" = "Horvitz-Thompson",
+                            "hajek" = "Hajek",
+                            x$ipw_estimator)
+    cat(sprintf(" - IPW point estimator: %s (denominator: %s = %.*f)\n",
+                ipw_estimator,
+                x$ipw_denominator_source,
+                digits,
+                as.numeric(x$ipw_denominator)))
+  }
   cat(sprintf(" - auxiliary variables source: %s\n", ifelse(!is.null(x$svydesign), "survey", "population")))
   cat(sprintf(" - vars selection: %s\n", tolower(x$control$control_inference$vars_selection)))
 
@@ -103,6 +114,17 @@ print.nonprob_summary <- function(x,
   }
 
   cat(" - population size: ", as.integer(x$pop_size), " (fixed: ", tolower(x$pop_size_fixed), ")\n", sep = "")
+  if (!is.null(x$ipw_estimator)) {
+    ipw_estimator <- switch(x$ipw_estimator,
+                            "ht" = "Horvitz-Thompson",
+                            "hajek" = "Hajek",
+                            x$ipw_estimator)
+    cat(sprintf(" - IPW point estimator: %s (denominator: %s = %.*f)\n",
+                ipw_estimator,
+                x$ipw_denominator_source,
+                digits,
+                as.numeric(x$ipw_denominator)))
+  }
 
   model_info <- switch(x$estimator,
                        "mi" = '"outcome"',
@@ -114,7 +136,7 @@ print.nonprob_summary <- function(x,
 
   if (!is.null(x$ipw_weights)) {
     cat("----------------------------------------------------------------\n")
-      cat(" - sum of IPW weights:", sum(x$ipw_weights_total), "\n")
+      cat(" - sum of IPW weights:", x$ipw_weights_total, "\n")
       cat(" - distribution of IPW weights (nonprob sample):\n")
       cat(sprintf(
         "   - min: %.*f; mean: %.*f; median: %.*f; max: %.*f\n",
@@ -221,5 +243,4 @@ print.nonprob_method <- function(x, ...) {
 
   invisible(x)
 }
-
 

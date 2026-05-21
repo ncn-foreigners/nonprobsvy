@@ -30,7 +30,9 @@ method_pmm(
 
 \item{svydesign}{a svydesign object}
 
-\item{weights}{case / frequency weights from non-probability sample}
+\item{weights}{case / frequency weights from non-probability sample. If \code{nn_exact_se=TRUE},
+non-constant weights also define mini-bootstrap sampling probabilities proportional
+to their inverses and are resampled for each bootstrap refit.}
 
 \item{family_outcome}{family for the glm model}
 
@@ -40,7 +42,10 @@ method_pmm(
 
 \item{pop_totals}{a place holder (not used in \code{method_pmm})}
 
-\item{pop_size}{population size from the \code{nonprob} function}
+\item{pop_size}{population size from the \code{nonprob} function. If \code{NULL}, the
+method uses \code{sum(weights(svydesign))}. If supplied, it is used as the
+known-\eqn{N} denominator for the mean and variance scaling, but it does not
+modify the finite population correction of \code{svydesign}.}
 
 \item{control_outcome}{controls passed by the \code{control_out} function}
 
@@ -69,7 +74,13 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
-either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample.
+either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_B} sample:
+when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+The \code{pop_size} argument is not converted into a finite population correction;
+if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
+by the \code{{survey}} variance routines.
+Matching ties are randomized by the nearest-neighbour step before donor values are aggregated.
 
 This implementation extends Yang et al. (2021) approach as described in Chlebicki et al. (2025), namely:
 
@@ -77,9 +88,11 @@ This implementation extends Yang et al. (2021) approach as described in Chlebick
 \item{pmm_weights}{if k>1 weighted aggregation of the mean for a given unit is used. We use distance
 matrix returned by \link[RANN:nn2]{RANN::nn2} function (\code{pmm_weights} from the \code{\link[=control_out]{control_out()}} function)}
 \item{nn_exact_se}{if the non-probability sample is small we recommend using a mini-bootstrap
-approach to estimate variance from the non-probability sample  (\code{nn_exact_se} from the \code{\link[=control_inf]{control_inf()}} function)}
-\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on the
-variance minimization procedure (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
+approach to estimate variance from the non-probability sample  (\code{nn_exact_se} from the \code{\link[=control_inf]{control_inf()}} function).
+If non-constant pseudo-weights are supplied, bootstrap samples are drawn with probabilities
+proportional to inverse weights and the resampled weights are used in each refitted outcome model.}
+\item{pmm_k_choice}{the main \code{nonprob} function allows for dynamic selection of \code{k} neighbours based on a
+full-grid variance minimization procedure over \code{1:n_A} (\code{pmm_k_choice} from the \code{\link[=control_out]{control_out()}} function)}
 }
 }
 \details{
@@ -99,8 +112,11 @@ Chlebicki et al. (2025, Algorithm 2). It is not proved to be consistent but with
 This bootstrap can be applied using \code{control_inference(nn_exact_se=TRUE)} and
 can be summarized as follows:
 \enumerate{
-\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'} (if pseudo-weights are present inclusion probabilities should be proportional to their inverses).
-\item Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1.
+\item Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+If non-constant pseudo-weights are supplied through \code{weights}, sampling probabilities
+are proportional to their inverses; equal weights use uniform resampling.
+\item Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1,
+using the resampled weights when supplied.
 \item Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{B}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
 \item Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{A}'}.
 \item Repeat steps 1-4 \eqn{M} times (we set (hard-coded) \eqn{M=50} in our code).
@@ -121,14 +137,18 @@ Note that \eqn{\hat{V}_2} in principle can be estimated in various ways dependin
 }
 \examples{
 
-data(admin)
-data(jvs)
-jvs_svy <- svydesign(ids = ~ 1,  weights = ~ weight, strata = ~ size + nace + region, data = jvs)
+sample_a <- data.frame(y = c(1, 0, 1, 0, 1), x = c(0, 1, 2, 3, 4))
+sample_b <- data.frame(x = c(0.5, 1.5, 2.5, 3.5), w = c(4, 4, 4, 4))
+sample_b_svy <- svydesign(ids = ~1, weights = ~w, data = sample_b)
 
-res_pmm <- method_pmm(y_nons = admin$single_shift,
-                      X_nons = model.matrix(~ region + private + nace + size, admin),
-                      X_rand = model.matrix(~ region + private + nace + size, jvs),
-                      svydesign = jvs_svy)
+res_pmm <- method_pmm(
+  y_nons = sample_a$y,
+  X_nons = model.matrix(~x, sample_a),
+  X_rand = model.matrix(~x, sample_b),
+  svydesign = sample_b_svy,
+  control_outcome = control_out(k = 1),
+  se = FALSE
+)
 
 res_pmm
 

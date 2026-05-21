@@ -11,6 +11,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// q_lambda_test_cpp
+arma::vec q_lambda_test_cpp(const arma::vec& par, double lambda, const std::string& penalty, double a);
+RcppExport SEXP _nonprobsvy_q_lambda_test_cpp(SEXP parSEXP, SEXP lambdaSEXP, SEXP penaltySEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type par(parSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type penalty(penaltySEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(q_lambda_test_cpp(par, lambda, penalty, a));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cv_nonprobsvy_rcpp
 Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X, const arma::vec& R, const arma::vec& weights_X, const std::string& method_selection, const int& gee_h_fun, int maxit, double eps, double lambda_min, int nlambda, int nfolds, const std::string& penalty, double a, Nullable<arma::vec> pop_totals, bool verbose, double lambda);
 RcppExport SEXP _nonprobsvy_cv_nonprobsvy_rcpp(SEXP XSEXP, SEXP RSEXP, SEXP weights_XSEXP, SEXP method_selectionSEXP, SEXP gee_h_funSEXP, SEXP maxitSEXP, SEXP epsSEXP, SEXP lambda_minSEXP, SEXP nlambdaSEXP, SEXP nfoldsSEXP, SEXP penaltySEXP, SEXP aSEXP, SEXP pop_totalsSEXP, SEXP verboseSEXP, SEXP lambdaSEXP) {
@@ -38,6 +52,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_nonprobsvy_q_lambda_test_cpp", (DL_FUNC) &_nonprobsvy_q_lambda_test_cpp, 4},
     {"_nonprobsvy_cv_nonprobsvy_rcpp", (DL_FUNC) &_nonprobsvy_cv_nonprobsvy_rcpp, 15},
     {NULL, NULL, 0}
 };
