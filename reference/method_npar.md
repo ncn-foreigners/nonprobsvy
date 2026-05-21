@@ -196,7 +196,6 @@ res_y_npar <- nonprob(outcome = y1 + y2 ~ x1 + x2,
                       data = sample_b,
                       svydesign = sample_a_svy,
                       method_outcome = "npar")
-#> Warning: Variable(s) y1, y2 are present in the probability sample (`svydesign`) but are ignored: `nonprob()` uses the outcome only from the non-probability sample; the probability sample contributes covariates and design weights.
 res_y_npar
 #> A nonprob object
 #>  - estimator type: mass imputation

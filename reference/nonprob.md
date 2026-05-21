@@ -621,7 +621,6 @@ mi_res <- nonprob(
   data = nonprob_df,
   svydesign = svyprob
 )
-#> Warning: Variable(s) y30, y50, y80 are present in the probability sample (`svydesign`) but are ignored: `nonprob()` uses the outcome only from the non-probability sample; the probability sample contributes covariates and design weights.
 mi_res
 #> A nonprob object
 #>  - estimator type: mass imputation
@@ -645,7 +644,6 @@ ipw_res <- nonprob(
   data = nonprob_df,
   svydesign = svyprob
 )
-#> Warning: Variable(s) y30, y50, y80 are present in the probability sample (`svydesign`) but are ignored: `nonprob()` uses the outcome only from the non-probability sample; the probability sample contributes covariates and design weights.
 ipw_res
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
@@ -670,7 +668,6 @@ dr_res <- nonprob(
   data = nonprob_df,
   svydesign = svyprob
 )
-#> Warning: Variable(s) y30, y50, y80 are present in the probability sample (`svydesign`) but are ignored: `nonprob()` uses the outcome only from the non-probability sample; the probability sample contributes covariates and design weights.
 dr_res
 #> A nonprob object
 #>  - estimator type: doubly robust
