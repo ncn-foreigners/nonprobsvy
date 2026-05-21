@@ -4,16 +4,17 @@ Model for the outcome for the mass imputation estimator. The
 implementation is currently based on
 [RANN::nn2](https://jefferislab.github.io/RANN/reference/nn2.html)
 function and thus it uses Euclidean distance for matching units from
-\\S_A\\ (non-probability) to \\S_B\\ (probability) based on predicted
-values from model \\\boldsymbol{x}\_i\\ based either on `method_glm` or
-`method_npar`. Estimation of the mean is done using \\S_B\\ sample: when
-`pop_size` is supplied this is the known-\\N\\ Horvitz-Thompson mean,
-otherwise it reduces to the usual ratio mean with \\\hat{N} =
-\sum\_{i\in S_B} d_i\\. The `pop_size` argument is not converted into a
-finite population correction; if an fpc is needed, it should be supplied
-in `svydesign`, where it is handled by the `{survey}` variance routines.
-Matching ties are randomized by the nearest-neighbour step before donor
-values are aggregated.
+\\S\_{\text{NP}}\\ (non-probability) to \\S\_{\text{P}}\\ (probability)
+based on predicted values from model \\\boldsymbol{x}\_i\\ based either
+on `method_glm` or `method_npar`. Estimation of the mean is done using
+\\S\_{\text{P}}\\ sample: when `pop_size` is supplied this is the
+known-\\N\\ Horvitz-Thompson mean, otherwise it reduces to the usual
+ratio mean with \\\hat{N} = \sum\_{i\in S\_{\text{P}}} d\_{\text{P},
+i}\\. The `pop_size` argument is not converted into a finite population
+correction; if an fpc is needed, it should be supplied in `svydesign`,
+where it is handled by the `{survey}` variance routines. Matching ties
+are randomized by the nearest-neighbour step before donor values are
+aggregated.
 
 This implementation extends Yang et al. (2021) approach as described in
 Chlebicki et al. (2025), namely:
@@ -41,7 +42,7 @@ Chlebicki et al. (2025), namely:
 
   the main `nonprob` function allows for dynamic selection of `k`
   neighbours based on a full-grid variance minimization procedure over
-  `1:n_A` (`pmm_k_choice` from the
+  `1:n_{{NP}}` (`pmm_k_choice` from the
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
   function)
 
@@ -192,31 +193,33 @@ In the package we support two types of matching:
 Analytical variance
 
 The variance of the mean is estimated based on the following approach
-(a) non-probability part (\\S_A\\ with size \\n_A\\; denoted as
-`var_nonprob` in the result) is currently estimated using the
-non-parametric mini-bootstrap estimator proposed by Chlebicki et al.
-(2025, Algorithm 2). It is not proved to be consistent but with good
-finite population properties. This bootstrap can be applied using
-`control_inference(nn_exact_se=TRUE)` and can be summarized as follows:
+(a) non-probability part (\\S\_{\text{NP}}\\ with size
+\\n\_{\text{NP}}\\; denoted as `var_nonprob` in the result) is currently
+estimated using the non-parametric mini-bootstrap estimator proposed by
+Chlebicki et al. (2025, Algorithm 2). It is not proved to be consistent
+but with good finite population properties. This bootstrap can be
+applied using `control_inference(nn_exact_se=TRUE)` and can be
+summarized as follows:
 
-1.  Sample \\n_A\\ units from \\S_A\\ with replacement to create
-    \\S_A'\\. If non-constant pseudo-weights are supplied through
-    `weights`, sampling probabilities are proportional to their
-    inverses; equal weights use uniform resampling.
+1.  Sample \\n\_{\text{NP}}\\ units from \\S\_{\text{NP}}\\ with
+    replacement to create \\S\_{\text{NP}}'\\. If non-constant
+    pseudo-weights are supplied through `weights`, sampling
+    probabilities are proportional to their inverses; equal weights use
+    uniform resampling.
 
 2.  Estimate regression model
     \\\mathbb{E}\[Y\|\boldsymbol{X}\]=m(\boldsymbol{X}, \cdot)\\ based
-    on \\S\_{A}'\\ from step 1, using the resampled weights when
+    on \\S\_{\text{NP}}'\\ from step 1, using the resampled weights when
     supplied.
 
-3.  Compute \\\hat{\nu}'(i,t)\\ for \\t=1,\dots,k, i\in S\_{B}\\ using
-    estimated \\m(\boldsymbol{x}', \cdot)\\ and
+3.  Compute \\\hat{\nu}'(i,t)\\ for \\t=1,\dots,k, i\in S\_{\text{P}}\\
+    using estimated \\m(\boldsymbol{x}', \cdot)\\ and
     \\\left\lbrace(y\_{j},\boldsymbol{x}\_{j})\| j\in
-    S\_{A}'\right\rbrace\\.
+    S\_{\text{NP}}'\right\rbrace\\.
 
 4.  Compute
     \\\displaystyle\frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}'(i)}\\ using
-    \\Y\\ values from \\S\_{A}'\\.
+    \\Y\\ values from \\S\_{\text{NP}}'\\.
 
 5.  Repeat steps 1-4 \\M\\ times (we set (hard-coded) \\M=50\\ in our
     code).
@@ -224,16 +227,16 @@ finite population properties. This bootstrap can be applied using
 6.  Estimate \\\hat{V}\_1=\text{var}({\hat{\boldsymbol{\mu}}})\\
     obtained from simulations and save it as `var_nonprob`.
 
-\(b\) probability part (\\S_B\\ with size \\n_B\\; denoted as `var_prob`
-in the result)
+\(b\) probability part (\\S\_{\text{P}}\\ with size \\n\_{\text{P}}\\;
+denoted as `var_prob` in the result)
 
 This part uses functionalities of the `{survey}` package and the
 variance is estimated using the following equation:
 
-\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n_B} \sum\_{j=1}^{n_B}
-\frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}} \frac{m(\boldsymbol{x}\_i;
-\hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}\_i;
-\hat{\boldsymbol{\beta}})}{\pi_j}. \$\$
+\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n\_{\text{P}}}
+\sum\_{j=1}^{n\_{\text{P}}} \frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}}
+\frac{m(\boldsymbol{x}\_i; \hat{\boldsymbol{\beta}})}{\pi_i}
+\frac{m(\boldsymbol{x}\_i; \hat{\boldsymbol{\beta}})}{\pi_j}. \$\$
 
 Note that \\\hat{V}\_2\\ in principle can be estimated in various ways
 depending on the type of the design and whether population size is known

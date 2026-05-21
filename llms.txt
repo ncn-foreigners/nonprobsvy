@@ -72,20 +72,21 @@ pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ## Basic idea
 
 Consider the following setting where two samples are available:
-non-probability (denoted as S_A) and probability (denoted as S_B) where
-a set of auxiliary variables (denoted as \boldsymbol{X}) is available
-for both sources, the target variable Y is observed in the
-non-probability sample, and design or calibrated weights (\boldsymbol{d}
-or \boldsymbol{w}) are observed in the probability sample.
+non-probability (denoted as S\_{\text{NP}}) and probability (denoted as
+S\_{\text{P}}) where a set of auxiliary variables (denoted as
+\boldsymbol{X}) is available for both sources, the target variable Y is
+observed in the non-probability sample, and design or calibrated weights
+(\boldsymbol{d} or \boldsymbol{w}) are observed in the probability
+sample.
 
 | Sample |  | Auxiliary variables \boldsymbol{X} | Target variable Y | Design (\boldsymbol{d}) or calibrated (\boldsymbol{w}) weights |
 |----|---:|:--:|:--:|:--:|
-| S_A (non-probability) | 1 | \checkmark | \checkmark | ? |
+| S\_{\text{NP}} (non-probability) | 1 | \checkmark | \checkmark | ? |
 |  | … | \checkmark | \checkmark | ? |
-|  | n_A | \checkmark | \checkmark | ? |
-| S_B (probability) | n_A+1 | \checkmark | ? | \checkmark |
+|  | n\_{\text{NP}} | \checkmark | \checkmark | ? |
+| S\_{\text{P}} (probability) | n\_{\text{NP}}+1 | \checkmark | ? | \checkmark |
 |  | … | \checkmark | ? | \checkmark |
-|  | n_A+n_B | \checkmark | ? | \checkmark |
+|  | n\_{\text{NP}}+n\_{\text{P}} | \checkmark | ? | \checkmark |
 
 The current implementation does not use target-variable values from the
 probability sample. Data structures where Y is observed in both samples,
@@ -101,21 +102,24 @@ Suppose Y is the target variable, \boldsymbol{X} is a matrix of
 auxiliary variables, R is the inclusion indicator. Then, if we are
 interested in estimating the mean \bar{\tau}\_Y or the sum \tau_Y of the
 of the target variable given the observed data set (y_k,
-\boldsymbol{x}\_k, R_k), we can approach this problem with the possible
-scenarios:
+\boldsymbol{x}\_k, I\_{\text{NP}, k}), we can approach this problem with
+the possible scenarios:
 
-- unit-level data is available for the non-probability sample S\_{A},
-  i.e. (y_k,\boldsymbol{x}\_k) is available for all units k \in S\_{A},
-  and population-level data is available for
+- unit-level data is available for the non-probability sample
+  S\_{\text{NP}}, i.e. (y_k,\boldsymbol{x}\_k) is available for all
+  units k \in S\_{\text{NP}}, and population-level data is available for
   \boldsymbol{x}\_1,\ldots,\boldsymbol{x}\_p, denoted as
   \tau\_{x\_{1}},\tau\_{x\_{2}},\ldots,\tau\_{x\_{p}} and population
   size N is known. We can also consider situations where population data
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
-- unit-level data is available for the non-probability sample S_A and
-  the probability sample S_B, i.e. (\boldsymbol{x}\_k,R_k) is determined
-  by the data: R_k=1 if k \in S_A otherwise R_k=0, y_k is observed only
-  for sample S_A and \boldsymbol{x}\_k is observed in both S_A and S_B.
+- unit-level data is available for the non-probability sample
+  S\_{\text{NP}} and the probability sample S\_{\text{P}},
+  i.e. (\boldsymbol{x}\_k,I\_{\text{NP}, k}) is determined by the data:
+  I\_{\text{NP}, k}=1 if k \in S\_{\text{NP}} otherwise I\_{\text{NP},
+  k}=0, y_k is observed only for sample S\_{\text{NP}} and
+  \boldsymbol{x}\_k is observed in both S\_{\text{NP}} and
+  S\_{\text{P}}.
 
 Supported target-variable types depend on the estimator family:
 

@@ -1499,17 +1499,17 @@ that the <code>weight</code> sums up to the population size.</p>
 <span>                     data <span class="op">=</span> <span class="va">jvs</span><span class="op">)</span></span></code></pre></div>
 <p>Our second source (<code>admin</code>), the Central Job Offers
 Database, is a register containing all vacancies submitted to Public
-Employment Offices (see <a href="https://oferty.praca.gov.pl" class="external-link uri">https://oferty.praca.gov.pl</a>). We treat this register as
-a non-probability sample since it contains administrative data provided
-on a voluntary basis, so the inclusion mechanism is unknown. This
-dataset was prepared in such a way that records deemed to be out of
-scope (either in terms of the definition of vacancy or the population of
-entities) were excluded. In addition to the same variables found in the
-JVS, the dataset contains one called <code>single_shift</code>, which is
-our target variable, defined as: whether a company seeks at least one
-employee for a single-shift job. The goal of this case study is to
-estimate the share of companies that seek employees for a single-shift
-job in Poland in a given quarter.</p>
+Employment Offices (see <a href="https://oferty.praca.gov.pl/portal" class="external-link uri">https://oferty.praca.gov.pl/portal</a>). We treat this
+register as a non-probability sample since it contains administrative
+data provided on a voluntary basis, so the inclusion mechanism is
+unknown. This dataset was prepared in such a way that records deemed to
+be out of scope (either in terms of the definition of vacancy or the
+population of entities) were excluded. In addition to the same variables
+found in the JVS, the dataset contains one called
+<code>single_shift</code>, which is our target variable, defined as:
+whether a company seeks at least one employee for a single-shift job.
+The goal of this case study is to estimate the share of companies that
+seek employees for a single-shift job in Poland in a given quarter.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"admin"</span>, package <span class="op">=</span> <span class="st">"nonprobsvy"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">admin</span><span class="op">)</span></span>
@@ -2336,7 +2336,7 @@ American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi
 Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2024.
 <em>Data Integration of Non-Probability and Probability Samples with
 Predictive Mean Matching</em>. arXiv 2403.13750. arXiv.org E-Print
-Archive. <a href="https://doi.org/10.48550/arXiv:2403.13750" class="external-link">https://doi.org/10.48550/arXiv:2403.13750</a>.
+Archive. <a href="https://doi.org/10.48550/arXiv.2403.13750" class="external-link">https://doi.org/10.48550/arXiv.2403.13750</a>.
 </div>
 <div id="ref-chrostowski2024statistical" class="csl-entry">
 Chrostowski, Łukasz. 2024. <span>“Statistical Inference with

@@ -1071,7 +1071,7 @@ jvs_svy <- svydesign(ids = ~ 1,
 
 Our second source (`admin`), the Central Job Offers Database, is a
 register containing all vacancies submitted to Public Employment Offices
-(see <https://oferty.praca.gov.pl>). We treat this register as a
+(see <https://oferty.praca.gov.pl/portal>). We treat this register as a
 non-probability sample since it contains administrative data provided on
 a voluntary basis, so the inclusion mechanism is unknown. This dataset
 was prepared in such a way that records deemed to be out of scope
@@ -1937,7 +1937,7 @@ Statistical Association* 115 (532): 2011–21.
 Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2024. *Data
 Integration of Non-Probability and Probability Samples with Predictive
 Mean Matching*. arXiv 2403.13750. arXiv.org E-Print Archive.
-<https://doi.org/10.48550/arXiv:2403.13750>.
+<https://doi.org/10.48550/arXiv.2403.13750>.
 
 Chrostowski, Łukasz. 2024. “Statistical Inference with Non-Probability
 Samples.” Master’s thesis, Adam Mickiewicz University.

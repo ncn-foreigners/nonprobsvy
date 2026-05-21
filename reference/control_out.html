@@ -127,17 +127,17 @@ The default value <code>-1</code> uses cross-validation.</p></dd>
 Indicates how to select 'closest' unit from non-probability sample for each
 unit in probability sample. Either <code>1</code> (default) or <code>2</code> where
 <code>2</code> is matching by minimizing distance between \(\hat{y}_{i}\) for
-\(i \in S_{A}\) and \(y_{j}\) for \(j \in S_{B}\) and <code>1</code>
+\(i \in S_{\text{NP}}\) and \(y_{j}\) for \(j \in S_{\text{P}}\) and <code>1</code>
 is matching by minimizing distance between \(\hat{y}_{i}\) for
-\(i \in S_{A}\) and \(\hat{y}_{i}\) for \(i \in S_{A}\).</p></dd>
+\(i \in S_{\text{NP}}\) and \(\hat{y}_{i}\) for \(i \in S_{\text{NP}}\).</p></dd>
 
 
 <dt id="arg-pmm-weights">pmm_weights<a class="anchor" aria-label="anchor" href="#arg-pmm-weights"></a></dt>
 <dd><p>(Only for the PMM Estimator)
-Indicate how to weight <code>k</code> nearest neighbours in \(S_{B}\) to
-create imputed value for units in \(S_{A}\). The default value
+Indicate how to weight <code>k</code> nearest neighbours in \(S_{\text{P}}\) to
+create imputed value for units in \(S_{\text{NP}}\). The default value
 <code>"none"</code> indicates that mean of <code>k</code> nearest \(y\)'s from
-\(S_{B}\) should be used whereas <code>"dist"</code> results in
+\(S_{\text{P}}\) should be used whereas <code>"dist"</code> results in
 weighted mean of these <code>k</code> values where weights are inversely
 proportional to distance between matched values.</p></dd>
 
@@ -147,21 +147,21 @@ proportional to distance between matched values.</p></dd>
 should be chosen, by default <code>"none"</code> meaning <code>k</code> provided in
 <code>control_outcome</code> argument will be used. For now the only other
 option <code>"min_var"</code> means that <code>k</code> will be chosen by a full
-search over <code>1:n_A</code> (or <code>1:pmm_k_max</code>, see below), where \(n_A\)
+search over <code>1:n_{{NP}}</code> (or <code>1:pmm_k_max</code>, see below), where \(n_{\text{NP}}\)
 is the non-probability sample size, minimizing the estimated variance of the
 mean estimator. The <code>k</code> value supplied in this control list is replaced
 by the selected value. Note that this search refits the full PMM stack for
 every candidate <code>k</code>, so its cost scales as
-\(O(n_A \times l)\) (with \(l\) the number of outcome variables) and can
+\(O(n_{\text{NP}} \times l)\) (with \(l\) the number of outcome variables) and can
 be substantial for large non-probability samples; cap it with <code>pmm_k_max</code>
-or supply <code>k</code> directly when \(n_A\) is large.</p></dd>
+or supply <code>k</code> directly when \(n_{\text{NP}}\) is large.</p></dd>
 
 
 <dt id="arg-pmm-k-max">pmm_k_max<a class="anchor" aria-label="anchor" href="#arg-pmm-k-max"></a></dt>
 <dd><p>(Only for the PMM Estimator) Positive integer upper bound for
 the <code>pmm_k_choice = "min_var"</code> search grid. The default <code>NULL</code>
-searches the full <code>1:n_A</code> grid. Setting e.g. <code>pmm_k_max = 30</code> caps
-the search at <code>1:min(n_A, 30)</code> to bound its cost.</p></dd>
+searches the full <code>1:n_{{NP}}</code> grid. Setting e.g. <code>pmm_k_max = 30</code> caps
+the search at <code>1:min(n_{{NP}}, 30)</code> to bound its cost.</p></dd>
 
 
 <dt id="arg-pmm-reg-engine">pmm_reg_engine<a class="anchor" aria-label="anchor" href="#arg-pmm-reg-engine"></a></dt>
