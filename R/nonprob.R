@@ -111,36 +111,12 @@ nonprob <- function(data,
     stop("Please provide the `selection` or `outcome` argument.")
   }
 
-  ## outcome/target variable(s) must be numeric or logical: factor/character
-  ## outcomes silently misbehave (e.g. the estimate is returned as NA)
-  response_vars <- unique(c(
-    if (!is.null(target)) all.vars(target),
-    if (!is.null(outcome) && length(outcome) == 3L) all.vars(outcome[[2L]])
-  ))
-  for (.response in response_vars) {
-    if (.response %in% names(data) &&
-        (is.factor(data[[.response]]) || is.character(data[[.response]]))) {
-      stop(sprintf(
-        "The outcome/target variable `%s` is a %s; only numeric or logical outcomes are supported. Convert it before calling `nonprob()` (e.g. to 0/1 for `family_outcome = \"binomial\"`).",
-        .response, if (is.factor(data[[.response]])) "factor" else "character"))
-    }
-  }
-
   if (!is.null(svydesign)) {
     if ("svyrep.design" %in% class(svydesign)) {
       stop("We do not currently support the `svyrep.design` class. Provide the survey data in the `survey.design2` class.")
     }
     if ("pps" %in% class(svydesign)) {
       stop("The `as.svrepdesign` function does not allow `pps` designs. For more details, see the `survey` package.")
-    }
-
-    ## the probability sample's own outcome (if present) is never used; warn so
-    ## the user does not assume an overlap/composite estimator is being applied
-    ignored_in_svydesign <- intersect(response_vars, colnames(svydesign$variables))
-    if (length(ignored_in_svydesign) > 0) {
-      warning(sprintf(
-        "Variable(s) %s are present in the probability sample (`svydesign`) but are ignored: `nonprob()` uses the outcome only from the non-probability sample; the probability sample contributes covariates and design weights.",
-        paste(ignored_in_svydesign, collapse = ", ")))
     }
   }
 
@@ -189,6 +165,23 @@ nonprob <- function(data,
   } else if (inherits(outcome, "formula")) {
     # Case: MI method
     estimator <- "mi"
+  }
+
+  ## outcome/target variable(s) must be numeric or logical: factor/character
+  ## outcomes silently misbehave (e.g. the estimate is returned as NA). Checked
+  ## after the estimator-specific formula validation so that more specific
+  ## messages (e.g. target/selection overlap) take precedence.
+  response_vars <- unique(c(
+    if (!is.null(target)) all.vars(target),
+    if (!is.null(outcome) && length(outcome) == 3L) all.vars(outcome[[2L]])
+  ))
+  for (.response in response_vars) {
+    if (.response %in% names(data) &&
+        (is.factor(data[[.response]]) || is.character(data[[.response]]))) {
+      stop(sprintf(
+        "The outcome/target variable `%s` is a %s; only numeric or logical outcomes are supported. Convert it before calling `nonprob()` (e.g. to 0/1 for `family_outcome = \"binomial\"`).",
+        .response, if (is.factor(data[[.response]])) "factor" else "character"))
+    }
   }
 
   if (!is.null(pop_totals) && (is.null(names(pop_totals)) || names(pop_totals)[1] != "(Intercept)")) {
