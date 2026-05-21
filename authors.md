@@ -13,16 +13,16 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/dev/inst/CITATION)
 
 Chrostowski Ł, Beręsewicz M, Chlebicki P (2025). *Inference Based on
-Non-Probability Samples*. R package version 0.2.2,
+Non-Probability Samples*. R package version 0.3.0,
 <https://github.com/ncn-foreigners/nonprobsvy>.
 
     @Manual{nonprobsy,
       title = {Inference Based on Non-Probability Samples},
       author = {Łukasz Chrostowski and Maciej Beręsewicz and Piotr Chlebicki},
-      note = {R package version 0.2.2},
+      note = {R package version 0.3.0},
       year = {2025},
       url = {https://github.com/ncn-foreigners/nonprobsvy},
     }

@@ -7,19 +7,19 @@ for non-probability samples when auxiliary information from the
 population or probability sample is available:
 
 - inverse probability weighting estimators with possible calibration
-  constraints ([Y. Chen, Li, and Wu 2020](#ref-chen2020)),
-- mass imputation estimators based on nearest neighbours ([Yang, Kim,
-  and Hwang 2021](#ref-yang2021)), predictive mean matching ([Chlebicki,
-  Chrostowski, and Beręsewicz 2025](#ref-chlebicki2025)), non-parametric
-  ([S. Chen, Yang, and Kim 2022](#ref-chen2022nonparametric)) and
-  regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators ([Y. Chen, Li, and Wu 2020](#ref-chen2020))
-  with bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
+  constraints ([Chen et al. 2020](#ref-chen2020)),
+- mass imputation estimators based on nearest neighbours ([Yang et al.
+  2021](#ref-yang2021)), predictive mean matching ([Chlebicki et al.
+  2025](#ref-chlebicki2025)), non-parametric ([Chen et al.
+  2022](#ref-chen2022nonparametric)) and regression imputation ([Kim et
+  al. 2021](#ref-kim2021)),
+- doubly robust estimators ([Chen et al. 2020](#ref-chen2020)) with bias
+  minimization ([Yang et al. 2020](#ref-yang2020)).
 
 The package allows for:
 
-- variable section in high-dimensional space using SCAD ([Yang, Kim, and
-  Song 2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`,
+- variable section in high-dimensional space using SCAD ([Yang et al.
+  2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`,
   `Rcpp`, `RcppArmadillo` packages),
 - estimation of variance using analytical and bootstrap approach (see Wu
   ([2023](#ref-wu2023))),
@@ -35,7 +35,7 @@ Details on the use of the package can be found:
 - see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
   (2025). *nonprobsvy–An R package for modern methods for
   non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcomming to
+  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcoming to
   the Journal of Statistical Software
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
@@ -327,13 +327,13 @@ Imputation for Data Integration.” *Journal of Survey Statistics and
 Methodology* 10 (1): 1–24.
 
 Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference
-With Nonprobability Survey Samples.” *Journal of the American
+with Nonprobability Survey Samples.” *Journal of the American
 Statistical Association* 115 (532): 2011–21.
 <https://doi.org/10.1080/01621459.2019.1677241>.
 
-Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. *Data
 Integration of Non-Probability and Probability Samples with Predictive
-Mean Matching.” <https://arxiv.org/abs/2403.13750>.
+Mean Matching*. <https://arxiv.org/abs/2403.13750>.
 
 Freedman Ellis, Greg, and Ben Schneider. 2024. *Srvyr: ’Dplyr’-Like
 Syntax for Summary Statistics of Survey Data*.
@@ -347,7 +347,7 @@ Society* 184 (3): 941–63. <https://doi.org/10.1111/rssa.12696>.
 Lumley, Thomas. 2004. “Analysis of Complex Survey Samples.” *Journal of
 Statistical Software* 9 (1): 1–19.
 
-———. 2023. “Survey: Analysis of Complex Survey Samples.”
+Lumley, Thomas. 2023. *Survey: Analysis of Complex Survey Samples*.
 
 Wu, Changbao. 2023. “Statistical Inference with Non-Probability Survey
 Samples.” *Survey Methodology* 48 (2): 283–311.

@@ -35,6 +35,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/nonprobsvy.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
@@ -64,20 +65,20 @@
 </h2>
 <p>The goal of this package is to provide R users access to modern methods for non-probability samples when auxiliary information from the population or probability sample is available:</p>
 <ul>
-<li>inverse probability weighting estimators with possible calibration constraints (<a href="#ref-chen2020">Y. Chen, Li, and Wu 2020</a>),</li>
-<li>mass imputation estimators based on nearest neighbours (<a href="#ref-yang2021">Yang, Kim, and Hwang 2021</a>), predictive mean matching (<a href="#ref-chlebicki2025">Chlebicki, Chrostowski, and Beręsewicz 2025</a>), non-parametric (<a href="#ref-chen2022nonparametric">S. Chen, Yang, and Kim 2022</a>) and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
-<li>doubly robust estimators (<a href="#ref-chen2020">Y. Chen, Li, and Wu 2020</a>) with bias minimization (<a href="#ref-yang2020">Yang, Kim, and Song 2020</a>).</li>
+<li>inverse probability weighting estimators with possible calibration constraints (<a href="#ref-chen2020">Chen et al. 2020</a>),</li>
+<li>mass imputation estimators based on nearest neighbours (<a href="#ref-yang2021">Yang et al. 2021</a>), predictive mean matching (<a href="#ref-chlebicki2025">Chlebicki et al. 2025</a>), non-parametric (<a href="#ref-chen2022nonparametric">Chen et al. 2022</a>) and regression imputation (<a href="#ref-kim2021">Kim et al. 2021</a>),</li>
+<li>doubly robust estimators (<a href="#ref-chen2020">Chen et al. 2020</a>) with bias minimization (<a href="#ref-yang2020">Yang et al. 2020</a>).</li>
 </ul>
 <p>The package allows for:</p>
 <ul>
-<li>variable section in high-dimensional space using SCAD (<a href="#ref-yang2020">Yang, Kim, and Song 2020</a>), Lasso and MCP penalty (via the <code>ncvreg</code>, <code>Rcpp</code>, <code>RcppArmadillo</code> packages),</li>
+<li>variable section in high-dimensional space using SCAD (<a href="#ref-yang2020">Yang et al. 2020</a>), Lasso and MCP penalty (via the <code>ncvreg</code>, <code>Rcpp</code>, <code>RcppArmadillo</code> packages),</li>
 <li>estimation of variance using analytical and bootstrap approach (see Wu (<a href="#ref-wu2023">2023</a>)),</li>
 <li>integration with the <code>survey</code> and <code>srvyr</code> packages when probability sample is available (<a href="#ref-Lumley2004">Lumley 2004</a>, <a href="#ref-Lumley2023">2023</a>; <a href="#ref-srvyr2024">Freedman Ellis and Schneider 2024</a>),</li>
 <li>different links for selection (<code>logit</code>, <code>probit</code> and <code>cloglog</code>) and outcome (<code>gaussian</code>, <code>binomial</code> and <code>poisson</code>) variables.</li>
 </ul>
 <p>Details on the use of the package can be found:</p>
 <ul>
-<li>see the working paper Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M. (2025). <em>nonprobsvy–An R package for modern methods for non-probability surveys</em>. arXiv preprint <a href="https://arxiv.org/abs/2504.04255" class="external-link">arXiv:2504.04255</a> – forthcomming to the Journal of Statistical Software</li>
+<li>see the working paper Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M. (2025). <em>nonprobsvy–An R package for modern methods for non-probability surveys</em>. arXiv preprint <a href="https://arxiv.org/abs/2504.04255" class="external-link">arXiv:2504.04255</a> – forthcoming to the Journal of Statistical Software</li>
 <li>in the draft (and not proofread) version of the book <a href="https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/" class="external-link">Modern inference methods for non-probability samples with R</a>,</li>
 <li>in example codes that reproduce papers available on github in the repository <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link">software tutorials</a>.</li>
 </ul>
@@ -101,11 +102,11 @@
 <p>Consider the following setting where two samples are available: non-probability (denoted as <span class="math inline">S_A</span>) and probability (denoted as <span class="math inline">S_B</span>) where a set of auxiliary variables (denoted as <span class="math inline">\boldsymbol{X}</span>) is available for both sources, the target variable <span class="math inline">Y</span> is observed in the non-probability sample, and design or calibrated weights (<span class="math inline">\boldsymbol{d}</span> or <span class="math inline">\boldsymbol{w}</span>) are observed in the probability sample.</p>
 <table class="table">
 <colgroup>
-<col width="15%">
-<col width="6%">
-<col width="23%">
-<col width="12%">
-<col width="41%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
 </colgroup>
 <thead><tr>
 <th>Sample</th>
@@ -176,8 +177,8 @@
 <p>Supported target-variable types depend on the estimator family:</p>
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="66%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr>
 <th>Estimator family</th>
@@ -609,15 +610,15 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <div class="section level2">
 <h2 id="references-selected">References (selected)<a class="anchor" aria-label="anchor" href="#references-selected"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-chen2022nonparametric" class="csl-entry">
 Chen, Sixia, Shu Yang, and Jae Kwang Kim. 2022. “Nonparametric Mass Imputation for Data Integration.” <em>Journal of Survey Statistics and Methodology</em> 10 (1): 1–24.
 </div>
 <div id="ref-chen2020" class="csl-entry">
-Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference With Nonprobability Survey Samples.” <em>Journal of the American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi.org/10.1080/01621459.2019.1677241" class="external-link uri">https://doi.org/10.1080/01621459.2019.1677241</a>.
+Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference with Nonprobability Survey Samples.” <em>Journal of the American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi.org/10.1080/01621459.2019.1677241" class="external-link uri">https://doi.org/10.1080/01621459.2019.1677241</a>.
 </div>
 <div id="ref-chlebicki2025" class="csl-entry">
-Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data Integration of Non-Probability and Probability Samples with Predictive Mean Matching.” <a href="https://arxiv.org/abs/2403.13750" class="external-link uri">https://arxiv.org/abs/2403.13750</a>.
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. <em>Data Integration of Non-Probability and Probability Samples with Predictive Mean Matching</em>. <a href="https://arxiv.org/abs/2403.13750" class="external-link uri">https://arxiv.org/abs/2403.13750</a>.
 </div>
 <div id="ref-srvyr2024" class="csl-entry">
 Freedman Ellis, Greg, and Ben Schneider. 2024. <em>Srvyr: ’Dplyr’-Like Syntax for Summary Statistics of Survey Data</em>. <a href="https://CRAN.R-project.org/package=srvyr" class="external-link uri">https://CRAN.R-project.org/package=srvyr</a>.
@@ -629,7 +630,7 @@ Kim, Jae Kwang, Seho Park, Yilin Chen, and Changbao Wu. 2021. “Combining Non-P
 Lumley, Thomas. 2004. “Analysis of Complex Survey Samples.” <em>Journal of Statistical Software</em> 9 (1): 1–19.
 </div>
 <div id="ref-Lumley2023" class="csl-entry">
-———. 2023. “Survey: Analysis of Complex Survey Samples.”
+Lumley, Thomas. 2023. <em>Survey: Analysis of Complex Survey Samples</em>.
 </div>
 <div id="ref-wu2023" class="csl-entry">
 Wu, Changbao. 2023. “Statistical Inference with Non-Probability Survey Samples.” <em>Survey Methodology</em> 48 (2): 283–311. <a href="https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm" class="external-link uri">https://www150.statcan.gc.ca/n1/pub/12-001-x/2022002/article/00002-eng.htm</a>.

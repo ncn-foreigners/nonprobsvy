@@ -2,6 +2,9 @@
 
 ## nonprobsvy (development version)
 
+## nonprobsvy 0.3.0
+
+- vignette based on the JSS paper added
 - documented and stabilised the doubly robust analytic variance for
   non-logit propensity links: the plug-in doubly robust variance (Chen,
   Li & Wu 2020, Theorem 2, eq. 14) is derived under the logistic model,
