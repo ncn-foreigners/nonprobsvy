@@ -30,6 +30,8 @@ jobs:
       - name: Test coverage
         run: covr::codecov()
         shell: Rscript {0}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
