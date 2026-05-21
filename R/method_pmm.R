@@ -1,10 +1,10 @@
 #' @title Mass Imputation Using Predictive Mean Matching Method
 #'
 #' @description
-#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_A} (non-probability) to \eqn{S_B} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
-#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_B} sample:
+#' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_{\text{NP}}} (non-probability) to \eqn{S_{\text{P}}} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
+#' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_{\text{P}}} sample:
 #' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
-#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_B} d_i}.
+#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_i}.
 #' The `pop_size` argument is not converted into a finite population correction;
 #' if an fpc is needed, it should be supplied in `svydesign`, where it is handled
 #' by the `{survey}` variance routines.
@@ -20,7 +20,7 @@
 #'  If non-constant pseudo-weights are supplied, bootstrap samples are drawn with probabilities
 #'  proportional to inverse weights and the resampled weights are used in each refitted outcome model.}
 #'  \item{pmm_k_choice}{the main `nonprob` function allows for dynamic selection of `k` neighbours based on a
-#'  full-grid variance minimization procedure over \code{1:n_A} (`pmm_k_choice` from the [control_out()] function)}
+#'  full-grid variance minimization procedure over \code{1:n_{\text{NP}}} (`pmm_k_choice` from the [control_out()] function)}
 #' }
 #'
 #' @details
@@ -36,28 +36,28 @@
 #'
 #' The variance of the mean is estimated based on the following approach
 
-#' (a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as `var_nonprob` in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
+#' (a) non-probability part  (\eqn{S_{\text{NP}}} with size \eqn{n_{\text{NP}}}; denoted as `var_nonprob` in the result) is currently estimated using the non-parametric mini-bootstrap estimator proposed by
 #' Chlebicki et al. (2025, Algorithm 2). It is not proved to be consistent but with good finite population properties.
 #' This bootstrap can be applied using `control_inference(nn_exact_se=TRUE)` and
 #' can be summarized as follows:
 #'
-#' 1. Sample \eqn{n_A} units from \eqn{S_A} with replacement to create \eqn{S_A'}.
+#' 1. Sample \eqn{n_{\text{NP}}} units from \eqn{S_{\text{NP}}} with replacement to create \eqn{S_{\text{NP}}'}.
 #'    If non-constant pseudo-weights are supplied through `weights`, sampling probabilities
 #'    are proportional to their inverses; equal weights use uniform resampling.
-#' 2. Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{A}'} from step 1,
+#' 2. Estimate regression model \eqn{\mathbb{E}[Y|\boldsymbol{X}]=m(\boldsymbol{X}, \cdot)} based on \eqn{S_{\text{NP}}'} from step 1,
 #'    using the resampled weights when supplied.
-#' 3. Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{B}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{A}'\right\rbrace}.
-#' 4. Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{A}'}.
+#' 3. Compute \eqn{\hat{\nu}'(i,t)} for \eqn{t=1,\dots,k, i\in S_{\text{P}}} using estimated \eqn{m(\boldsymbol{x}', \cdot)} and \eqn{\left\lbrace(y_{j},\boldsymbol{x}_{j})| j\in S_{\text{NP}}'\right\rbrace}.
+#' 4. Compute \eqn{\displaystyle\frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}'(i)}} using \eqn{Y} values from \eqn{S_{\text{NP}}'}.
 #' 5. Repeat steps 1-4 \eqn{M} times (we set (hard-coded) \eqn{M=50} in our code).
 #' 6. Estimate \eqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as `var_nonprob`.
 #'
-#' (b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as `var_prob` in the result)
+#' (b) probability part (\eqn{S_{\text{P}}} with size \eqn{n_{\text{P}}}; denoted as `var_prob` in the result)
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
 #'
 #' \deqn{
-#' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_{\text{P}}} \sum_{j=1}^{n_{\text{P}}} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 #' \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 #' }
 #'

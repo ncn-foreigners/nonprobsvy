@@ -58,15 +58,15 @@ The default value \code{-1} uses cross-validation.}
 Indicates how to select 'closest' unit from non-probability sample for each
 unit in probability sample. Either \code{1} (default) or \code{2} where
 \code{2} is matching by minimizing distance between \eqn{\hat{y}_{i}} for
-\eqn{i \in S_{A}} and \eqn{y_{j}} for \eqn{j \in S_{B}} and \code{1}
+\eqn{i \in S_{\text{NP}}} and \eqn{y_{j}} for \eqn{j \in S_{\text{P}}} and \code{1}
 is matching by minimizing distance between \eqn{\hat{y}_{i}} for
-\eqn{i \in S_{A}} and \eqn{\hat{y}_{i}} for \eqn{i \in S_{A}}.}
+\eqn{i \in S_{\text{NP}}} and \eqn{\hat{y}_{i}} for \eqn{i \in S_{\text{NP}}}.}
 
 \item{pmm_weights}{(Only for the PMM Estimator)
-Indicate how to weight \code{k} nearest neighbours in \eqn{S_{B}} to
-create imputed value for units in \eqn{S_{A}}. The default value
+Indicate how to weight \code{k} nearest neighbours in \eqn{S_{\text{P}}} to
+create imputed value for units in \eqn{S_{\text{NP}}}. The default value
 \code{"none"} indicates that mean of \code{k} nearest \eqn{y}'s from
-\eqn{S_{B}} should be used whereas \code{"dist"} results in
+\eqn{S_{\text{P}}} should be used whereas \code{"dist"} results in
 weighted mean of these \code{k} values where weights are inversely
 proportional to distance between matched values.}
 
@@ -74,19 +74,19 @@ proportional to distance between matched values.}
 should be chosen, by default \code{"none"} meaning \code{k} provided in
 \code{control_outcome} argument will be used. For now the only other
 option \code{"min_var"} means that \code{k} will be chosen by a full
-search over \code{1:n_A} (or \code{1:pmm_k_max}, see below), where \eqn{n_A}
+search over \code{1:n_{\text{NP}}} (or \code{1:pmm_k_max}, see below), where \eqn{n_{\text{NP}}}
 is the non-probability sample size, minimizing the estimated variance of the
 mean estimator. The \code{k} value supplied in this control list is replaced
 by the selected value. Note that this search refits the full PMM stack for
 every candidate \code{k}, so its cost scales as
-\eqn{O(n_A \times l)} (with \eqn{l} the number of outcome variables) and can
+\eqn{O(n_{\text{NP}} \times l)} (with \eqn{l} the number of outcome variables) and can
 be substantial for large non-probability samples; cap it with \code{pmm_k_max}
-or supply \code{k} directly when \eqn{n_A} is large.}
+or supply \code{k} directly when \eqn{n_{\text{NP}}} is large.}
 
 \item{pmm_k_max}{(Only for the PMM Estimator) Positive integer upper bound for
 the \code{pmm_k_choice = "min_var"} search grid. The default \code{NULL}
-searches the full \code{1:n_A} grid. Setting e.g. \code{pmm_k_max = 30} caps
-the search at \code{1:min(n_A, 30)} to bound its cost.}
+searches the full \code{1:n_{\text{NP}}} grid. Setting e.g. \code{pmm_k_max = 30} caps
+the search at \code{1:min(n_{\text{NP}}, 30)} to bound its cost.}
 
 \item{pmm_reg_engine}{(Only for the PMM Estimator) whether to use parametric (\code{"glm"})
 or non-parametric (\code{"loess"}) regression model for the outcome. The default is \code{"glm"}.}
