@@ -1,6 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 playground
+^notes$
+^\.claude$
+^CLAUDE\.md$
+^tools$
 ^README\.Rmd$
 ^NEWS$
 ^LICENSE\.md$
