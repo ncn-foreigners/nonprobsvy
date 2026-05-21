@@ -67,7 +67,7 @@ Details on the use of the package can be found:
 
 -   see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2025). 
     *nonprobsvy--An R package for modern methods for non-probability surveys*. 
-    arXiv preprint [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
+    arXiv preprint [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) -- forthcomming to the Journal of Statistical Software
 -   in the draft (and not proofread) version of the book [Modern
     inference methods for non-probability samples with
     R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
@@ -81,7 +81,7 @@ You can install the recent version of `nonprobsvy` package from main
 branch [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ```{r, eval=FALSE}
-remotes::install_github("ncn-foreigners/nonprobsvy")
+pak::pkg_install("ncn-foreigners/nonprobsvy")
 ```
 
 or install the stable version from
@@ -94,7 +94,7 @@ install.packages("nonprobsvy")
 or development version from the `dev` branch
 
 ```{r, eval=FALSE}
-remotes::install_github("ncn-foreigners/nonprobsvy@dev")
+pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ```
 
 ## Basic idea
@@ -120,7 +120,8 @@ The current implementation does not use target-variable values from the
 probability sample. Data structures where $Y$ is observed in both
 samples, or where overlapping units must be linked across samples, are
 not currently implemented. The `dependence` and `key` arguments in
-`control_sel()` are placeholders for future overlap handling.
+`control_sel()` are reserved for future overlap handling and currently
+raise a "not yet implemented" error if set.
 
 ## Basic functionalities
 
@@ -531,7 +532,6 @@ result_ipw
 
 ## Funding
 
-Work on this package is supported by the National Science Centre, OPUS
-20 grant no. 2020/39/B/HS4/00941.
+Work on this package is supported by the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941.
 
 ## References (selected)
