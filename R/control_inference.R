@@ -3,7 +3,12 @@
 #' @description \code{control_inf} constructs a `list` with all necessary control parameters
 #' for statistical inference.
 
-#' @param var_method the variance method (default `"analytic"`).
+#' @param var_method the variance method (default `"analytic"`). Note that the
+#'   doubly robust analytic variance is derived under the logistic propensity model
+#'   (Chen, Li & Wu 2020, Theorem 2); for the `"probit"` and `"cloglog"` selection
+#'   links it is a conservative approximation (it tends to over-estimate the standard
+#'   error and can be numerically unstable when fitted propensities approach 1), so
+#'   `var_method = "bootstrap"` is recommended for doubly robust inference with those links.
 #' @param rep_type the replication type for weights in the bootstrap method for variance estimation passed to [survey::as.svrepdesign()].
 #'  Default is `"subbootstrap"`.
 #' @param vars_selection logical scalar (default `FALSE`); if `TRUE`, then the variables selection model is used.

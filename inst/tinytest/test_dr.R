@@ -27,6 +27,44 @@ expect_equal(
             row.names = "single_shift", class = "data.frame")
 )
 
+# A1: probit / cloglog doubly robust analytic variance --------------------
+# The plug-in DR analytic variance is derived under the logistic propensity model only
+# (Chen, Li & Wu 2020, Thm 2 / eq. 14). For probit and cloglog it is a conservative
+# approximation that previously could overflow to a non-finite SE when fitted propensities
+# approached 1 (the inverse-Mills / exp(eta) factors). It must now (i) emit a one-time note
+# recommending bootstrap, (ii) return a finite, positive SE (the explosion is guarded), and
+# (iii) leave the point estimate link-independent (it matches the logit DR mean).
+set.seed(2024)
+expect_message(
+  model_dr_basic_probit <- nonprob(
+    selection = ~region + private + nace + size,
+    outcome = single_shift ~region + private + nace + size,
+    svydesign = jvs_svy,
+    data = admin,
+    pop_size = sum(weights(jvs_svy)),
+    method_selection = "probit"),
+  "conservative"
+)
+expect_true(is.finite(model_dr_basic_probit$output$SE) && model_dr_basic_probit$output$SE > 0)
+expect_equal(model_dr_basic_probit$output$mean, 0.703337799202312, tolerance = 0.001)
+
+set.seed(2024)
+expect_message(
+  model_dr_basic_cloglog <- nonprob(
+    selection = ~region + private + nace + size,
+    outcome = single_shift ~region + private + nace + size,
+    svydesign = jvs_svy,
+    data = admin,
+    pop_size = sum(weights(jvs_svy)),
+    method_selection = "cloglog"),
+  "conservative"
+)
+expect_true(is.finite(model_dr_basic_cloglog$output$SE) && model_dr_basic_cloglog$output$SE > 0)
+expect_equal(model_dr_basic_cloglog$output$mean, 0.703337799202312, tolerance = 0.001)
+
+# the logit DR analytic SE must be unaffected by the non-logit guard
+expect_equal(model_dr_basic$output$SE, 0.0119326877806591, tolerance = 1e-9)
+
 expect_silent(
   model_dr_basic_diff <- nonprob(
     selection = ~region  + size,

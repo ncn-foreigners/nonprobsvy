@@ -237,112 +237,124 @@ expect_true(is.finite(ipw_totals_varsel$output$mean))
 #   ),
 #   tolerance = 0.001
 # )
-#
-# # DR estimator (with standard IPW) ------------------------------------------------------------
-#
-# ### logit
-# expect_silent(dr_logit <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "logit",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_logit$output$mean, 0.7032599, tolerance = 0.001)
-#
-# ### probit
-#
-# expect_silent(dr_probit <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "probit",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_probit$output$mean, 0.7032552, tolerance = 0.001)
-#
-# ### cloglog
-#
-# expect_silent(dr_cloglog <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "cloglog",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_cloglog$output$mean, 0.7033419, tolerance = 0.001)
-#
-# # DR estimator (with calibrared IPW) ------------------------------------------------------------
-#
-# ### logit
-# expect_silent(dr_logit_gee <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "logit",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_logit_gee$output$mean, 0.7039189, tolerance = 0.001)
-#
-# ### probit
-#
-# expect_silent(dr_probit_gee <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "probit",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_probit_gee$output$mean, 0.7041368, tolerance = 0.001)
-#
-# ### cloglog
-#
-# expect_silent(dr_cloglog_gee <- nonprob(
-#   selection = ~region + private + nace + size,
-#   outcome = single_shift ~ region + private + nace + size,
-#   svydesign = jvs_svy,
-#   data = admin,
-#   method_selection = "cloglog",
-#   method_outcome = "glm",
-#   family_outcome = "binomial",
-#   control_inference = control_inf(vars_selection = TRUE),
-#   control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
-#   control_outcome = control_out(nfolds = 2, nlambda = 5)
-# ))
-#
-# expect_equal(dr_cloglog_gee$output$mean, 0.7038575, tolerance = 0.001)
-#
-#
-# # pop data only -----------------------------------------------------------
+
+# DR estimator (with standard IPW) ------------------------------------------------------------
+# A1: probit/cloglog DR analytic SE is conservative (derived for logit only; Chen, Li & Wu
+# 2020, Thm 2) and emits a note recommending bootstrap, so those fits are wrapped in
+# suppressMessages and their SE is asserted finite (regression guard against the former
+# inverse-Mills / exp(eta) overflow) rather than pinned. Point estimates are pinned for all.
+
+### logit
+set.seed(2024)
+expect_silent(dr_logit <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+))
+
+expect_equal(dr_logit$output$mean, 0.7033178, tolerance = 0.001)
+expect_true(is.finite(dr_logit$output$SE))
+
+### probit
+set.seed(2024)
+expect_message(dr_probit <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "probit",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+), "conservative")
+
+expect_equal(dr_probit$output$mean, 0.7030877, tolerance = 0.001)
+expect_true(is.finite(dr_probit$output$SE))
+
+### cloglog
+set.seed(2024)
+expect_message(dr_cloglog <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "cloglog",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+), "conservative")
+
+expect_equal(dr_cloglog$output$mean, 0.7029316, tolerance = 0.001)
+expect_true(is.finite(dr_cloglog$output$SE))
+
+# DR estimator (with calibrated IPW) ------------------------------------------------------------
+
+### logit
+set.seed(2024)
+expect_silent(dr_logit_gee <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "logit",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+))
+
+expect_equal(dr_logit_gee$output$mean, 0.7036045, tolerance = 0.001)
+expect_true(is.finite(dr_logit_gee$output$SE))
+
+### probit
+set.seed(2024)
+expect_message(dr_probit_gee <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "probit",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+), "conservative")
+
+expect_equal(dr_probit_gee$output$mean, 0.7031261, tolerance = 0.0015)
+expect_true(is.finite(dr_probit_gee$output$SE))
+
+### cloglog
+set.seed(2024)
+expect_message(dr_cloglog_gee <- nonprob(
+  selection = ~region + private + nace + size,
+  outcome = single_shift ~ region + private + nace + size,
+  svydesign = jvs_svy,
+  data = admin,
+  method_selection = "cloglog",
+  method_outcome = "glm",
+  family_outcome = "binomial",
+  control_inference = control_inf(vars_selection = TRUE),
+  control_selection = control_sel(nfolds = 2, nlambda = 5, est_method = "gee"),
+  control_outcome = control_out(nfolds = 2, nlambda = 5)
+), "conservative")
+
+expect_equal(dr_cloglog_gee$output$mean, 0.7031011, tolerance = 0.001)
+expect_true(is.finite(dr_cloglog_gee$output$SE))
+
+
+# pop data only -----------------------------------------------------------
 #
 #

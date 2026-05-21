@@ -18,6 +18,26 @@ stable_cloglog_rate <- function(eta, eps = .Machine$double.eps) {
   exp(pmin(pmax(eta, log(eps)), log(-log(eps))))
 }
 
+# Guard for the non-logit doubly-robust analytic-variance terms. Under quasi-separation
+# the probit/cloglog selection fit can return fitted propensities at the extreme tails,
+# which make the variance terms blow up to a huge or non-finite value:
+#   * `ps -> 1` makes the probit factor `psd / (1 - ps)` (inverse Mills) and the cloglog
+#     factor `log(1 - ps)` (== -exp(eta)) explode (and overflow to non-finite at ps == 1);
+#   * `ps -> 0` makes the `b`-vector weights `psd / ps^2` (probit) and
+#     `(1 - ps) / ps^2 * exp(eta)` (cloglog) explode.
+# Chen, Li & Wu (2020) derive the doubly-robust variance only under the logistic model
+# (whose factor `ps` is bounded by 1 and whose `b`-weight `(1 - ps) / ps` is the mildest),
+# so only the non-logit terms need this guard -- the logit path is left untouched. The
+# propensity is floored away from {0, 1} by `eps` (default `1 / sqrt(N)`, matching the
+# `npar` variance fix, which caps a single unit's `1 / ps^2` leverage at `N`); this bounds
+# the terms at a finite scale. NB: this is a stabilisation only -- the non-logit analytic
+# SE remains conservative (see the `nonprob()` / `control_inf()` docs), so `var_method =
+# "bootstrap"` is recommended for probit/cloglog doubly robust inference.
+clamp_ps_for_var <- function(ps, N = NULL, eps = NULL) {
+  if (is.null(eps)) eps <- if (is.null(N)) .Machine$double.eps else 1 / sqrt(N)
+  clamp_prob(as.vector(ps), eps = eps)
+}
+
 mle_ipw_variance_covariance1 <- function(X, y, mu, ps, psd, pop_size, weights) {
   X <- as.matrix(X)
   y <- as.vector(y)
@@ -382,7 +402,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       )
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hessian inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -394,7 +414,10 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
       # prepare common terms
       X <- as.matrix(X)
-      w <- ((1 - ps) / ps^2) * weights * exp(eta)
+      # guard the cloglog b-weight (1 - ps) / ps^2 * exp(eta) against extreme fitted
+      # propensities (ps -> 0) and an overflowing exp(eta) (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
+      w <- ((1 - ps) / ps^2) * weights * stable_cloglog_rate(eta)
       resid <- y - y_pred - h_n
 
       # compute b vector with standard matrix mult
@@ -402,6 +425,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
     }
 
     t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+      # guard the unbounded cloglog factor log(1 - ps) (== -exp(eta)) against ps -> 1
+      ps <- clamp_ps_for_var(ps, N = N)
       as.vector(log(1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
@@ -409,6 +434,8 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       # prepare matrices
       X <- as.matrix(X)
       b <- as.matrix(b)
+      # guard the unbounded cloglog factor against ps -> 1 (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
 
       # compute log ratios more stably
       log_ratio <- as.vector(log1p(-ps) - log(ps))
@@ -587,7 +614,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       )
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hess inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -815,7 +842,7 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       )
     }
 
-    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose) {
+    b_vec_dr <- function(ps, psd, eta, y, y_pred, mu, h_n, X, hess, weights, verbose, N = NULL) {
       # get hessian inverse
       hess_inv <- tryCatch(
         chol2inv(chol(hess)),
@@ -827,6 +854,9 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
 
       # prepare matrices and weights
       X <- as.matrix(X)
+      # guard the probit b-weight psd / ps^2 against extreme fitted propensities
+      # (ps -> 0 under quasi-separation) -- see clamp_ps_for_var
+      ps <- clamp_ps_for_var(ps, N = N)
       w <- psd / ps^2 * weights
       resid <- y - y_pred - h_n
 
@@ -834,11 +864,18 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       -(w * resid) %*% X %*% hess_inv
     }
 
-    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) { # TODO
+    t_vec <- function(X, ps, psd, b, y_rand, y_nons, N, weights) {
+      # guard the unbounded probit inverse-Mills factor psd / (1 - ps) against ps -> 1
+      # (Chen, Li & Wu 2020 prove the DR variance only for the logistic link; the
+      # non-logit analytic SE is conservative -- see clamp_ps_for_var / the docs).
+      ps <- clamp_ps_for_var(ps, N = N)
       as.vector(psd / (1 - ps)) * tcrossprod(X, as.matrix(b)) + y_rand - 1 / N * sum(weights * y_nons)
     }
 
     var_nonprob <- function(ps, psd, y, y_pred, h_n, X, b, N, weights) {
+      # guard the unbounded probit factor against ps -> 1 (see clamp_ps_for_var)
+      ps <- clamp_ps_for_var(ps, N = N)
+
       # weighted residuals
       resid_part <- weights * (y - y_pred - h_n) / ps
 

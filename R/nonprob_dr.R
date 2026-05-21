@@ -237,6 +237,19 @@ nonprob_dr <- function(selection,
 
     if (se) {
 
+      # See the note below: the analytic DR variance is derived under the logistic model;
+      # for probit / cloglog it is conservative and may be unstable as fitted propensities -> 1.
+      if (control_inference$var_method == "analytic" && !is.null(method_selection) &&
+          method_selection != "logit" && is.null(pop_totals)) {
+        message(
+          "Note: the doubly robust analytic variance is derived under the logistic ",
+          "propensity model (Chen, Li & Wu 2020); for the '", method_selection,
+          "' link it is conservative (tends to over-estimate the standard error) and can ",
+          "be unstable when fitted propensities approach 1. Consider ",
+          "control_inf(var_method = 'bootstrap') for probit/cloglog doubly robust inference."
+        )
+      }
+
       for (o in outcomes$f) {
 
         if (control_inference$var_method == "analytic") {
@@ -281,7 +294,8 @@ nonprob_dr <- function(selection,
               h_n = h_n_,
               y_pred = y_pred_,
               weights = case_weights,
-              verbose = verbose
+              verbose = verbose,
+              N = pop_size
             )
 
             var_nonprob <- estimation_method$make_var_nonprob(
@@ -484,6 +498,19 @@ nonprob_dr <- function(selection,
 
     if (se) {
       if (control_inference$var_method == "analytic") {
+        # The plug-in DR analytic variance (Chen, Li & Wu 2020, Thm 2 / eq. 14) is derived
+        # under the LOGISTIC propensity model. For probit / cloglog the probability-sample
+        # (design) variance component is conservative -- it over-estimates the SE and can be
+        # numerically unstable when fitted propensities approach 1 -- so recommend bootstrap.
+        if (!is.null(method_selection) && method_selection != "logit" && is.null(pop_totals)) {
+          message(
+            "Note: the doubly robust analytic variance is derived under the logistic ",
+            "propensity model (Chen, Li & Wu 2020); for the '", method_selection,
+            "' link it is conservative (tends to over-estimate the standard error) and can ",
+            "be unstable when fitted propensities approach 1. Consider ",
+            "control_inf(var_method = 'bootstrap') for probit/cloglog doubly robust inference."
+          )
+        }
         for (o in 1:outcomes$l) {
 
           if (bias_corr) {
@@ -524,7 +551,8 @@ nonprob_dr <- function(selection,
               h_n = h_n_,
               y_pred = y_pred_,
               weights = case_weights,
-              verbose = verbose
+              verbose = verbose,
+              N = pop_size
             )
 
             var_nonprob <- estimation_method$make_var_nonprob(
@@ -559,7 +587,7 @@ nonprob_dr <- function(selection,
               )
 
               svydesign_ <- stats::update(svydesign, t_comp = t_comp)
-              svydesign_mean <- survey::svymean(~t_comp, svydesign)
+              svydesign_mean <- survey::svymean(~t_comp, svydesign_)
               var_prob <- as.vector(attr(svydesign_mean, "var"))
 
             } else {

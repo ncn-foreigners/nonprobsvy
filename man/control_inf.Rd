@@ -19,7 +19,12 @@ control_inf(
 )
 }
 \arguments{
-\item{var_method}{the variance method (default \code{"analytic"}).}
+\item{var_method}{the variance method (default \code{"analytic"}). Note that the
+doubly robust analytic variance is derived under the logistic propensity model
+(Chen, Li & Wu 2020, Theorem 2); for the \code{"probit"} and \code{"cloglog"} selection
+links it is a conservative approximation (it tends to over-estimate the standard
+error and can be numerically unstable when fitted propensities approach 1), so
+\code{var_method = "bootstrap"} is recommended for doubly robust inference with those links.}
 
 \item{rep_type}{the replication type for weights in the bootstrap method for variance estimation passed to \code{\link[survey:as.svrepdesign]{survey::as.svrepdesign()}}.
 Default is \code{"subbootstrap"}.}

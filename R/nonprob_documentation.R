@@ -163,6 +163,13 @@
 #'   Details can be found [here](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/).
 #'   In addition, the bootstrap approach can be used for variance estimation.
 #'
+#'   The doubly robust analytic (Taylor-linearisation) variance is derived under the
+#'   logistic propensity model (Chen, Li & Wu 2020, Theorem 2). For the `probit` and
+#'   `cloglog` selection links the probability-sample (design) variance component is a
+#'   conservative approximation: it tends to over-estimate the standard error and can be
+#'   numerically unstable when fitted propensities approach 1. For doubly robust inference
+#'   with those links, `control_inf(var_method = "bootstrap")` is recommended.
+#'
 #'   The function also allows variables selection using known methods that have been implemented to handle the integration of probability and non-probability sampling.
 #'   In the presence of high-dimensional data, variable selection is important, because it can reduce the variability in the estimate that results from using irrelevant variables to build the model.
 #'   Let \eqn{\operatorname{U}\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)} be the joint estimating function for \eqn{\left( \boldsymbol{\theta}, \boldsymbol{\beta} \right)}. We define the
