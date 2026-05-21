@@ -13,7 +13,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/dev/inst/CITATION)
+[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/main/inst/CITATION)
 
 Chrostowski Ł, Beręsewicz M, Chlebicki P (2025). *Inference Based on
 Non-Probability Samples*. R package version 0.2.2,
