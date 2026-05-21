@@ -6,6 +6,7 @@ playground
 ^CLAUDE\.md$
 ^tools$
 ^README\.Rmd$
+^README\.html$
 ^NEWS$
 ^LICENSE\.md$
 ^\.github$

@@ -925,7 +925,7 @@ jvs_svy <- svydesign(ids = ~ 1,
 
 Our second source (`admin`), the Central Job Offers Database, is a register
 containing all vacancies submitted to Public Employment Offices (see
-<https://oferty.praca.gov.pl>). We treat this register as a non-probability sample
+<https://oferty.praca.gov.pl/portal>). We treat this register as a non-probability sample
 since it contains administrative data provided on a voluntary basis, so the
 inclusion mechanism is unknown. This dataset was prepared in such a way that
 records deemed to be out of scope (either in terms of the definition of vacancy or
