@@ -85,7 +85,7 @@ Euclidean distance for matching units from \eqn{S_{\text{NP}}} (non-probability)
 Matching ties are randomized before donor values are aggregated, so tied nearest neighbours
 are not selected only by input row order. Estimation of the mean is done using \eqn{S_{\text{P}}} sample:
 when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
-otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_i}.
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_{\text{P}, i}}.
 The \code{pop_size} argument is not converted into a finite population correction;
 if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
 by the \code{{survey}} variance routines.
@@ -118,7 +118,7 @@ can be summarized as follows:
 If non-constant pseudo-weights are supplied through \code{weights}, sampling probabilities
 are proportional to their inverses; equal weights use uniform resampling.
 \item Match units from \eqn{S_{\text{P}}} to \eqn{S_{\text{NP}}'} to obtain predictions \eqn{y^*}=\eqn{{k}^{-1}\sum_{k}y_k}.
-\item Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_{\text{P}}} d_i y_i^*}.
+\item Estimate \eqn{\hat{\mu}=\frac{1}{N} \sum_{i \in S_{\text{P}}} d_{\text{P}, i} y_i^*}.
 \item Repeat steps 1-3 \eqn{M} times (we set \eqn{M=50} in our simulations; this is hard-coded).
 \item Estimate \eqn{\hat{V}_1=\text{var}({\hat{\boldsymbol{\mu}}})} obtained from simulations and save it as \code{var_nonprob}.
 }

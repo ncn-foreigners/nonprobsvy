@@ -183,9 +183,9 @@ Supported outcome types depend on the estimator family:
 }
 In general we make the following assumptions:
 \enumerate{
-\item The selection indicator of belonging to non-probability sample \eqn{R_{i}} and the response variable \eqn{y_i} are independent given the set of covariates \eqn{\boldsymbol{x}_i}.
-\item All units have a non-zero propensity score, i.e., \eqn{\pi_{i}^{\text{NP}} > 0} for all i.
-\item The indicator variables \eqn{R_{i}^{\text{NP}}} and \eqn{R_{j}^{\text{NP}}} are independent for given \eqn{\boldsymbol{x}_i} and \eqn{\boldsymbol{x}_j} for \eqn{i \neq j}.
+\item The selection indicator of belonging to non-probability sample \eqn{I_{\text{NP}, i}} and the response variable \eqn{y_i} are independent given the set of covariates \eqn{\boldsymbol{x}_i}.
+\item All units have a non-zero propensity score, i.e., \eqn{\pi_{\text{NP}, i} > 0} for all i.
+\item The indicator variables \eqn{I_{\text{NP}, i}} and \eqn{I_{\text{NP}, j}} are independent for given \eqn{\boldsymbol{x}_i} and \eqn{\boldsymbol{x}_j} for \eqn{i \neq j}.
 }
 
 There are three possible approaches to the problem of estimating population mean using non-probability samples:
@@ -193,11 +193,11 @@ There are three possible approaches to the problem of estimating population mean
 \item Inverse probability weighting -- the main drawback of non-probability sampling is the unknown selection mechanism for a unit to be included in the sample.
 This is why we talk about the so-called "biased sample" problem. The inverse probability approach is based on the assumption that a reference probability sample
 is available and therefore we can estimate the propensity score of the selection mechanism.
-With inverse probability weights \eqn{\hat{d}_i^{\text{NP}} = 1 / \hat{\pi}_i^{\text{NP}}}, the package supports two
+With inverse probability weights \eqn{\hat{d}_{\text{NP}, i} = 1 / \hat{\pi}_{\text{NP}, i}}, the package supports two
 IPW point-estimator families. The Horvitz-Thompson-type estimator uses an external denominator \eqn{N_0},
-\deqn{\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_{\text{NP}}} w_i \hat{d}_i^{\text{NP}} y_i,}
+\deqn{\hat{\mu}_{IPW,HT} = \frac{1}{N_0}\sum_{i \in S_{\text{NP}}} w_i \hat{d}_{\text{NP}, i} y_i,}
 where \eqn{w_i} are optional \code{case_weights}. The Hajek-type estimator uses the estimated IPW total as the denominator,
-\deqn{\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_{\text{NP}}} w_i \hat{d}_i^{\text{NP}} y_i}{\sum_{i \in S_{\text{NP}}} w_i \hat{d}_i^{\text{NP}}}.}
+\deqn{\hat{\mu}_{IPW,H} = \frac{\sum_{i \in S_{\text{NP}}} w_i \hat{d}_{\text{NP}, i} y_i}{\sum_{i \in S_{\text{NP}}} w_i \hat{d}_{\text{NP}, i}}.}
 For IPW-MLE, omitting a fixed population size (\code{pop_size}, \code{pop_totals}, or \code{pop_means} with \code{pop_size}) gives
 the Hajek-type estimator. Supplying a fixed population size or population totals gives the
 Horvitz-Thompson-type estimator. For IPW-GEE with a reference probability sample, the denominator is
@@ -206,29 +206,29 @@ family. For IPW-GEE with population totals or means, the denominator comes from 
 For this purpose several estimation methods can be considered. The first approach is maximum likelihood estimation with a corrected
 log-likelihood function, which is given by the following formula
 \deqn{
- \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{\text{NP}}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{\text{P}}}d_{i}^{\text{P}}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.}
+ \ell^{*}(\boldsymbol{\theta}) = \sum_{i \in S_{\text{NP}}}\log \left\lbrace \frac{\pi(\boldsymbol{x}_{i}, \boldsymbol{\theta})}{1 - \pi(\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace + \sum_{i \in S_{\text{P}}}d_{\text{P}, i}\log \left\lbrace 1 - \pi({\boldsymbol{x}_{i},\boldsymbol{\theta})}\right\rbrace.}
 In the literature, the main approach to modelling propensity scores is based on the logit link function.
 However, we extend the propensity score model with the additional link functions such as cloglog and probit.
 The pseudo-score equations derived from ML methods can be replaced by the idea of generalised estimating equations
 with calibration constraints defined by equations.
 \deqn{
- \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_{\text{NP}}} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_{\text{P}}} d_i^{\text{P}} \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
+ \mathbf{U}(\boldsymbol{\theta})=\sum_{i \in S_{\text{NP}}} \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right)-\sum_{i \in S_{\text{P}}} d_{\text{P}, i} \pi\left(\mathbf{x}_i, \boldsymbol{\theta}\right) \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right).}
 Notice that for \eqn{ \mathbf{h}\left(\mathbf{x}_i, \boldsymbol{\theta}\right) = \frac{\boldsymbol{x}}{\pi(\boldsymbol{x}, \boldsymbol{\theta})}} We do not need a probability sample and can use a vector of population totals/means.
 \item Mass imputation -- This method is based on a framework where imputed values of outcome variables are created for the entire probability sample. In this case, we treat the large sample as a training data set that is used to build an imputation model.
 Using the imputed values for the probability sample and the (known) design weights,
 we can build a population mean estimator of the form:
-\deqn{\hat{\mu}_{MI} = \frac{1}{N^{\text{P}}}\sum_{i \in S_{\text{P}}} d_{i}^{\text{P}} \hat{y}_i.}
+\deqn{\hat{\mu}_{MI} = \frac{1}{N_{\text{P}}}\sum_{i \in S_{\text{P}}} d_{\text{P}, i} \hat{y}_i.}
 It opens the door to a very flexible method for imputation models. The package uses generalized linear models from \code{\link[stats:glm]{stats::glm()}},
 the nearest neighbour algorithm using \code{\link[RANN:nn2]{RANN::nn2()}} and predictive mean matching.
 \item Doubly robust estimation -- The IPW and MI estimators are sensitive to misspecified models for the propensity score and outcome variable, respectively.
 To this end, so-called doubly robust methods are presented that take these problems into account.
 It is a simple idea to combine propensity score and imputation models during inference, leading to the following estimator
-\deqn{\hat{\mu}_{DR} = \frac{1}{N^{\text{NP}}}\sum_{i \in S_{\text{NP}}} \hat{d}_i^{\text{NP}} (y_i - \hat{y}_i) + \frac{1}{N^{\text{P}}}\sum_{i \in S_{\text{P}}} d_i^{\text{P}} \hat{y}_i.}
+\deqn{\hat{\mu}_{DR} = \frac{1}{N_{\text{NP}}}\sum_{i \in S_{\text{NP}}} \hat{d}_{\text{NP}, i} (y_i - \hat{y}_i) + \frac{1}{N_{\text{P}}}\sum_{i \in S_{\text{P}}} d_{\text{P}, i} \hat{y}_i.}
 In addition, an approach based directly on bias minimisation has been implemented. The following formula
 \deqn{
    \begin{aligned}
-   bias(\hat{\mu}_{DR}) = & \mathbb{E} (\hat{\mu}_{DR} - \mu) \cr = & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (\frac{R_i^{\text{NP}}}{\pi_i^{\text{NP}} (\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\theta})}
-   - 1 ) (y_i - \operatorname{m}(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta})) \right\rbrace \cr + & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (R_i^{\text{P}} d_i^{\text{P}} - 1) \operatorname{m}( \boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta}) \right\rbrace,
+   bias(\hat{\mu}_{DR}) = & \mathbb{E} (\hat{\mu}_{DR} - \mu) \cr = & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (\frac{I_{\text{NP}, i}}{\pi_{\text{NP}, i} (\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\theta})}
+   - 1 ) (y_i - \operatorname{m}(\boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta})) \right\rbrace \cr + & \mathbb{E} \left\lbrace \frac{1}{N} \sum_{i=1}^N (I_{\text{P}, i} d_{\text{P}, i} - 1) \operatorname{m}( \boldsymbol{x}_i^{\mathrm{T}} \boldsymbol{\beta}) \right\rbrace,
    \end{aligned}
    }
 lead us to system of equations
@@ -240,14 +240,14 @@ lead us to system of equations
                       J_1(\theta, \beta) \cr
                       J_2(\theta, \beta)
                       \end{array}\right\rbrace = \left\lbrace \begin{array}{c}
-                                               \sum_{i=1}^N R_i^{\text{NP}}\ \left\lbrace \frac{1}{\pi(\boldsymbol{x}_i, \boldsymbol{\theta})}-1 \right\rbrace \left\lbrace y_i-m(\boldsymbol{x}_i, \boldsymbol{\beta}) \right\rbrace \boldsymbol{x}_i \cr
-                                               \sum_{i=1}^N \frac{R_i^{\text{NP}}}{\pi(\boldsymbol{x}_i, \boldsymbol{\theta})} \frac{\partial m(\boldsymbol{x}_i, \boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
-                                               - \sum_{i \in \mathcal{S}_{\text{P}}} d_i^{\text{P}} \frac{\partial m(\boldsymbol{x}_i, \boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
+                                               \sum_{i=1}^N I_{\text{NP}, i}\ \left\lbrace \frac{1}{\pi(\boldsymbol{x}_i, \boldsymbol{\theta})}-1 \right\rbrace \left\lbrace y_i-m(\boldsymbol{x}_i, \boldsymbol{\beta}) \right\rbrace \boldsymbol{x}_i \cr
+                                               \sum_{i=1}^N \frac{I_{\text{NP}, i}}{\pi(\boldsymbol{x}_i, \boldsymbol{\theta})} \frac{\partial m(\boldsymbol{x}_i, \boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
+                                               - \sum_{i \in \mathcal{S}_{\text{P}}} d_{\text{P}, i} \frac{\partial m(\boldsymbol{x}_i, \boldsymbol{\beta})}{\partial \boldsymbol{\beta}}
   \end{array} \right\rbrace,
   \end{aligned}
   }
 where \eqn{m\left(\boldsymbol{x}_{i}, \boldsymbol{\beta}\right)} is a mass imputation (regression) model for the outcome variable and
-propensity scores \eqn{\pi_i^{\text{NP}}} are estimated using a \code{logit} function for the model. As with the \code{MLE} and \code{GEE} approaches we have extended
+propensity scores \eqn{\pi_{\text{NP}, i}} are estimated using a \code{logit} function for the model. As with the \code{MLE} and \code{GEE} approaches we have extended
 this method to \code{cloglog} and \code{probit} links.
 }
 

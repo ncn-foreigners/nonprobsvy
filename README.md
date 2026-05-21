@@ -118,7 +118,7 @@ Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of
 auxiliary variables, $R$ is the inclusion indicator. Then, if we are
 interested in estimating the mean $\bar{\tau}_Y$ or the sum $\tau_Y$ of
 the of the target variable given the observed data set
-$(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
+$(y_k, \boldsymbol{x}_k, I_{\text{NP}, k})$, we can approach this problem with the
 possible scenarios:
 
 - unit-level data is available for the non-probability sample $S_{\text{NP}}$,
@@ -130,8 +130,8 @@ possible scenarios:
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample $S_{\text{NP}}$ and
-  the probability sample $S_{\text{P}}$, i.e. $(\boldsymbol{x}_k,R_k)$ is
-  determined by the data: $R_k=1$ if $k \in S_{\text{NP}}$ otherwise $R_k=0$,
+  the probability sample $S_{\text{P}}$, i.e. $(\boldsymbol{x}_k,I_{\text{NP}, k})$ is
+  determined by the data: $I_{\text{NP}, k}=1$ if $k \in S_{\text{NP}}$ otherwise $I_{\text{NP}, k}=0$,
   $y_k$ is observed only for sample $S_{\text{NP}}$ and $\boldsymbol{x}_k$ is
   observed in both $S_{\text{NP}}$ and $S_{\text{P}}$.
 

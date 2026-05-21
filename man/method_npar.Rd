@@ -82,7 +82,7 @@ The variance of the mean is estimated based on the following approach
 }
 
 where \eqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \eqn{\hat{g}_{\text{P}}(\boldsymbol{x}_i) = \left\lbrace \pi_{\text{P}}(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
-various ways. In the package we estimate \eqn{\hat{g}_{\text{P}}(\boldsymbol{x}_i)} using \eqn{\pi_{\text{P}}(\boldsymbol{x}_i)=E(R | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
+various ways. In the package we estimate \eqn{\hat{g}_{\text{P}}(\boldsymbol{x}_i)} using \eqn{\pi_{\text{P}}(\boldsymbol{x}_i)=E(I_{\text{NP}} | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
 we currently support this using stats::loess\code{with}"gaussian"` family.
 
 (b) probability part (\eqn{S_{\text{P}}} with size \eqn{n_{\text{P}}}; denoted as \code{var_prob} in the result)

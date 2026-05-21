@@ -76,7 +76,7 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 Model for the outcome for the mass imputation estimator. The implementation is currently based on \link[RANN:nn2]{RANN::nn2} function and thus it uses Euclidean distance for matching units from \eqn{S_{\text{NP}}} (non-probability) to \eqn{S_{\text{P}}} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
 either on \code{method_glm} or \code{method_npar}. Estimation of the mean is done using \eqn{S_{\text{P}}} sample:
 when \code{pop_size} is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
-otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_i}.
+otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_{\text{P}, i}}.
 The \code{pop_size} argument is not converted into a finite population correction;
 if an fpc is needed, it should be supplied in \code{svydesign}, where it is handled
 by the \code{{survey}} variance routines.

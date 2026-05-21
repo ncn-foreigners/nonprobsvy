@@ -4,7 +4,7 @@
 #' Model for the outcome for the mass imputation estimator. The implementation is currently based on [RANN::nn2] function and thus it uses Euclidean distance for matching units from \eqn{S_{\text{NP}}} (non-probability) to \eqn{S_{\text{P}}} (probability) based on predicted values from model \eqn{\boldsymbol{x}_i} based
 #' either on `method_glm` or `method_npar`. Estimation of the mean is done using \eqn{S_{\text{P}}} sample:
 #' when `pop_size` is supplied this is the known-\eqn{N} Horvitz-Thompson mean,
-#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_i}.
+#' otherwise it reduces to the usual ratio mean with \eqn{\hat{N} = \sum_{i\in S_{\text{P}}} d_{\text{P}, i}}.
 #' The `pop_size` argument is not converted into a finite population correction;
 #' if an fpc is needed, it should be supplied in `svydesign`, where it is handled
 #' by the `{survey}` variance routines.
