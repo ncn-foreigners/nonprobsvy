@@ -25,7 +25,14 @@ control_inf(
 
 - var_method:
 
-  the variance method (default `"analytic"`).
+  the variance method (default `"analytic"`). Note that the doubly
+  robust analytic variance is derived under the logistic propensity
+  model (Chen, Li & Wu 2020, Theorem 2); for the `"probit"` and
+  `"cloglog"` selection links it is a conservative approximation (it
+  tends to over-estimate the standard error and can be numerically
+  unstable when fitted propensities approach 1), so
+  `var_method = "bootstrap"` is recommended for doubly robust inference
+  with those links.
 
 - rep_type:
 

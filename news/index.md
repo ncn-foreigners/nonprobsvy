@@ -2,6 +2,27 @@
 
 ## nonprobsvy (development version)
 
+- documented and stabilised the doubly robust analytic variance for
+  non-logit propensity links: the plug-in doubly robust variance (Chen,
+  Li & Wu 2020, Theorem 2, eq. 14) is derived under the logistic model,
+  where the probability-sample (design) variance factor `pi` is bounded
+  by 1; for `probit` (inverse-Mills factor `phi / (1 - pi)`) and
+  `cloglog` (factor `log(1 - pi)` == `-exp(eta)`) it is conservative
+  (over-estimates the standard error) and previously could overflow to a
+  huge or non-finite SE when a fitted propensity approached 0 or 1 (in a
+  small-propensity simulation the probit analytic SE reached ~1e27). The
+  non-logit doubly robust variance terms (`t_vec`, `var_nonprob`, and
+  the `b`-vector weights `psd / pi^2` and `(1 - pi) / pi^2 * exp(eta)`)
+  now floor the fitted propensity away from `{0, 1}` at `1 / sqrt(N)` so
+  they stay finite, a one-time note recommends
+  `control_inf(var_method = "bootstrap")` for probit/cloglog doubly
+  robust inference, and the documentation states the conservativeness.
+  The logistic path is left untouched (its standard error is unchanged).
+  The previously commented-out probit/cloglog doubly robust tests are
+  re-enabled (point estimates pinned, analytic SE asserted finite),
+  validated by a coverage simulation in which logit stays at nominal
+  coverage (~0.95, SE/SD ~1) and the probit/cloglog SE no longer
+  explodes
 - added input validation at the boundary: a factor or character
   outcome/target now raises a clear error (instead of silently returning
   `NA`), and the not-yet-implemented overlap controls

@@ -9,7 +9,7 @@ for statistical inference."><meta property="og:image" content="https://ncn-forei
 
     <a class="navbar-brand me-2" href="../index.html">nonprobsvy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,12 @@ for statistical inference.</p>
 
 
 <dl><dt id="arg-var-method">var_method<a class="anchor" aria-label="anchor" href="#arg-var-method"></a></dt>
-<dd><p>the variance method (default <code>"analytic"</code>).</p></dd>
+<dd><p>the variance method (default <code>"analytic"</code>). Note that the
+doubly robust analytic variance is derived under the logistic propensity model
+(Chen, Li &amp; Wu 2020, Theorem 2); for the <code>"probit"</code> and <code>"cloglog"</code> selection
+links it is a conservative approximation (it tends to over-estimate the standard
+error and can be numerically unstable when fitted propensities approach 1), so
+<code>var_method = "bootstrap"</code> is recommended for doubly robust inference with those links.</p></dd>
 
 
 <dt id="arg-rep-type">rep_type<a class="anchor" aria-label="anchor" href="#arg-rep-type"></a></dt>
