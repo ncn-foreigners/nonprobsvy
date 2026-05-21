@@ -35,7 +35,8 @@ Details on the use of the package can be found:
 - see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
   (2025). *nonprobsvy–An R package for modern methods for
   non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255).
+  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcomming to
+  the Journal of Statistical Software
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
   R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
@@ -50,7 +51,7 @@ branch [Github](https://github.com/ncn-foreigners/nonprobsvy) with:
 
 ``` r
 
-remotes::install_github("ncn-foreigners/nonprobsvy")
+pak::pkg_install("ncn-foreigners/nonprobsvy")
 ```
 
 or install the stable version from
@@ -65,7 +66,7 @@ or development version from the `dev` branch
 
 ``` r
 
-remotes::install_github("ncn-foreigners/nonprobsvy@dev")
+pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ```
 
 ## Basic idea
@@ -91,7 +92,8 @@ probability sample. Data structures where Y is observed in both samples,
 or where overlapping units must be linked across samples, are not
 currently implemented. The `dependence` and `key` arguments in
 [`control_sel()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_sel.md)
-are placeholders for future overlap handling.
+are reserved for future overlap handling and currently raise a “not yet
+implemented” error if set.
 
 ## Basic functionalities
 
@@ -242,7 +244,7 @@ result_dr
 #>    - variable y2: 1.8087
 #>  - selected estimators:
 #>    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))
-#>    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))
+#>    - variable y2: 1.5762 (se=0.0313, ci=(1.5150, 1.6375))
 ```
 
 Mass imputation estimator
@@ -300,7 +302,7 @@ result_ipw
 #> A nonprob object
 #>  - estimator type: inverse probability weighting
 #>  - method: logit (mle)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1041763.6177)
+#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -309,8 +311,8 @@ result_ipw
 #>    - variable y1: 3.1817
 #>    - variable y2: 1.8087
 #>  - selected estimators:
-#>    - variable y1: 2.9017 (se=0.0823, ci=(2.7403, 3.0631))
-#>    - variable y2: 1.5287 (se=0.0823, ci=(1.3673, 1.6900))
+#>    - variable y1: 2.9248 (se=0.0500, ci=(2.8269, 3.0227))
+#>    - variable y2: 1.5517 (se=0.0499, ci=(1.4539, 1.6496))
 ```
 
 ## Funding

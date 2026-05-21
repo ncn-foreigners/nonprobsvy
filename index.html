@@ -77,7 +77,7 @@
 </ul>
 <p>Details on the use of the package can be found:</p>
 <ul>
-<li>see the working paper Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M. (2025). <em>nonprobsvy–An R package for modern methods for non-probability surveys</em>. arXiv preprint <a href="https://arxiv.org/abs/2504.04255" class="external-link">arXiv:2504.04255</a>.</li>
+<li>see the working paper Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M. (2025). <em>nonprobsvy–An R package for modern methods for non-probability surveys</em>. arXiv preprint <a href="https://arxiv.org/abs/2504.04255" class="external-link">arXiv:2504.04255</a> – forthcomming to the Journal of Statistical Software</li>
 <li>in the draft (and not proofread) version of the book <a href="https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/" class="external-link">Modern inference methods for non-probability samples with R</a>,</li>
 <li>in example codes that reproduce papers available on github in the repository <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link">software tutorials</a>.</li>
 </ul>
@@ -87,13 +87,13 @@
 </h2>
 <p>You can install the recent version of <code>nonprobsvy</code> package from main branch <a href="https://github.com/ncn-foreigners/nonprobsvy" class="external-link">Github</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ncn-foreigners/nonprobsvy"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"ncn-foreigners/nonprobsvy"</span><span class="op">)</span></span></code></pre></div>
 <p>or install the stable version from <a href="https://CRAN.R-project.org/package=nonprobsvy" class="external-link">CRAN</a></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"nonprobsvy"</span><span class="op">)</span></span></code></pre></div>
 <p>or development version from the <code>dev</code> branch</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ncn-foreigners/nonprobsvy@dev"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"ncn-foreigners/nonprobsvy@dev"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="basic-idea">Basic idea<a class="anchor" aria-label="anchor" href="#basic-idea"></a>
@@ -163,7 +163,7 @@
 </tr>
 </tbody>
 </table>
-<p>The current implementation does not use target-variable values from the probability sample. Data structures where <span class="math inline">Y</span> is observed in both samples, or where overlapping units must be linked across samples, are not currently implemented. The <code>dependence</code> and <code>key</code> arguments in <code><a href="reference/control_sel.html">control_sel()</a></code> are placeholders for future overlap handling.</p>
+<p>The current implementation does not use target-variable values from the probability sample. Data structures where <span class="math inline">Y</span> is observed in both samples, or where overlapping units must be linked across samples, are not currently implemented. The <code>dependence</code> and <code>key</code> arguments in <code><a href="reference/control_sel.html">control_sel()</a></code> are reserved for future overlap handling and currently raise a “not yet implemented” error if set.</p>
 </div>
 <div class="section level2">
 <h2 id="basic-functionalities">Basic functionalities<a class="anchor" aria-label="anchor" href="#basic-functionalities"></a>
@@ -551,7 +551,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
 <span><span class="co">#&gt;  - selected estimators:</span></span>
 <span><span class="co">#&gt;    - variable y1: 2.9500 (se=0.0414, ci=(2.8689, 3.0312))</span></span>
-<span><span class="co">#&gt;    - variable y2: 1.5762 (se=0.0498, ci=(1.4786, 1.6739))</span></span></code></pre></div>
+<span><span class="co">#&gt;    - variable y2: 1.5762 (se=0.0313, ci=(1.5150, 1.6375))</span></span></code></pre></div>
 <p>Mass imputation estimator</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_mi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nonprob.html">nonprob</a></span><span class="op">(</span></span>
@@ -589,7 +589,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
 <span><span class="co">#&gt;  - method: logit (mle)</span></span>
-<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1041763.6177)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -598,8 +598,8 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt;    - variable y1: 3.1817</span></span>
 <span><span class="co">#&gt;    - variable y2: 1.8087</span></span>
 <span><span class="co">#&gt;  - selected estimators:</span></span>
-<span><span class="co">#&gt;    - variable y1: 2.9017 (se=0.0823, ci=(2.7403, 3.0631))</span></span>
-<span><span class="co">#&gt;    - variable y2: 1.5287 (se=0.0823, ci=(1.3673, 1.6900))</span></span></code></pre></div>
+<span><span class="co">#&gt;    - variable y1: 2.9248 (se=0.0500, ci=(2.8269, 3.0227))</span></span>
+<span><span class="co">#&gt;    - variable y2: 1.5517 (se=0.0499, ci=(1.4539, 1.6496))</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>
