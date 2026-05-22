@@ -14,7 +14,7 @@
 #' @param lambda A user-specified \eqn{\lambda} value during variable selection model fitting.
 #'   The default value \code{-1} uses cross-validation.
 #' @param lambda_min The smallest value for lambda, as a fraction of lambda.max. Default is .001.
-#' @param nlambda The number of lambda values. Default is 100.
+#' @param nlambda The number of lambda values. Default is 50.
 #' @param nfolds The number of folds during cross-validation for variables selection model.
 #' @param treetype Type of tree for nearest neighbour imputation (for the NN and PMM estimator) passed to [RANN::nn2()] function.
 #' @param searchtype Type of search for nearest neighbour imputation (for the NN and PMM estimator) passed to [RANN::nn2()] function.
@@ -70,7 +70,7 @@ control_out <- function(epsilon = 1e-8,
                         a_MCP = 3,
                         lambda = -1,
                         lambda_min = .001,
-                        nlambda = 100,
+                        nlambda = 50,
                         nfolds = 10,
                         treetype = c("kd", "rp", "ball"),
                         searchtype = c("standard", "priority"),

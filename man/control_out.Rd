@@ -14,7 +14,7 @@ control_out(
   a_MCP = 3,
   lambda = -1,
   lambda_min = 0.001,
-  nlambda = 100,
+  nlambda = 50,
   nfolds = 10,
   treetype = c("kd", "rp", "ball"),
   searchtype = c("standard", "priority"),
@@ -46,7 +46,7 @@ The default value \code{-1} uses cross-validation.}
 
 \item{lambda_min}{The smallest value for lambda, as a fraction of lambda.max. Default is .001.}
 
-\item{nlambda}{The number of lambda values. Default is 100.}
+\item{nlambda}{The number of lambda values. Default is 50.}
 
 \item{nfolds}{The number of folds during cross-validation for variables selection model.}
 
