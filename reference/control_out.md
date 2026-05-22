@@ -16,7 +16,7 @@ control_out(
   a_MCP = 3,
   lambda = -1,
   lambda_min = 0.001,
-  nlambda = 100,
+  nlambda = 50,
   nfolds = 10,
   treetype = c("kd", "rp", "ball"),
   searchtype = c("standard", "priority"),
@@ -76,7 +76,7 @@ control_out(
 
 - nlambda:
 
-  The number of lambda values. Default is 100.
+  The number of lambda values. Default is 50.
 
 - nfolds:
 

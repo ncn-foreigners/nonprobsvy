@@ -4,6 +4,11 @@
 
 ## nonprobsvy 0.3.0
 
+- changed the default of `num_boot` in
+  [`control_inf()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_inf.md)
+  from 500 to 100 and `nlambda` in
+  [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
+  from 100 to 50 to align with the documentation
 - vignette based on the JSS paper added
 - documentation notation adjusted to match the JSS paper
 - we thank the authors of [StatsClaw.ai](https://statsclaw.ai), the tool

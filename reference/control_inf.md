@@ -13,7 +13,7 @@ control_inf(
   vars_selection = FALSE,
   vars_combine = FALSE,
   bias_correction = FALSE,
-  num_boot = 500,
+  num_boot = 100,
   alpha = 0.05,
   cores = 1,
   keep_boot = TRUE,
