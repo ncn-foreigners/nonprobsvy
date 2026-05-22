@@ -102,17 +102,18 @@ control_out(
   (Only for the PMM Estimator) Indicates how to select 'closest' unit
   from non-probability sample for each unit in probability sample.
   Either `1` (default) or `2` where `2` is matching by minimizing
-  distance between \\\hat{y}\_{i}\\ for \\i \in S\_{\text{NP}}\\ and
-  \\y\_{j}\\ for \\j \in S\_{\text{P}}\\ and `1` is matching by
+  distance between \\\hat{y}\_{i}\\ for \\i \in S\_{\mathrm{NP}}\\ and
+  \\y\_{j}\\ for \\j \in S\_{\mathrm{P}}\\ and `1` is matching by
   minimizing distance between \\\hat{y}\_{i}\\ for \\i \in
-  S\_{\text{NP}}\\ and \\\hat{y}\_{i}\\ for \\i \in S\_{\text{NP}}\\.
+  S\_{\mathrm{NP}}\\ and \\\hat{y}\_{i}\\ for \\i \in
+  S\_{\mathrm{NP}}\\.
 
 - pmm_weights:
 
   (Only for the PMM Estimator) Indicate how to weight `k` nearest
-  neighbours in \\S\_{\text{P}}\\ to create imputed value for units in
-  \\S\_{\text{NP}}\\. The default value `"none"` indicates that mean of
-  `k` nearest \\y\\'s from \\S\_{\text{P}}\\ should be used whereas
+  neighbours in \\S\_{\mathrm{P}}\\ to create imputed value for units in
+  \\S\_{\mathrm{NP}}\\. The default value `"none"` indicates that mean
+  of `k` nearest \\y\\'s from \\S\_{\mathrm{P}}\\ should be used whereas
   `"dist"` results in weighted mean of these `k` values where weights
   are inversely proportional to distance between matched values.
 
@@ -122,22 +123,22 @@ control_out(
   hyper-parameter should be chosen, by default `"none"` meaning `k`
   provided in `control_outcome` argument will be used. For now the only
   other option `"min_var"` means that `k` will be chosen by a full
-  search over `1:n_{{NP}}` (or `1:pmm_k_max`, see below), where
-  \\n\_{\text{NP}}\\ is the non-probability sample size, minimizing the
-  estimated variance of the mean estimator. The `k` value supplied in
-  this control list is replaced by the selected value. Note that this
+  search over `1:n_NP` (or `1:pmm_k_max`, see below), where
+  \\n\_{\mathrm{NP}}\\ is the non-probability sample size, minimizing
+  the estimated variance of the mean estimator. The `k` value supplied
+  in this control list is replaced by the selected value. Note that this
   search refits the full PMM stack for every candidate `k`, so its cost
-  scales as \\O(n\_{\text{NP}} \times l)\\ (with \\l\\ the number of
+  scales as \\O(n\_{\mathrm{NP}} \times l)\\ (with \\l\\ the number of
   outcome variables) and can be substantial for large non-probability
   samples; cap it with `pmm_k_max` or supply `k` directly when
-  \\n\_{\text{NP}}\\ is large.
+  \\n\_{\mathrm{NP}}\\ is large.
 
 - pmm_k_max:
 
   (Only for the PMM Estimator) Positive integer upper bound for the
   `pmm_k_choice = "min_var"` search grid. The default `NULL` searches
-  the full `1:n_{{NP}}` grid. Setting e.g. `pmm_k_max = 30` caps the
-  search at `1:min(n_{{NP}}, 30)` to bound its cost.
+  the full `1:n_NP` grid. Setting e.g. `pmm_k_max = 30` caps the search
+  at `1:min(n_NP, 30)` to bound its cost.
 
 - pmm_reg_engine:
 

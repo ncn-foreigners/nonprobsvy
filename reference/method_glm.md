@@ -3,7 +3,7 @@
 Model for the outcome for the mass imputation estimator using
 generalized linear models via the
 [`stats::glm`](https://rdrr.io/r/stats/glm.html) function. Estimation of
-the mean is done using \\S\_{\text{P}}\\ probability sample or known
+the mean is done using \\S\_{\mathrm{P}}\\ probability sample or known
 population totals.
 
 ## Usage
@@ -145,38 +145,40 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-\(a\) non-probability part (\\S\_{\text{NP}}\\ with size
-\\n\_{\text{NP}}\\; denoted as `var_nonprob` in the result)
+\(a\) non-probability part (\\S\_{\mathrm{NP}}\\ with size
+\\n\_{\mathrm{NP}}\\; denoted as `var_nonprob` in the result)
 
-\$\$ \hat{V}\_1 = \frac{1}{n\_{\text{NP}}^2}\sum\_{i=1}^{n\_{\text{NP}}}
-\hat{e}\_i^2 \left\lbrace \boldsymbol{h}(\boldsymbol{x}\_i;
+\$\$ \hat{V}\_1 =
+\frac{1}{n\_{\mathrm{NP}}^2}\sum\_{i=1}^{n\_{\mathrm{NP}}} \hat{e}\_i^2
+\left\lbrace \boldsymbol{h}(\boldsymbol{x}\_i;
 \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace^2,
 \$\$
 
 where \\\hat{e}\_i = y_i - m(\boldsymbol{x}\_i;
 \hat{\boldsymbol{\beta}})\\ and
-\$\$\widehat{\boldsymbol{c}}=\left\lbrace n\_{\text{NP}}^{-1} \sum\_{i
-\in S\_{\text{NP}}} \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
+\$\$\widehat{\boldsymbol{c}}=\left\lbrace n\_{\mathrm{NP}}^{-1} \sum\_{i
+\in S\_{\mathrm{NP}}} \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right) \boldsymbol{h}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum\_{i
-\in S\_{\text{P}}} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
+\in S\_{\mathrm{P}}} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}\_i ;
 \boldsymbol{\beta}^\*\right).\$\$
 
 Under the linear regression model
 \\\boldsymbol{h}\left(\boldsymbol{x}\_i ;
 \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}\_i\\ and
-\\\widehat{\boldsymbol{c}}=\left(n\_{\text{NP}}^{-1} \sum\_{i \in
-S\_{\text{NP}}} \boldsymbol{x}\_i \boldsymbol{x}\_i^{\prime}\right)^{-1}
-N^{-1} \sum\_{i \in S\_{\text{P}}} w_i \boldsymbol{x}\_i .\\
+\\\widehat{\boldsymbol{c}}=\left(n\_{\mathrm{NP}}^{-1} \sum\_{i \in
+S\_{\mathrm{NP}}} \boldsymbol{x}\_i
+\boldsymbol{x}\_i^{\prime}\right)^{-1} N^{-1} \sum\_{i \in
+S\_{\mathrm{P}}} w_i \boldsymbol{x}\_i .\\
 
-\(b\) probability part (\\S\_{\text{P}}\\ with size \\n\_{\text{P}}\\;
-denoted as `var_prob` in the result)
+\(b\) probability part (\\S\_{\mathrm{P}}\\ with size
+\\n\_{\mathrm{P}}\\; denoted as `var_prob` in the result)
 
 This part uses functionalities of the `{survey}` package and the
 variance is estimated using the following equation:
 
-\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n\_{\text{P}}}
-\sum\_{j=1}^{n\_{\text{P}}} \frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}}
+\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n\_{\mathrm{P}}}
+\sum\_{j=1}^{n\_{\mathrm{P}}} \frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}}
 \frac{m(\boldsymbol{x}\_i; \hat{\boldsymbol{\beta}})}{\pi_i}
 \frac{m(\boldsymbol{x}\_i; \hat{\boldsymbol{\beta}})}{\pi_j}. \$\$
 

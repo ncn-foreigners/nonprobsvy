@@ -2,7 +2,7 @@
 
 Model for the outcome for the mass imputation estimator using loess via
 [`stats::loess`](https://rdrr.io/r/stats/loess.html). Estimation of the
-mean is done using the \\S\_{\text{P}}\\ probability sample.
+mean is done using the \\S\_{\mathrm{P}}\\ probability sample.
 
 ## Usage
 
@@ -134,31 +134,31 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-\(a\) non-probability part (\\S\_{\text{NP}}\\ with size
-\\n\_{\text{NP}}\\; denoted as `var_nonprob` in the result)
+\(a\) non-probability part (\\S\_{\mathrm{NP}}\\ with size
+\\n\_{\mathrm{NP}}\\; denoted as `var_nonprob` in the result)
 
-\$\$ \hat{V}\_1 = \frac{1}{N^2} \sum\_{i=1}^{n\_{\text{NP}}}
-\left\lbrace\hat{g}\_{\text{P}}(\boldsymbol{x}\_i)\right\rbrace^{2}
+\$\$ \hat{V}\_1 = \frac{1}{N^2} \sum\_{i=1}^{n\_{\mathrm{NP}}}
+\left\lbrace\hat{g}\_{\mathrm{P}}(\boldsymbol{x}\_i)\right\rbrace^{2}
 \hat{e}\_i^2, \$\$
 
 where \\\hat{e}\_i=y_i - \hat{m}(x_i)\\ is the residual and
-\\\hat{g}\_{\text{P}}(\boldsymbol{x}\_i) = \left\lbrace
-\pi\_{\text{P}}(\boldsymbol{x}\_i) \right\rbrace^{-1}\\ can be estimated
-various ways. In the package we estimate
-\\\hat{g}\_{\text{P}}(\boldsymbol{x}\_i)\\ using
-\\\pi\_{\text{P}}(\boldsymbol{x}\_i)=E(I\_{\text{NP}} \|
+\\\hat{g}\_{\mathrm{P}}(\boldsymbol{x}\_i) = \left\lbrace
+\pi\_{\mathrm{P}}(\boldsymbol{x}\_i) \right\rbrace^{-1}\\ can be
+estimated various ways. In the package we estimate
+\\\hat{g}\_{\mathrm{P}}(\boldsymbol{x}\_i)\\ using
+\\\pi\_{\mathrm{P}}(\boldsymbol{x}\_i)=E(I\_{\mathrm{NP}} \|
 \boldsymbol{x})\\ as suggested by Chen et al. (2022, p. 6). In
 particular, we currently support this using
 stats::loess`with`"gaussian"\` family.
 
-\(b\) probability part (\\S\_{\text{P}}\\ with size \\n\_{\text{P}}\\;
-denoted as `var_prob` in the result)
+\(b\) probability part (\\S\_{\mathrm{P}}\\ with size
+\\n\_{\mathrm{P}}\\; denoted as `var_prob` in the result)
 
 This part uses functionalities of the `{survey}` package and the
 variance is estimated using the following equation:
 
-\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n\_{\text{P}}}
-\sum\_{j=1}^{n\_{\text{P}}} \frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}}
+\$\$ \hat{V}\_2=\frac{1}{N^2} \sum\_{i=1}^{n\_{\mathrm{P}}}
+\sum\_{j=1}^{n\_{\mathrm{P}}} \frac{\pi\_{i j}-\pi_i \pi_j}{\pi\_{i j}}
 \frac{\hat{m}(x_i)}{\pi_i} \frac{\hat{m}(x_j)}{\pi_j}. \$\$
 
 Note that \\\hat{V}\_2\\ in principle can be estimated in various ways

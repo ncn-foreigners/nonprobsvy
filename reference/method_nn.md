@@ -4,16 +4,16 @@ Mass imputation using nearest neighbours approach as described in Yang
 et al. (2021). The implementation is currently based on
 [RANN::nn2](https://jefferislab.github.io/RANN/reference/nn2.html)
 function and thus it uses Euclidean distance for matching units from
-\\S\_{\text{NP}}\\ (non-probability) to \\S\_{\text{P}}\\ (probability).
-Matching ties are randomized before donor values are aggregated, so tied
-nearest neighbours are not selected only by input row order. Estimation
-of the mean is done using \\S\_{\text{P}}\\ sample: when `pop_size` is
-supplied this is the known-\\N\\ Horvitz-Thompson mean, otherwise it
-reduces to the usual ratio mean with \\\hat{N} = \sum\_{i\in
-S\_{\text{P}}} d\_{\text{P}, i}\\. The `pop_size` argument is not
-converted into a finite population correction; if an fpc is needed, it
-should be supplied in `svydesign`, where it is handled by the `{survey}`
-variance routines.
+\\S\_{\mathrm{NP}}\\ (non-probability) to \\S\_{\mathrm{P}}\\
+(probability). Matching ties are randomized before donor values are
+aggregated, so tied nearest neighbours are not selected only by input
+row order. Estimation of the mean is done using \\S\_{\mathrm{P}}\\
+sample: when `pop_size` is supplied this is the known-\\N\\
+Horvitz-Thompson mean, otherwise it reduces to the usual ratio mean with
+\\\hat{N} = \sum\_{i\in S\_{\mathrm{P}}} d\_{\mathrm{P}, i}\\. The
+`pop_size` argument is not converted into a finite population
+correction; if an fpc is needed, it should be supplied in `svydesign`,
+where it is handled by the `{survey}` variance routines.
 
 ## Usage
 
@@ -168,21 +168,22 @@ Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-\(a\) non-probability part (\\S\_{\text{NP}}\\ with size
-\\n\_{\text{NP}}\\; denoted as `var_nonprob` in the result)
+\(a\) non-probability part (\\S\_{\mathrm{NP}}\\ with size
+\\n\_{\mathrm{NP}}\\; denoted as `var_nonprob` in the result)
 
 This may be estimated using
 
 \$\$ \hat{V}\_1 =
-\frac{1}{N^2}\sum\_{i=1}^{S\_{\text{NP}}}\frac{1-\hat{\pi}\_{\text{P}}(\boldsymbol{x}\_i)}{\hat{\pi}\_{\text{P}}(\boldsymbol{x}\_i)}\hat{\sigma}^2(\boldsymbol{x}\_i),
+\frac{1}{N^2}\sum\_{i=1}^{S\_{\mathrm{NP}}}\frac{1-\hat{\pi}\_{\mathrm{P}}(\boldsymbol{x}\_i)}{\hat{\pi}\_{\mathrm{P}}(\boldsymbol{x}\_i)}\hat{\sigma}^2(\boldsymbol{x}\_i),
 \$\$
 
-where \\\hat{\pi}\_{\text{P}}(\boldsymbol{x}\_i)\\ is an estimator of
-propensity scores which we currently estimate using \\n\_{\text{NP}}/N\\
-(constant) and \\\hat{\sigma}^2(\boldsymbol{x}\_i)\\ is estimated using
-based on the average of \\(y_i - y_i^\*)^2\\. The \\y_i^\*\\ values used
-in this proxy are obtained by leave-one-out matching in
-\\S\_{\text{NP}}\\, so a unit is not used as its own donor.
+where \\\hat{\pi}\_{\mathrm{P}}(\boldsymbol{x}\_i)\\ is an estimator of
+propensity scores which we currently estimate using
+\\n\_{\mathrm{NP}}/N\\ (constant) and
+\\\hat{\sigma}^2(\boldsymbol{x}\_i)\\ is estimated using based on the
+average of \\(y_i - y_i^\*)^2\\. The \\y_i^\*\\ values used in this
+proxy are obtained by leave-one-out matching in \\S\_{\mathrm{NP}}\\, so
+a unit is not used as its own donor.
 
 Chlebicki et al. (2025, Algorithm 2) proposed non-parametric
 mini-bootstrap estimator (without assuming that it is consistent) but
@@ -190,26 +191,26 @@ with good finite population properties. This bootstrap can be applied
 using `control_inference(nn_exact_se=TRUE)` and can be summarized as
 follows:
 
-1.  Sample \\n\_{\text{NP}}\\ units from \\S\_{\text{NP}}\\ with
-    replacement to create \\S\_{\text{NP}}'\\. If non-constant
+1.  Sample \\n\_{\mathrm{NP}}\\ units from \\S\_{\mathrm{NP}}\\ with
+    replacement to create \\S\_{\mathrm{NP}}'\\. If non-constant
     pseudo-weights are supplied through `weights`, sampling
     probabilities are proportional to their inverses; equal weights use
     uniform resampling.
 
-2.  Match units from \\S\_{\text{P}}\\ to \\S\_{\text{NP}}'\\ to obtain
-    predictions \\y^\*\\=\\{k}^{-1}\sum\_{k}y_k\\.
+2.  Match units from \\S\_{\mathrm{P}}\\ to \\S\_{\mathrm{NP}}'\\ to
+    obtain predictions \\y^\*\\=\\{k}^{-1}\sum\_{k}y_k\\.
 
-3.  Estimate \\\hat{\mu}=\frac{1}{N} \sum\_{i \in S\_{\text{P}}}
-    d\_{\text{P}, i} y_i^\*\\.
+3.  Estimate \\\hat{\mu}=\frac{1}{N} \sum\_{i \in S\_{\mathrm{P}}}
+    d\_{\mathrm{P}, i} y_i^\*\\.
 
 4.  Repeat steps 1-3 \\M\\ times (we set \\M=50\\ in our simulations;
     this is hard-coded).
 
-5.  Estimate \\\hat{V}\_1=\text{var}({\hat{\boldsymbol{\mu}}})\\
+5.  Estimate \\\hat{V}\_1=\mathrm{var}({\hat{\boldsymbol{\mu}}})\\
     obtained from simulations and save it as `var_nonprob`.
 
-\(b\) probability part (\\S\_{\text{P}}\\ with size \\n\_{\text{P}}\\;
-denoted as `var_prob` in the result)
+\(b\) probability part (\\S\_{\mathrm{P}}\\ with size
+\\n\_{\mathrm{P}}\\; denoted as `var_prob` in the result)
 
 This part uses functionalities of the `{survey}` package and the
 variance is estimated using the following equation:
