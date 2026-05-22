@@ -68,30 +68,30 @@ an \code{nonprob_method} class which is a \code{list} with the following entries
 }
 \description{
 Model for the outcome for the mass imputation estimator using loess via \code{stats::loess}.
-Estimation of the mean is done using the \eqn{S_{\text{P}}} probability sample.
+Estimation of the mean is done using the \eqn{S_{\mathrm{P}}} probability sample.
 }
 \details{
 Analytical variance
 
 The variance of the mean is estimated based on the following approach
 
-(a) non-probability part  (\eqn{S_{\text{NP}}} with size \eqn{n_{\text{NP}}}; denoted as \code{var_nonprob} in the result)
+(a) non-probability part  (\eqn{S_{\mathrm{NP}}} with size \eqn{n_{\mathrm{NP}}}; denoted as \code{var_nonprob} in the result)
 
 \deqn{
-\hat{V}_1 = \frac{1}{N^2} \sum_{i=1}^{n_{\text{NP}}} \left\lbrace\hat{g}_{\text{P}}(\boldsymbol{x}_i)\right\rbrace^{2} \hat{e}_i^2,
+\hat{V}_1 = \frac{1}{N^2} \sum_{i=1}^{n_{\mathrm{NP}}} \left\lbrace\hat{g}_{\mathrm{P}}(\boldsymbol{x}_i)\right\rbrace^{2} \hat{e}_i^2,
 }
 
-where \eqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \eqn{\hat{g}_{\text{P}}(\boldsymbol{x}_i) = \left\lbrace \pi_{\text{P}}(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
-various ways. In the package we estimate \eqn{\hat{g}_{\text{P}}(\boldsymbol{x}_i)} using \eqn{\pi_{\text{P}}(\boldsymbol{x}_i)=E(I_{\text{NP}} | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
+where \eqn{\hat{e}_i=y_i - \hat{m}(x_i)} is the residual and \eqn{\hat{g}_{\mathrm{P}}(\boldsymbol{x}_i) = \left\lbrace \pi_{\mathrm{P}}(\boldsymbol{x}_i) \right\rbrace^{-1}} can be estimated
+various ways. In the package we estimate \eqn{\hat{g}_{\mathrm{P}}(\boldsymbol{x}_i)} using \eqn{\pi_{\mathrm{P}}(\boldsymbol{x}_i)=E(I_{\mathrm{NP}} | \boldsymbol{x})} as suggested by Chen et al. (2022, p. 6). In particular,
 we currently support this using stats::loess\code{with}"gaussian"` family.
 
-(b) probability part (\eqn{S_{\text{P}}} with size \eqn{n_{\text{P}}}; denoted as \code{var_prob} in the result)
+(b) probability part (\eqn{S_{\mathrm{P}}} with size \eqn{n_{\mathrm{P}}}; denoted as \code{var_prob} in the result)
 
 This part uses functionalities of the \code{{survey}} package and the variance is estimated using the following
 equation:
 
 \deqn{
-\hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_{\text{P}}} \sum_{j=1}^{n_{\text{P}}} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+\hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_{\mathrm{P}}} \sum_{j=1}^{n_{\mathrm{P}}} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 \frac{\hat{m}(x_i)}{\pi_i} \frac{\hat{m}(x_j)}{\pi_j}.
 }
 
