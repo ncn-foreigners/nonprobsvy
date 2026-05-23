@@ -5,6 +5,7 @@ nonprobsvy News and Updates
 # nonprobsvy 0.3.0
 
 
++ fixed `control_out()` `treetype` choices: corrected from `c("kd", "rp", "ball")` to `c("kd", "bd")` to match what `RANN::nn2()` actually accepts; `"rp"` and `"ball"` were not valid RANN tree types and caused a crash, while `"bd"` (a legitimate RANN option) was wrongly rejected
 + changed the default of `num_boot` in `control_inf()` from 500 to 100 and `nlambda` in `control_out()` from 100 to 50 to align with the documentation
 + vignette based on the JSS paper added
 + documentation notation adjusted to match the JSS paper
