@@ -5,6 +5,7 @@ nonprobsvy News and Updates
 # nonprobsvy 0.3.0
 
 
++ `print()` and `summary()` now describe the IPW point estimator concisely: the estimator-type line reads `IPW (Hajek, denominator: <N>)` or `IPW (HT, denominator: <N>)` — HT only when `pop_size` is user-specified (i.e. `pop_size_fixed = TRUE`), otherwise Hajek with denominator `round(sum(ipw_weights))`; the separate `IPW point estimator:` line is removed for pure IPW objects and kept (corrected) only for doubly robust objects
 + fixed `control_out()` `treetype` choices: corrected from `c("kd", "rp", "ball")` to `c("kd", "bd")` to match what `RANN::nn2()` actually accepts; `"rp"` and `"ball"` were not valid RANN tree types and caused a crash, while `"bd"` (a legitimate RANN option) was wrongly rejected
 + changed the default of `num_boot` in `control_inf()` from 500 to 100 and `nlambda` in `control_out()` from 100 to 50 to align with the documentation
 + vignette based on the JSS paper added
