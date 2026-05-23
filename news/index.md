@@ -4,6 +4,14 @@
 
 ## nonprobsvy 0.3.0
 
+- [`print()`](https://rdrr.io/r/base/print.html) and
+  [`summary()`](https://rdrr.io/r/base/summary.html) now describe the
+  IPW point estimator concisely: the estimator-type line reads
+  `IPW (Hajek, denominator: <N>)` or `IPW (HT, denominator: <N>)` — HT
+  only when `pop_size` is user-specified (i.e. `pop_size_fixed = TRUE`),
+  otherwise Hajek with denominator `round(sum(ipw_weights))`; the
+  separate `IPW point estimator:` line is removed for pure IPW objects
+  and kept (corrected) only for doubly robust objects
 - fixed
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
   `treetype` choices: corrected from `c("kd", "rp", "ball")` to

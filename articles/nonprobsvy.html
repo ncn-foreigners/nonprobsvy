@@ -1567,9 +1567,8 @@ variables.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ipw_est1</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
-<span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
+<span><span class="co">#&gt;  - estimator type: IPW (Hajek, denominator: 52898)</span></span>
 <span><span class="co">#&gt;  - method: logit (mle)</span></span>
-<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -1589,11 +1588,10 @@ interested in inspecting the details of the fit by accessing the
 <span><span class="co">#&gt; A nonprob_summary object</span></span>
 <span><span class="co">#&gt;  - call: nonprob(data = admin, selection = ~region + private + nace + </span></span>
 <span><span class="co">#&gt;     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")</span></span>
-<span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
+<span><span class="co">#&gt;  - estimator type: IPW (Hajek, denominator: 52898)</span></span>
 <span><span class="co">#&gt;  - nonprob sample size: 9344 (17.7%)</span></span>
 <span><span class="co">#&gt;  - prob sample size: 6523 (12.3%)</span></span>
 <span><span class="co">#&gt;  - population size: 52898 (fixed: false)</span></span>
-<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)</span></span>
 <span><span class="co">#&gt;  - detailed information about models are stored in list element(s): "selection"</span></span>
 <span><span class="co">#&gt; ----------------------------------------------------------------</span></span>
 <span><span class="co">#&gt;  - sum of IPW weights: 52898.13 </span></span>
@@ -1631,9 +1629,8 @@ default is <code>"mle"</code>) and the value of
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ipw_est2</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
-<span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
+<span><span class="co">#&gt;  - estimator type: IPW (Hajek, denominator: 51870)</span></span>
 <span><span class="co">#&gt;  - method: logit (gee)</span></span>
-<span><span class="co">#&gt;  - IPW point estimator: Horvitz-Thompson (denominator: survey weights = 51870.0000)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -1754,6 +1751,7 @@ non-calibrated IPW and the MI-GLM estimator.</p>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
 <span><span class="co">#&gt;  - method: glm (binomial)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: 52898)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -1776,6 +1774,7 @@ details one can access the <code>"outcome"</code> and
 <span><span class="co">#&gt;  - nonprob sample size: 9344 (18%)</span></span>
 <span><span class="co">#&gt;  - prob sample size: 6523 (12.6%)</span></span>
 <span><span class="co">#&gt;  - population size: 51870 (fixed: false)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: 52898)</span></span>
 <span><span class="co">#&gt;  - detailed information about models are stored in list element(s): "outcome" and "selection"</span></span>
 <span><span class="co">#&gt; ----------------------------------------------------------------</span></span>
 <span><span class="co">#&gt;  - sum of IPW weights: 52898.13 </span></span>
@@ -1817,6 +1816,7 @@ selection followed by variable union from both equations.</p>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
 <span><span class="co">#&gt;  - method: glm (binomial)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: 51588)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: true</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>

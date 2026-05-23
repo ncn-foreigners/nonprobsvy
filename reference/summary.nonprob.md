@@ -102,11 +102,10 @@ summary(ipw_est1)
 #> A nonprob_summary object
 #>  - call: nonprob(data = admin, selection = ~region + private + nace + 
 #>     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 52898)
 #>  - nonprob sample size: 9344 (17.7%)
 #>  - prob sample size: 6523 (12.3%)
 #>  - population size: 52898 (fixed: false)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - detailed information about models are stored in list element(s): "selection"
 #> ----------------------------------------------------------------
 #>  - sum of IPW weights: 52898.13 

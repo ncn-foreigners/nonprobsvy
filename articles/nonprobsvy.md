@@ -1143,9 +1143,8 @@ i.e., `selected estimator`, is limited to the maximum of 5 variables.
 
 ipw_est1
 #> A nonprob object
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 52898)
 #>  - method: logit (mle)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -1168,11 +1167,10 @@ summary(ipw_est1)
 #> A nonprob_summary object
 #>  - call: nonprob(data = admin, selection = ~region + private + nace + 
 #>     size, target = ~single_shift, svydesign = jvs_svy, method_selection = "logit")
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 52898)
 #>  - nonprob sample size: 9344 (17.7%)
 #>  - prob sample size: 6523 (12.3%)
 #>  - population size: 52898 (fixed: false)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 52898.1311)
 #>  - detailed information about models are stored in list element(s): "selection"
 #> ----------------------------------------------------------------
 #>  - sum of IPW weights: 52898.13 
@@ -1222,9 +1220,8 @@ while the standard error is slightly higher.
 
 ipw_est2
 #> A nonprob object
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 51870)
 #>  - method: logit (gee)
-#>  - IPW point estimator: Horvitz-Thompson (denominator: survey weights = 51870.0000)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -1364,6 +1361,7 @@ dr_est1
 #> A nonprob object
 #>  - estimator type: doubly robust
 #>  - method: glm (binomial)
+#>  - IPW point estimator: Hajek (denominator: 52898)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -1389,6 +1387,7 @@ summary(dr_est1)
 #>  - nonprob sample size: 9344 (18%)
 #>  - prob sample size: 6523 (12.6%)
 #>  - population size: 51870 (fixed: false)
+#>  - IPW point estimator: Hajek (denominator: 52898)
 #>  - detailed information about models are stored in list element(s): "outcome" and "selection"
 #> ----------------------------------------------------------------
 #>  - sum of IPW weights: 52898.13 
@@ -1434,6 +1433,7 @@ dr_est2
 #> A nonprob object
 #>  - estimator type: doubly robust
 #>  - method: glm (binomial)
+#>  - IPW point estimator: Hajek (denominator: 51588)
 #>  - auxiliary variables source: survey
 #>  - vars selection: true
 #>  - variance estimator: analytic

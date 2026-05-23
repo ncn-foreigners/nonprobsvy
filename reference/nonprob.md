@@ -665,9 +665,8 @@ ipw_res <- nonprob(
 )
 ipw_res
 #> A nonprob object
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 21241)
 #>  - method: logit (mle)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 21240.5738)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -691,6 +690,7 @@ dr_res
 #> A nonprob object
 #>  - estimator type: doubly robust
 #>  - method: glm (gaussian)
+#>  - IPW point estimator: Hajek (denominator: 21241)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
