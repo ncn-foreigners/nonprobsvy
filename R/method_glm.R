@@ -10,32 +10,32 @@
 #'
 #' @description
 #' Model for the outcome for the mass imputation estimator using generalized linear
-#' models via the `stats::glm` function. Estimation of the mean is done using \eqn{S_B}
+#' models via the `stats::glm` function. Estimation of the mean is done using \eqn{S_{\mathrm{P}}}
 #' probability sample or known population totals.
 #'
 #' @details Analytical variance
 #'
 #' The variance of the mean is estimated based on the following approach
 #'
-#' (a) non-probability part  (\eqn{S_A} with size \eqn{n_A}; denoted as `var_nonprob` in the result)
+#' (a) non-probability part  (\eqn{S_{\mathrm{NP}}} with size \eqn{n_{\mathrm{NP}}}; denoted as `var_nonprob` in the result)
 #'
 #' \deqn{
-#' \hat{V}_1 = \frac{1}{n_A^2}\sum_{i=1}^{n_A} \hat{e}_i^2 \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace^2,
+#' \hat{V}_1 = \frac{1}{n_{\mathrm{NP}}^2}\sum_{i=1}^{n_{\mathrm{NP}}} \hat{e}_i^2 \left\lbrace \boldsymbol{h}(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})^\prime\hat{\boldsymbol{c}}\right\rbrace^2,
 #' }
 #'
 #' where \eqn{\hat{e}_i = y_i - m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})} and
-#' \deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_A^{-1} \sum_{i \in A} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in B} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).}
+#' \deqn{\widehat{\boldsymbol{c}}=\left\lbrace n_{\mathrm{NP}}^{-1} \sum_{i \in S_{\mathrm{NP}}} \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right) \boldsymbol{h}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right)^{\prime}\right\rbrace^{-1} N^{-1} \sum_{i \in S_{\mathrm{P}}} w_i \dot{\boldsymbol{m}}\left(\boldsymbol{x}_i ; \boldsymbol{\beta}^*\right).}
 #'
-#' Under the linear regression model \eqn{\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i} and \eqn{\widehat{\boldsymbol{c}}=\left(n_A^{-1} \sum_{i \in A} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in B} w_i \boldsymbol{x}_i .}
+#' Under the linear regression model \eqn{\boldsymbol{h}\left(\boldsymbol{x}_i ; \widehat{\boldsymbol{\beta}}\right)=\boldsymbol{x}_i} and \eqn{\widehat{\boldsymbol{c}}=\left(n_{\mathrm{NP}}^{-1} \sum_{i \in S_{\mathrm{NP}}} \boldsymbol{x}_i \boldsymbol{x}_i^{\prime}\right)^{-1} N^{-1} \sum_{i \in S_{\mathrm{P}}} w_i \boldsymbol{x}_i .}
 #'
 #'
-#' (b) probability part (\eqn{S_B} with size \eqn{n_B}; denoted as `var_prob` in the result)
+#' (b) probability part (\eqn{S_{\mathrm{P}}} with size \eqn{n_{\mathrm{P}}}; denoted as `var_prob` in the result)
 #'
 #'  This part uses functionalities of the `{survey}` package and the variance is estimated using the following
 #'  equation:
 #'
 #' \deqn{
-#' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_B} \sum_{j=1}^{n_B} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
+#' \hat{V}_2=\frac{1}{N^2} \sum_{i=1}^{n_{\mathrm{P}}} \sum_{j=1}^{n_{\mathrm{P}}} \frac{\pi_{i j}-\pi_i \pi_j}{\pi_{i j}}
 #' \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_i} \frac{m(\boldsymbol{x}_i; \hat{\boldsymbol{\beta}})}{\pi_j}.
 #' }
 #'

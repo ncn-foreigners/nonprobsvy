@@ -90,7 +90,7 @@ expect_silent(
     svydesign = jvs_svy,
     data = admin,
     pop_size = sum(weights(jvs_svy)),
-    control_inference = control_inf(vars_combine = T),
+    control_inference = control_inf(vars_combine = TRUE),
     method_selection = "logit")
 )
 
@@ -125,7 +125,7 @@ expect_silent(
     data = admin,
     control_inference = control_inf(var_method = "bootstrap",
                                     num_boot = 10,
-                                    vars_combine = T),
+                                    vars_combine = TRUE),
     method_selection = "logit")
 )
 
@@ -172,7 +172,7 @@ model_dr_varsel <- nonprob(
   data = admin,
   pop_size = sum(weights(jvs_svy)),
   method_selection = "logit",
-  control_inference = control_inf(vars_selection = T, vars_combine = T),
+  control_inference = control_inf(vars_selection = TRUE, vars_combine = TRUE),
   control_outcome = control_out(nfolds = 2),
   control_selection = control_sel(nfolds = 2, nlambda = 5)
   )
@@ -216,9 +216,9 @@ expect_silent(
   data = admin,
   pop_size = sum(weights(jvs_svy)),
   method_selection = "logit",
-  control_inference = control_inf(vars_selection = T,
-                                  vars_combine = T,
-                                  bias_correction = T),
+  control_inference = control_inf(vars_selection = TRUE,
+                                  vars_combine = TRUE,
+                                  bias_correction = TRUE),
   control_outcome = control_out(nfolds = 2),
   control_selection = control_sel(nfolds = 2, nlambda = 5)
 )
@@ -405,7 +405,7 @@ expect_silent(
       svytotal(~nace + size, jvs_svy)
     ),
     data = admin,
-    control_inference = control_inf(vars_combine = T),
+    control_inference = control_inf(vars_combine = TRUE),
     method_selection = "logit")
   )
 )

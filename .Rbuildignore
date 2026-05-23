@@ -6,11 +6,12 @@ playground
 ^CLAUDE\.md$
 ^tools$
 ^README\.Rmd$
+^README\.html$
 ^NEWS$
 ^LICENSE\.md$
 ^\.github$
 ^codecov\.yml$
-^.*bib$
+^references\.bib$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

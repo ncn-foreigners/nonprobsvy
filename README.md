@@ -27,19 +27,19 @@ for non-probability samples when auxiliary information from the
 population or probability sample is available:
 
 - inverse probability weighting estimators with possible calibration
-  constraints ([Y. Chen, Li, and Wu 2020](#ref-chen2020)),
-- mass imputation estimators based on nearest neighbours ([Yang, Kim,
-  and Hwang 2021](#ref-yang2021)), predictive mean matching ([Chlebicki,
-  Chrostowski, and Beręsewicz 2025](#ref-chlebicki2025)), non-parametric
-  ([S. Chen, Yang, and Kim 2022](#ref-chen2022nonparametric)) and
-  regression imputation ([Kim et al. 2021](#ref-kim2021)),
-- doubly robust estimators ([Y. Chen, Li, and Wu 2020](#ref-chen2020))
-  with bias minimization ([Yang, Kim, and Song 2020](#ref-yang2020)).
+  constraints ([Chen et al. 2020](#ref-chen2020)),
+- mass imputation estimators based on nearest neighbours ([Yang et al.
+  2021](#ref-yang2021)), predictive mean matching ([Chlebicki et al.
+  2025](#ref-chlebicki2025)), non-parametric ([Chen et al.
+  2022](#ref-chen2022nonparametric)) and regression imputation ([Kim et
+  al. 2021](#ref-kim2021)),
+- doubly robust estimators ([Chen et al. 2020](#ref-chen2020)) with bias
+  minimization ([Yang et al. 2020](#ref-yang2020)).
 
 The package allows for:
 
-- variable section in high-dimensional space using SCAD ([Yang, Kim, and
-  Song 2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`,
+- variable section in high-dimensional space using SCAD ([Yang et al.
+  2020](#ref-yang2020)), Lasso and MCP penalty (via the `ncvreg`,
   `Rcpp`, `RcppArmadillo` packages),
 - estimation of variance using analytical and bootstrap approach (see Wu
   ([2023](#ref-wu2023))),
@@ -55,7 +55,7 @@ Details on the use of the package can be found:
 - see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
   (2025). *nonprobsvy–An R package for modern methods for
   non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcomming to
+  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcoming to
   the Journal of Statistical Software
 - in the draft (and not proofread) version of the book [Modern inference
   methods for non-probability samples with
@@ -89,21 +89,21 @@ pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ## Basic idea
 
 Consider the following setting where two samples are available:
-non-probability (denoted as $S_A$) and probability (denoted as $S_B$)
+non-probability (denoted as $S_{\text{NP}}$) and probability (denoted as $S_{\text{P}}$)
 where a set of auxiliary variables (denoted as $\boldsymbol{X}$) is
 available for both sources, the target variable $Y$ is observed in the
 non-probability sample, and design or calibrated weights
 ($\boldsymbol{d}$ or $\boldsymbol{w}$) are observed in the probability
 sample.
 
-| Sample                  |           | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
-|-------------------------|----------:|:------------------------------------:|:-------------------:|:------------------------------------------------------------------:|
-| $S_A$ (non-probability) |         1 |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |         … |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-|                         |     $n_A$ |             $\checkmark$             |    $\checkmark$     |                                 ?                                  |
-| $S_B$ (probability)     |   $n_A+1$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         |         … |             $\checkmark$             |          ?          |                            $\checkmark$                            |
-|                         | $n_A+n_B$ |             $\checkmark$             |          ?          |                            $\checkmark$                            |
+| Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
+|----|---:|:--:|:--:|:--:|
+| $S_{\text{NP}}$ (non-probability) | 1 | $\checkmark$ | $\checkmark$ | ? |
+|  | … | $\checkmark$ | $\checkmark$ | ? |
+|  | $n_{\text{NP}}$ | $\checkmark$ | $\checkmark$ | ? |
+| $S_{\text{P}}$ (probability) | $n_{\text{NP}}+1$ | $\checkmark$ | ? | $\checkmark$ |
+|  | … | $\checkmark$ | ? | $\checkmark$ |
+|  | $n_{\text{NP}}+n_{\text{P}}$ | $\checkmark$ | ? | $\checkmark$ |
 
 The current implementation does not use target-variable values from the
 probability sample. Data structures where $Y$ is observed in both
@@ -118,31 +118,31 @@ Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of
 auxiliary variables, $R$ is the inclusion indicator. Then, if we are
 interested in estimating the mean $\bar{\tau}_Y$ or the sum $\tau_Y$ of
 the of the target variable given the observed data set
-$(y_k, \boldsymbol{x}_k, R_k)$, we can approach this problem with the
+$(y_k, \boldsymbol{x}_k, I_{\text{NP}, k})$, we can approach this problem with the
 possible scenarios:
 
-- unit-level data is available for the non-probability sample $S_{A}$,
+- unit-level data is available for the non-probability sample $S_{\text{NP}}$,
   i.e. $(y_k,\boldsymbol{x}_k)$ is available for all units
-  $k \in S_{A}$, and population-level data is available for
+  $k \in S_{\text{NP}}$, and population-level data is available for
   $\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p$, denoted as
   $\tau_{x_{1}},\tau_{x_{2}},\ldots,\tau_{x_{p}}$ and population size
   $N$ is known. We can also consider situations where population data
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
-- unit-level data is available for the non-probability sample $S_A$ and
-  the probability sample $S_B$, i.e. $(\boldsymbol{x}_k,R_k)$ is
-  determined by the data: $R_k=1$ if $k \in S_A$ otherwise $R_k=0$,
-  $y_k$ is observed only for sample $S_A$ and $\boldsymbol{x}_k$ is
-  observed in both $S_A$ and $S_B$.
+- unit-level data is available for the non-probability sample $S_{\text{NP}}$ and
+  the probability sample $S_{\text{P}}$, i.e. $(\boldsymbol{x}_k,I_{\text{NP}, k})$ is
+  determined by the data: $I_{\text{NP}, k}=1$ if $k \in S_{\text{NP}}$ otherwise $I_{\text{NP}, k}=0$,
+  $y_k$ is observed only for sample $S_{\text{NP}}$ and $\boldsymbol{x}_k$ is
+  observed in both $S_{\text{NP}}$ and $S_{\text{P}}$.
 
 Supported target-variable types depend on the estimator family:
 
-| Estimator family                                                   | Supported target variable `Y`                                                                                                           |
-|--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| IPW                                                                | Numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted. |
-| Mass imputation with `method_outcome = "glm"`                      | Continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.                             |
-| Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"` | Numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported.                                       |
-| Doubly robust                                                      | GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`.                                               |
+| Estimator family | Supported target variable `Y` |
+|----|----|
+| IPW | Numeric targets whose population mean is meaningful, including continuous, count, and 0/1 binary variables. No outcome model is fitted. |
+| Mass imputation with `method_outcome = "glm"` | Continuous, count, or binary variables through `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`. |
+| Mass imputation with `method_outcome = "nn"`, `"pmm"`, or `"npar"` | Numeric targets; categorical, ordinal, survival, and other structured outcomes are not supported. |
+| Doubly robust | GLM outcome models only; use `family_outcome = "gaussian"`, `"poisson"`, or `"binomial"`. |
 
 The compact examples below use the built-in `admin` non-probability
 sample and `jvs` probability sample.
@@ -165,18 +165,28 @@ pop_totals <- colSums(model.matrix(~region + private + nace + size, jvs) * jvs$w
 ### When unit-level data is available for non-probability survey only
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -191,11 +201,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -210,11 +225,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -230,11 +250,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -250,24 +275,36 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ### When unit-level data are available for both surveys
 
 <table class='table'>
+
 <tr>
+
 <th>
+
 Estimator
 </th>
+
 <th>
+
 Example code
 </th>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation
 </td>
+
 <td>
 
 ``` r
@@ -282,11 +319,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on nearest neighbour imputation
 </td>
+
 <td>
 
 ``` r
@@ -301,11 +343,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on predictive mean matching
 </td>
+
 <td>
 
 ``` r
@@ -319,12 +366,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Mass imputation based on regression imputation with variable selection
 (LASSO)
 </td>
+
 <td>
 
 ``` r
@@ -341,11 +393,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting
 </td>
+
 <td>
 
 ``` r
@@ -360,11 +417,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint
 </td>
+
 <td>
 
 ``` r
@@ -380,12 +442,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Inverse probability weighting with calibration constraint with variable
 selection (SCAD)
 </td>
+
 <td>
 
 ``` r
@@ -402,11 +469,16 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator
 </td>
+
 <td>
 
 ``` r
@@ -422,12 +494,17 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 <tr>
+
 <td>
+
 Doubly robust estimator with variable selection (SCAD) and bias
 minimization
 </td>
+
 <td>
 
 ``` r
@@ -448,7 +525,9 @@ nonprob(
 ```
 
 </td>
+
 <tr>
+
 </table>
 
 ## Examples
@@ -611,8 +690,7 @@ Work on this package is supported by the National Science Centre, OPUS
 
 ## References (selected)
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-chen2022nonparametric" class="csl-entry">
 
@@ -625,7 +703,7 @@ Methodology* 10 (1): 1–24.
 <div id="ref-chen2020" class="csl-entry">
 
 Chen, Yilin, Pengfei Li, and Changbao Wu. 2020. “Doubly Robust Inference
-With Nonprobability Survey Samples.” *Journal of the American
+with Nonprobability Survey Samples.” *Journal of the American
 Statistical Association* 115 (532): 2011–21.
 <https://doi.org/10.1080/01621459.2019.1677241>.
 
@@ -633,9 +711,9 @@ Statistical Association* 115 (532): 2011–21.
 
 <div id="ref-chlebicki2025" class="csl-entry">
 
-Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. “Data
+Chlebicki, Piotr, Łukasz Chrostowski, and Maciej Beręsewicz. 2025. *Data
 Integration of Non-Probability and Probability Samples with Predictive
-Mean Matching.” <https://arxiv.org/abs/2403.13750>.
+Mean Matching*. <https://arxiv.org/abs/2403.13750>.
 
 </div>
 
@@ -665,7 +743,7 @@ Statistical Software* 9 (1): 1–19.
 
 <div id="ref-Lumley2023" class="csl-entry">
 
-———. 2023. “Survey: Analysis of Complex Survey Samples.”
+Lumley, Thomas. 2023. *Survey: Analysis of Complex Survey Samples*.
 
 </div>
 

@@ -5,22 +5,25 @@
 print.nonprob <- function(x, digits=4,...) {
 
   cat(sprintf("A %s object\n", class(x)[1L]))
-  cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
-                                                "mi"= "mass imputation",
-                                                "ipw" = "inverse probability weighting",
-                                                "dr" = "doubly robust")))
+  if (x$estimator == "ipw") {
+    is_ht <- isTRUE(x$pop_size_fixed)
+    label  <- if (is_ht) "HT" else "Hajek"
+    denom  <- if (is_ht) x$pop_size else round(sum(x$ipw_weights))
+    cat(sprintf(" - estimator type: IPW (%s, denominator: %s)\n",
+                label, sprintf("%.0f", denom)))
+  } else {
+    cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
+                                                  "mi" = "mass imputation",
+                                                  "dr" = "doubly robust")))
+  }
 
   cat(sprintf(" - method: %s\n", x$estimator_method))
-  if (!is.null(x$ipw_estimator)) {
-    ipw_estimator <- switch(x$ipw_estimator,
-                            "ht" = "Horvitz-Thompson",
-                            "hajek" = "Hajek",
-                            x$ipw_estimator)
-    cat(sprintf(" - IPW point estimator: %s (denominator: %s = %.*f)\n",
-                ipw_estimator,
-                x$ipw_denominator_source,
-                digits,
-                as.numeric(x$ipw_denominator)))
+  if (x$estimator == "dr") {
+    is_ht <- isTRUE(x$pop_size_fixed)
+    label  <- if (is_ht) "HT" else "Hajek"
+    denom  <- if (is_ht) x$pop_size else round(sum(x$ipw_weights))
+    cat(sprintf(" - IPW point estimator: %s (denominator: %s)\n",
+                label, sprintf("%.0f", denom)))
   }
   cat(sprintf(" - auxiliary variables source: %s\n", ifelse(!is.null(x$svydesign), "survey", "population")))
   cat(sprintf(" - vars selection: %s\n", tolower(x$control$control_inference$vars_selection)))
@@ -100,10 +103,17 @@ print.nonprob_summary <- function(x,
         sep = ""
     )
   }
-  cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
-                                                "mi"= "mass imputation",
-                                                "ipw" = "inverse probability weighting",
-                                                "dr" = "doubly robust")))
+  if (x$estimator == "ipw") {
+    is_ht <- isTRUE(x$pop_size_fixed)
+    label  <- if (is_ht) "HT" else "Hajek"
+    denom  <- if (is_ht) x$pop_size else round(x$ipw_weights_total)
+    cat(sprintf(" - estimator type: IPW (%s, denominator: %s)\n",
+                label, sprintf("%.0f", denom)))
+  } else {
+    cat(sprintf(" - estimator type: %s\n", switch(x$estimator,
+                                                  "mi" = "mass imputation",
+                                                  "dr" = "doubly robust")))
+  }
 
   cat(" - nonprob sample size: ", x$nonprob_size, " (", round(x$nonprob_size/x$pop_size*100,1),"%)\n", sep = "")
 
@@ -114,16 +124,12 @@ print.nonprob_summary <- function(x,
   }
 
   cat(" - population size: ", as.integer(x$pop_size), " (fixed: ", tolower(x$pop_size_fixed), ")\n", sep = "")
-  if (!is.null(x$ipw_estimator)) {
-    ipw_estimator <- switch(x$ipw_estimator,
-                            "ht" = "Horvitz-Thompson",
-                            "hajek" = "Hajek",
-                            x$ipw_estimator)
-    cat(sprintf(" - IPW point estimator: %s (denominator: %s = %.*f)\n",
-                ipw_estimator,
-                x$ipw_denominator_source,
-                digits,
-                as.numeric(x$ipw_denominator)))
+  if (x$estimator == "dr") {
+    is_ht <- isTRUE(x$pop_size_fixed)
+    label  <- if (is_ht) "HT" else "Hajek"
+    denom  <- if (is_ht) x$pop_size else round(x$ipw_weights_total)
+    cat(sprintf(" - IPW point estimator: %s (denominator: %s)\n",
+                label, sprintf("%.0f", denom)))
   }
 
   model_info <- switch(x$estimator,

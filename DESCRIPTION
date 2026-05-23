@@ -42,11 +42,15 @@ Imports:
     foreach,
     parallel,
     formula.tools
-Suggests: 
+Suggests:
     tinytest,
     covr,
-    spelling
-LinkingTo: 
+    spelling,
+    ggplot2,
+    knitr,
+    rmarkdown
+LinkingTo:
     Rcpp,
     RcppArmadillo
+VignetteBuilder: knitr
 Language: en-US

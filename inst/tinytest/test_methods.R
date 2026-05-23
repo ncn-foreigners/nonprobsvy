@@ -5,14 +5,14 @@ ipw_est0 <- nonprob(selection = ~ region + private + nace + size,
                     svydesign = jvs_svy,
                     data = admin,
                     method_selection = "logit",
-                    se = T)
+                    se = TRUE)
 
 ipw_est1 <- nonprob(selection = ~ region + private + nace + size,
                     target = ~ single_shift,
                     svydesign = jvs_svy,
                     data = admin,
                     method_selection = "logit",
-                    se = F)
+                    se = FALSE)
 
 set.seed(2025)
 ipw_est2 <- nonprob(selection = ~ region + private + nace + size,
@@ -29,7 +29,7 @@ ipw_est2 <- nonprob(selection = ~ region + private + nace + size,
 
 
 expect_equal(
-  update(ipw_est1, se = T)$output$SE,
+  update(ipw_est1, se = TRUE)$output$SE,
   0.00984765550279513
 )
 

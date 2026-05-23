@@ -248,7 +248,7 @@ confint.nonprob <- function(object,
   if ("se" %in% names(call)) {
     if (!eval(call$se))  {
       message("Calculating standard errors...")
-      object <- update(object, se = T)
+      object <- update(object, se = TRUE)
     }
   }
 

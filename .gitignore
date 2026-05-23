@@ -18,3 +18,4 @@ notes/
 *.Rcheck/
 *.tar.gz
 README.html
+vignettes/*.html

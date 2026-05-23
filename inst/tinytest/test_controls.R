@@ -17,7 +17,7 @@ expect_equal(
 expect_equal(
   control_inf(),
   list(var_method = "analytic", rep_type = "subbootstrap", vars_selection = FALSE,
-       vars_combine = FALSE, bias_correction = FALSE, num_boot = 500,
+       vars_combine = FALSE, bias_correction = FALSE, num_boot = 100,
        alpha = 0.05, cores = 1, keep_boot = TRUE, nn_exact_se = FALSE)
 )
 
@@ -39,7 +39,7 @@ expect_error(
 expect_equal(
   control_out(),
   list(epsilon = 1e-8, maxit = 100, trace = FALSE, k = 5, penalty = "SCAD",
-       a_SCAD = 3.7, a_MCP = 3, lambda = -1, lambda_min = 0.001, nlambda = 100,
+       a_SCAD = 3.7, a_MCP = 3, lambda = -1, lambda_min = 0.001, nlambda = 50,
        nfolds = 10, treetype = "kd", searchtype = "standard", pmm_match_type = 1,
        pmm_weights = "none", pmm_k_choice = "none", pmm_k_max = NULL,
        pmm_reg_engine = "glm",
