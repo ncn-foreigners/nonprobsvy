@@ -4,6 +4,14 @@
 
 ## nonprobsvy 0.3.0
 
+- fixed
+  [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
+  `treetype` choices: corrected from `c("kd", "rp", "ball")` to
+  `c("kd", "bd")` to match what
+  [`RANN::nn2()`](https://jefferislab.github.io/RANN/reference/nn2.html)
+  actually accepts; `"rp"` and `"ball"` were not valid RANN tree types
+  and caused a crash, while `"bd"` (a legitimate RANN option) was
+  wrongly rejected
 - changed the default of `num_boot` in
   [`control_inf()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_inf.md)
   from 500 to 100 and `nlambda` in

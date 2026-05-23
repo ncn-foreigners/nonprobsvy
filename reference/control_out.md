@@ -18,7 +18,7 @@ control_out(
   lambda_min = 0.001,
   nlambda = 50,
   nfolds = 10,
-  treetype = c("kd", "rp", "ball"),
+  treetype = c("kd", "bd"),
   searchtype = c("standard", "priority"),
   pmm_match_type = 1,
   pmm_weights = c("none", "dist"),
