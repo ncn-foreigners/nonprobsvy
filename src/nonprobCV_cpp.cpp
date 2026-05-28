@@ -1,8 +1,13 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <exception>
 #include <limits>
+#include <mutex>
+#include <thread>
+#include <vector>
 //#include <Eigen/Dense>
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -27,6 +32,60 @@ struct EstimatingSystem {
   arma::vec score;
   arma::mat derivative;
 };
+
+template <typename Function>
+void run_cv_folds(const int nfolds,
+                  const bool allow_parallel,
+                  Function worker) {
+  if (!allow_parallel || nfolds <= 1) {
+    for (int fold = 0; fold < nfolds; ++fold) {
+      worker(fold);
+    }
+    return;
+  }
+
+  unsigned int n_threads = std::thread::hardware_concurrency();
+  if (n_threads == 0) {
+    n_threads = 2;
+  }
+  n_threads = std::min<unsigned int>(n_threads, static_cast<unsigned int>(nfolds));
+
+  std::atomic<int> next_fold(0);
+  std::exception_ptr first_exception = nullptr;
+  std::mutex exception_mutex;
+  std::vector<std::thread> threads;
+  threads.reserve(n_threads);
+
+  for (unsigned int thread_id = 0; thread_id < n_threads; ++thread_id) {
+    threads.emplace_back([&]() {
+      while (true) {
+        const int fold = next_fold.fetch_add(1);
+        if (fold >= nfolds) {
+          break;
+        }
+
+        try {
+          worker(fold);
+        } catch (...) {
+          std::lock_guard<std::mutex> lock(exception_mutex);
+          if (!first_exception) {
+            first_exception = std::current_exception();
+          }
+          next_fold.store(nfolds);
+          break;
+        }
+      }
+    });
+  }
+
+  for (std::thread& thread : threads) {
+    thread.join();
+  }
+
+  if (first_exception) {
+    std::rethrow_exception(first_exception);
+  }
+}
 
 inline LinkMethod parse_link_method(const std::string& method_selection) {
   if (method_selection == "logit") return LinkMethod::logit;
@@ -418,8 +477,8 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
     arma::uvec sample_rand = r_sample_zero_based(nfolds, nfolds, false);
 
     arma::mat loss_theta_fld(nfolds, nlambda, arma::fill::zeros);
-    //#pragma omp parallel for
-    for (int j = 0; j < nfolds; j++) {
+    const bool parallel_cv = !verbose && nfolds > 1;
+    run_cv_folds(nfolds, parallel_cv, [&](int j) {
       if (verbose) {
         wcout << "Starting CV fold #" << j + 1 << endl;
       }
@@ -477,7 +536,7 @@ Rcpp::List cv_nonprobsvy_rcpp(const arma::mat& X,
         );
         loss_theta_fld(j, i) = loss;
       }
-    }
+    });
 
     for (int i = 0; i < nlambda; i++) {
       loss_theta_av(i) = mean(loss_theta_fld.col(i));
