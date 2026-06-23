@@ -4,6 +4,18 @@
 
 ## nonprobsvy 0.3.0
 
+- fixed doubly-robust (`method="dr"`) bootstrap when the probability
+  `svydesign` is a derived design (built via
+  [`subset()`](https://rdrr.io/r/base/subset.html),
+  [`calibrate()`](https://rdrr.io/pkg/survey/man/calibrate.html),
+  [`update()`](https://rdrr.io/r/stats/update.html), etc.)
+- fixed doubly-robust (`method="dr"`) bootstrap variance with multiple
+  cores (`control_inf(cores > 1)`), which previously crashed or returned
+  wrong/`NA` variance when a bootstrap replicate failed
+- fixed underestimated MI bootstrap variance in `boot_mi()` by applying
+  bootstrap replicate weights consistently in the per-replicate mean
+  (closes
+  [\#125](https://github.com/ncn-foreigners/nonprobsvy/issues/125))
 - [`print()`](https://rdrr.io/r/base/print.html) and
   [`summary()`](https://rdrr.io/r/base/summary.html) now describe the
   IPW point estimator concisely: the estimator-type line reads
