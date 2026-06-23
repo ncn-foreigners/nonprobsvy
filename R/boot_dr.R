@@ -1,3 +1,11 @@
+# Returns TRUE if the design was built by a direct svydesign() call,
+# Derived designs (subset, calibrate, update, etc.) return FALSE.
+is_plain_svydesign <- function(des) {
+  fn_name <- tryCatch(deparse(des$call[[1L]]), error = function(e) "")
+  fn_name %in% c("svydesign", "survey::svydesign",
+                 "svydesign2", "survey::svydesign2")
+}
+
 #' Bootstrap for the DR estimator
 #' @noRd
 boot_dr <- function(selection,
@@ -42,10 +50,15 @@ boot_dr <- function(selection,
     rep_weights <- svydesign_rep$repweights$weights
   }
 
+  # Determine once (in the main process) whether the design is a literal
+  # svydesign() call; referenced as a local var so foreach() auto-exports it
+  # to PSOCK workers (a package-level helper would not be found on workers).
+  is_plain_design <- is_plain_svydesign(svydesign)
+
   # Single core processing
   if (control_inference$cores == 1) {
 
-    boot_obj <- matrix(0, ncol = length(all.vars(target)), nrow = num_boot)
+    boot_obj <- matrix(NA_real_, ncol = length(all.vars(target)), nrow = num_boot)
 
     if (verbose) {
       message("Single core bootstrap in progress...")
@@ -67,9 +80,14 @@ boot_dr <- function(selection,
         data_prob <- svydesign$variables[strap_rand_svy, ]
         data_prob$weight <- weights_rand_strap_svy[strap_rand_svy]
 
-        svyd_call <- svydesign$call
-        svyd_call$data <- as.name("data_prob")
-        svydesign_b <- eval(svyd_call)
+        if (is_plain_design) {
+          svyd_call       <- svydesign$call
+          svyd_call$data  <- as.name("data_prob")
+          svydesign_b     <- eval(svyd_call)
+        } else {
+          svydesign_b <- survey::svydesign(ids = ~1, weights = ~weight,
+                                           data = data_prob)
+        }
 
         strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / case_weights)
 
@@ -359,10 +377,8 @@ boot_dr <- function(selection,
     cl <- parallel::makeCluster(control_inference$cores)
     doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
-    parallel::clusterExport(cl = cl,
-                            varlist = NULL,
-                            envir = getNamespace("nonprobsvy"))
 
+    p <- length(all.vars(target))
 
     if (!is.null(svydesign)) {
       # Parallel bootstrap for probability and non-probability samples
@@ -377,12 +393,18 @@ boot_dr <- function(selection,
           data_prob <- svydesign$variables[strap_rand_svy, ]
           data_prob$weight <- weights_rand_strap_svy[strap_rand_svy]
 
-          svyd_call <- svydesign$call
-          svyd_call$data <- as.name("data_prob")
-          svydesign_b <- eval(svyd_call)
+          if (is_plain_design) {
+            svyd_call       <- svydesign$call
+            svyd_call$data  <- as.name("data_prob")
+            svydesign_b     <- eval(svyd_call)
+          } else {
+            svydesign_b <- survey::svydesign(ids = ~1, weights = ~weight,
+                                             data = data_prob)
+          }
 
           strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / case_weights)
 
+          boot_obj_b <- matrix(NA_real_, nrow = 1, ncol = p)
           tryCatch(
             {
               results_ipw_b <- nonprob_ipw(selection = selection,
@@ -537,6 +559,7 @@ boot_dr <- function(selection,
 
           strap_nons <- sample.int(replace = TRUE, n = NROW(data), prob = 1 / case_weights)
 
+          boot_obj_b <- matrix(NA_real_, nrow = 1, ncol = p)
           tryCatch(
             {
               # Non-probability part
