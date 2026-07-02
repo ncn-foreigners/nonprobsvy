@@ -3,6 +3,7 @@ nonprobsvy News and Updates
 # nonprobsvy (development version)
 
 + fixed the cloglog doubly robust analytic variance: the model-adjustment term mis-scaled `log((1-pi)/pi)` across units when the model had more than one covariate
++ fixed the IPW bootstrap hanging indefinitely when a replicate failed deterministically: replicate errors are now retried once and then surfaced as a proper error (matching the MI bootstrap behaviour)
 
 # nonprobsvy 0.3.0
 
