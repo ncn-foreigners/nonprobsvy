@@ -2,11 +2,10 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
-+ fixed the cloglog doubly robust analytic variance: the model-adjustment term mis-scaled `log((1-pi)/pi)` across units when the model had more than one covariate
-+ fixed the IPW bootstrap hanging indefinitely when a replicate failed deterministically: replicate errors are now retried once and then surfaced as a proper error (matching the MI bootstrap behaviour)
-
 # nonprobsvy 0.3.0
 
++ fixed the cloglog doubly robust analytic variance: the model-adjustment term mis-scaled `log((1-pi)/pi)` across units when the model had more than one covariate
++ fixed the IPW bootstrap hanging indefinitely when a replicate failed deterministically: replicate errors are now retried once and then surfaced as a proper error (matching the MI bootstrap behaviour)
 + fixed doubly-robust (`method="dr"`) bootstrap when the probability `svydesign` is a derived design (built via `subset()`, `calibrate()`, `update()`, etc.)
 + fixed doubly-robust (`method="dr"`) bootstrap variance with multiple cores (`control_inf(cores > 1)`), which previously crashed or returned wrong/`NA` variance when a bootstrap replicate failed
 + fixed underestimated MI bootstrap variance in `boot_mi()` by applying bootstrap replicate weights consistently in the per-replicate mean (closes [#125](https://github.com/ncn-foreigners/nonprobsvy/issues/125))
