@@ -2,6 +2,8 @@ nonprobsvy News and Updates
 
 # nonprobsvy (development version)
 
++ fixed the cloglog doubly robust analytic variance: the model-adjustment term mis-scaled `log((1-pi)/pi)` across units when the model had more than one covariate
+
 # nonprobsvy 0.3.0
 
 + fixed doubly-robust (`method="dr"`) bootstrap when the probability `svydesign` is a derived design (built via `subset()`, `calibrate()`, `update()`, etc.)
