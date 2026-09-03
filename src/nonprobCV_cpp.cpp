@@ -246,7 +246,9 @@ inline EstimatingSystem estimating_system(const arma::vec& par,
     Rcpp::stop("Unknown h selection");
   }
 
-  out.derivative = X.t() * (X.each_col() % coeff);
+  // out.derivative = X.t() * (X.each_col() % coeff);
+  const arma::mat Xs = X.each_col() % arma::sqrt(coeff);
+  out.derivative = Xs.t() * Xs;
   out.derivative /= N_nons;
 
   return out;
