@@ -15,14 +15,14 @@
 Source:
 [`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/dev/inst/CITATION)
 
-Chrostowski Ł, Chlebicki P, esewicz MB (2026). “nonprobsvy: An R Package
-for Modern Methods for Non-Probability Surveys.” *Journal of Statistical
-Software*, **117**(2), 1–37.
+Chrostowski Ł, Chlebicki P, Beręsewicz M (2026). “nonprobsvy: An R
+Package for Modern Methods for Non-Probability Surveys.” *Journal of
+Statistical Software*, **117**(2), 1–37.
 [doi:10.18637/jss.v117.i02](https://doi.org/10.18637/jss.v117.i02).
 
     @Article{,
       title = {{nonprobsvy}: An {R} Package for Modern Methods for Non-Probability Surveys},
-      author = {{\L}ukasz Chrostowski and Piotr Chlebicki and Maciej Ber{\k e}sewicz},
+      author = {{\L}ukasz Chrostowski and Piotr Chlebicki and Maciej Ber\k{e}sewicz},
       journal = {Journal of Statistical Software},
       year = {2026},
       volume = {117},

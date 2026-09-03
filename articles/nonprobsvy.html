@@ -950,7 +950,8 @@ estimating equations for the <span class="math inline">\boldsymbol{\beta}</span>
 bias of the population mean estimator. In this way, the parameters can
 be estimated in a single step, rather than in two separate steps. First,
 the authors derived the asymptotic bias of <span class="math inline">\hat{\mu}_{y,\text{DR}}</span>, which is given by
-<span class="math display">\begin{aligned}
+<span class="math display">
+\begin{aligned}
 a\!\operatorname{bias}(\boldsymbol\gamma,\boldsymbol\beta)
 &amp;=\E\{\hat\mu_{y,
 \text{DR}}(\boldsymbol\gamma,\boldsymbol\beta)-\mu\} \\
@@ -968,7 +969,8 @@ x_i,\boldsymbol\gamma)}-1\right\}
 \end{aligned}</span></p>
 <p>The goal of this approach is to minimize <span class="math inline">\{a\!\operatorname{bias}(\boldsymbol\gamma,\boldsymbol\beta)\}^2</span>,
 which leads to the following system of empirical estimating equations:
-<span class="math display">\left(\begin{array}{c}
+<span class="math display">
+\left(\begin{array}{c}
 \sum_{i=1}^N
 I_{\text{NP}, i}
 \frac{
@@ -990,19 +992,22 @@ d_{\text{P}, i}
 \dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)
 \end{array}\right)
 =
-\boldsymbol{0},
-\label{eq-bias-min}</span> where <span class="math inline">\dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)=
+\boldsymbol{0} \tag{11}
+</span></p>
+<p>where <span class="math inline">\dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)=
 \frac{\partial m\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)}
 {\partial \boldsymbol{\beta}}</span> and <span class="math inline">\dot{\boldsymbol\pi}\left(\boldsymbol{x}_i,\boldsymbol{\gamma}\right)=\frac{\partial
 \pi\left(\boldsymbol{x}_i,\boldsymbol{\gamma}\right)}
 {\partial \boldsymbol{\gamma}}</span>. This formulation is valid for any
 differentiable link function used in the sampling-score model. For the
-logit link, Equation <a href="#eq-bias-min" reference-type="ref" reference="eq-bias-min"><span class="math display">eq-bias-min</span></a> reduces to the
-estimating-equation form used by <span class="citation">Yang et al. (<a href="#ref-yang_doubly_2020">2020</a>)</span>.</p>
-<p>The system in Equation <a href="#eq-bias-min" reference-type="ref" reference="eq-bias-min"><span class="math display">eq-bias-min</span></a> can be solved using the
-Newton–Raphson method. Without variable selection and under the logit
-sampling-score model, this approach reduces to the <span class="citation">Kim and Haziza (<a href="#ref-kim2014doubly">2014</a>)</span> estimating-equation system
-used by <span class="citation">Chen et al. (<a href="#ref-chen2020doubly">2020</a>)</span> and <span class="citation">Wu (<a href="#ref-wu2022statistical">2022</a>)</span>
+logit link, Equation 11 reduces to the estimating-equation form used by
+<span class="citation">Yang et al. (<a href="#ref-yang_doubly_2020">2020</a>)</span>.</p>
+<p>The system in Equation 11 can be solved using the Newton–Raphson
+method. Without variable selection and under the logit sampling-score
+model, this approach reduces to the <span class="citation">Kim and
+Haziza (<a href="#ref-kim2014doubly">2014</a>)</span>
+estimating-equation system used by <span class="citation">Chen et al.
+(<a href="#ref-chen2020doubly">2020</a>)</span> and <span class="citation">Wu (<a href="#ref-wu2022statistical">2022</a>)</span>
 for doubly robust inference and doubly robust variance estimation in
 non-probability samples.</p>
 <p>The main limitation of this approach is that the joint
@@ -1019,7 +1024,7 @@ inference, with <span class="math inline">n_{\min}=\min(|S_{\text{P}}|,|S_{\text
 under correct specification of either the sampling-score model or the
 outcome model.</p>
 <p>In the package, the bias-minimization approach is implemented using
-the general derivative form in Equation <a href="#eq-bias-min" reference-type="ref" reference="eq-bias-min"><span class="math display">eq-bias-min</span></a>, which allows different link
+the general derivative form in Equation 11, which allows different link
 functions for the propensity-score model. For the logit link, this
 formulation coincides with the estimating equation of <span class="citation">Yang et al. (<a href="#ref-yang_doubly_2020">2020</a>)</span>. Note that we use
 a different convention for <span class="math inline">\boldsymbol
@@ -1027,30 +1032,27 @@ h</span>: our choice <span class="math inline">\boldsymbol
 h(\boldsymbol{x};\boldsymbol\gamma)=\boldsymbol{x}/\pi(\boldsymbol{x};\boldsymbol\gamma)</span>
 corresponds to the IPW estimating equation of <span class="citation">Yang et al. (<a href="#ref-yang_doubly_2020">2020</a>)</span> written with <span class="math inline">\boldsymbol h(\boldsymbol
 X;\boldsymbol\alpha)=\boldsymbol X</span>. As mentioned above, the
-choice of either Equation <a href="#eq-dr-known-n" reference-type="ref" reference="eq-dr-known-n"><span class="math display">eq-dr-known-n</span></a> or <a href="#eq-dr-estimated-n" reference-type="ref" reference="eq-dr-estimated-n"><span class="math display">eq-dr-estimated-n</span></a> results in a different
-approach to variance estimation, which is discussed in the next
-section.</p>
+choice of either Equation 9 or 10 results in a different approach to
+variance estimation, which is discussed in the next section.</p>
 </div>
 <div class="section level4">
 <h4 id="variance-estimators-for-the-doubly-robust-approach">Variance estimators for the doubly robust approach<a class="anchor" aria-label="anchor" href="#variance-estimators-for-the-doubly-robust-approach"></a>
 </h4>
 <p><span class="citation">Yang et al. (<a href="#ref-yang_doubly_2020">2020</a>)</span> derived a closed-form
 variance estimator for the known-<span class="math inline">N</span> DR
-estimator in Equation <a href="#eq-dr-known-n" reference-type="ref" reference="eq-dr-known-n"><span class="math display">eq-dr-known-n</span></a>. This result requires
-knowledge of the population size <span class="math inline">N</span> and
-the corresponding bias-correction term to obtain a valid estimator of
-<span class="math inline">V_{\xi
+estimator in Equation 9. This result requires knowledge of the
+population size <span class="math inline">N</span> and the corresponding
+bias-correction term to obtain a valid estimator of <span class="math inline">V_{\xi
 p}\left(\hat{\mu}_{y,\text{DR}}-\mu_y\right)</span> under the outcome
 regression model <span class="math inline">\xi</span>. <span class="citation">Chen et al. (<a href="#ref-chen2020doubly">2020</a>)</span> also consider Hájek-type DR
 estimators with estimated denominators, which motivates the version in
-Equation <a href="#eq-dr-estimated-n" reference-type="ref" reference="eq-dr-estimated-n"><span class="math display">eq-dr-estimated-n</span></a>. However, an
-analytical variance estimator for the exact Hájek-type DR estimator
-implemented in the package has not, to our knowledge, been formally
-established. Therefore, in the package we provide a plug-in
-approximation obtained by replacing <span class="math inline">N</span>
-in the known-<span class="math inline">N</span> variance formula by the
-estimated denominators <span class="math inline">\hat{N}_{\text{NP}}</span> and <span class="math inline">\hat{N}_{\text{P}}</span>. This option should be
-interpreted as heuristic and used with caution.</p>
+Equation 10. However, an analytical variance estimator for the exact
+Hájek-type DR estimator implemented in the package has not, to our
+knowledge, been formally established. Therefore, in the package we
+provide a plug-in approximation obtained by replacing <span class="math inline">N</span> in the known-<span class="math inline">N</span> variance formula by the estimated
+denominators <span class="math inline">\hat{N}_{\text{NP}}</span> and
+<span class="math inline">\hat{N}_{\text{P}}</span>. This option should
+be interpreted as heuristic and used with caution.</p>
 <p>Alternatively, one can use the bootstrap approach. <span class="citation">Chen et al. (<a href="#ref-chen2020doubly">2020</a>)</span> demonstrated that the
 bootstrap approach presented in Section <a href="#sec-prediction" reference-type="ref" reference="sec-prediction">2.2</a> performs well in
 terms of the coverage rate when one of the working models is correctly
@@ -2255,21 +2257,21 @@ suggestions.</p>
 </h2>
 <p><strong>Algorithm 1.</strong> Mass imputation using the <span class="math inline">k</span> nearest neighbor algorithm.</p>
 <ol style="list-style-type: decimal">
-<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i \in S_{\PP}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
-\hat{\nu}(i)= \operatornamewithlimits{arg\, min}_{j\in S_{\NP}}
+<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i \in S_{\text{P}}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
+\hat{\nu}(i)= \operatornamewithlimits{arg\, min}_{j\in S_{\text{NP}}}
 d\left(\boldsymbol{x}_i,\boldsymbol{x}_j\right)
 </span> (e.g., Euclidean distance).</li>
 <li>If <span class="math inline">k&gt;1</span>, then <span class="math display">
 \hat{\nu}(i, z) =
 \operatornamewithlimits{arg\, min}_{j\in
-S_{\NP}\setminus\bigcup_{t=1}^{z-1}
+S_{\text{NP}}\setminus\bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\boldsymbol{x}_i, \boldsymbol{x}_j\right),
 </span> i.e., <span class="math inline">\hat{\nu}(i, z)</span> is the
 <span class="math inline">z</span>th nearest neighbor from the sample
-<span class="math inline">S_{\NP}</span>.</li>
-<li>For each <span class="math inline">i \in S_{\PP}</span>, calculate
-the imputed value as <span class="math display">
+<span class="math inline">S_{\text{NP}}</span>.</li>
+<li>For each <span class="math inline">i \in S_{\text{P}}</span>,
+calculate the imputed value as <span class="math display">
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 </span>
 </li>
@@ -2284,24 +2286,24 @@ parameters.</li>
 \hat{y}_{i}=m\left(\boldsymbol{x}_{i}, \hat{\boldsymbol{\beta}}\right),
 \qquad
 \hat{y}_{j}=m\left(\boldsymbol{x}_{j}, \hat{\boldsymbol{\beta}}\right)
-</span> for <span class="math inline">i\in S_{\PP}</span> and <span class="math inline">j\in S_{\NP}</span>.</li>
-<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i\in S_{\PP}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
+</span> for <span class="math inline">i\in S_{\text{P}}</span> and <span class="math inline">j\in S_{\text{NP}}</span>.</li>
+<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i\in S_{\text{P}}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
 \hat{\nu}(i)=
-\operatornamewithlimits{arg\, min}_{j\in S_{\NP}}
+\operatornamewithlimits{arg\, min}_{j\in S_{\text{NP}}}
 d\left(\hat{y}_{i}, \hat{y}_{j}\right).
 </span>
 </li>
 <li>If <span class="math inline">k&gt;1</span>, then <span class="math display">
 \hat{\nu}(i, z) =
 \operatornamewithlimits{arg\, min}_{j\in
-S_{\NP}\setminus\bigcup_{t=1}^{z-1}
+S_{\text{NP}}\setminus\bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\hat{y}_{i}, \hat{y}_{j}\right),
 </span> i.e., <span class="math inline">\hat{\nu}(i, z)</span> is the
 <span class="math inline">z</span>th nearest neighbor from the sample
-<span class="math inline">S_{\NP}</span>.</li>
-<li>For each <span class="math inline">i \in S_{\PP}</span>, calculate
-the imputed value as <span class="math display">
+<span class="math inline">S_{\text{NP}}</span>.</li>
+<li>For each <span class="math inline">i \in S_{\text{P}}</span>,
+calculate the imputed value as <span class="math display">
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 </span>
 </li>
@@ -2314,24 +2316,24 @@ matching.</p>
 parameters.</li>
 <li>Predict <span class="math display">
 \hat{y}_{i}=m\left(\boldsymbol{x}_{i}, \hat{\boldsymbol{\beta}}\right)
-</span> for <span class="math inline">i \in S_{\PP}</span>.</li>
-<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i\in S_{\PP}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
+</span> for <span class="math inline">i \in S_{\text{P}}</span>.</li>
+<li>If <span class="math inline">k=1</span>, then for each <span class="math inline">i\in S_{\text{P}}</span> match <span class="math inline">\hat{\nu}(i,1)=\hat{\nu}(i)</span> such that <span class="math display">
 \hat{\nu}(i)=
-\operatornamewithlimits{arg\, min}_{j \in S_{\NP}}
+\operatornamewithlimits{arg\, min}_{j \in S_{\text{NP}}}
 d\left(\hat{y}_{i}, y_{j}\right).
 </span>
 </li>
 <li>If <span class="math inline">k&gt;1</span>, then <span class="math display">
 \hat{\nu}(i, z) =
-\operatornamewithlimits{arg\, min}_{j \in S_{\NP}
+\operatornamewithlimits{arg\, min}_{j \in S_{\text{NP}}
 \setminus \bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\hat{y}_{i}, y_{j}\right),
 </span> i.e., <span class="math inline">\hat{\nu}(i, z)</span> is the
 <span class="math inline">z</span>th nearest neighbor from the sample
-<span class="math inline">S_{\NP}</span>.</li>
-<li>For each <span class="math inline">i \in S_{\PP}</span>, calculate
-the imputed value as <span class="math display">
+<span class="math inline">S_{\text{NP}}</span>.</li>
+<li>For each <span class="math inline">i \in S_{\text{P}}</span>,
+calculate the imputed value as <span class="math display">
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 </span>
 </li>
@@ -2349,7 +2351,7 @@ Properties of Matching Estimators for Average Treatment Effects.”</span>
 <div id="ref-beaumont2020probability" class="csl-entry">
 Beaumont, Jean-Francois. 2020. <span>“Are Probability Surveys Bound to
 Disappear for the Production of Official Statistics.”</span> <em>Survey
-Methodology</em> 46 (1): 1–28. <a href="http://www.statcan.gc.ca/pub/12-001-x/2020001/article/00001-eng.pdf" class="external-link">http://www.statcan.gc.ca/pub/12-001-x/2020001/article/00001-eng.pdf</a>.
+Methodology</em> 46 (1): 1–28. <a href="https://www150.statcan.gc.ca/n1/pub/12-001-x/2020001/article/00001-eng.pdf" class="external-link">https://www150.statcan.gc.ca/n1/pub/12-001-x/2020001/article/00001-eng.pdf</a>.
 </div>
 <div id="ref-berkesewicz2017two" class="csl-entry">
 Beręsewicz, Maciej. 2017. <span>“A Two-Step Procedure to Measure
@@ -2412,7 +2414,7 @@ University. <a href="https://github.com/ncn-foreigners/graduation-theses/blob/ma
 </div>
 <div id="ref-nonprobsvy" class="csl-entry">
 Chrostowski, Łukasz, Maciej Beręsewicz, and Piotr Chlebicki. 2026.
-<em>Inference Based on Non-Probability Samples</em>. <a href="https://10.32614/CRAN.package.nonprobsvy" class="external-link">10.32614/CRAN.package.nonprobsvy</a>.
+<em>Inference Based on Non-Probability Samples</em>. <a href="https://cran.r-project.org/package=nonprobsvy" class="external-link">https://cran.r-project.org/package=nonprobsvy</a>.
 </div>
 <div id="ref-citro2014multiple" class="csl-entry">
 Citro, Constance F. 2014. <span>“From Multiple Modes for Surveys to
@@ -2621,7 +2623,7 @@ B</em> 82 (2): 445–65. <a href="https://doi.org/10.1111/rssb.12354" class="ext
 Yang, Shu, Jae-Kwang Kim, and Youngdeok Hwang. 2021. <span>“Integration
 of Data from Probability Surveys and Big Found Data for Finite
 Population Inference Using Mass Imputation.”</span> <em>Survey
-Methodology</em> 47 (1): 29–58. <a href="http://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm" class="external-link">http://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm</a>.
+Methodology</em> 47 (1): 29–58. <a href="https://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm" class="external-link">https://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm</a>.
 </div>
 </div>
 </div>

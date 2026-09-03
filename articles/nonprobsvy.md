@@ -728,24 +728,25 @@ y_i-m\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right) \right\\
 \dot{m}\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right) - \sum\_{i \in
 S\_{\text{P}}} d\_{\text{P}, i}
 \dot{m}\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right)
-\end{array}\right) = \boldsymbol{0}, \label{eq-bias-min} where
-\dot{m}\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right)= \frac{\partial
-m\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right)} {\partial
-\boldsymbol{\beta}} and
+\end{array}\right) = \boldsymbol{0} \tag{11}
+
+where \dot{m}\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right)=
+\frac{\partial m\left(\boldsymbol{x}\_i,\boldsymbol{\beta}\right)}
+{\partial \boldsymbol{\beta}} and
 \dot{\boldsymbol\pi}\left(\boldsymbol{x}\_i,\boldsymbol{\gamma}\right)=\frac{\partial
 \pi\left(\boldsymbol{x}\_i,\boldsymbol{\gamma}\right)} {\partial
 \boldsymbol{\gamma}}. This formulation is valid for any differentiable
 link function used in the sampling-score model. For the logit link,
-Equation [eq-bias-min](#eq-bias-min) reduces to the estimating-equation
-form used by Yang et al. ([2020](#ref-yang_doubly_2020)).
+Equation 11 reduces to the estimating-equation form used by Yang et al.
+([2020](#ref-yang_doubly_2020)).
 
-The system in Equation [eq-bias-min](#eq-bias-min) can be solved using
-the Newton–Raphson method. Without variable selection and under the
-logit sampling-score model, this approach reduces to the Kim and Haziza
-([2014](#ref-kim2014doubly)) estimating-equation system used by Chen et
-al. ([2020](#ref-chen2020doubly)) and Wu
-([2022](#ref-wu2022statistical)) for doubly robust inference and doubly
-robust variance estimation in non-probability samples.
+The system in Equation 11 can be solved using the Newton–Raphson method.
+Without variable selection and under the logit sampling-score model,
+this approach reduces to the Kim and Haziza ([2014](#ref-kim2014doubly))
+estimating-equation system used by Chen et al.
+([2020](#ref-chen2020doubly)) and Wu ([2022](#ref-wu2022statistical))
+for doubly robust inference and doubly robust variance estimation in
+non-probability samples.
 
 The main limitation of this approach is that the joint
 estimating-equation blocks must be formulated on compatible covariate
@@ -762,37 +763,34 @@ n\_{\min}=\min(\|S\_{\text{P}}\|,\|S\_{\text{NP}}\|), under correct
 specification of either the sampling-score model or the outcome model.
 
 In the package, the bias-minimization approach is implemented using the
-general derivative form in Equation [eq-bias-min](#eq-bias-min), which
-allows different link functions for the propensity-score model. For the
-logit link, this formulation coincides with the estimating equation of
-Yang et al. ([2020](#ref-yang_doubly_2020)). Note that we use
-a different convention for \boldsymbol h: our choice \boldsymbol
+general derivative form in Equation 11, which allows different link
+functions for the propensity-score model. For the logit link, this
+formulation coincides with the estimating equation of Yang et al.
+([2020](#ref-yang_doubly_2020)). Note that we use a different convention
+for \boldsymbol h: our choice \boldsymbol
 h(\boldsymbol{x};\boldsymbol\gamma)=\boldsymbol{x}/\pi(\boldsymbol{x};\boldsymbol\gamma)
 corresponds to the IPW estimating equation of Yang et al.
 ([2020](#ref-yang_doubly_2020)) written with \boldsymbol h(\boldsymbol
 X;\boldsymbol\alpha)=\boldsymbol X. As mentioned above, the choice of
-either Equation [eq-dr-known-n](#eq-dr-known-n)
-or [eq-dr-estimated-n](#eq-dr-estimated-n) results in a different
-approach to variance estimation, which is discussed in the next section.
+either Equation 9 or 10 results in a different approach to variance
+estimation, which is discussed in the next section.
 
 #### Variance estimators for the doubly robust approach
 
 Yang et al. ([2020](#ref-yang_doubly_2020)) derived a closed-form
-variance estimator for the known-N DR estimator in
-Equation [eq-dr-known-n](#eq-dr-known-n). This result requires knowledge
-of the population size N and the corresponding bias-correction term to
-obtain a valid estimator of V\_{\xi
+variance estimator for the known-N DR estimator in Equation 9. This
+result requires knowledge of the population size N and the corresponding
+bias-correction term to obtain a valid estimator of V\_{\xi
 p}\left(\hat{\mu}\_{y,\text{DR}}-\mu_y\right) under the outcome
 regression model \xi. Chen et al. ([2020](#ref-chen2020doubly)) also
 consider Hájek-type DR estimators with estimated denominators, which
-motivates the version in
-Equation [eq-dr-estimated-n](#eq-dr-estimated-n). However, an analytical
-variance estimator for the exact Hájek-type DR estimator implemented in
-the package has not, to our knowledge, been formally established.
-Therefore, in the package we provide a plug-in approximation obtained by
-replacing N in the known-N variance formula by the estimated
-denominators \hat{N}\_{\text{NP}} and \hat{N}\_{\text{P}}. This option
-should be interpreted as heuristic and used with caution.
+motivates the version in Equation 10. However, an analytical variance
+estimator for the exact Hájek-type DR estimator implemented in the
+package has not, to our knowledge, been formally established. Therefore,
+in the package we provide a plug-in approximation obtained by replacing
+N in the known-N variance formula by the estimated denominators
+\hat{N}\_{\text{NP}} and \hat{N}\_{\text{P}}. This option should be
+interpreted as heuristic and used with caution.
 
 Alternatively, one can use the bootstrap approach. Chen et al.
 ([2020](#ref-chen2020doubly)) demonstrated that the bootstrap approach
@@ -1863,18 +1861,18 @@ suggestions.
 
 **Algorithm 1.** Mass imputation using the k nearest neighbor algorithm.
 
-1.  If k=1, then for each i \in S\_{\PP} match
+1.  If k=1, then for each i \in S\_{\text{P}} match
     \hat{\nu}(i,1)=\hat{\nu}(i) such that \hat{\nu}(i)=
-    \operatornamewithlimits{arg\\ min}\_{j\in S\_{\NP}}
+    \operatornamewithlimits{arg\\ min}\_{j\in S\_{\text{NP}}}
     d\left(\boldsymbol{x}\_i,\boldsymbol{x}\_j\right) (e.g., Euclidean
     distance).
 2.  If k\>1, then \hat{\nu}(i, z) = \operatornamewithlimits{arg\\
-    min}\_{j\in S\_{\NP}\setminus\bigcup\_{t=1}^{z-1} \\\hat{\nu}(i,
-    t)\\} d\left(\boldsymbol{x}\_i, \boldsymbol{x}\_j\right), i.e.,
-    \hat{\nu}(i, z) is the zth nearest neighbor from the sample
-    S\_{\NP}.
-3.  For each i \in S\_{\PP}, calculate the imputed value as y_i^\* =
-    \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
+    min}\_{j\in S\_{\text{NP}}\setminus\bigcup\_{t=1}^{z-1}
+    \\\hat{\nu}(i, t)\\} d\left(\boldsymbol{x}\_i,
+    \boldsymbol{x}\_j\right), i.e., \hat{\nu}(i, z) is the zth nearest
+    neighbor from the sample S\_{\text{NP}}.
+3.  For each i \in S\_{\text{P}}, calculate the imputed value as y_i^\*
+    = \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
 
 **Algorithm 2.** Mass imputation using predictive mean matching variant:
 \hat{y}-\hat{y} matching.
@@ -1884,18 +1882,19 @@ suggestions.
 2.  Predict \hat{y}\_{i}=m\left(\boldsymbol{x}\_{i},
     \hat{\boldsymbol{\beta}}\right), \qquad
     \hat{y}\_{j}=m\left(\boldsymbol{x}\_{j},
-    \hat{\boldsymbol{\beta}}\right) for i\in S\_{\PP} and j\in S\_{\NP}.
-3.  If k=1, then for each i\in S\_{\PP} match
+    \hat{\boldsymbol{\beta}}\right) for i\in S\_{\text{P}} and j\in
+    S\_{\text{NP}}.
+3.  If k=1, then for each i\in S\_{\text{P}} match
     \hat{\nu}(i,1)=\hat{\nu}(i) such that \hat{\nu}(i)=
-    \operatornamewithlimits{arg\\ min}\_{j\in S\_{\NP}}
+    \operatornamewithlimits{arg\\ min}\_{j\in S\_{\text{NP}}}
     d\left(\hat{y}\_{i}, \hat{y}\_{j}\right).
 4.  If k\>1, then \hat{\nu}(i, z) = \operatornamewithlimits{arg\\
-    min}\_{j\in S\_{\NP}\setminus\bigcup\_{t=1}^{z-1} \\\hat{\nu}(i,
-    t)\\} d\left(\hat{y}\_{i}, \hat{y}\_{j}\right), i.e.,
+    min}\_{j\in S\_{\text{NP}}\setminus\bigcup\_{t=1}^{z-1}
+    \\\hat{\nu}(i, t)\\} d\left(\hat{y}\_{i}, \hat{y}\_{j}\right), i.e.,
     \hat{\nu}(i, z) is the zth nearest neighbor from the sample
-    S\_{\NP}.
-5.  For each i \in S\_{\PP}, calculate the imputed value as y_i^\* =
-    \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
+    S\_{\text{NP}}.
+5.  For each i \in S\_{\text{P}}, calculate the imputed value as y_i^\*
+    = \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
 
 **Algorithm 3.** Mass imputation using predictive mean matching variant:
 \hat{y}-y matching.
@@ -1903,17 +1902,18 @@ suggestions.
 1.  Estimate regression model m(\boldsymbol{x}, \boldsymbol{\beta})
     parameters.
 2.  Predict \hat{y}\_{i}=m\left(\boldsymbol{x}\_{i},
-    \hat{\boldsymbol{\beta}}\right) for i \in S\_{\PP}.
-3.  If k=1, then for each i\in S\_{\PP} match
+    \hat{\boldsymbol{\beta}}\right) for i \in S\_{\text{P}}.
+3.  If k=1, then for each i\in S\_{\text{P}} match
     \hat{\nu}(i,1)=\hat{\nu}(i) such that \hat{\nu}(i)=
-    \operatornamewithlimits{arg\\ min}\_{j \in S\_{\NP}}
+    \operatornamewithlimits{arg\\ min}\_{j \in S\_{\text{NP}}}
     d\left(\hat{y}\_{i}, y\_{j}\right).
 4.  If k\>1, then \hat{\nu}(i, z) = \operatornamewithlimits{arg\\
-    min}\_{j \in S\_{\NP} \setminus \bigcup\_{t=1}^{z-1} \\\hat{\nu}(i,
-    t)\\} d\left(\hat{y}\_{i}, y\_{j}\right), i.e., \hat{\nu}(i, z) is
-    the zth nearest neighbor from the sample S\_{\NP}.
-5.  For each i \in S\_{\PP}, calculate the imputed value as y_i^\* =
-    \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
+    min}\_{j \in S\_{\text{NP}} \setminus \bigcup\_{t=1}^{z-1}
+    \\\hat{\nu}(i, t)\\} d\left(\hat{y}\_{i}, y\_{j}\right), i.e.,
+    \hat{\nu}(i, z) is the zth nearest neighbor from the sample
+    S\_{\text{NP}}.
+5.  For each i \in S\_{\text{P}}, calculate the imputed value as y_i^\*
+    = \frac{1}{k}\sum\_{t=1}^{k}y\_{\hat{\nu}(i, t)}.
 
 ## References
 
@@ -1924,7 +1924,7 @@ Matching Estimators for Average Treatment Effects.” *Econometrica* 74
 Beaumont, Jean-Francois. 2020. “Are Probability Surveys Bound to
 Disappear for the Production of Official Statistics.” *Survey
 Methodology* 46 (1): 1–28.
-<http://www.statcan.gc.ca/pub/12-001-x/2020001/article/00001-eng.pdf>.
+<https://www150.statcan.gc.ca/n1/pub/12-001-x/2020001/article/00001-eng.pdf>.
 
 Beręsewicz, Maciej. 2017. “A Two-Step Procedure to Measure
 Representativeness of Internet Data Sources.” *International Statistical
@@ -1977,7 +1977,7 @@ Samples.” Master’s thesis, Adam Mickiewicz University.
 
 Chrostowski, Łukasz, Maciej Beręsewicz, and Piotr Chlebicki. 2026.
 *Inference Based on Non-Probability Samples*.
-[10.32614/CRAN.package.nonprobsvy](https://10.32614/CRAN.package.nonprobsvy).
+<https://cran.r-project.org/package=nonprobsvy>.
 
 Citro, Constance F. 2014. “From Multiple Modes for Surveys to Multiple
 Data Sources for Estimates.” *Survey Methodology* 40 (2): 137–61.
@@ -2150,4 +2150,4 @@ Dimensional Data.” *Journal of the Royal Statistical Society B* 82 (2):
 Yang, Shu, Jae-Kwang Kim, and Youngdeok Hwang. 2021. “Integration of
 Data from Probability Surveys and Big Found Data for Finite Population
 Inference Using Mass Imputation.” *Survey Methodology* 47 (1): 29–58.
-<http://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm>.
+<https://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm>.
