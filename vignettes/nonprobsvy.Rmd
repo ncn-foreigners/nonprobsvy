@@ -617,7 +617,9 @@ described by @kim2014doubly, is discussed in the next section.
 
 ### Minimization of the bias for doubly robust methods
 
-@yang_doubly_2020 discussed variable selection for a high-dimensional setting and noted that post-selection asymptotic bias may be non-negligible. Therefore, according to @yang_doubly_2020, the idea is to develop estimating equations for the $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ parameters based on the bias of the population mean estimator. In this way, the parameters can be estimated in a single step, rather than in two separate steps. First, the authors derived the asymptotic bias of $\hat{\mu}_{y,\text{DR}}$, which is given by $$\begin{aligned}
+@yang_doubly_2020 discussed variable selection for a high-dimensional setting and noted that post-selection asymptotic bias may be non-negligible. Therefore, according to @yang_doubly_2020, the idea is to develop estimating equations for the $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ parameters based on the bias of the population mean estimator. In this way, the parameters can be estimated in a single step, rather than in two separate steps. First, the authors derived the asymptotic bias of $\hat{\mu}_{y,\text{DR}}$, which is given by 
+$$
+\begin{aligned}
  a\!\operatorname{bias}(\boldsymbol\gamma,\boldsymbol\beta)
  &=\E\{\hat\mu_{y, \text{DR}}(\boldsymbol\gamma,\boldsymbol\beta)-\mu\} \\
  &=\E\left[
@@ -632,7 +634,9 @@ described by @kim2014doubly, is discussed in the next section.
  \right].
 \end{aligned}$$
 
-The goal of this approach is to minimize $\{a\!\operatorname{bias}(\boldsymbol\gamma,\boldsymbol\beta)\}^2$, which leads to the following system of empirical estimating equations: $$\left(\begin{array}{c}
+The goal of this approach is to minimize $\{a\!\operatorname{bias}(\boldsymbol\gamma,\boldsymbol\beta)\}^2$, which leads to the following system of empirical estimating equations: 
+$$
+\left(\begin{array}{c}
 \sum_{i=1}^N
 I_{\text{NP}, i}
 \frac{
@@ -654,22 +658,24 @@ d_{\text{P}, i}
 \dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)
 \end{array}\right)
 =
-\boldsymbol{0},
-\label{eq-bias-min}$$ where $\dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)=
+\boldsymbol{0} \tag{11}
+$$ 
+
+where $\dot{m}\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)=
 \frac{\partial m\left(\boldsymbol{x}_i,\boldsymbol{\beta}\right)}
 {\partial \boldsymbol{\beta}}$ and $\dot{\boldsymbol\pi}\left(\boldsymbol{x}_i,\boldsymbol{\gamma}\right)=\frac{\partial \pi\left(\boldsymbol{x}_i,\boldsymbol{\gamma}\right)}
-{\partial \boldsymbol{\gamma}}$. This formulation is valid for any differentiable link function used in the sampling-score model. For the logit link, Equation [\[eq-bias-min\]](#eq-bias-min){reference-type="ref" reference="eq-bias-min"} reduces to the estimating-equation form used by @yang_doubly_2020.
+{\partial \boldsymbol{\gamma}}$. This formulation is valid for any differentiable link function used in the sampling-score model. For the logit link, Equation 11 reduces to the estimating-equation form used by @yang_doubly_2020.
 
-The system in Equation [\[eq-bias-min\]](#eq-bias-min){reference-type="ref" reference="eq-bias-min"} can be solved using the Newton--Raphson method. Without variable selection and under the logit sampling-score model, this approach reduces to the @kim2014doubly estimating-equation system used by @chen2020doubly and @wu2022statistical for doubly robust inference and doubly robust variance estimation in non-probability samples.
+The system in Equation 11 can be solved using the Newton--Raphson method. Without variable selection and under the logit sampling-score model, this approach reduces to the @kim2014doubly estimating-equation system used by @chen2020doubly and @wu2022statistical for doubly robust inference and doubly robust variance estimation in non-probability samples.
 
 The main limitation of this approach is that the joint estimating-equation blocks must be formulated on compatible covariate vectors and have the same dimension. Following @yang_doubly_2020, this is achieved after variable selection by re-estimating both nuisance models on the union of selected variables, $C=\widehat M_\gamma\cup\widehat M_\beta$, where $\widehat M_\gamma$ and $\widehat M_\beta$ denote the sets of variables selected for the propensity score and outcome models, respectively. This construction does not imply unbiasedness when both nuisance models are misspecified; its role is to reduce the first-order post-selection effect and to preserve root-$n_{\min}$ inference, with $n_{\min}=\min(|S_{\text{P}}|,|S_{\text{NP}}|)$, under correct specification of either the sampling-score model or the outcome model.
 
-In the package, the bias-minimization approach is implemented using the general derivative form in Equation [\[eq-bias-min\]](#eq-bias-min){reference-type="ref" reference="eq-bias-min"}, which allows different link functions for the propensity-score model. For the logit link, this formulation coincides with the estimating equation of @yang_doubly_2020. Note that we use a different convention for $\boldsymbol h$: our choice $\boldsymbol h(\boldsymbol{x};\boldsymbol\gamma)=\boldsymbol{x}/\pi(\boldsymbol{x};\boldsymbol\gamma)$ corresponds to the IPW estimating equation of @yang_doubly_2020 written with $\boldsymbol h(\boldsymbol X;\boldsymbol\alpha)=\boldsymbol X$. As mentioned above, the choice of either Equation [\[eq-dr-known-n\]](#eq-dr-known-n){reference-type="ref" reference="eq-dr-known-n"} or [\[eq-dr-estimated-n\]](#eq-dr-estimated-n){reference-type="ref" reference="eq-dr-estimated-n"} results in a different approach to variance estimation, which is discussed in the next section.
+In the package, the bias-minimization approach is implemented using the general derivative form in Equation 11, which allows different link functions for the propensity-score model. For the logit link, this formulation coincides with the estimating equation of @yang_doubly_2020. Note that we use a different convention for $\boldsymbol h$: our choice $\boldsymbol h(\boldsymbol{x};\boldsymbol\gamma)=\boldsymbol{x}/\pi(\boldsymbol{x};\boldsymbol\gamma)$ corresponds to the IPW estimating equation of @yang_doubly_2020 written with $\boldsymbol h(\boldsymbol X;\boldsymbol\alpha)=\boldsymbol X$. As mentioned above, the choice of either Equation 9 or 10 results in a different approach to variance estimation, which is discussed in the next section.
 
 
 ### Variance estimators for the doubly robust approach
 
-@yang_doubly_2020 derived a closed-form variance estimator for the known-$N$ DR estimator in Equation [\[eq-dr-known-n\]](#eq-dr-known-n){reference-type="ref" reference="eq-dr-known-n"}. This result requires knowledge of the population size $N$ and the corresponding bias-correction term to obtain a valid estimator of $V_{\xi p}\left(\hat{\mu}_{y,\text{DR}}-\mu_y\right)$ under the outcome regression model $\xi$. @chen2020doubly also consider Hájek-type DR estimators with estimated denominators, which motivates the version in Equation [\[eq-dr-estimated-n\]](#eq-dr-estimated-n){reference-type="ref" reference="eq-dr-estimated-n"}. However, an analytical variance estimator for the exact Hájek-type DR estimator implemented in the package has not, to our knowledge, been formally established. Therefore, in the package we provide a plug-in approximation obtained by replacing $N$ in the known-$N$ variance formula by the estimated denominators $\hat{N}_{\text{NP}}$ and $\hat{N}_{\text{P}}$. This option should be interpreted as heuristic and used with caution.
+@yang_doubly_2020 derived a closed-form variance estimator for the known-$N$ DR estimator in Equation 9. This result requires knowledge of the population size $N$ and the corresponding bias-correction term to obtain a valid estimator of $V_{\xi p}\left(\hat{\mu}_{y,\text{DR}}-\mu_y\right)$ under the outcome regression model $\xi$. @chen2020doubly also consider Hájek-type DR estimators with estimated denominators, which motivates the version in Equation 10. However, an analytical variance estimator for the exact Hájek-type DR estimator implemented in the package has not, to our knowledge, been formally established. Therefore, in the package we provide a plug-in approximation obtained by replacing $N$ in the known-$N$ variance formula by the estimated denominators $\hat{N}_{\text{NP}}$ and $\hat{N}_{\text{P}}$. This option should be interpreted as heuristic and used with caution.
 
 Alternatively, one can use the bootstrap approach. @chen2020doubly demonstrated that the bootstrap approach presented in Section [2.2](#sec-prediction){reference-type="ref" reference="sec-prediction"} performs well in terms of the coverage rate when one of the working models is correctly specified. This is why this approach is recommended for all users.
 
@@ -1425,22 +1431,22 @@ The authors thank the editors and reviewers for their constructive suggestions.
 
 **Algorithm 1.** Mass imputation using the $k$ nearest neighbor algorithm.
 
-1. If $k=1$, then for each $i \in S_{\PP}$ match
+1. If $k=1$, then for each $i \in S_{\text{P}}$ match
 $\hat{\nu}(i,1)=\hat{\nu}(i)$ such that
 \[
-\hat{\nu}(i)= \operatornamewithlimits{arg\, min}_{j\in S_{\NP}} d\left(\boldsymbol{x}_i,\boldsymbol{x}_j\right)
+\hat{\nu}(i)= \operatornamewithlimits{arg\, min}_{j\in S_{\text{NP}}} d\left(\boldsymbol{x}_i,\boldsymbol{x}_j\right)
 \] (e.g., Euclidean distance).
 2. If $k>1$, then
 \[
 \hat{\nu}(i, z) =
 \operatornamewithlimits{arg\, min}_{j\in
-S_{\NP}\setminus\bigcup_{t=1}^{z-1}
+S_{\text{NP}}\setminus\bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\boldsymbol{x}_i, \boldsymbol{x}_j\right),
 \]
 i.e., $\hat{\nu}(i, z)$ is the \(z\)th nearest neighbor from the sample
-$S_{\NP}$.
-3. For each $i \in S_{\PP}$, calculate the imputed value as
+$S_{\text{NP}}$.
+3. For each $i \in S_{\text{P}}$, calculate the imputed value as
 \[
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 \]
@@ -1455,25 +1461,25 @@ $\hat{y}-\hat{y}$ matching.
 \qquad
 \hat{y}_{j}=m\left(\boldsymbol{x}_{j}, \hat{\boldsymbol{\beta}}\right)
 \]
-for $i\in S_{\PP}$ and $j\in S_{\NP}$.
-3. If $k=1$, then for each $i\in S_{\PP}$ match
+for $i\in S_{\text{P}}$ and $j\in S_{\text{NP}}$.
+3. If $k=1$, then for each $i\in S_{\text{P}}$ match
 $\hat{\nu}(i,1)=\hat{\nu}(i)$ such that
 \[
 \hat{\nu}(i)=
-\operatornamewithlimits{arg\, min}_{j\in S_{\NP}}
+\operatornamewithlimits{arg\, min}_{j\in S_{\text{NP}}}
 d\left(\hat{y}_{i}, \hat{y}_{j}\right).
 \]
 4. If $k>1$, then
 \[
 \hat{\nu}(i, z) =
 \operatornamewithlimits{arg\, min}_{j\in
-S_{\NP}\setminus\bigcup_{t=1}^{z-1}
+S_{\text{NP}}\setminus\bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\hat{y}_{i}, \hat{y}_{j}\right),
 \]
 i.e., $\hat{\nu}(i, z)$ is the \(z\)th nearest neighbor from the sample
-$S_{\NP}$.
-5. For each $i \in S_{\PP}$, calculate the imputed value as
+$S_{\text{NP}}$.
+5. For each $i \in S_{\text{P}}$, calculate the imputed value as
 \[
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 \]
@@ -1487,25 +1493,25 @@ parameters.
 \[
 \hat{y}_{i}=m\left(\boldsymbol{x}_{i}, \hat{\boldsymbol{\beta}}\right)
 \]
-for $i \in S_{\PP}$.
-3. If $k=1$, then for each $i\in S_{\PP}$ match
+for $i \in S_{\text{P}}$.
+3. If $k=1$, then for each $i\in S_{\text{P}}$ match
 $\hat{\nu}(i,1)=\hat{\nu}(i)$ such that
 \[
 \hat{\nu}(i)=
-\operatornamewithlimits{arg\, min}_{j \in S_{\NP}}
+\operatornamewithlimits{arg\, min}_{j \in S_{\text{NP}}}
 d\left(\hat{y}_{i}, y_{j}\right).
 \]
 4. If $k>1$, then
 \[
 \hat{\nu}(i, z) =
-\operatornamewithlimits{arg\, min}_{j \in S_{\NP}
+\operatornamewithlimits{arg\, min}_{j \in S_{\text{NP}}
 \setminus \bigcup_{t=1}^{z-1}
 \{\hat{\nu}(i, t)\}}
 d\left(\hat{y}_{i}, y_{j}\right),
 \]
 i.e., $\hat{\nu}(i, z)$ is the \(z\)th nearest neighbor from the sample
-$S_{\NP}$.
-5. For each $i \in S_{\PP}$, calculate the imputed value as
+$S_{\text{NP}}$.
+5. For each $i \in S_{\text{P}}$, calculate the imputed value as
 \[
 y_i^* = \frac{1}{k}\sum_{t=1}^{k}y_{\hat{\nu}(i, t)}.
 \]
