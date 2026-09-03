@@ -1847,7 +1847,6 @@ selection followed by variable union from both equations.</p>
 <span>                                  vars_combine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                  vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in ncvreg(X = X, y = y, ...): Maximum number of iterations reached</span></span>
 <span><span class="va">dr_est2</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
@@ -2021,7 +2020,6 @@ estimator using only 5 folds, 25 possible values of <span class="math inline">\l
 <span>  control_inference <span class="op">=</span> <span class="fu"><a href="../reference/control_inf.html">control_inf</a></span><span class="op">(</span>vars_selection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in ncvreg(X = X, y = y, ...): Maximum number of iterations reached</span></span>
 <span><span class="co">#&gt; Starting CV fold #1</span></span>
 <span><span class="co">#&gt; Starting CV fold #2</span></span>
 <span><span class="co">#&gt; Starting CV fold #3</span></span>
@@ -2036,7 +2034,7 @@ respectively.</p>
 <span>      <span class="st">"MI with var sel"</span>    <span class="op">=</span> <span class="fu"><a href="../reference/extract.html">extract</a></span><span class="op">(</span><span class="va">mi_est1_sel</span><span class="op">)</span><span class="op">[</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                         mean         SE</span></span>
 <span><span class="co">#&gt; MI without var sel 0.7032089 0.01120237</span></span>
-<span><span class="co">#&gt; MI with var sel    0.6897488 0.00809731</span></span></code></pre></div>
+<span><span class="co">#&gt; MI with var sel    0.7019291 0.01102109</span></span></code></pre></div>
 <p>The result object of the <code>cv.ncvreg</code> class is stored in
 the <code>"outcome"</code> element of the result, and you can access the
 selected variables using the <code>coef</code> generic method as
@@ -2044,17 +2042,17 @@ follows.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">mi_est1_sel</span><span class="op">)</span><span class="op">$</span><span class="va">coef_out</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; (Intercept)    region04    region06    region08    region10    region12 </span></span>
-<span><span class="co">#&gt;      0.1584      0.0000      0.0000      0.0000      0.0000      0.0000 </span></span>
+<span><span class="co">#&gt;      0.2820      0.0025      0.3274      0.3196      0.2120      0.1775 </span></span>
 <span><span class="co">#&gt;    region14    region16    region18    region20    region22    region24 </span></span>
-<span><span class="co">#&gt;      0.0000      0.0000      0.0000      0.0000      0.0000      0.0000 </span></span>
+<span><span class="co">#&gt;      0.0143      0.0792      0.0000      0.0000      0.0047     -0.2554 </span></span>
 <span><span class="co">#&gt;    region26    region28    region30    region32     private     naceD.E </span></span>
-<span><span class="co">#&gt;      0.0000      0.0000      0.0000      0.0000      0.0000      0.0000 </span></span>
+<span><span class="co">#&gt;      0.1333      0.0000      0.0000      0.0000     -0.6090      0.1759 </span></span>
 <span><span class="co">#&gt;       naceF       naceG       naceH       naceI       naceJ     naceK.L </span></span>
-<span><span class="co">#&gt;      1.3526      0.0000      0.0000     -0.3910      0.0000      0.2954 </span></span>
+<span><span class="co">#&gt;      1.9173     -0.4558     -0.5607     -1.0966      0.9214      1.0370 </span></span>
 <span><span class="co">#&gt;       naceM       naceN       naceO       naceP       naceQ     naceR.S </span></span>
-<span><span class="co">#&gt;      0.4016      0.0000      0.8089      0.4323      0.0000      0.0000 </span></span>
+<span><span class="co">#&gt;      1.0025     -0.1840      1.4744      0.5368     -0.7116     -0.8138 </span></span>
 <span><span class="co">#&gt;       sizeM       sizeS </span></span>
-<span><span class="co">#&gt;      0.2785      0.6245</span></span></code></pre></div>
+<span><span class="co">#&gt;      0.9972      1.5354</span></span></code></pre></div>
 <p>If a user is interested in viewing the PS estimation results, then
 access to the <code>"selection"</code> element is required.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
