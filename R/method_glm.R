@@ -203,9 +203,8 @@ method_glm <- function(y_nons,
         nfolds = control_outcome$nfolds,
         nlambda = control_outcome$nlambda,
         gamma = penalty_gamma,
-        lambda.min = control_outcome$lambda_min,
-        eps = control_outcome$epsilon,
-        max.iter = control_outcome$maxit
+        lambda_min = control_outcome$lambda_min,
+        eps = control_outcome$epsilon
       )
       model_family <- get(model_fitted$fit$family)()
       model_fitted$family <- model_family
@@ -224,8 +223,7 @@ method_glm <- function(y_nons,
         family = family_outcome,
         lambda = lambda_path,
         gamma = penalty_gamma,
-        eps = control_outcome$epsilon,
-        max.iter = control_outcome$maxit
+        eps = control_outcome$epsilon
       )
       model_family <- get(model_fitted$family)()
     }
