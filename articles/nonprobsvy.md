@@ -1450,6 +1450,7 @@ dr_est2 <- nonprob(
                                   vars_combine = TRUE,
                                   vars_selection = TRUE)
 )
+#> Warning in ncvreg(X = X, y = y, ...): Maximum number of iterations reached
 dr_est2
 #> A nonprob object
 #>  - estimator type: doubly robust
@@ -1635,6 +1636,7 @@ mi_est1_sel <- nonprob(
   control_inference = control_inf(vars_selection = TRUE),
   verbose = TRUE
 )
+#> Warning in ncvreg(X = X, y = y, ...): Maximum number of iterations reached
 #> Starting CV fold #1
 #> Starting CV fold #2
 #> Starting CV fold #3
@@ -1652,7 +1654,7 @@ rbind("MI without var sel" = extract(mi_est1)[, 2:3],
       "MI with var sel"    = extract(mi_est1_sel)[, 2:3])
 #>                         mean         SE
 #> MI without var sel 0.7032089 0.01120237
-#> MI with var sel    0.7019291 0.01102109
+#> MI with var sel    0.6897488 0.00809731
 ```
 
 The result object of the `cv.ncvreg` class is stored in the `"outcome"`
@@ -1663,17 +1665,17 @@ the `coef` generic method as follows.
 
 round(coef(mi_est1_sel)$coef_out[, 1], 4)
 #> (Intercept)    region04    region06    region08    region10    region12 
-#>      0.2820      0.0025      0.3274      0.3196      0.2120      0.1775 
+#>      0.1584      0.0000      0.0000      0.0000      0.0000      0.0000 
 #>    region14    region16    region18    region20    region22    region24 
-#>      0.0143      0.0792      0.0000      0.0000      0.0047     -0.2554 
+#>      0.0000      0.0000      0.0000      0.0000      0.0000      0.0000 
 #>    region26    region28    region30    region32     private     naceD.E 
-#>      0.1333      0.0000      0.0000      0.0000     -0.6090      0.1759 
+#>      0.0000      0.0000      0.0000      0.0000      0.0000      0.0000 
 #>       naceF       naceG       naceH       naceI       naceJ     naceK.L 
-#>      1.9173     -0.4558     -0.5607     -1.0966      0.9214      1.0370 
+#>      1.3526      0.0000      0.0000     -0.3910      0.0000      0.2954 
 #>       naceM       naceN       naceO       naceP       naceQ     naceR.S 
-#>      1.0025     -0.1840      1.4744      0.5368     -0.7116     -0.8138 
+#>      0.4016      0.0000      0.8089      0.4323      0.0000      0.0000 
 #>       sizeM       sizeS 
-#>      0.9972      1.5354
+#>      0.2785      0.6245
 ```
 
 If a user is interested in viewing the PS estimation results, then
