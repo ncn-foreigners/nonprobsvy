@@ -78,8 +78,8 @@
 </ul>
 <p>Details on the use of the package can be found:</p>
 <ul>
-<li>see the working paper Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M. (2025). <em>nonprobsvy–An R package for modern methods for non-probability surveys</em>. arXiv preprint <a href="https://arxiv.org/abs/2504.04255" class="external-link">arXiv:2504.04255</a> – forthcoming to the Journal of Statistical Software</li>
-<li>in the draft (and not proofread) version of the book <a href="https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/" class="external-link">Modern inference methods for non-probability samples with R</a>,</li>
+<li>please cite the following paper: Chrostowski, Ł., Chlebicki, P., &amp; Beręsewicz, M(2026). nonprobsvy: An R package for modern methods for non-probability surveys. Journal of Statistical Software, 117(2), 1-37. <a href="https://doi.org/10.18637/jss.v117.i02" class="external-link uri">https://doi.org/10.18637/jss.v117.i02</a>
+</li>
 <li>in example codes that reproduce papers available on github in the repository <a href="https://github.com/ncn-foreigners/software-tutorials" class="external-link">software tutorials</a>.</li>
 </ul>
 </div>
@@ -172,7 +172,7 @@
 <p>Suppose <span class="math inline">Y</span> is the target variable, <span class="math inline">\boldsymbol{X}</span> is a matrix of auxiliary variables, <span class="math inline">R</span> is the inclusion indicator. Then, if we are interested in estimating the mean <span class="math inline">\bar{\tau}_Y</span> or the sum <span class="math inline">\tau_Y</span> of the of the target variable given the observed data set <span class="math inline">(y_k, \boldsymbol{x}_k, I_{\text{NP}, k})</span>, we can approach this problem with the possible scenarios:</p>
 <ul>
 <li>unit-level data is available for the non-probability sample <span class="math inline">S_{\text{NP}}</span>, i.e. <span class="math inline">(y_k,\boldsymbol{x}_k)</span> is available for all units <span class="math inline">k \in S_{\text{NP}}</span>, and population-level data is available for <span class="math inline">\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p</span>, denoted as <span class="math inline">\tau_{x_{1}},\tau_{x_{2}},\ldots,\tau_{x_{p}}</span> and population size <span class="math inline">N</span> is known. We can also consider situations where population data are estimated (e.g. on the basis of a survey to which we do not have access),</li>
-<li>unit-level data is available for the non-probability sample <span class="math inline">S_{\text{NP}}</span> and the probability sample <span class="math inline">S_{\text{P}}</span>, i.e. <span class="math inline">(\boldsymbol{x}_k,I_{\text{NP}, k})</span> is determined by the data: <span class="math inline">I_{\text{NP}, k}=1</span> if <span class="math inline">k \in S_{\text{NP}}</span> otherwise <span class="math inline">I_{\text{NP}, k}=0</span>, <span class="math inline">y_k</span> is observed only for sample <span class="math inline">S_{\text{NP}}</span> and <span class="math inline">\boldsymbol{x}_k</span> is observed in both <span class="math inline">S_{\text{NP}}</span> and <span class="math inline">S_{\text{P}}</span>.</li>
+<li>unit-level data is available for the non-probability sample <span class="math inline">S_{\text{NP}}</span> and the probability sample <span class="math inline">S_{\text{P}}</span>, i.e. <span class="math inline">(\boldsymbol{x}_k,I_{\text{NP}, k})</span> is determined by the data: <span class="math inline">I_{\text{NP}, k}=1</span> if <span class="math inline">k \in S_{\text{NP}}</span> otherwise <span class="math inline">I_{\text{NP}, k}=0</span>, <span class="math inline">y_k</span> is observed only for sample <span class="math inline">S_{\text{NP}}</span> and <span class="math inline">\boldsymbol{x}_k</span> is observed in both <span class="math inline">S_{\text{NP}}</span> and <span class="math inline">S_{\text{P}}</span>.</li>
 </ul>
 <p>Supported target-variable types depend on the estimator family:</p>
 <table class="table">
@@ -543,6 +543,7 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <span><span class="co">#&gt; A nonprob object</span></span>
 <span><span class="co">#&gt;  - estimator type: doubly robust</span></span>
 <span><span class="co">#&gt;  - method: glm (gaussian)</span></span>
+<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: 1025063)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -588,9 +589,8 @@ Doubly robust estimator with variable selection (SCAD) and bias minimization
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_ipw</span></span>
 <span><span class="co">#&gt; A nonprob object</span></span>
-<span><span class="co">#&gt;  - estimator type: inverse probability weighting</span></span>
+<span><span class="co">#&gt;  - estimator type: IPW (Hajek, denominator: 1025063)</span></span>
 <span><span class="co">#&gt;  - method: logit (mle)</span></span>
-<span><span class="co">#&gt;  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)</span></span>
 <span><span class="co">#&gt;  - auxiliary variables source: survey</span></span>
 <span><span class="co">#&gt;  - vars selection: false</span></span>
 <span><span class="co">#&gt;  - variance estimator: analytic</span></span>
@@ -700,7 +700,7 @@ Yang, Shu, Jae Kwang Kim, and Rui Song. 2020. “Doubly Robust Inference When Co
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

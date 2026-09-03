@@ -15,29 +15,18 @@
 Source:
 [`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/dev/inst/CITATION)
 
-Chrostowski Ł, Beręsewicz M, Chlebicki P (2025). *Inference Based on
-Non-Probability Samples*. R package version 0.3.0,
-<https://github.com/ncn-foreigners/nonprobsvy>.
+Chrostowski Ł, Chlebicki P, esewicz MB (2026). “nonprobsvy: An R Package
+for Modern Methods for Non-Probability Surveys.” *Journal of Statistical
+Software*, **117**(2), 1–37.
+[doi:10.18637/jss.v117.i02](https://doi.org/10.18637/jss.v117.i02).
 
-    @Manual{nonprobsy,
-      title = {Inference Based on Non-Probability Samples},
-      author = {Łukasz Chrostowski and Maciej Beręsewicz and Piotr Chlebicki},
-      note = {R package version 0.3.0},
-      year = {2025},
-      url = {https://github.com/ncn-foreigners/nonprobsvy},
-    }
-
-Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2025). nonprobsvy --
-An R package for modern methods for non-probability surveys. arXiv
-preprint arXiv:2504.04255
-
-    @Misc{,
-      year = {2025},
-      author = {Łukasz Chrostowski and Piotr Chlebicki and Maciej Beręsewicz},
-      title = {nonprobsvy -- An R package for modern methods for non-probability surveys},
-      eprint = {2504.04255},
-      archiveprefix = {arXiv},
-      primaryclass = {stat.ME},
-      note = {R package version 0.2.2},
-      url = {https://arxiv.org/abs/2504.04255},
+    @Article{,
+      title = {{nonprobsvy}: An {R} Package for Modern Methods for Non-Probability Surveys},
+      author = {{\L}ukasz Chrostowski and Piotr Chlebicki and Maciej Ber{\k e}sewicz},
+      journal = {Journal of Statistical Software},
+      year = {2026},
+      volume = {117},
+      number = {2},
+      pages = {1--37},
+      doi = {10.18637/jss.v117.i02},
     }

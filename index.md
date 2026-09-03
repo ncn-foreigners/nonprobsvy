@@ -32,14 +32,10 @@ The package allows for:
 
 Details on the use of the package can be found:
 
-- see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
-  (2025). *nonprobsvy–An R package for modern methods for
-  non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcoming to
-  the Journal of Statistical Software
-- in the draft (and not proofread) version of the book [Modern inference
-  methods for non-probability samples with
-  R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
+- please cite the following paper: Chrostowski, Ł., Chlebicki, P., &
+  Beręsewicz, M(2026). nonprobsvy: An R package for modern methods for
+  non-probability surveys. Journal of Statistical Software, 117(2),
+  1-37. <https://doi.org/10.18637/jss.v117.i02>
 - in example codes that reproduce papers available on github in the
   repository [software
   tutorials](https://github.com/ncn-foreigners/software-tutorials).
@@ -114,8 +110,8 @@ the possible scenarios:
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
 - unit-level data is available for the non-probability sample
-  S\_{\text{NP}} and the probability sample S\_{\text{P}},
-  i.e. (\boldsymbol{x}\_k,I\_{\text{NP}, k}) is determined by the data:
+  S\_{\text{NP}} and the probability sample S\_{\text{P}}, i.e.
+  (\boldsymbol{x}\_k,I\_{\text{NP}, k}) is determined by the data:
   I\_{\text{NP}, k}=1 if k \in S\_{\text{NP}} otherwise I\_{\text{NP},
   k}=0, y_k is observed only for sample S\_{\text{NP}} and
   \boldsymbol{x}\_k is observed in both S\_{\text{NP}} and
@@ -239,6 +235,7 @@ result_dr
 #> A nonprob object
 #>  - estimator type: doubly robust
 #>  - method: glm (gaussian)
+#>  - IPW point estimator: Hajek (denominator: 1025063)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -304,9 +301,8 @@ Results
 
 result_ipw
 #> A nonprob object
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 1025063)
 #>  - method: logit (mle)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic

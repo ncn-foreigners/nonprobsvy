@@ -4,6 +4,17 @@
 
 ## nonprobsvy 0.3.0
 
+- added citation file for the JSS publication: Chrostowski, Ł.,
+  Chlebicki, P., & Beręsewicz, M. (2026). nonprobsvy: An R package for
+  modern methods for non-probability surveys. Journal of Statistical
+  Software, 117(2), 1-37. <https://doi.org/10.18637/jss.v117.i02>
+- vignette based on the JSS paper added
+- fixed the cloglog doubly robust analytic variance: the
+  model-adjustment term mis-scaled `log((1-pi)/pi)` across units when
+  the model had more than one covariate
+- fixed the IPW bootstrap hanging indefinitely when a replicate failed
+  deterministically: replicate errors are now retried once and then
+  surfaced as a proper error (matching the MI bootstrap behaviour)
 - fixed doubly-robust (`method="dr"`) bootstrap when the probability
   `svydesign` is a derived design (built via
   [`subset()`](https://rdrr.io/r/base/subset.html),
@@ -37,7 +48,6 @@
   from 500 to 100 and `nlambda` in
   [`control_out()`](https://ncn-foreigners.github.io/nonprobsvy/reference/control_out.md)
   from 100 to 50 to align with the documentation
-- vignette based on the JSS paper added
 - documentation notation adjusted to match the JSS paper
 - we thank the authors of [StatsClaw.ai](https://statsclaw.ai), the tool
   that allowed us to identify bugs and improve the code
