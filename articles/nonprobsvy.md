@@ -2150,4 +2150,4 @@ Dimensional Data.” *Journal of the Royal Statistical Society B* 82 (2):
 Yang, Shu, Jae-Kwang Kim, and Youngdeok Hwang. 2021. “Integration of
 Data from Probability Surveys and Big Found Data for Finite Population
 Inference Using Mass Imputation.” *Survey Methodology* 47 (1): 29–58.
-<https://www.statcan.gc.ca/pub/12-001-x/2021001/article/00004-eng.htm>.
+<https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm>.
