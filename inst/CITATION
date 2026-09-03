@@ -1,28 +1,20 @@
-citHeader("To cite the nonprobsvy package in publications use one or more of:")
-
-bibentry(
-  key = "nonprobsy",
-  bibtype = "Manual",
-  title = "Inference Based on Non-Probability Samples",
-  author = c(person("Łukasz", "Chrostowski"),
-             person("Maciej", "Beręsewicz"),
-             person("Piotr", "Chlebicki")),
-  note = "R package version 0.3.0",
-  year = "2025",
-  url = "https://github.com/ncn-foreigners/nonprobsvy"
+bibentry(bibtype = "Article",
+  title        = "{nonprobsvy}: An {R} Package for Modern Methods for Non-Probability Surveys",
+  author       = c(person(given = "{\\L}ukasz",
+                          family = "Chrostowski",
+                          email = "lukaszchrostowski6@gmail.com"),
+                   person(given = "Piotr",
+                          family = "Chlebicki",
+                          email = "piotr.chlebicki@math.su.se"),
+                   person(given = c("Maciej", "Ber{\\k"),
+                          family = "e}sewicz",
+                          email = "maciej.beresewicz@ue.poznan.pl")),
+  journal      = "Journal of Statistical Software",
+  year         = "2026",
+  volume       = "117",
+  number       = "2",
+  pages        = "1--37",
+  doi          = "10.18637/jss.v117.i02",
+  header       = "To cite nonprobsvy in publications use:"
 )
 
-bibentry(
-  bibtype = "misc",
-  year = 2025,
-  author = c(person("Łukasz", "Chrostowski"),
-             person("Piotr", "Chlebicki"),
-             person("Maciej", "Beręsewicz")),
-  title = "nonprobsvy -- An R package for modern methods for non-probability surveys",
-  eprint = "2504.04255",
-  archivePrefix = "arXiv",
-  primaryClass = "stat.ME",
-  note = "R package version 0.2.2",
-  url = "https://arxiv.org/abs/2504.04255",
-  textVersion = "Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2025). nonprobsvy -- An R package for modern methods for non-probability surveys. arXiv preprint arXiv:2504.04255"
-)
