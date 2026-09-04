@@ -27,6 +27,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      NONPROBSVY_FULL_TESTS: "true"
 
     steps:
       - uses: actions/checkout@v3
