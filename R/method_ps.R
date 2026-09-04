@@ -440,8 +440,11 @@ method_ps <- function(link = c("logit", "probit", "cloglog"),
       # compute log ratios more stably
       log_ratio <- as.vector(log1p(-ps) - log(ps))
 
-      # compute model adjustment - use standard multiplication
-      model_adj <- drop(b %*% t(X * rep(log_ratio, each = ncol(X))))
+      # compute model adjustment: (b' x_i) * log_ratio_i per unit. The previous
+      # form X * rep(log_ratio, each = ncol(X)) misaligned the per-unit factor
+      # against column-major X (correct only for ncol(X) == 1), scrambling the
+      # scaling across units and covariates.
+      model_adj <- drop(tcrossprod(b, X)) * log_ratio
 
       # compute weighted residuals
       w_resid <- weights * (y - y_pred - h_n) / ps

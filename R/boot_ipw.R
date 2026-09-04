@@ -36,6 +36,10 @@ boot_ipw <- function(X_rand,
 
   inv_link <- method$make_link_inv
   k <- 1
+  # bounded retry per replicate (mirrors boot_mi): without it a deterministic
+  # replicate failure loops forever because k only advances on success
+  max_retries <- 1L
+  boot_attempt <- 0L
   rep_type <- control_inference$rep_type
   mu_len <- length(mu_hats)
   mu_hats_boot <- matrix(nrow = num_boot, ncol = mu_len)
@@ -51,7 +55,7 @@ boot_ipw <- function(X_rand,
                                           type = rep_type,
                                           replicates = num_boot)$repweights$weights # TODO customise to calibrated svydesign
     while (k <= num_boot) {
-      tryCatch(
+      boot_err <- tryCatch(
         {
           strap_nons <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
@@ -113,18 +117,26 @@ boot_ipw <- function(X_rand,
             utils::setTxtProgressBar(pb, k)
           }
           k <- k + 1
+          boot_attempt <- 0L
+          NULL
         },
-        error = function(e) {
-          if (verbose) {
-            info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-            message(info)
-          }
-        }
+        error = function(e) e
       )
+      if (inherits(boot_err, "error")) {
+        boot_attempt <- boot_attempt + 1L
+        if (verbose) {
+          message(sprintf("An error occurred in iteration %d (attempt %d/%d): %s",
+                          k, boot_attempt, max_retries + 1L, conditionMessage(boot_err)))
+        }
+        if (boot_attempt > max_retries) {
+          stop(sprintf("Bootstrap iteration %d failed after %d attempts: %s",
+                       k, max_retries + 1L, conditionMessage(boot_err)), call. = FALSE)
+        }
+      }
     }
   } else {
     while (k <= num_boot) {
-      tryCatch(
+      boot_err <- tryCatch(
         {
           strap <- sample.int(replace = TRUE, n = n_nons, prob = 1 / case_weights)
 
@@ -167,14 +179,22 @@ boot_ipw <- function(X_rand,
             utils::setTxtProgressBar(pb, k)
           }
           k <- k + 1
+          boot_attempt <- 0L
+          NULL
         },
-        error = function(e) {
-          if (verbose) {
-            info <- paste("An error occurred in ", k, " iteration: ", e$message, sep = "")
-            message(info)
-          }
-        }
+        error = function(e) e
       )
+      if (inherits(boot_err, "error")) {
+        boot_attempt <- boot_attempt + 1L
+        if (verbose) {
+          message(sprintf("An error occurred in iteration %d (attempt %d/%d): %s",
+                          k, boot_attempt, max_retries + 1L, conditionMessage(boot_err)))
+        }
+        if (boot_attempt > max_retries) {
+          stop(sprintf("Bootstrap iteration %d failed after %d attempts: %s",
+                       k, max_retries + 1L, conditionMessage(boot_err)), call. = FALSE)
+        }
+      }
     }
   }
   # mu_hats_boot_means <- colMeans(mu_hats_boot)

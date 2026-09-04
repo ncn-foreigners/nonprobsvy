@@ -79,6 +79,14 @@ boot_mi <- function(model_obj,
         verbose = FALSE,
         se = FALSE
       )
+
+      if (!is.null(model_obj_b$svydesign)) {
+        yhat_strap <- model_obj_b$svydesign$variables$y_hat_MI
+        w_strap    <- rep_weights[strap_rand_svy, b] * weights(svydesign)[strap_rand_svy]
+        return(sum(w_strap * yhat_strap) / pop_size_strap)
+      } else {
+        return(model_obj_b$y_mi_hat)
+      }
     } else {
       strap_nons <- sample.int(replace = TRUE, n = NROW(X_nons),
                                prob = 1 / case_weights)
@@ -110,11 +118,7 @@ boot_mi <- function(model_obj,
       pb_boot <- utils::txtProgressBar(min = 0, max = num_boot, style = 3)
     }
 
-    # Allow at most one retry per replicate so a deterministic failure
-    # surfaces as a proper error instead of looping forever. The previous
-    # implementation used `while (b <= num_boot)` with a silent tryCatch,
-    # which made deterministic failures invisible and could hang the
-    # caller indefinitely.
+  
     max_retries <- 1L
     for (b in seq_len(num_boot)) {
       attempt <- 0L

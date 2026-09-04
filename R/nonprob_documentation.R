@@ -193,20 +193,24 @@
 #'
 #'
 #' @references
-#' Kim JK, Park S, Chen Y, Wu C. Combining non-probability and
-#' probability survey samples through mass imputation. J R Stat Soc Series A. 2021;184:941–
-#' 963.
+#' Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2026). nonprobsvy: An R package for modern methods for non-probability surveys. 
+#' Journal of Statistical Software, 117(2), 1-37. https://doi.org/10.18637/jss.v117.i02
+#' 
+#' Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining non-probability and probability
+#' survey samples through mass imputation. Journal of the Royal Statistical Society Series A:
+#' Statistics in Society, 184(3), 941-963. https://doi.org/10.1111/rssa.12696
 #'
-#' Shu Yang, Jae Kwang Kim, Rui Song. Doubly robust inference when combining probability
-#' and non-probability samples with high dimensional data. J. R. Statist. Soc. B (2020)
+#' Yang, S., Kim, J. K., & Song, R. (2020). Doubly robust inference when combining probability
+#' and non-probability samples with high dimensional data. Journal of the Royal Statistical
+#' Society Series B: Statistical Methodology, 82(2), 445-465. https://doi.org/10.1111/rssb.12354
 #'
-#' Yilin Chen , Pengfei Li & Changbao Wu (2020) Doubly Robust Inference
-#' With Nonprobability Survey Samples, Journal of the American Statistical Association, 115:532,
-#' 2011-2021
+#' Chen, Y., Li, P., & Wu, C. (2020). Doubly Robust Inference With Nonprobability Survey
+#' Samples. Journal of the American Statistical Association, 115(532), 2011–2021. 
+#' https://doi.org/10.1080/01621459.2019.1677241
 #'
-#' Shu Yang, Jae Kwang Kim and Youngdeok Hwang Integration of data from
-#' probability surveys and big found data for finite population inference using mass imputation.
-#' Survey Methodology, June 2021 29 Vol. 47, No. 1, pp. 29-58
+#' Yang, S., Kim, J. K., & Hwang, Y. (2021). Integration of data from probability surveys and
+#' big found data for finite population inference using mass imputation. Survey Methodology, 47
+#' (1), 29–58. https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm
 #'
 #' @return Returns an object of the `nonprob` class (it is actually a `list`) which contains the following elements:\cr
 

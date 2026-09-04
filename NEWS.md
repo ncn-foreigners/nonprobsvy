@@ -4,11 +4,16 @@ nonprobsvy News and Updates
 
 # nonprobsvy 0.3.0
 
-
++ added citation file for the JSS publication: Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M. (2026). nonprobsvy: An R package for modern methods for non-probability surveys. Journal of Statistical Software, 117(2), 1-37. https://doi.org/10.18637/jss.v117.i02
++ vignette based on the JSS paper added
++ fixed the cloglog doubly robust analytic variance: the model-adjustment term mis-scaled `log((1-pi)/pi)` across units when the model had more than one covariate
++ fixed the IPW bootstrap hanging indefinitely when a replicate failed deterministically: replicate errors are now retried once and then surfaced as a proper error (matching the MI bootstrap behaviour)
++ fixed doubly-robust (`method="dr"`) bootstrap when the probability `svydesign` is a derived design (built via `subset()`, `calibrate()`, `update()`, etc.)
++ fixed doubly-robust (`method="dr"`) bootstrap variance with multiple cores (`control_inf(cores > 1)`), which previously crashed or returned wrong/`NA` variance when a bootstrap replicate failed
++ fixed underestimated MI bootstrap variance in `boot_mi()` by applying bootstrap replicate weights consistently in the per-replicate mean (closes [#125](https://github.com/ncn-foreigners/nonprobsvy/issues/125))
 + `print()` and `summary()` now describe the IPW point estimator concisely: the estimator-type line reads `IPW (Hajek, denominator: <N>)` or `IPW (HT, denominator: <N>)` — HT only when `pop_size` is user-specified (i.e. `pop_size_fixed = TRUE`), otherwise Hajek with denominator `round(sum(ipw_weights))`; the separate `IPW point estimator:` line is removed for pure IPW objects and kept (corrected) only for doubly robust objects
 + fixed `control_out()` `treetype` choices: corrected from `c("kd", "rp", "ball")` to `c("kd", "bd")` to match what `RANN::nn2()` actually accepts; `"rp"` and `"ball"` were not valid RANN tree types and caused a crash, while `"bd"` (a legitimate RANN option) was wrongly rejected
 + changed the default of `num_boot` in `control_inf()` from 500 to 100 and `nlambda` in `control_out()` from 100 to 50 to align with the documentation
-+ vignette based on the JSS paper added
 + documentation notation adjusted to match the JSS paper
 + we thank the authors of [StatsClaw.ai](https://statsclaw.ai), the tool that allowed us to identify bugs and improve the code
 + documented and stabilised the doubly robust analytic variance for non-logit propensity links: the plug-in doubly robust variance (Chen, Li & Wu 2020, Theorem 2, eq. 14) is derived under the logistic model, where the probability-sample (design) variance factor `pi` is bounded by 1; for `probit` (inverse-Mills factor `phi / (1 - pi)`) and `cloglog` (factor `log(1 - pi)` == `-exp(eta)`) it is conservative (over-estimates the standard error) and previously could overflow to a huge or non-finite SE when a fitted propensity approached 0 or 1 (in a small-propensity simulation the probit analytic SE reached ~1e27). The non-logit doubly robust variance terms (`t_vec`, `var_nonprob`, and the `b`-vector weights `psd / pi^2` and `(1 - pi) / pi^2 * exp(eta)`) now floor the fitted propensity away from `{0, 1}` at `1 / sqrt(N)` so they stay finite, a one-time note recommends `control_inf(var_method = "bootstrap")` for probit/cloglog doubly robust inference, and the documentation states the conservativeness. The logistic path is left untouched (its standard error is unchanged). The previously commented-out probit/cloglog doubly robust tests are re-enabled (point estimates pinned, analytic SE asserted finite), validated by a coverage simulation in which logit stays at nominal coverage (~0.95, SE/SD ~1) and the probit/cloglog SE no longer explodes

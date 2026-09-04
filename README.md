@@ -52,14 +52,10 @@ The package allows for:
 
 Details on the use of the package can be found:
 
-- see the working paper Chrostowski, Ł., Chlebicki, P., & Beręsewicz, M.
-  (2025). *nonprobsvy–An R package for modern methods for
-  non-probability surveys*. arXiv preprint
-  [arXiv:2504.04255](https://arxiv.org/abs/2504.04255) – forthcoming to
-  the Journal of Statistical Software
-- in the draft (and not proofread) version of the book [Modern inference
-  methods for non-probability samples with
-  R](https://ncn-foreigners.ue.poznan.pl/nonprobsvy-book/),
+- please cite the following paper: Chrostowski, Ł., Chlebicki, P., &
+  Beręsewicz, M(2026). nonprobsvy: An R package for modern methods for
+  non-probability surveys. Journal of Statistical Software, 117(2),
+  1-37. <https://doi.org/10.18637/jss.v117.i02>
 - in example codes that reproduce papers available on github in the
   repository [software
   tutorials](https://github.com/ncn-foreigners/software-tutorials).
@@ -89,12 +85,12 @@ pak::pkg_install("ncn-foreigners/nonprobsvy@dev")
 ## Basic idea
 
 Consider the following setting where two samples are available:
-non-probability (denoted as $S_{\text{NP}}$) and probability (denoted as $S_{\text{P}}$)
-where a set of auxiliary variables (denoted as $\boldsymbol{X}$) is
-available for both sources, the target variable $Y$ is observed in the
-non-probability sample, and design or calibrated weights
-($\boldsymbol{d}$ or $\boldsymbol{w}$) are observed in the probability
-sample.
+non-probability (denoted as $S_{\text{NP}}$) and probability (denoted as
+$S_{\text{P}}$) where a set of auxiliary variables (denoted as
+$\boldsymbol{X}$) is available for both sources, the target variable $Y$
+is observed in the non-probability sample, and design or calibrated
+weights ($\boldsymbol{d}$ or $\boldsymbol{w}$) are observed in the
+probability sample.
 
 | Sample |  | Auxiliary variables $\boldsymbol{X}$ | Target variable $Y$ | Design ($\boldsymbol{d}$) or calibrated ($\boldsymbol{w}$) weights |
 |----|---:|:--:|:--:|:--:|
@@ -118,22 +114,24 @@ Suppose $Y$ is the target variable, $\boldsymbol{X}$ is a matrix of
 auxiliary variables, $R$ is the inclusion indicator. Then, if we are
 interested in estimating the mean $\bar{\tau}_Y$ or the sum $\tau_Y$ of
 the of the target variable given the observed data set
-$(y_k, \boldsymbol{x}_k, I_{\text{NP}, k})$, we can approach this problem with the
-possible scenarios:
+$(y_k, \boldsymbol{x}_k, I_{\text{NP}, k})$, we can approach this
+problem with the possible scenarios:
 
-- unit-level data is available for the non-probability sample $S_{\text{NP}}$,
-  i.e. $(y_k,\boldsymbol{x}_k)$ is available for all units
-  $k \in S_{\text{NP}}$, and population-level data is available for
-  $\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p$, denoted as
+- unit-level data is available for the non-probability sample
+  $S_{\text{NP}}$, i.e. $(y_k,\boldsymbol{x}_k)$ is available for all
+  units $k \in S_{\text{NP}}$, and population-level data is available
+  for $\boldsymbol{x}_1,\ldots,\boldsymbol{x}_p$, denoted as
   $\tau_{x_{1}},\tau_{x_{2}},\ldots,\tau_{x_{p}}$ and population size
   $N$ is known. We can also consider situations where population data
   are estimated (e.g. on the basis of a survey to which we do not have
   access),
-- unit-level data is available for the non-probability sample $S_{\text{NP}}$ and
-  the probability sample $S_{\text{P}}$, i.e. $(\boldsymbol{x}_k,I_{\text{NP}, k})$ is
-  determined by the data: $I_{\text{NP}, k}=1$ if $k \in S_{\text{NP}}$ otherwise $I_{\text{NP}, k}=0$,
-  $y_k$ is observed only for sample $S_{\text{NP}}$ and $\boldsymbol{x}_k$ is
-  observed in both $S_{\text{NP}}$ and $S_{\text{P}}$.
+- unit-level data is available for the non-probability sample
+  $S_{\text{NP}}$ and the probability sample $S_{\text{P}}$, i.e.
+  $(\boldsymbol{x}_k,I_{\text{NP}, k})$ is determined by the data:
+  $I_{\text{NP}, k}=1$ if $k \in S_{\text{NP}}$ otherwise
+  $I_{\text{NP}, k}=0$, $y_k$ is observed only for sample
+  $S_{\text{NP}}$ and $\boldsymbol{x}_k$ is observed in both
+  $S_{\text{NP}}$ and $S_{\text{P}}$.
 
 Supported target-variable types depend on the estimator family:
 
@@ -607,6 +605,7 @@ result_dr
 #> A nonprob object
 #>  - estimator type: doubly robust
 #>  - method: glm (gaussian)
+#>  - IPW point estimator: Hajek (denominator: 1025063)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
@@ -668,9 +667,8 @@ Results
 ``` r
 result_ipw
 #> A nonprob object
-#>  - estimator type: inverse probability weighting
+#>  - estimator type: IPW (Hajek, denominator: 1025063)
 #>  - method: logit (mle)
-#>  - IPW point estimator: Hajek (denominator: estimated IPW weights = 1025062.6981)
 #>  - auxiliary variables source: survey
 #>  - vars selection: false
 #>  - variance estimator: analytic
