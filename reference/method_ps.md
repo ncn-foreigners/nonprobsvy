@@ -153,6 +153,6 @@ method_ps("cloglog")$make_gradient
 #>             weights_rand * exp_eta2))
 #>     }
 #> }
-#> <bytecode: 0x55af35fff518>
-#> <environment: 0x55af42007de0>
+#> <bytecode: 0x55a70f7e9958>
+#> <environment: 0x55a716e44910>
 ```
