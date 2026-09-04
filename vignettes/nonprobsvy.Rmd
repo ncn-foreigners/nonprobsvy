@@ -18,6 +18,9 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
+Sys.setenv(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1",
+           MKL_NUM_THREADS = "1", VECLIB_MAXIMUM_THREADS = "1",
+           OMP_THREAD_LIMIT = "1")
 options(prompt = "R> ", continue = "+ ", width = 76)
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -1133,7 +1136,8 @@ Finally, we can use the bias minimization approach, as proposed by
 @yang_doubly_2020, by specifying the
 `control_inference = control_inf(bias_correction = TRUE)` argument together with
 the `vars_combine = TRUE` and `vars_selection = TRUE` as this approach requires
-variable selection followed by variable union from both equations.
+variable selection followed by variable union from both equations. To keep the
+example fast we use 3 folds and 10 values of $\lambda$ for both models.
 
 ```{r dr2}
 set.seed(2026)
@@ -1145,6 +1149,8 @@ dr_est2 <- nonprob(
   method_selection = "logit",
   method_outcome = "glm",
   family_outcome = "binomial",
+  control_selection = control_sel(nfolds = 3, nlambda = 10),
+  control_outcome = control_out(nfolds = 3, nlambda = 10),
   control_inference = control_inf(bias_correction = TRUE,
                                   vars_combine = TRUE,
                                   vars_selection = TRUE)
@@ -1256,7 +1262,7 @@ In the case of the MI approach we rely on the **ncvreg** package [@ncvreg], whic
 is the only R package that employs the SCAD method. For the IPW and DR approaches,
 we have developed our own codes in C++ via the **Rcpp** and **RcppArmadillo**
 packages. In the code below we apply variable selection for the MI-GLM estimator
-using only 5 folds, 25 possible values of $\lambda$ parameters and the LASSO
+using only 3 folds, 10 possible values of $\lambda$ parameters and the LASSO
 penalty.
 
 ```{r mi-sel}
@@ -1267,7 +1273,7 @@ mi_est1_sel <- nonprob(
   data = admin,
   method_outcome = "glm",
   family_outcome = "binomial",
-  control_outcome = control_out(nfolds = 5, nlambda = 25, penalty = "lasso"),
+  control_outcome = control_out(nfolds = 3, nlambda = 10, penalty = "lasso"),
   control_inference = control_inf(vars_selection = TRUE),
   verbose = TRUE
 )
