@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/nonprobsvy/workflows/R-CMD-check/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions)
-[![revdep-check](https://github.com/ncn-foreigners/nonprobsvy/actions/workflows/revdep-check.yaml/badge.svg)](https://github.com/ncn-foreigners/nonprobsvy/actions/workflows/revdep-check.yaml)
+[![revdep-check](https://github.com/ncn-foreigners/nonprobsvy/actions/workflows/revdep-check.yaml/badge.svg?branch=dev)](https://github.com/ncn-foreigners/nonprobsvy/actions/workflows/revdep-check.yaml?query=branch%3Adev)
 [![Codecov test
 coverage](https://codecov.io/gh/ncn-foreigners/nonprobsvy/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/nonprobsvy?branch=main)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10280114.svg)](https://doi.org/10.5281/zenodo.10280114)
