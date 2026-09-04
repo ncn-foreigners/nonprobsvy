@@ -20,3 +20,7 @@ notes/
 README.html
 vignettes/*.html
 tools/
+revdep/checks/
+revdep/library/
+revdep/data.sqlite
+revdep/*.noindex

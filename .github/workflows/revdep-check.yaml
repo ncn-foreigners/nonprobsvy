@@ -1,0 +1,103 @@
+# Reverse dependency check: rebuilds every CRAN package that depends on
+# nonprobsvy against (a) the released CRAN version and (b) this branch,
+# and reports only the problems that are *new* in this branch.
+#
+# Manual run:   Actions -> revdep-check -> Run workflow
+# Automatic:    weekly, and on any PR labelled "revdepcheck"
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated revdeps to check (empty = all)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 4 * * 1"
+  pull_request:
+    types: [labeled, synchronize]
+
+name: revdep-check
+
+jobs:
+  revdep-check:
+    # only run on PRs that carry the "revdepcheck" label
+    if: >
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'revdepcheck')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            r-lib/revdepcheck
+          needs: check
+
+      - name: Run revdepcheck
+        shell: Rscript {0}
+        run: |
+          pkgs <- trimws("${{ github.event.inputs.packages }}")
+          if (nzchar(pkgs)) {
+            # restrict the run to the packages named in the workflow input
+            revdepcheck::revdep_reset(".")
+            revdepcheck::revdep_add(".", packages = strsplit(pkgs, "[[:space:]]+")[[1]])
+          }
+          revdepcheck::revdep_check(
+            pkg = ".",
+            dependencies = c("Depends", "Imports", "Suggests", "LinkingTo"),
+            num_workers = 2,
+            timeout = as.difftime(60, units = "mins"),
+            quiet = FALSE
+          )
+
+      - name: Summarise
+        if: always()
+        shell: bash
+        run: |
+          for f in revdep/README.md revdep/problems.md revdep/failures.md; do
+            if [ -s "$f" ]; then
+              echo "## $f" >> "$GITHUB_STEP_SUMMARY"
+              cat "$f" >> "$GITHUB_STEP_SUMMARY"
+              echo >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: revdep-results
+          path: |
+            revdep/*.md
+            revdep/checks/**/*.Rcheck/00check.log
+            revdep/checks/**/*.Rcheck/00install.out
+          retention-days: 30
+
+      - name: Fail if any revdep broke
+        if: always()
+        shell: Rscript {0}
+        run: |
+          # revdep/problems.md lists only packages whose check results got
+          # *worse* with the new version; issues already present with the
+          # released version show up in revdep/failures.md instead.
+          probs <- if (file.exists("revdep/problems.md")) readLines("revdep/problems.md") else character()
+          probs <- probs[nzchar(trimws(probs))]
+          if (length(probs) && !any(grepl("no problems", probs, ignore.case = TRUE))) {
+            cat(probs, sep = "\n")
+            stop("New problems in reverse dependencies -- see revdep/problems.md")
+          }
+          cat("No new problems in reverse dependencies.\n")
