@@ -1433,7 +1433,8 @@ et al. ([2020](#ref-yang_doubly_2020)), by specifying the
 `control_inference = control_inf(bias_correction = TRUE)` argument
 together with the `vars_combine = TRUE` and `vars_selection = TRUE` as
 this approach requires variable selection followed by variable union
-from both equations.
+from both equations. To keep the example fast we use 3 folds and 10
+values of \lambda for both models.
 
 ``` r
 
@@ -1446,6 +1447,8 @@ dr_est2 <- nonprob(
   method_selection = "logit",
   method_outcome = "glm",
   family_outcome = "binomial",
+  control_selection = control_sel(nfolds = 3, nlambda = 10),
+  control_outcome = control_out(nfolds = 3, nlambda = 10),
   control_inference = control_inf(bias_correction = TRUE,
                                   vars_combine = TRUE,
                                   vars_selection = TRUE)
@@ -1619,7 +1622,7 @@ In the case of the MI approach we rely on the **ncvreg** package
 that employs the SCAD method. For the IPW and DR approaches, we have
 developed our own codes in C++ via the **Rcpp** and **RcppArmadillo**
 packages. In the code below we apply variable selection for the MI-GLM
-estimator using only 5 folds, 25 possible values of \lambda parameters
+estimator using only 3 folds, 10 possible values of \lambda parameters
 and the LASSO penalty.
 
 ``` r
@@ -1631,15 +1634,13 @@ mi_est1_sel <- nonprob(
   data = admin,
   method_outcome = "glm",
   family_outcome = "binomial",
-  control_outcome = control_out(nfolds = 5, nlambda = 25, penalty = "lasso"),
+  control_outcome = control_out(nfolds = 3, nlambda = 10, penalty = "lasso"),
   control_inference = control_inf(vars_selection = TRUE),
   verbose = TRUE
 )
 #> Starting CV fold #1
 #> Starting CV fold #2
 #> Starting CV fold #3
-#> Starting CV fold #4
-#> Starting CV fold #5
 ```
 
 In this case study, the MI-GLM estimator with variable selection yields
@@ -1652,7 +1653,7 @@ rbind("MI without var sel" = extract(mi_est1)[, 2:3],
       "MI with var sel"    = extract(mi_est1_sel)[, 2:3])
 #>                         mean         SE
 #> MI without var sel 0.7032089 0.01120237
-#> MI with var sel    0.7019291 0.01102109
+#> MI with var sel    0.7012838 0.01089350
 ```
 
 The result object of the `cv.ncvreg` class is stored in the `"outcome"`
@@ -1663,17 +1664,17 @@ the `coef` generic method as follows.
 
 round(coef(mi_est1_sel)$coef_out[, 1], 4)
 #> (Intercept)    region04    region06    region08    region10    region12 
-#>      0.2820      0.0025      0.3274      0.3196      0.2120      0.1775 
+#>      0.2790      0.0000      0.2926      0.2749      0.1799      0.1470 
 #>    region14    region16    region18    region20    region22    region24 
-#>      0.0143      0.0792      0.0000      0.0000      0.0047     -0.2554 
+#>      0.0000      0.0418      0.0000      0.0000      0.0000     -0.2514 
 #>    region26    region28    region30    region32     private     naceD.E 
-#>      0.1333      0.0000      0.0000      0.0000     -0.6090      0.1759 
+#>      0.0929      0.0000      0.0000      0.0000     -0.5785      0.1619 
 #>       naceF       naceG       naceH       naceI       naceJ     naceK.L 
-#>      1.9173     -0.4558     -0.5607     -1.0966      0.9214      1.0370 
+#>      1.8882     -0.4310     -0.5274     -1.0624      0.8462      1.0027 
 #>       naceM       naceN       naceO       naceP       naceQ     naceR.S 
-#>      1.0025     -0.1840      1.4744      0.5368     -0.7116     -0.8138 
+#>      0.9749     -0.1635      1.4383      0.5370     -0.6742     -0.7686 
 #>       sizeM       sizeS 
-#>      0.9972      1.5354
+#>      0.9649      1.4934
 ```
 
 If a user is interested in viewing the PS estimation results, then
