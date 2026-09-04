@@ -13,7 +13,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/ncn-foreigners/nonprobsvy/blob/dev/inst/CITATION)
 
 Chrostowski Ł, Chlebicki P, Beręsewicz M (2026). “nonprobsvy: An R
 Package for Modern Methods for Non-Probability Surveys.” *Journal of
